@@ -115,10 +115,11 @@ export interface ScoringRule {
 }
 
 export interface CareerProfile {
-  positioning_hypotheses: Array<{
+  hypotheses: Array<{
     id: string;
     label: string;
-    statement: string;
+    summary: string;
+    suggested_headline: string;
     decision: string;
     confidence: number;
   }>;
