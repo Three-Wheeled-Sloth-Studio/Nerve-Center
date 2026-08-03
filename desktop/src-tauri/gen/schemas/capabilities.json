@@ -1,0 +1,1 @@
+{"default":{"identifier":"default","description":"Core desktop permissions for the Nerve Center main window.","local":true,"windows":["main"],"permissions":["core:default"]}}
