@@ -84,7 +84,7 @@ npm run tauri dev
 
 The shell starts the local Python service by default, hides the main window to the system tray when closed, and stops its managed service only when the user chooses Quit. Set `NERVE_CENTER_PYTHON` to an explicit Python executable when the desired environment is not on `PATH`. Set `NERVE_CENTER_API_MANAGED=0` to use a service started separately.
 
-The repository currently validates the source build and Tauri shell. A signed Windows installer is not yet produced.
+The source tree includes explicit PNG and ICO application assets used by the Tauri compile-time context. The repository currently validates the source build and Tauri shell. A signed Windows installer is not yet produced.
 
 ## Local API
 
