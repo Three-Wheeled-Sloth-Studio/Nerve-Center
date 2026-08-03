@@ -13,11 +13,12 @@ from nerve_center.config import Settings
 
 class Database:
     def __init__(self, settings: Settings) -> None:
-        settings.ensure_runtime_directories()
+        self.settings = settings
         self.engine = create_engine(settings.database_url, future=True)
         event.listen(self.engine, "connect", _configure_sqlite)
 
     def initialize(self) -> None:
+        self.settings.ensure_runtime_directories()
         with self.engine.begin() as connection:
             connection.execute(text("CREATE TABLE IF NOT EXISTS schema_state (version INTEGER NOT NULL)"))
             existing = connection.execute(text("SELECT COUNT(*) FROM schema_state")).scalar_one()
