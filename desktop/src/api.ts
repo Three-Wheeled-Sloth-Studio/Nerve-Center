@@ -8,7 +8,7 @@ import type {
 } from "./types";
 
 const API_BASE =
-  import.meta.env.VITE_NERVE_CENTER_API ?? "http://127.0.0.1:8123";
+  import.meta.env.VITE_NERVE_CENTER_API ?? "http://127.0.0.1:8765";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
