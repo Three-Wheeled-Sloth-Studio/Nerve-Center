@@ -58,5 +58,5 @@ class RunResponse(BaseModel):
     result_metrics: dict[str, int | float | str | bool]
 
     @classmethod
-    def from_snapshot(cls, snapshot: RunSnapshot) -> "RunResponse":
+    def from_snapshot(cls, snapshot: RunSnapshot) -> RunResponse:
         return cls(**asdict(snapshot))
