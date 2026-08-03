@@ -14,14 +14,17 @@ The `dev` branch contains:
 - Restart recovery, idempotent cancellation, and graceful shutdown handling.
 - A generic task-plugin registry and synthetic validation plugin.
 - A provider-neutral structured LLM contract with local Ollama support.
-- Schema-constrained Ollama chat generation and normalized provider errors.
-- Local PDF, DOCX, Markdown, and text resume registration without copying source files into the repository.
-- An evidence-backed canonical career profile with confidence and review items.
-- Durable claim confirmation, rejection, correction, and positioning-hypothesis decisions.
-- SQLite runtime storage with WAL and a lightweight schema migration path.
+- Schema-constrained Ollama generation and normalized provider errors.
+- Local PDF, DOCX, Markdown, and text resume registration.
+- One evidence-backed canonical career profile with durable user decisions.
+- Persistent company, source, scan-health, job-opening, provenance, and search-cache records.
+- Greenhouse, Lever, schema.org `JobPosting`, and sitemap connectors.
+- Direct-employer-preferred cross-source deduplication.
+- A scheduler-integrated `job_scout.discovery` task plugin.
+- An optional cached Playwright broad-search proof of concept using a dedicated local profile.
 - Public-repository privacy and security guardrails.
 
-Job discovery connectors, opportunity scoring, and the Tauri desktop shell are not implemented yet.
+Opportunity scoring and the Tauri desktop shell are not implemented yet.
 
 ## Local development
 
@@ -37,6 +40,13 @@ python -m pip install -e ".[dev]"
 ruff check .
 pytest
 nerve-center-api
+```
+
+Optional Playwright search setup:
+
+```powershell
+python -m pip install -e ".[dev,search]"
+playwright install chromium
 ```
 
 The API defaults to `127.0.0.1:8765`. Runtime data is stored in the platform-specific user application-data directory, never in the checkout.
@@ -63,6 +73,19 @@ The API defaults to `127.0.0.1:8765`. Runtime data is stored in the platform-spe
 - `POST /api/v1/profile/claims/{claim_id}/decision`
 - `PUT /api/v1/profile/claims/{claim_id}`
 - `POST /api/v1/profile/hypotheses/{hypothesis_id}/decision`
+
+### Job discovery
+
+- `POST /api/v1/discovery/companies`
+- `GET /api/v1/discovery/companies`
+- `POST /api/v1/discovery/sources`
+- `GET /api/v1/discovery/sources`
+- `POST /api/v1/discovery/sources/{source_id}/scan`
+- `GET /api/v1/discovery/sources/{source_id}/scans`
+- `GET /api/v1/discovery/jobs`
+- `POST /api/v1/discovery/search`
+
+Scheduled discovery uses task identifier `job_scout.discovery`. A run may specify `configuration.source_ids`; otherwise it scans sources whose persisted cadence is due.
 
 ## Product boundaries
 
@@ -99,6 +122,7 @@ This repository must never contain resumes, career-history source documents, app
 - `refs/planning/mvp-roadmap.md`
 - `refs/handoffs/orchestration-runtime.md`
 - `refs/handoffs/career-evidence-profile.md`
+- `refs/handoffs/job-discovery-sources.md`
 
 Nerve Center also follows the canonical principles in `Three-Wheeled-Sloth-Studio/TWS-Design-Principles`.
 
