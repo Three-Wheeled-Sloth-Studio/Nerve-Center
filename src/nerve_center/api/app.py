@@ -11,6 +11,7 @@ from fastapi import FastAPI, HTTPException, Query, status
 
 from nerve_center import __version__
 from nerve_center.api.schemas import RunCreateRequest, RunEventResponse, RunResponse
+from nerve_center.applications.api import register_application_routes
 from nerve_center.config import Settings
 from nerve_center.discovery.api import register_discovery_routes
 from nerve_center.discovery.plugin import JobDiscoveryTaskPlugin
@@ -53,7 +54,9 @@ def create_app(
     )
     registry = TaskRegistry()
     registry.register(SyntheticTaskPlugin())
-    registry.register(JobDiscoveryTaskPlugin(discovery_service, discovery_source_repository))
+    registry.register(
+        JobDiscoveryTaskPlugin(discovery_service, discovery_source_repository)
+    )
     runner = RunnerService(repository, registry)
     scheduler = SchedulerService(
         repository,
@@ -70,7 +73,11 @@ def create_app(
         await scheduler.stop()
         await runner.shutdown()
 
-    application = FastAPI(title="Nerve Center", version=__version__, lifespan=lifespan)
+    application = FastAPI(
+        title="Nerve Center",
+        version=__version__,
+        lifespan=lifespan,
+    )
     application.state.repository = repository
     application.state.runner = runner
     application.state.scheduler = scheduler
@@ -82,6 +89,7 @@ def create_app(
         discovery_service,
     )
     register_scoring_routes(application, database, runtime_settings, provider)
+    register_application_routes(application, database)
 
     @application.get("/health")
     def health() -> dict[str, str]:
