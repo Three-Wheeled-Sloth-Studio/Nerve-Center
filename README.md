@@ -2,17 +2,17 @@
 
 Nerve Center is a local-first, single-user orchestration platform for scheduled desktop tasks that may use local tools and local language models.
 
-The first task module is **Job Scout**, a job-discovery and decision-support workflow that searches public sources, evaluates opportunities against a user-controlled career profile, and prioritizes positions by both fit and likely employer response.
+The first task module is **Job Scout**, a job-discovery and decision-support workflow that searches public sources, evaluates opportunities against a user-controlled career profile, and prioritizes positions by fit, likely employer response, and practical pursuit value.
 
 ## Current status
 
-The `dev` branch contains:
+The `dev` line now includes:
 
 - Duration-based runs and fixed start/end windows.
 - Automatic launch of due fixed-window runs while Nerve Center is active.
 - Explicit persisted run states, transitions, checkpoints, results, budgets, and events.
 - Restart recovery, idempotent cancellation, and graceful shutdown handling.
-- A generic task-plugin registry and synthetic validation plugin.
+- A generic task-plugin registry.
 - A provider-neutral structured LLM contract with local Ollama support.
 - Schema-constrained Ollama generation and normalized provider errors.
 - Local PDF, DOCX, Markdown, and text resume registration.
@@ -21,12 +21,14 @@ The `dev` branch contains:
 - Greenhouse, Lever, schema.org `JobPosting`, and sitemap connectors.
 - Direct-employer-preferred cross-source deduplication.
 - A scheduler-integrated `job_scout.discovery` task plugin.
-- An optional cached Playwright broad-search proof of concept using a dedicated local profile.
+- Explainable, configurable opportunity scoring with deterministic location logic and append-only history.
+- Durable application tracking and outcome history.
+- A React review client and Tauri v2 desktop shell with close-to-tray behavior.
 - Public-repository privacy and security guardrails.
 
-Opportunity scoring and the Tauri desktop shell are not implemented yet.
-
 ## Local development
+
+### Python service
 
 Requirements:
 
@@ -50,6 +52,39 @@ playwright install chromium
 ```
 
 The API defaults to `127.0.0.1:8765`. Runtime data is stored in the platform-specific user application-data directory, never in the checkout.
+
+### React client
+
+Requirements:
+
+- Node.js 22+
+
+```powershell
+cd desktop
+npm install
+npm run build
+npm run dev
+```
+
+The Vite development server uses `127.0.0.1:1420` and connects to the local API on port `8765`.
+
+### Tauri desktop shell
+
+Requirements:
+
+- Rust stable toolchain
+- Tauri v2 platform prerequisites
+- The Python package installed in an environment available to the desktop process
+
+```powershell
+cd desktop
+npm install
+npm run tauri dev
+```
+
+The shell starts the local Python service by default, hides the main window to the system tray when closed, and stops its managed service only when the user chooses Quit. Set `NERVE_CENTER_PYTHON` to an explicit Python executable when the desired environment is not on `PATH`. Set `NERVE_CENTER_API_MANAGED=0` to use a service started separately.
+
+The repository currently validates the source build and Tauri shell. A signed Windows installer is not yet produced.
 
 ## Local API
 
@@ -87,6 +122,27 @@ The API defaults to `127.0.0.1:8765`. Runtime data is stored in the platform-spe
 
 Scheduled discovery uses task identifier `job_scout.discovery`. A run may specify `configuration.source_ids`; otherwise it scans sources whose persisted cadence is due.
 
+### Opportunity scoring
+
+- `GET /api/v1/scoring/settings`
+- `PUT /api/v1/scoring/settings`
+- `GET /api/v1/scoring/location-preferences`
+- `PUT /api/v1/scoring/location-preferences`
+- `GET|PUT /api/v1/scoring/companies/{company_id}/enrichment`
+- `GET|PUT /api/v1/scoring/jobs/{job_id}/enrichment`
+- `GET|POST /api/v1/scoring/rules`
+- `DELETE /api/v1/scoring/rules/{rule_id}`
+- `GET|POST /api/v1/scoring/jobs/{job_id}/fit`
+- `GET|POST /api/v1/scoring/jobs/{job_id}/scores`
+
+### Review and application tracking
+
+- `GET /api/v1/review/opportunities`
+- `GET /api/v1/applications`
+- `GET /api/v1/applications/{job_id}`
+- `PATCH /api/v1/applications/{job_id}`
+- `GET /api/v1/applications/{job_id}/events`
+
 ## Product boundaries
 
 Nerve Center is designed to:
@@ -123,6 +179,8 @@ This repository must never contain resumes, career-history source documents, app
 - `refs/handoffs/orchestration-runtime.md`
 - `refs/handoffs/career-evidence-profile.md`
 - `refs/handoffs/job-discovery-sources.md`
+- `refs/handoffs/opportunity-scoring.md`
+- `refs/handoffs/desktop-review-application-tracking.md`
 
 Nerve Center also follows the canonical principles in `Three-Wheeled-Sloth-Studio/TWS-Design-Principles`.
 
