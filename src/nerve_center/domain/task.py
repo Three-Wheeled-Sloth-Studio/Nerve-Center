@@ -22,7 +22,9 @@ class TaskContext:
     started_at: datetime
     deadline: datetime
     cancellation_requested: Callable[[], bool]
+    save_checkpoint: Callable[[Mapping[str, Any]], None]
     configuration: Mapping[str, Any] = field(default_factory=dict)
+    checkpoint: Mapping[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)
@@ -40,3 +42,4 @@ class TaskPlugin(Protocol):
 
     async def run(self, context: TaskContext) -> TaskResult:
         """Execute until complete, cancelled, or the run deadline is reached."""
+        ...

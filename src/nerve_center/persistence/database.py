@@ -9,6 +9,7 @@ from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import Session
 
 from nerve_center.config import Settings
+from nerve_center.persistence.models import Base
 
 
 class Database:
@@ -19,6 +20,7 @@ class Database:
 
     def initialize(self) -> None:
         self.settings.ensure_runtime_directories()
+        Base.metadata.create_all(self.engine)
         with self.engine.begin() as connection:
             connection.execute(text("CREATE TABLE IF NOT EXISTS schema_state (version INTEGER NOT NULL)"))
             existing = connection.execute(text("SELECT COUNT(*) FROM schema_state")).scalar_one()
@@ -28,7 +30,12 @@ class Database:
     @contextmanager
     def session(self) -> Iterator[Session]:
         with Session(self.engine) as session:
-            yield session
+            try:
+                yield session
+                session.commit()
+            except Exception:
+                session.rollback()
+                raise
 
 
 def _configure_sqlite(dbapi_connection: object, _connection_record: object) -> None:
