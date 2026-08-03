@@ -122,9 +122,7 @@ def register_scoring_routes(
     ) -> CompanyEnrichment:
         try:
             companies.get(company_id)
-            return company_repository.save(
-                request.model_copy(update={"company_id": company_id})
-            )
+            return company_repository.save(request.model_copy(update={"company_id": company_id}))
         except KeyError as error:
             raise HTTPException(status_code=404, detail=str(error)) from error
 

@@ -38,9 +38,7 @@ class JobFitAnalyzer:
         model: str,
     ) -> JobFitAnalysis:
         active_claims = [
-            claim
-            for claim in profile.claims
-            if claim.decision is not ClaimDecision.REJECTED
+            claim for claim in profile.claims if claim.decision is not ClaimDecision.REJECTED
         ]
         result = await self.provider.generate_structured(
             model=model,
@@ -53,11 +51,7 @@ class JobFitAnalyzer:
 
 
 def required_coverage(analysis: JobFitAnalysis) -> float:
-    required = [
-        item
-        for item in analysis.qualifications
-        if item.importance.value == "required"
-    ]
+    required = [item for item in analysis.qualifications if item.importance.value == "required"]
     if not required:
         return 0.5
     values = {
@@ -70,11 +64,7 @@ def required_coverage(analysis: JobFitAnalysis) -> float:
 
 
 def preferred_coverage(analysis: JobFitAnalysis) -> float:
-    preferred = [
-        item
-        for item in analysis.qualifications
-        if item.importance.value == "preferred"
-    ]
+    preferred = [item for item in analysis.qualifications if item.importance.value == "preferred"]
     if not preferred:
         return 0.5
     values = {
@@ -109,9 +99,7 @@ def _validate_analysis(
     response: FitAnalysisResponse,
 ) -> JobFitAnalysis:
     valid_claim_ids = {
-        claim.id
-        for claim in profile.claims
-        if claim.decision is not ClaimDecision.REJECTED
+        claim.id for claim in profile.claims if claim.decision is not ClaimDecision.REJECTED
     }
     description = " ".join(opening.description.casefold().split())
     qualifications: list[QualificationAssessment] = []

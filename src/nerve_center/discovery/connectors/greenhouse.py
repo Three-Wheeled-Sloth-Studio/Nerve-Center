@@ -69,8 +69,7 @@ class GreenhouseConnector:
         openings = [
             item
             for raw in jobs
-            if isinstance(raw, dict)
-            and (item := self._normalize(company, source, raw)) is not None
+            if isinstance(raw, dict) and (item := self._normalize(company, source, raw)) is not None
         ]
         return ConnectorScanResult(
             status=ScanStatus.SUCCEEDED,
@@ -92,9 +91,7 @@ class GreenhouseConnector:
             return None
         location = raw.get("location")
         location_text = (
-            str(location.get("name") or "").strip()
-            if isinstance(location, dict)
-            else ""
+            str(location.get("name") or "").strip() if isinstance(location, dict) else ""
         )
         departments = raw.get("departments")
         department = _first_name(departments)

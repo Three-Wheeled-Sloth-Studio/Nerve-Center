@@ -184,9 +184,7 @@ class DiscoveryService:
             is_sitemap = "sitemap" in url.casefold() or url.casefold().endswith(".xml")
             kind = SourceKind.SITEMAP if is_sitemap else SourceKind.JSON_LD
             parser_version = (
-                SitemapConnector.parser_version
-                if is_sitemap
-                else JsonLdJobConnector.parser_version
+                SitemapConnector.parser_version if is_sitemap else JsonLdJobConnector.parser_version
             )
             source_id = stable_source_id(kind.value, url)
             self.sources.upsert(

@@ -121,9 +121,7 @@ class LeverConnector:
         categories = raw.get("categories") if isinstance(raw.get("categories"), dict) else {}
         all_locations = categories.get("allLocations")
         locations = (
-            [clean_text(item) for item in all_locations]
-            if isinstance(all_locations, list)
-            else []
+            [clean_text(item) for item in all_locations] if isinstance(all_locations, list) else []
         )
         location_text = clean_text(categories.get("location"))
         if location_text and location_text not in locations:

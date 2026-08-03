@@ -163,9 +163,7 @@ def test_rejected_claim_cannot_regenerate_positioning_hypothesis(tmp_path: Path)
                 label="Product analytics",
                 statement="Built product analytics.",
                 confidence=0.9,
-                evidence=[
-                    ExtractedEvidence(locator="line:1", excerpt="Built product analytics.")
-                ],
+                evidence=[ExtractedEvidence(locator="line:1", excerpt="Built product analytics.")],
             )
         ],
         positioning_hypotheses=[

@@ -15,9 +15,7 @@ class SyntheticTaskPlugin:
     async def run(self, context: TaskContext) -> TaskResult:
         iterations = max(0, int(context.configuration.get("iterations", 3)))
         delay_ms = max(0, int(context.configuration.get("delay_ms", 0)))
-        requests_per_iteration = max(
-            0, int(context.configuration.get("requests_per_iteration", 0))
-        )
+        requests_per_iteration = max(0, int(context.configuration.get("requests_per_iteration", 0)))
         llm_calls_per_iteration = max(
             0, int(context.configuration.get("llm_calls_per_iteration", 0))
         )

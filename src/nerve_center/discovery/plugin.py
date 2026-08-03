@@ -72,9 +72,7 @@ class JobDiscoveryTaskPlugin:
         status = TaskStatus.PARTIAL if failed_sources else TaskStatus.SUCCEEDED
         return TaskResult(
             status=status,
-            summary=(
-                f"Scanned {len(completed)} sources and found {openings_found} openings."
-            ),
+            summary=(f"Scanned {len(completed)} sources and found {openings_found} openings."),
             metrics={
                 "sources_completed": len(completed),
                 "failed_sources": failed_sources,

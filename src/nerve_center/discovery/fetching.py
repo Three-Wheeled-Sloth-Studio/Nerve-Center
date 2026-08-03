@@ -70,8 +70,7 @@ class HttpFetcher:
         semaphore = await self.gate.for_url(url)
         request_headers = {
             "Accept": (
-                "application/json,text/html,application/xhtml+xml,"
-                "application/xml;q=0.9,*/*;q=0.8"
+                "application/json,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
             ),
             "User-Agent": "Nerve-Center-Job-Scout/0.3 (+public-source-discovery)",
             **(headers or {}),

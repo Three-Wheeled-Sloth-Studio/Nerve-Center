@@ -113,11 +113,7 @@ class OpportunityScorer:
                         dimension=ScoreDimension.VALUE,
                         code=code,
                         label=rule.note or f"Matched a {rule.action.value} rule.",
-                        kind=(
-                            FactorKind.POSITIVE
-                            if adjustment >= 0
-                            else FactorKind.NEGATIVE
-                        ),
+                        kind=(FactorKind.POSITIVE if adjustment >= 0 else FactorKind.NEGATIVE),
                         points=adjustment,
                         evidence=evidence,
                     )
@@ -500,7 +496,11 @@ def _apply_gates(
     gates: list[HardGate],
 ) -> None:
     if job.relocation_required:
-        gates.append(HardGate(code="relocation_required", label="Relocation-required opportunities are excluded."))
+        gates.append(
+            HardGate(
+                code="relocation_required", label="Relocation-required opportunities are excluded."
+            )
+        )
     if location.scope is LocationScope.DISTANT and opening.work_arrangement in {
         WorkArrangement.HYBRID,
         WorkArrangement.ON_SITE,
@@ -513,10 +513,10 @@ def _apply_gates(
             )
         )
     for item in analysis.qualifications:
-        if (
-            item.gate_category is not GateCategory.NONE
-            and item.match_level in {MatchLevel.NONE, MatchLevel.UNKNOWN}
-        ):
+        if item.gate_category is not GateCategory.NONE and item.match_level in {
+            MatchLevel.NONE,
+            MatchLevel.UNKNOWN,
+        }:
             gates.append(
                 HardGate(
                     code=f"required_{item.gate_category.value}:{item.id}",
@@ -548,7 +548,12 @@ def _apply_gates(
         )
     for actual, minimum, code, label in (
         (fit, settings.minimum_fit, "fit_below_minimum", "Fit"),
-        (response, settings.minimum_response_likelihood, "response_below_minimum", "Response likelihood"),
+        (
+            response,
+            settings.minimum_response_likelihood,
+            "response_below_minimum",
+            "Response likelihood",
+        ),
         (value, settings.minimum_opportunity_value, "value_below_minimum", "Opportunity value"),
     ):
         if actual < minimum:
@@ -575,7 +580,11 @@ def _confidence_score(
         "date": 100.0 if (opening.posted_at or opening.updated_at) else 40.0,
         "location": location.confidence * 100,
         "fit_analysis": analysis.confidence * 100,
-        "description": 100.0 if len(opening.description) >= 500 else 70.0 if len(opening.description) >= 100 else 40.0,
+        "description": 100.0
+        if len(opening.description) >= 500
+        else 70.0
+        if len(opening.description) >= 100
+        else 40.0,
     }
     score = sum(components.values()) / len(components)
     if job.conflicting_source_data:
