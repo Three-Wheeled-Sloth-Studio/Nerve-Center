@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from contextlib import contextmanager
+from importlib import import_module
 
 from sqlalchemy import Connection, create_engine, event, text
 from sqlalchemy.orm import Session
 
 from nerve_center.config import Settings
-from nerve_center.persistence import application_tables as _application_tables
 from nerve_center.persistence.models import Base
 
 SCHEMA_VERSION = 6
@@ -23,6 +23,7 @@ class Database:
 
     def initialize(self) -> None:
         self.settings.ensure_runtime_directories()
+        import_module("nerve_center.persistence.application_tables")
         Base.metadata.create_all(self.engine)
         with self.engine.begin() as connection:
             _migrate(connection)
