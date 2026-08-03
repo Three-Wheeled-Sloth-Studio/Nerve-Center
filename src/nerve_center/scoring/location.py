@@ -36,7 +36,11 @@ def assess_location(
         for office in company.offices:
             if not office.relevant_to_function or office.point is None:
                 continue
-            minutes = estimate_drive_minutes(preferences.home_point, office.point, preferences)
+            minutes = estimate_drive_minutes(
+                preferences.home_point,
+                office.point,
+                preferences,
+            )
             if nearest_office_minutes is None or minutes < nearest_office_minutes:
                 nearest_office_minutes = minutes
                 nearest_office_id = office.id
@@ -56,7 +60,8 @@ def assess_location(
         if effective_minutes <= preferences.local_max_commute_minutes:
             scope = LocationScope.LOCAL
             rationale.append(
-                f"Estimated travel time is {effective_minutes:.0f} minutes, within the local limit."
+                "Estimated travel time is "
+                f"{effective_minutes:.0f} minutes, within the local limit."
             )
             confidence_inputs.append(0.9)
         elif region and (region == home_region or region in regional_regions):
@@ -67,7 +72,9 @@ def assess_location(
             confidence_inputs.append(0.8)
         else:
             scope = LocationScope.DISTANT
-            rationale.append("The opportunity is outside local and configured regional reach.")
+            rationale.append(
+                "The opportunity is outside local and configured regional reach."
+            )
             confidence_inputs.append(0.75)
     elif region and (region == home_region or region in regional_regions):
         scope = LocationScope.REGIONAL
@@ -84,11 +91,21 @@ def assess_location(
 
     score = _location_base_score(scope, work_arrangement)
     if scope is LocationScope.LOCAL and effective_minutes is not None:
-        decay = 20 * min(effective_minutes / preferences.local_max_commute_minutes, 1)
+        decay = 20 * min(
+            effective_minutes / preferences.local_max_commute_minutes,
+            1,
+        )
         score = max(0, score - decay)
-        rationale.append("Closer local opportunities receive a continuous response advantage.")
-    if work_arrangement is WorkArrangement.REMOTE and nearest_office_minutes is not None:
-        rationale.append("The nearest relevant company office contributes to remote visibility.")
+        rationale.append(
+            "Closer local opportunities receive a continuous response advantage."
+        )
+    if (
+        work_arrangement is WorkArrangement.REMOTE
+        and nearest_office_minutes is not None
+    ):
+        rationale.append(
+            "The nearest relevant company office contributes to remote visibility."
+        )
 
     return LocationAssessment(
         scope=scope,
@@ -117,7 +134,10 @@ def haversine_miles(origin: GeoPoint, destination: GeoPoint) -> float:
     lat2 = radians(destination.latitude)
     delta_lat = radians(destination.latitude - origin.latitude)
     delta_lon = radians(destination.longitude - origin.longitude)
-    value = sin(delta_lat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(delta_lon / 2) ** 2
+    value = (
+        sin(delta_lat / 2) ** 2
+        + cos(lat1) * cos(lat2) * sin(delta_lon / 2) ** 2
+    )
     return 2 * earth_radius_miles * asin(sqrt(value))
 
 
