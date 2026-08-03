@@ -8,6 +8,7 @@ from typing import Annotated
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Query, status
+from fastapi.middleware.cors import CORSMiddleware
 
 from nerve_center import __version__
 from nerve_center.api.schemas import RunCreateRequest, RunEventResponse, RunResponse
@@ -35,6 +36,14 @@ from nerve_center.scheduler.registry import TaskRegistry
 from nerve_center.scheduler.runner import RunnerService
 from nerve_center.scheduler.service import SchedulerService
 from nerve_center.scoring.api import register_scoring_routes
+
+LOCAL_DESKTOP_ORIGINS = [
+    "http://127.0.0.1:1420",
+    "http://localhost:1420",
+    "http://tauri.localhost",
+    "https://tauri.localhost",
+    "tauri://localhost",
+]
 
 
 def create_app(
@@ -77,6 +86,12 @@ def create_app(
         title="Nerve Center",
         version=__version__,
         lifespan=lifespan,
+    )
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=LOCAL_DESKTOP_ORIGINS,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
     application.state.repository = repository
     application.state.runner = runner
