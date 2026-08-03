@@ -41,6 +41,8 @@ jobs:
 
   desktop-rust:
     runs-on: ubuntu-latest
+    env:
+      CARGO_TERM_COLOR: never
     steps:
       - uses: actions/checkout@v4
       - name: Install Tauri system dependencies
@@ -58,4 +60,4 @@ jobs:
             librsvg2-dev
       - uses: dtolnay/rust-toolchain@stable
       - name: Check Tauri shell
-        run: cargo check --manifest-path desktop/src-tauri/Cargo.toml
+        run: cargo check --message-format=short --manifest-path desktop/src-tauri/Cargo.toml
