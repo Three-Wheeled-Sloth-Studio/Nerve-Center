@@ -8,13 +8,17 @@ from nerve_center.profile.models import (
     CanonicalCareerProfile,
     CareerExtractionResponse,
     ClaimCategory,
+    ClaimDecision,
     ExtractedClaim,
     ExtractedEvidence,
     ExtractedPositioningHypothesis,
     HypothesisDecision,
 )
 from nerve_center.profile.service import CareerProfileService
-from nerve_center.providers.base import ProviderCallMetadata, StructuredGenerationResult
+from nerve_center.providers.base import (
+    ProviderCallMetadata,
+    StructuredGenerationResult,
+)
 
 
 class MemoryStore:
@@ -100,11 +104,24 @@ def test_builds_evidence_backed_profile_and_remembers_hypothesis_decision(tmp_pa
     profile = asyncio.run(service.extract_document(document, model="fake-model"))
     hypothesis = profile.hypotheses[0]
     updated = service.decide_hypothesis(hypothesis.id, HypothesisDecision.APPROVED)
+    decided = service.decide_claim(profile.claims[0].id, ClaimDecision.CONFIRMED)
+    service.provider.response = response.model_copy(
+        update={
+            "positioning_hypotheses": [
+                response.positioning_hypotheses[0].model_copy(
+                    update={"label": "Operational analytics product leadership"}
+                )
+            ]
+        }
+    )
+    service.decide_hypothesis(hypothesis.id, HypothesisDecision.DISAPPROVED)
     rerun = asyncio.run(service.extract_document(document, model="fake-model"))
 
     assert profile.claims[0].evidence[0].document_id == document.id
     assert updated.hypotheses[0].decision is HypothesisDecision.APPROVED
-    assert rerun.hypotheses[0].decision is HypothesisDecision.APPROVED
+    assert decided.claims[0].decision is ClaimDecision.CONFIRMED
+    assert rerun.hypotheses[0].decision is HypothesisDecision.DISAPPROVED
+    assert rerun.hypotheses[0].id == hypothesis.id
 
 
 def test_rejects_claim_without_exact_source_evidence(tmp_path: Path) -> None:
@@ -133,3 +150,40 @@ def test_rejects_claim_without_exact_source_evidence(tmp_path: Path) -> None:
 
     assert profile.claims == []
     assert profile.review_items[0].code == "invalid_evidence"
+
+
+def test_rejected_claim_cannot_regenerate_positioning_hypothesis(tmp_path: Path) -> None:
+    source = tmp_path / "resume.txt"
+    source.write_text("Built product analytics.\n", encoding="utf-8")
+    document = import_source_document(source)
+    response = CareerExtractionResponse(
+        claims=[
+            ExtractedClaim(
+                category=ClaimCategory.CAPABILITY,
+                label="Product analytics",
+                statement="Built product analytics.",
+                confidence=0.9,
+                evidence=[
+                    ExtractedEvidence(locator="line:1", excerpt="Built product analytics.")
+                ],
+            )
+        ],
+        positioning_hypotheses=[
+            ExtractedPositioningHypothesis(
+                label="Analytics product leader",
+                summary="Leads analytics products.",
+                suggested_headline="Analytics Product Leader",
+                supporting_claim_labels=["Product analytics"],
+                confidence=0.9,
+            )
+        ],
+    )
+    store = MemoryStore()
+    service = CareerProfileService(store, FakeProvider(response))
+    profile = asyncio.run(service.extract_document(document, model="fake-model"))
+
+    rejected = service.decide_claim(profile.claims[0].id, ClaimDecision.REJECTED)
+    rerun = asyncio.run(service.extract_document(document, model="fake-model"))
+
+    assert rejected.hypotheses == []
+    assert rerun.hypotheses == []

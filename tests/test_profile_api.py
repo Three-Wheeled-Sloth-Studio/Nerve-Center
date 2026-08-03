@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 from pydantic import BaseModel
 
 from nerve_center.api.schemas import (
+    ClaimDecisionRequest,
     ClaimOverrideRequest,
     DocumentRegisterRequest,
     HypothesisDecisionRequest,
@@ -107,6 +108,10 @@ def test_profile_routes_cover_import_extract_decide_and_override(tmp_path: Path)
             json=HypothesisDecisionRequest(decision="approved").model_dump(mode="json"),
         ).json()
         claim = profile["claims"][0]
+        profile = client.post(
+            f"/api/v1/profile/claims/{claim['id']}/decision",
+            json=ClaimDecisionRequest(decision="confirmed").model_dump(mode="json"),
+        ).json()
         profile = client.put(
             f"/api/v1/profile/claims/{claim['id']}",
             json=ClaimOverrideRequest(

@@ -5,6 +5,7 @@ import httpx
 from pydantic import BaseModel
 
 from nerve_center.providers.base import ProviderCallMetadata
+from nerve_center.providers.errors import ProviderError
 from nerve_center.providers.ollama import OllamaProvider
 
 
@@ -86,3 +87,32 @@ def test_generates_schema_constrained_response_and_records_safe_metadata() -> No
     assert telemetry.items[0].status == "succeeded"
     assert telemetry.items[0].prompt_eval_count == 120
     assert "secret" not in telemetry.items[0].model_dump_json()
+
+
+def test_records_retry_count_when_ollama_stays_unavailable() -> None:
+    telemetry = CaptureTelemetry()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectError("offline", request=request)
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    provider = OllamaProvider(client=client, telemetry=telemetry, max_retries=1)
+    try:
+        asyncio.run(
+            provider.generate_structured(
+                model="qwen3:8b",
+                system_prompt="system",
+                user_prompt="user",
+                response_type=ExampleResponse,
+                contract_version="example-v1",
+            )
+        )
+    except ProviderError as error:
+        assert error.code == "OLLAMA_UNREACHABLE"
+    else:
+        raise AssertionError("expected the unavailable provider to fail")
+    finally:
+        asyncio.run(client.aclose())
+
+    assert telemetry.items[0].status == "failed"
+    assert telemetry.items[0].retry_count == 1

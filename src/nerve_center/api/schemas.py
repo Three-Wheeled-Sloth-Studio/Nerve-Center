@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field, model_validator
 from nerve_center.domain.budget import ResourceBudget
 from nerve_center.domain.run import RunEventSnapshot, RunSnapshot, RunStatus
 from nerve_center.domain.run_window import DurationRunWindow, FixedRunWindow
-from nerve_center.profile.models import ClaimCategory, HypothesisDecision
+from nerve_center.profile.models import ClaimCategory, ClaimDecision, HypothesisDecision
 
 
 class ResourceBudgetRequest(BaseModel):
@@ -101,6 +101,10 @@ class ProfileExtractRequest(BaseModel):
 
 class HypothesisDecisionRequest(BaseModel):
     decision: HypothesisDecision
+
+
+class ClaimDecisionRequest(BaseModel):
+    decision: ClaimDecision
 
 
 class ClaimOverrideRequest(BaseModel):

@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 from contextlib import suppress
-from datetime import datetime
+from datetime import UTC, datetime
 from time import perf_counter
 from typing import Any
 from uuid import uuid4
@@ -85,7 +85,7 @@ class OllamaProvider:
     ) -> StructuredGenerationResult[TResponse]:
         request_id = str(uuid4())
         started = perf_counter()
-        started_at = datetime.now().astimezone()
+        started_at = datetime.now(UTC)
         retry_count = 0
         output_text = ""
         status = "failed"
@@ -111,7 +111,15 @@ class OllamaProvider:
         }
 
         try:
-            response, retry_count = await self._send_with_retries("POST", "/api/chat", json=body)
+            while True:
+                try:
+                    response = await self._send("POST", "/api/chat", json=body)
+                    break
+                except ProviderError as error:
+                    if not error.retryable or retry_count >= self.max_retries:
+                        raise
+                    retry_count += 1
+                    await asyncio.sleep(0.2 * retry_count)
             payload = self._json_object(response)
             message = payload.get("message")
             if not isinstance(message, dict) or not isinstance(message.get("content"), str):
@@ -171,22 +179,6 @@ class OllamaProvider:
                         eval_count=eval_count,
                     )
                 )
-
-    async def _send_with_retries(
-        self,
-        method: str,
-        path: str,
-        **kwargs: Any,
-    ) -> tuple[httpx.Response, int]:
-        retries = 0
-        while True:
-            try:
-                return await self._send(method, path, **kwargs), retries
-            except ProviderError as error:
-                if not error.retryable or retries >= self.max_retries:
-                    raise
-                retries += 1
-                await asyncio.sleep(0.2 * retries)
 
     async def _send(self, method: str, path: str, **kwargs: Any) -> httpx.Response:
         client = self._client

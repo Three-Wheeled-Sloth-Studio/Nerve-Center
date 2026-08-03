@@ -7,6 +7,7 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException, status
 
 from nerve_center.api.schemas import (
+    ClaimDecisionRequest,
     ClaimOverrideRequest,
     DocumentRegisterRequest,
     HypothesisDecisionRequest,
@@ -94,6 +95,16 @@ def register_profile_routes(
     ) -> CanonicalCareerProfile:
         try:
             return profile_service.decide_hypothesis(hypothesis_id, request.decision)
+        except KeyError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+
+    @application.post("/api/v1/profile/claims/{claim_id}/decision")
+    def decide_claim(
+        claim_id: str,
+        request: ClaimDecisionRequest,
+    ) -> CanonicalCareerProfile:
+        try:
+            return profile_service.decide_claim(claim_id, request.decision)
         except KeyError as error:
             raise HTTPException(status_code=404, detail=str(error)) from error
 

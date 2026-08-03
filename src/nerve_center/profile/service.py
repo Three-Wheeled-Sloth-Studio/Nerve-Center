@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
+from collections.abc import Iterable
 from datetime import UTC, datetime
 from typing import Protocol
 from uuid import NAMESPACE_URL, uuid5
@@ -86,6 +87,44 @@ class CareerProfileService:
             )
         )
 
+    def decide_claim(
+        self,
+        claim_id: str,
+        decision: ClaimDecision,
+    ) -> CanonicalCareerProfile:
+        profile = self.store.get_profile()
+        found = False
+        claims: list[CareerClaim] = []
+        for claim in profile.claims:
+            if claim.id == claim_id:
+                claim = claim.model_copy(update={"decision": decision})
+                found = True
+            claims.append(claim)
+        if not found:
+            raise KeyError(f"unknown career claim: {claim_id}")
+
+        active_ids = {item.id for item in claims if item.decision is not ClaimDecision.REJECTED}
+        hypotheses: list[PositioningHypothesis] = []
+        for hypothesis in profile.hypotheses:
+            supporting_ids = [
+                item for item in hypothesis.supporting_claim_ids if item in active_ids
+            ]
+            if supporting_ids:
+                hypotheses.append(
+                    hypothesis.model_copy(update={"supporting_claim_ids": supporting_ids})
+                )
+
+        return self.store.save_profile(
+            profile.model_copy(
+                update={
+                    "claims": claims,
+                    "hypotheses": hypotheses,
+                    "version": profile.version + 1,
+                    "updated_at": datetime.now(UTC),
+                }
+            )
+        )
+
     def override_claim(
         self,
         claim_id: str,
@@ -154,7 +193,8 @@ def merge_extraction(
 
     label_to_ids: dict[str, list[str]] = defaultdict(list)
     for claim in claims_by_id.values():
-        label_to_ids[_normalize(claim.label)].append(claim.id)
+        if claim.decision is not ClaimDecision.REJECTED:
+            label_to_ids[_normalize(claim.label)].append(claim.id)
 
     existing_hypotheses = {item.id: item for item in current.hypotheses}
     hypotheses_by_id = dict(existing_hypotheses)
@@ -165,8 +205,8 @@ def merge_extraction(
         supporting_ids = sorted(set(supporting_ids))
         if not supporting_ids:
             continue
-        hypothesis_id = _stable_id("hypothesis", extracted.label)
-        prior = existing_hypotheses.get(hypothesis_id)
+        prior = _find_prior_hypothesis(extracted.label, existing_hypotheses.values())
+        hypothesis_id = prior.id if prior else _stable_id("hypothesis", extracted.label)
         hypotheses_by_id[hypothesis_id] = PositioningHypothesis(
             id=hypothesis_id,
             label=extracted.label.strip(),
@@ -325,3 +365,52 @@ def _stable_id(*parts: object) -> str:
 
 def _normalize(value: str) -> str:
     return _WHITESPACE.sub(" ", value.strip().casefold())
+
+
+def _find_prior_hypothesis(
+    label: str,
+    existing: Iterable[PositioningHypothesis],
+) -> PositioningHypothesis | None:
+    candidates = list(existing)
+    exact_id = _stable_id("hypothesis", label)
+    for candidate in candidates:
+        if candidate.id == exact_id:
+            return candidate
+
+    target_terms = _hypothesis_terms(label)
+    best: PositioningHypothesis | None = None
+    best_score = 0.0
+    for candidate in candidates:
+        candidate_terms = _hypothesis_terms(
+            f"{candidate.label} {candidate.suggested_headline}"
+        )
+        union = target_terms | candidate_terms
+        score = len(target_terms & candidate_terms) / len(union) if union else 0.0
+        if score >= 0.6 and score > best_score:
+            best = candidate
+            best_score = score
+    return best
+
+
+def _hypothesis_terms(value: str) -> set[str]:
+    stopwords = {
+        "a",
+        "an",
+        "and",
+        "for",
+        "in",
+        "of",
+        "the",
+        "to",
+        "with",
+    }
+    aliases = {
+        "leadership": "leader",
+        "leading": "leader",
+        "leads": "leader",
+    }
+    return {
+        aliases.get(token, token)
+        for token in re.findall(r"[a-z0-9]+", value.casefold())
+        if token not in stopwords
+    }
