@@ -73,7 +73,15 @@ class RunResponse(BaseModel):
 
     @classmethod
     def from_snapshot(cls, snapshot: RunSnapshot) -> RunResponse:
-        return cls(**asdict(snapshot))
+        values = asdict(snapshot)
+        if not values["result_summary"]:
+            active_source = snapshot.checkpoint.get("active_source_id")
+            last_source = snapshot.checkpoint.get("last_source_id")
+            if active_source:
+                values["result_summary"] = f"Scanning source {active_source}."
+            elif last_source and snapshot.finished_at is None:
+                values["result_summary"] = f"Last completed source {last_source}."
+        return cls(**values)
 
 
 class RunEventResponse(BaseModel):
