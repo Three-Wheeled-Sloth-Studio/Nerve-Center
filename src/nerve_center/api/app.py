@@ -33,6 +33,7 @@ from nerve_center.providers.base import StructuredProvider
 from nerve_center.scheduler.registry import TaskRegistry
 from nerve_center.scheduler.runner import RunnerService
 from nerve_center.scheduler.service import SchedulerService
+from nerve_center.scoring.api import register_scoring_routes
 
 
 def create_app(
@@ -52,9 +53,7 @@ def create_app(
     )
     registry = TaskRegistry()
     registry.register(SyntheticTaskPlugin())
-    registry.register(
-        JobDiscoveryTaskPlugin(discovery_service, discovery_source_repository)
-    )
+    registry.register(JobDiscoveryTaskPlugin(discovery_service, discovery_source_repository))
     runner = RunnerService(repository, registry)
     scheduler = SchedulerService(
         repository,
@@ -82,6 +81,7 @@ def create_app(
         runtime_settings,
         discovery_service,
     )
+    register_scoring_routes(application, database, runtime_settings, provider)
 
     @application.get("/health")
     def health() -> dict[str, str]:
