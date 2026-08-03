@@ -8,11 +8,11 @@ from uuid import uuid4
 from sqlalchemy import select
 
 from nerve_center.applications.models import (
+    RESPONSE_STATUSES,
     ApplicationEvent,
     ApplicationRecord,
     ApplicationStatus,
     ApplicationUpdate,
-    RESPONSE_STATUSES,
     ReferralStatus,
 )
 from nerve_center.persistence.application_tables import (
@@ -59,11 +59,18 @@ class ApplicationRepository:
         payload = update.model_dump(exclude_unset=True)
         with self.database.session() as session:
             model = session.get(ApplicationRecordModel, job_id)
-            previous = _record(model) if model is not None else ApplicationRecord(job_id=job_id)
+            previous = (
+                _record(model)
+                if model is not None
+                else ApplicationRecord(job_id=job_id)
+            )
             values = previous.model_dump(mode="python")
             values.update(payload)
             next_status = ApplicationStatus(values["status"])
-            if next_status is ApplicationStatus.APPLIED and values["application_date"] is None:
+            if (
+                next_status is ApplicationStatus.APPLIED
+                and values["application_date"] is None
+            ):
                 values["application_date"] = current_time.date()
             if next_status in RESPONSE_STATUSES and values["response_date"] is None:
                 values["response_date"] = current_time.date()
@@ -75,9 +82,7 @@ class ApplicationRepository:
             changed_fields = _changed_fields(previous, saved)
             if model is None:
                 session.add(
-                    ApplicationRecordModel(
-                        **saved.model_dump(mode="python")
-                    )
+                    ApplicationRecordModel(**saved.model_dump(mode="python"))
                 )
             elif changed_fields:
                 for field, value in saved.model_dump(mode="python").items():
