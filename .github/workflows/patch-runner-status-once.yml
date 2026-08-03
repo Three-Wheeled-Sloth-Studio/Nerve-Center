@@ -1,0 +1,62 @@
+name: Patch Runner Status Once
+
+on:
+  push:
+    branches:
+      - agent/issue-5-desktop
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/issue-5-desktop
+      - name: Expose source and recent outcome
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('desktop/src/App.tsx')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace(
+              '  const activeRun = runs.find((run) => ACTIVE_RUN_STATUSES.has(run.status));\n',
+              '  const activeRun = runs.find((run) => ACTIVE_RUN_STATUSES.has(run.status));\n'
+              '  const recentRun = runs.find((run) => run.finished_at);\n',
+              1,
+          )
+          old = '''          {activeRun
+            ? `${activeRun.status}: ${remaining(activeRun.deadline)}`
+            : "Runner idle"}'''
+          new = '''          {activeRun
+            ? `${titleCase(activeRun.status)} · ${remaining(activeRun.deadline)} · ${activeSource(activeRun.checkpoint)}`
+            : recentRun?.result_summary
+              ? `Runner idle · Last: ${recentRun.result_summary}`
+              : "Runner idle"}'''
+          if old not in text:
+              raise SystemExit('runner status target was not found')
+          text = text.replace(old, new, 1)
+          marker = 'function remaining(deadline: string | null) {'
+          helper = '''function activeSource(checkpoint: Record<string, unknown>) {
+  const source = checkpoint.active_source_id ?? checkpoint.last_source_id;
+  return typeof source === "string" ? `Source ${source}` : "Source pending";
+}
+
+'''
+          if marker not in text:
+              raise SystemExit('helper insertion target was not found')
+          text = text.replace(marker, helper + marker, 1)
+          path.write_text(text, encoding='utf-8')
+          Path('.github/workflows/patch-runner-status-once.yml').unlink()
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'feat: show active source and recent run outcome'
+          git push origin HEAD:agent/issue-5-desktop
