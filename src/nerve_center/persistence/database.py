@@ -39,7 +39,6 @@ class Database:
 
 
 def _migrate(connection: Connection) -> None:
-    del _application_tables
     connection.execute(
         text("CREATE TABLE IF NOT EXISTS schema_state (version INTEGER NOT NULL)")
     )
