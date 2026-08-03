@@ -4,12 +4,19 @@ on:
   push:
     branches: [main, dev]
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
   python:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,6 +32,7 @@ jobs:
         run: pytest
 
   desktop-web:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -40,6 +48,8 @@ jobs:
         run: npm run build
 
   desktop-rust:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    needs: [python, desktop-web]
     runs-on: ubuntu-latest
     env:
       CARGO_TERM_COLOR: never

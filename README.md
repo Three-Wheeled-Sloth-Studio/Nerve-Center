@@ -176,13 +176,14 @@ This repository must never contain resumes, career-history source documents, app
 - `refs/planning/product-vision-and-architecture.md`
 - `refs/planning/decision-register.md`
 - `refs/planning/mvp-roadmap.md`
+- `refs/engineering/ci-and-agent-workflow.md`
 - `refs/handoffs/orchestration-runtime.md`
 - `refs/handoffs/career-evidence-profile.md`
 - `refs/handoffs/job-discovery-sources.md`
 - `refs/handoffs/opportunity-scoring.md`
 - `refs/handoffs/desktop-review-application-tracking.md`
 
-Nerve Center also follows the canonical principles in `Three-Wheeled-Sloth-Studio/TWS-Design-Principles`.
+Nerve Center also follows the canonical principles in `Three-Wheeled-Sloth-Studio/TWS-Design-Principles`, including `engineering/CI-Signal-Discipline.md`.
 
 ## License
 
