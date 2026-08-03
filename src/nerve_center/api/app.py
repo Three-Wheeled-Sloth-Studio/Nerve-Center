@@ -12,12 +12,20 @@ from fastapi import FastAPI, HTTPException, Query, status
 from nerve_center import __version__
 from nerve_center.api.schemas import RunCreateRequest, RunEventResponse, RunResponse
 from nerve_center.config import Settings
+from nerve_center.discovery.api import register_discovery_routes
+from nerve_center.discovery.plugin import JobDiscoveryTaskPlugin
+from nerve_center.discovery.service import DiscoveryService
 from nerve_center.domain.run import (
     InvalidRunTransitionError,
     RunNotFoundError,
     RunNotReadyError,
 )
 from nerve_center.persistence.database import Database
+from nerve_center.persistence.discovery import (
+    CompanyRepository,
+    DiscoverySourceRepository,
+    JobOpeningRepository,
+)
 from nerve_center.persistence.runs import RunRepository
 from nerve_center.plugins.synthetic import SyntheticTaskPlugin
 from nerve_center.profile.api import register_profile_routes
@@ -34,8 +42,19 @@ def create_app(
     runtime_settings = settings or Settings()
     database = Database(runtime_settings)
     repository = RunRepository(database)
+    company_repository = CompanyRepository(database)
+    discovery_source_repository = DiscoverySourceRepository(database)
+    job_repository = JobOpeningRepository(database)
+    discovery_service = DiscoveryService(
+        company_repository,
+        discovery_source_repository,
+        job_repository,
+    )
     registry = TaskRegistry()
     registry.register(SyntheticTaskPlugin())
+    registry.register(
+        JobDiscoveryTaskPlugin(discovery_service, discovery_source_repository)
+    )
     runner = RunnerService(repository, registry)
     scheduler = SchedulerService(
         repository,
@@ -57,6 +76,12 @@ def create_app(
     application.state.runner = runner
     application.state.scheduler = scheduler
     register_profile_routes(application, database, runtime_settings, provider)
+    register_discovery_routes(
+        application,
+        database,
+        runtime_settings,
+        discovery_service,
+    )
 
     @application.get("/health")
     def health() -> dict[str, str]:
