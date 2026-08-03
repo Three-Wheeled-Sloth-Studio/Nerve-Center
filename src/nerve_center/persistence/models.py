@@ -48,3 +48,46 @@ class RunEventModel(Base):
     source_status: Mapped[str | None] = mapped_column(String(32))
     target_status: Mapped[str | None] = mapped_column(String(32))
     detail: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+
+
+class SourceDocumentModel(Base):
+    __tablename__ = "source_documents"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    source_path: Mapped[str] = mapped_column(Text)
+    file_name: Mapped[str] = mapped_column(String(255))
+    format: Mapped[str] = mapped_column(String(32))
+    media_type: Mapped[str] = mapped_column(String(150))
+    sha256: Mapped[str] = mapped_column(String(64), index=True)
+    byte_size: Mapped[int] = mapped_column(Integer)
+    modified_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    imported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    segments: Mapped[list[dict[str, str]]] = mapped_column(JSON, default=list)
+
+
+class CareerProfileModel(Base):
+    __tablename__ = "career_profiles"
+
+    id: Mapped[str] = mapped_column(String(50), primary_key=True)
+    version: Mapped[int] = mapped_column(Integer)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+
+
+class ProviderCallModel(Base):
+    __tablename__ = "provider_calls"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    provider: Mapped[str] = mapped_column(String(50), index=True)
+    model: Mapped[str] = mapped_column(String(200), index=True)
+    contract_version: Mapped[str] = mapped_column(String(100))
+    response_schema: Mapped[str] = mapped_column(String(100))
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    duration_ms: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    error_code: Mapped[str | None] = mapped_column(String(100))
+    retry_count: Mapped[int] = mapped_column(Integer, default=0)
+    input_char_count: Mapped[int] = mapped_column(Integer, default=0)
+    output_char_count: Mapped[int] = mapped_column(Integer, default=0)
+    prompt_eval_count: Mapped[int | None] = mapped_column(Integer)
+    eval_count: Mapped[int | None] = mapped_column(Integer)

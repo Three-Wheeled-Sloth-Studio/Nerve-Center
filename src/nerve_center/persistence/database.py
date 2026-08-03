@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from nerve_center.config import Settings
 from nerve_center.persistence.models import Base
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 
 class Database:
@@ -43,14 +43,26 @@ def _migrate(connection: Connection) -> None:
     if existing == 0:
         connection.execute(text("INSERT INTO schema_state (version) VALUES (1)"))
 
-    columns = {row[1] for row in connection.execute(text("PRAGMA table_info(runs)")).fetchall()}
-    if "budget" not in columns:
-        connection.execute(text("ALTER TABLE runs ADD COLUMN budget JSON NOT NULL DEFAULT '{}'"))
-    if "budget_usage" not in columns:
-        connection.execute(
-            text("ALTER TABLE runs ADD COLUMN budget_usage JSON NOT NULL DEFAULT '{}'")
-        )
-    connection.execute(text("UPDATE schema_state SET version = :version"), {"version": SCHEMA_VERSION})
+    tables = {
+        row[0]
+        for row in connection.execute(
+            text("SELECT name FROM sqlite_master WHERE type = 'table'")
+        ).fetchall()
+    }
+    if "runs" in tables:
+        columns = {row[1] for row in connection.execute(text("PRAGMA table_info(runs)")).fetchall()}
+        if "budget" not in columns:
+            connection.execute(
+                text("ALTER TABLE runs ADD COLUMN budget JSON NOT NULL DEFAULT '{}'")
+            )
+        if "budget_usage" not in columns:
+            connection.execute(
+                text("ALTER TABLE runs ADD COLUMN budget_usage JSON NOT NULL DEFAULT '{}'")
+            )
+    connection.execute(
+        text("UPDATE schema_state SET version = :version"),
+        {"version": SCHEMA_VERSION},
+    )
 
 
 def _configure_sqlite(dbapi_connection: object, _connection_record: object) -> None:
