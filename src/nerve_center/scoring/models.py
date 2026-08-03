@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Any
+from typing import Any, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -193,7 +193,7 @@ class ScoringWeights(BaseModel):
     opportunity_value: float = Field(default=0.20, ge=0)
 
     @model_validator(mode="after")
-    def validate_total(self) -> ScoringWeights:
+    def validate_total(self) -> Self:
         if self.fit + self.response_likelihood + self.opportunity_value <= 0:
             raise ValueError("at least one priority weight must be positive")
         return self
