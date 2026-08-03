@@ -1,0 +1,97 @@
+name: Fix Tauri Icons Once
+
+on:
+  push:
+    branches:
+      - agent/issue-5-desktop-clean
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/issue-5-desktop-clean
+      - name: Generate desktop icons and wire Tauri
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          import struct
+          import zlib
+
+          size = 128
+          pixels = bytearray()
+          center = size / 2
+          nodes = [
+              (center, center),
+              (size / 3, size / 3),
+              (2 * size / 3, size / 3),
+              (size / 3, 2 * size / 3),
+              (2 * size / 3, 2 * size / 3),
+          ]
+          for y in range(size):
+              pixels.append(0)
+              for x in range(size):
+                  color = [15, 23, 42, 255]
+                  radius = ((x - center) ** 2 + (y - center) ** 2) ** 0.5
+                  if 43 <= radius <= 49:
+                      color = [59, 130, 246, 255]
+                  for nx, ny in nodes[1:]:
+                      dx = nx - center
+                      dy = ny - center
+                      length2 = dx * dx + dy * dy
+                      t = max(0, min(1, ((x - center) * dx + (y - center) * dy) / length2))
+                      px = center + t * dx
+                      py = center + t * dy
+                      if (x - px) ** 2 + (y - py) ** 2 <= 2.5 ** 2:
+                          color = [147, 197, 253, 255]
+                  for nx, ny in nodes:
+                      if (x - nx) ** 2 + (y - ny) ** 2 <= 6 ** 2:
+                          color = [229, 231, 235, 255]
+                  pixels.extend(color)
+
+          def chunk(kind: bytes, data: bytes) -> bytes:
+              return (
+                  struct.pack('>I', len(data))
+                  + kind
+                  + data
+                  + struct.pack('>I', zlib.crc32(kind + data) & 0xFFFFFFFF)
+              )
+
+          png = (
+              b'\x89PNG\r\n\x1a\n'
+              + chunk(b'IHDR', struct.pack('>IIBBBBB', size, size, 8, 6, 0, 0, 0))
+              + chunk(b'IDAT', zlib.compress(bytes(pixels), 9))
+              + chunk(b'IEND', b'')
+          )
+          icons = Path('desktop/src-tauri/icons')
+          icons.mkdir(parents=True, exist_ok=True)
+          (icons / 'icon.png').write_bytes(png)
+          ico_header = struct.pack('<HHH', 0, 1, 1)
+          ico_entry = struct.pack('<BBBBHHII', size, size, 0, 0, 1, 32, len(png), 22)
+          (icons / 'icon.ico').write_bytes(ico_header + ico_entry + png)
+
+          config_path = Path('desktop/src-tauri/tauri.conf.json')
+          config = json.loads(config_path.read_text(encoding='utf-8'))
+          config['bundle']['icon'] = ['icons/icon.png', 'icons/icon.ico']
+          config_path.write_text(json.dumps(config, indent=2) + '\n', encoding='utf-8')
+
+          for cleanup in [
+              Path('refs/testing/rust-diagnostic.txt'),
+              Path('refs/testing/tauri-macro-diagnostic.txt'),
+              Path('.github/workflows/capture-tauri-macro-once.yml'),
+          ]:
+              cleanup.unlink(missing_ok=True)
+          PY
+      - name: Commit desktop icon fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix: add Tauri application icons'
+          git push origin HEAD:agent/issue-5-desktop-clean
