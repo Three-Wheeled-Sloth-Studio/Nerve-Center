@@ -381,9 +381,7 @@ def _find_prior_hypothesis(
     best: PositioningHypothesis | None = None
     best_score = 0.0
     for candidate in candidates:
-        candidate_terms = _hypothesis_terms(
-            f"{candidate.label} {candidate.suggested_headline}"
-        )
+        candidate_terms = _hypothesis_terms(f"{candidate.label} {candidate.suggested_headline}")
         union = target_terms | candidate_terms
         score = len(target_terms & candidate_terms) / len(union) if union else 0.0
         if score >= 0.6 and score > best_score:

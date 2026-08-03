@@ -349,10 +349,7 @@ class SearchCacheRepository:
 
 
 def _company_values(model: CompanyModel) -> dict[str, object]:
-    values = {
-        column.name: getattr(model, column.name)
-        for column in CompanyModel.__table__.columns
-    }
+    values = {column.name: getattr(model, column.name) for column in CompanyModel.__table__.columns}
     values["created_at"] = _as_utc(values["created_at"])
     values["updated_at"] = _as_utc(values["updated_at"])
     return values

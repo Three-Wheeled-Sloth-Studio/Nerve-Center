@@ -97,9 +97,7 @@ def register_discovery_routes(
                 id=stable_company_id(domain),
                 canonical_name=request.canonical_name.strip(),
                 domain=domain,
-                career_url=(
-                    canonicalize_url(request.career_url) if request.career_url else None
-                ),
+                career_url=(canonicalize_url(request.career_url) if request.career_url else None),
                 ats_type=request.ats_type,
                 created_at=now,
                 updated_at=now,

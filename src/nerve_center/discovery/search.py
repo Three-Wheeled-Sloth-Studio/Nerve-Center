@@ -68,10 +68,7 @@ class PlaywrightSearchAdapter:
                     str(cached.get("message") or "Search is cooling down after a challenge.")
                 )
             if cached.get("status") == "succeeded":
-                return [
-                    SearchResult.model_validate(item)
-                    for item in cached.get("results", [])
-                ]
+                return [SearchResult.model_validate(item) for item in cached.get("results", [])]
         try:
             from playwright.async_api import async_playwright
         except ImportError as error:
@@ -106,9 +103,7 @@ class PlaywrightSearchAdapter:
                     for _ in range(attempts):
                         await page.wait_for_timeout(2000)
                         body_text = (await page.locator("body").inner_text()).casefold()
-                        challenged = any(
-                            marker in body_text for marker in challenge_markers
-                        )
+                        challenged = any(marker in body_text for marker in challenge_markers)
                         if not challenged:
                             break
                 if challenged:

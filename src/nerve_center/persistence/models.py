@@ -182,3 +182,78 @@ class SearchCacheModel(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+
+
+class LocationPreferencesModel(Base):
+    __tablename__ = "location_preferences"
+
+    id: Mapped[str] = mapped_column(String(50), primary_key=True)
+    version: Mapped[int] = mapped_column(Integer)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+
+
+class CompanyEnrichmentModel(Base):
+    __tablename__ = "company_enrichment"
+
+    company_id: Mapped[str] = mapped_column(ForeignKey("companies.id"), primary_key=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+
+
+class JobEnrichmentModel(Base):
+    __tablename__ = "job_enrichment"
+
+    job_id: Mapped[str] = mapped_column(ForeignKey("job_openings.id"), primary_key=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+
+
+class FitAnalysisModel(Base):
+    __tablename__ = "fit_analyses"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    job_id: Mapped[str] = mapped_column(ForeignKey("job_openings.id"), index=True)
+    profile_version: Mapped[int] = mapped_column(Integer, index=True)
+    contract_version: Mapped[str] = mapped_column(String(100), index=True)
+    model: Mapped[str] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+
+
+class ScoringSettingsModel(Base):
+    __tablename__ = "scoring_settings"
+
+    id: Mapped[str] = mapped_column(String(50), primary_key=True)
+    version: Mapped[int] = mapped_column(Integer)
+    contract_version: Mapped[str] = mapped_column(String(100), index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+
+
+class ScoringRuleModel(Base):
+    __tablename__ = "scoring_rules"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    target: Mapped[str] = mapped_column(String(50), index=True)
+    action: Mapped[str] = mapped_column(String(50), index=True)
+    pattern: Mapped[str] = mapped_column(String(500), index=True)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+
+
+class OpportunityScoreModel(Base):
+    __tablename__ = "opportunity_scores"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    job_id: Mapped[str] = mapped_column(ForeignKey("job_openings.id"), index=True)
+    profile_version: Mapped[int] = mapped_column(Integer, index=True)
+    contract_version: Mapped[str] = mapped_column(String(100), index=True)
+    settings_version: Mapped[int] = mapped_column(Integer, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    priority: Mapped[float] = mapped_column()
+    excluded: Mapped[bool] = mapped_column(Boolean, index=True)
+    retained: Mapped[bool] = mapped_column(Boolean, index=True)
+    calibration_key: Mapped[str] = mapped_column(String(100), index=True)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON)

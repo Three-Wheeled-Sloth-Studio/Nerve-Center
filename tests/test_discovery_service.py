@@ -123,9 +123,12 @@ def test_plugin_checkpoints_and_consumes_request_budget(tmp_path: Path) -> None:
 
 
 def test_google_result_normalization_rejects_internal_links() -> None:
-    assert normalize_google_result_url(
-        "https://www.google.com/url?q=https%3A%2F%2Fexample.com%2Fjobs%2F1%3Futm_source%3Dx"
-    ) == "https://example.com/jobs/1"
+    assert (
+        normalize_google_result_url(
+            "https://www.google.com/url?q=https%3A%2F%2Fexample.com%2Fjobs%2F1%3Futm_source%3Dx"
+        )
+        == "https://example.com/jobs/1"
+    )
     assert normalize_google_result_url("https://www.google.com/preferences") is None
     assert classify_discovered_url("https://acme.com/careers/product") is (
         UrlClassification.COMPANY_CAREER
