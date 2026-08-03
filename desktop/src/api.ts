@@ -113,7 +113,7 @@ export function getProfile(): Promise<CareerProfile> {
 
 export function decideHypothesis(
   hypothesisId: string,
-  decision: "approved" | "rejected",
+  decision: "approved" | "disapproved",
 ): Promise<CareerProfile> {
   return request(`/api/v1/profile/hypotheses/${hypothesisId}/decision`, {
     method: "POST",
