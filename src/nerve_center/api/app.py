@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Annotated
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Query, status
@@ -72,7 +73,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(status_code=422, detail=str(error)) from error
 
     @application.get("/api/v1/runs")
-    def list_runs(limit: int = Query(default=100, ge=1, le=500)) -> list[RunResponse]:
+    def list_runs(
+        limit: Annotated[int, Query(ge=1, le=500)] = 100,
+    ) -> list[RunResponse]:
         return [RunResponse.from_snapshot(item) for item in repository.list_recent(limit)]
 
     @application.get("/api/v1/runs/{run_id}")
@@ -85,7 +88,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @application.get("/api/v1/runs/{run_id}/events")
     def get_run_events(
         run_id: str,
-        limit: int = Query(default=500, ge=1, le=2000),
+        limit: Annotated[int, Query(ge=1, le=2000)] = 500,
     ) -> list[RunEventResponse]:
         try:
             return [
