@@ -28,7 +28,9 @@ class JobDiscoveryTaskPlugin:
             source_ids = [str(item) for item in configured]
         else:
             source_ids = [item.id for item in self.sources.list_due()]
-        completed = [str(item) for item in context.checkpoint.get("completed_source_ids", [])]
+        completed = [
+            str(item) for item in context.checkpoint.get("completed_source_ids", [])
+        ]
         remaining = [item for item in source_ids if item not in completed]
         openings_found = 0
         failed_sources = 0
@@ -52,6 +54,13 @@ class JobDiscoveryTaskPlugin:
                         "openings_found": openings_found,
                     },
                 )
+            context.save_checkpoint(
+                {
+                    "completed_source_ids": completed,
+                    "active_source_id": source_id,
+                    "openings_found": openings_found,
+                }
+            )
             async with context.resources.work_slot():
                 result = await self.service.scan_source(
                     source_id,
@@ -64,6 +73,7 @@ class JobDiscoveryTaskPlugin:
             context.save_checkpoint(
                 {
                     "completed_source_ids": completed,
+                    "active_source_id": None,
                     "last_source_id": source_id,
                     "openings_found": openings_found,
                 }
