@@ -3,7 +3,7 @@
 ## Accepted target
 
 - Integration branch: `dev`.
-- Pull request: `#7`.
+- Pull request: `#8`.
 - Visible version: `0.5.0`.
 - SQLite schema version: `6`.
 - Tracking issue: `#5`.
@@ -48,6 +48,8 @@ Environment overrides:
 
 - `NERVE_CENTER_PYTHON`: explicit Python executable.
 - `NERVE_CENTER_API_MANAGED=0`: do not start or stop the API process.
+
+The shell includes explicit PNG and ICO application assets for compile-time context generation and later Windows packaging work.
 
 ### Validation
 
