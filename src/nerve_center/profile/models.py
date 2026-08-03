@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Literal, TypeAlias
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -98,7 +98,7 @@ class PositioningHypothesis(BaseModel):
     decision: HypothesisDecision = HypothesisDecision.PENDING
 
 
-ReviewCode: TypeAlias = Literal[
+type ReviewCode = Literal[
     "invalid_evidence",
     "low_confidence",
     "possible_contradiction",
