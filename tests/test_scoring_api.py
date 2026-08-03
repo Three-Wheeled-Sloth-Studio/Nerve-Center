@@ -23,11 +23,7 @@ from nerve_center.persistence.discovery import (
 from nerve_center.persistence.profile import CareerProfileRepository
 from nerve_center.persistence.scoring import FitAnalysisRepository
 from nerve_center.profile.models import CanonicalCareerProfile
-from nerve_center.providers.base import (
-    ProviderCallMetadata,
-    ProviderModel,
-    StructuredGenerationResult,
-)
+from nerve_center.providers.base import ProviderModel
 from nerve_center.scoring.api import register_scoring_routes
 from nerve_center.scoring.models import (
     JobFitAnalysis,
