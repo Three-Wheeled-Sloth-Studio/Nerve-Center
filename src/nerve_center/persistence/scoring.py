@@ -290,6 +290,9 @@ class OpportunityScoreRepository:
                 for item in session.scalars(
                     select(OpportunityScoreModel)
                     .where(OpportunityScoreModel.job_id == job_id)
-                    .order_by(OpportunityScoreModel.created_at.desc())
+                    .order_by(
+              OpportunityScoreModel.created_at.desc(),
+              OpportunityScoreModel.id.desc(),
+          )
                 ).all()
             ]
