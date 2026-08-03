@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field, model_validator
 from nerve_center.domain.budget import ResourceBudget
 from nerve_center.domain.run import RunEventSnapshot, RunSnapshot, RunStatus
 from nerve_center.domain.run_window import DurationRunWindow, FixedRunWindow
+from nerve_center.profile.models import ClaimCategory, HypothesisDecision
 
 
 class ResourceBudgetRequest(BaseModel):
@@ -87,3 +88,22 @@ class RunEventResponse(BaseModel):
     @classmethod
     def from_snapshot(cls, snapshot: RunEventSnapshot) -> RunEventResponse:
         return cls(**asdict(snapshot))
+
+
+class DocumentRegisterRequest(BaseModel):
+    path: str = Field(min_length=1, max_length=4096)
+
+
+class ProfileExtractRequest(BaseModel):
+    document_id: str = Field(min_length=1, max_length=100)
+    model: str = Field(min_length=1, max_length=200)
+
+
+class HypothesisDecisionRequest(BaseModel):
+    decision: HypothesisDecision
+
+
+class ClaimOverrideRequest(BaseModel):
+    label: str = Field(min_length=1, max_length=160)
+    statement: str = Field(min_length=1, max_length=1000)
+    category: ClaimCategory | None = None

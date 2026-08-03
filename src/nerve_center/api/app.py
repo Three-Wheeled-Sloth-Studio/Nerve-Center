@@ -20,12 +20,17 @@ from nerve_center.domain.run import (
 from nerve_center.persistence.database import Database
 from nerve_center.persistence.runs import RunRepository
 from nerve_center.plugins.synthetic import SyntheticTaskPlugin
+from nerve_center.profile.api import register_profile_routes
+from nerve_center.providers.base import StructuredProvider
 from nerve_center.scheduler.registry import TaskRegistry
 from nerve_center.scheduler.runner import RunnerService
 from nerve_center.scheduler.service import SchedulerService
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    provider: StructuredProvider | None = None,
+) -> FastAPI:
     runtime_settings = settings or Settings()
     database = Database(runtime_settings)
     repository = RunRepository(database)
@@ -51,6 +56,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.state.repository = repository
     application.state.runner = runner
     application.state.scheduler = scheduler
+    register_profile_routes(application, database, runtime_settings, provider)
 
     @application.get("/health")
     def health() -> dict[str, str]:
