@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+dist/
+build/
+
+# Node, Tauri, and frontend output
+node_modules/
+.target/
+target/
+src-tauri/target/
+frontend/dist/
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials/
+secrets/
+
+# Nerve Center durable and sensitive runtime data
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.sqlite-*
+data/
+runtime/
+user-data/
+app-data/
+profiles/
+resumes/
+career-documents/
+applications/
+generated/
+browser-data/
+browser-profiles/
+playwright-data/
+logs/
+exports/
+
+# Local test artifacts
+.coverage
+htmlcov/
+test-results/
+playwright-report/

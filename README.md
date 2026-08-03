@@ -4,6 +4,20 @@ Nerve Center is a local-first, single-user orchestration platform for scheduled 
 
 The first task module is **Job Scout**, a job-discovery and decision-support workflow that searches public sources, evaluates opportunities against a user-controlled career profile, and prioritizes positions by both fit and likely employer response.
 
+## Current status
+
+The `dev` branch contains the foundation increment:
+
+- Duration-based and fixed-time run-window contracts.
+- A generic task-plugin boundary.
+- Externalized operating-system application-data paths.
+- A minimal local FastAPI health surface.
+- SQLite runtime initialization with WAL enabled.
+- Public-repository privacy and security guardrails.
+- Durable product, architecture, scoring, and roadmap decisions under `refs/`.
+
+Job discovery connectors and the desktop shell are not implemented yet.
+
 ## Product boundaries
 
 Nerve Center is designed to:
@@ -17,36 +31,41 @@ Nerve Center is designed to:
 
 Nerve Center will not:
 
-- Submit job applications.
-- Send outreach or messages.
+- Submit job applications or outreach.
 - Change online profiles.
 - Automate authenticated LinkedIn or job-board sessions.
 - Provide cloud synchronization, hosted deployment, mobile access, or multi-user support.
 
-## Repository status
+## Local development
 
-Early architecture and implementation work is performed on the `dev` branch. The `main` branch is the stable public baseline.
+Requirements:
+
+- Python 3.12+
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install -e ".[dev]"
+ruff check .
+pytest
+nerve-center-api
+```
+
+The API defaults to `127.0.0.1:8765` and stores runtime data in the platform-specific user application-data directory, never in the checkout.
+
+## Repository branches
+
+- `main`: stable public baseline.
+- `dev`: accepted integration branch for active development.
+- Feature work should branch from `dev` and return through pull requests.
 
 ## Public repository safety
 
-This repository must never contain:
-
-- Resumes or career-history source documents.
-- Application records or discovered-job databases.
-- Browser profiles, cookies, or authenticated session data.
-- API keys, tokens, passwords, or generated credentials.
-- Generated cover letters or tailored resume copies containing personal information.
-- Local runtime logs containing personal or company-specific search history.
-
-Runtime data and secrets will be stored outside the checkout using operating-system-appropriate application data and credential storage.
+This repository must never contain resumes, career-history source documents, application records, browser profiles, cookies, authenticated session data, credentials, generated personalized documents, or local runtime logs. See `SECURITY.md` and `refs/planning/data-and-privacy-boundary.md`.
 
 ## Shared design guidance
 
-Nerve Center follows the canonical principles in:
-
-- `Three-Wheeled-Sloth-Studio/TWS-Design-Principles`
-
-Project-specific decisions, implementation notes, and deliberate deviations remain in this repository.
+Nerve Center follows the canonical principles in `Three-Wheeled-Sloth-Studio/TWS-Design-Principles`. Project-specific decisions, implementation notes, and deliberate deviations remain here.
 
 ## License
 
