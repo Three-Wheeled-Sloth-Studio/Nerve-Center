@@ -115,7 +115,7 @@ def test_persists_registry_health_jobs_and_cache(tmp_path: Path) -> None:
     assert cache.get("playwright", "product manager Greensboro") == {
         "urls": ["https://x.test"]
     }
-    assert SCHEMA_VERSION == 4
+    assert SCHEMA_VERSION == 5
 
 
 def test_search_cache_expires(tmp_path: Path) -> None:
