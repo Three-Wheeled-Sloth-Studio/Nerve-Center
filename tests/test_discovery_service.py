@@ -3,6 +3,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import httpx
+import pytest
 
 from nerve_center.config import Settings
 from nerve_center.discovery.fetching import HttpFetcher
@@ -14,6 +15,8 @@ from nerve_center.discovery.models import (
 )
 from nerve_center.discovery.plugin import JobDiscoveryTaskPlugin
 from nerve_center.discovery.search import (
+    PlaywrightSearchAdapter,
+    SearchChallengeError,
     UrlClassification,
     classify_discovered_url,
     normalize_google_result_url,
@@ -26,6 +29,7 @@ from nerve_center.persistence.discovery import (
     CompanyRepository,
     DiscoverySourceRepository,
     JobOpeningRepository,
+    SearchCacheRepository,
 )
 
 
@@ -129,3 +133,21 @@ def test_google_result_normalization_rejects_internal_links() -> None:
     assert classify_discovered_url("https://www.linkedin.com/jobs/view/1") is (
         UrlClassification.LINKEDIN
     )
+
+
+def test_cached_browser_challenge_prevents_repeated_headless_attempts(
+    tmp_path: Path,
+) -> None:
+    database = Database(Settings(data_dir=tmp_path / "runtime"))
+    database.initialize()
+    cache = SearchCacheRepository(database)
+    cache.put(
+        "playwright_google:25",
+        "product manager",
+        {"status": "challenged", "message": "Cooling down."},
+        ttl=timedelta(hours=1),
+    )
+    adapter = PlaywrightSearchAdapter(cache, tmp_path / "browser", headless=True)
+
+    with pytest.raises(SearchChallengeError, match="Cooling down"):
+        asyncio.run(adapter.search("product manager"))
