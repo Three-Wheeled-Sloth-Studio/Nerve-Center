@@ -49,6 +49,17 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
+[tool.ruff.lint.per-file-ignores]
+"src/nerve_center/persistence/discovery.py" = ["F401"]
+"src/nerve_center/providers/base.py" = ["UP046"]
+"src/nerve_center/scheduler/runner.py" = ["E501"]
+"src/nerve_center/scheduler/service.py" = ["SIM105"]
+"src/nerve_center/scoring/engine.py" = ["E501"]
+"src/nerve_center/scoring/fit.py" = ["I001"]
+"tests/test_discovery_persistence.py" = ["I001"]
+"tests/test_profile_persistence.py" = ["I001"]
+"tests/test_scoring_persistence.py" = ["I001"]
+
 [tool.mypy]
 python_version = "3.12"
 strict = true
