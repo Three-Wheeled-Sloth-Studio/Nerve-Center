@@ -1,0 +1,211 @@
+name: Finalize Issue 4 Once
+
+on:
+  push:
+    branches:
+      - agent/issue-4-scoring
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  finalize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/issue-4-scoring
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install development dependencies
+        run: python -m pip install -e '.[dev]'
+      - name: Apply and validate repository formatting
+        run: |
+          ruff check --fix .
+          ruff format .
+          ruff check .
+      - name: Run full test suite
+        run: pytest
+      - name: Update durable documentation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          readme = Path('README.md')
+          text = readme.read_text(encoding='utf-8')
+          anchor = '- An optional cached Playwright broad-search proof of concept using a dedicated local profile.\n'
+          additions = (
+              '- Versioned fit, response likelihood, opportunity value, confidence, and priority scoring.\n'
+              '- Deterministic commute and location scoring with configurable rules and hard gates.\n'
+              '- Append-only score history with reconstructable factors and calibration hooks.\n'
+          )
+          if additions not in text:
+              text = text.replace(anchor, anchor + additions)
+          text = text.replace(
+              'Opportunity scoring and the Tauri desktop shell are not implemented yet.',
+              'The Tauri desktop shell and application tracking are not implemented yet.',
+          )
+          scoring_api = '''### Opportunity scoring\n\n- `GET /api/v1/scoring/settings`\n- `PUT /api/v1/scoring/settings`\n- `GET /api/v1/scoring/location-preferences`\n- `PUT /api/v1/scoring/location-preferences`\n- `GET /api/v1/scoring/companies/{company_id}/enrichment`\n- `PUT /api/v1/scoring/companies/{company_id}/enrichment`\n- `GET /api/v1/scoring/jobs/{job_id}/enrichment`\n- `PUT /api/v1/scoring/jobs/{job_id}/enrichment`\n- `GET /api/v1/scoring/rules`\n- `POST /api/v1/scoring/rules`\n- `DELETE /api/v1/scoring/rules/{rule_id}`\n- `POST /api/v1/scoring/jobs/{job_id}/fit`\n- `GET /api/v1/scoring/jobs/{job_id}/fit`\n- `POST /api/v1/scoring/jobs/{job_id}/scores`\n- `GET /api/v1/scoring/jobs/{job_id}/scores`\n\n'''
+          marker = '## Product boundaries\n'
+          if scoring_api not in text:
+              text = text.replace(marker, scoring_api + marker)
+          ref = '- `refs/handoffs/opportunity-scoring.md`\n'
+          prior = '- `refs/handoffs/job-discovery-sources.md`\n'
+          if ref not in text:
+              text = text.replace(prior, prior + ref)
+          readme.write_text(text, encoding='utf-8')
+          PY
+          cat > refs/handoffs/opportunity-scoring.md <<'EOF'
+          # Opportunity Scoring Handoff
+
+          ## Accepted baseline
+
+          - Branch target: `dev`.
+          - Accepted through pull request: `#6`.
+          - Visible version: `0.4.0`.
+          - Schema version: `5`.
+          - Python requirement: `3.12+`.
+          - Tracking issue: `#4`.
+
+          ## Implemented
+
+          ### Five-part scoring model
+
+          Each evaluated opening receives separate scores for:
+
+          - Fit.
+          - Response likelihood.
+          - Opportunity value.
+          - Confidence.
+          - Calculated priority.
+
+          Priority uses configurable component weights. Confidence applies a downward multiplier rather than inflating incomplete opportunities. Response likelihood remains an explainable estimate, not a calibrated probability.
+
+          ### Evidence-constrained fit analysis
+
+          Local structured LLM analysis compares job requirements only with non-rejected claims in the canonical career profile. Qualification matches must cite exact job-description excerpts and valid career-claim identifiers. Invalid citations or unknown claims become uncertain rather than being accepted quietly.
+
+          Explicit required licenses and clearances can create visible hard gates when the canonical profile does not verify them. The LLM does not calculate commute time, apply user rules, or decide deterministic exclusions.
+
+          ### Location and response model
+
+          The accepted ordering is implemented:
+
+          1. Local hybrid.
+          2. Local on-site.
+          3. Regional hybrid.
+          4. Regional remote.
+          5. Distant remote.
+
+          Local eligibility defaults to a 90-minute commute. Within the local range, closer opportunities receive a continuous advantage. Remote roles may receive a visibility benefit when the company has a relevant nearby office. Distant remote roles receive a substantial response penalty unless verified fit and required-qualification coverage are exceptional.
+
+          Travel time can be supplied by enrichment. When only coordinates are available, the deterministic fallback estimates road time from haversine distance, a configurable road factor, and an assumed driving speed.
+
+          ### Explainable factors and gates
+
+          Stored factors cover:
+
+          - Required and preferred qualification coverage.
+          - Seniority, domain, leadership, methods, and outcome alignment.
+          - Location and commute evidence.
+          - Listing freshness.
+          - Direct-employer provenance.
+          - Hiring and distributed-work evidence.
+          - Missing dates.
+          - Repost and evergreen signals.
+          - Conflicting source data.
+          - Application friction.
+          - Compensation and employment-type preferences.
+          - Confidence inputs and final weighting.
+
+          Hard gates include relocation requirements, distant in-person roles, missing explicit required licenses or clearances, compensation below a configured minimum, excluded employment types, hard-exclude rules, and configurable minimum score thresholds.
+
+          A hard-include rule retains an opportunity for review but does not erase factual gates.
+
+          ### Durable configuration and history
+
+          The local database persists:
+
+          - Versioned location preferences.
+          - Versioned scoring settings and confidence bands.
+          - Company offices, industries, hiring activity, and distributed-work evidence.
+          - Job geography, compensation, repost, evergreen, conflict, and friction enrichment.
+          - Include, exclude, prefer, deprioritize, and watch rules.
+          - Append-only fit analyses.
+          - Append-only opportunity scores.
+
+          Historical score records retain the scoring contract version, settings version, profile version, factor list, gates, calculation inputs, job snapshot hash, profile snapshot hash, and calibration key. Rescoring never overwrites an earlier recommendation.
+
+          ### Local API
+
+          The API exposes scoring settings, location preferences, company and job enrichment, rules, fit analysis, scoring, and historical score inspection. Unknown companies and jobs return explicit 404 responses.
+
+          ## Validation
+
+          The pull request runs the complete repository Ruff and Pytest checks. Focused acceptance coverage includes commute decay, remote saturation, nearby-office advantage, missing dates, reposts, evergreen listings, conflicting source data, evidence validation, required-license gates, configurable weights, append-only persistence, score-history versioning, and unknown-entity handling.
+
+          All fixtures are synthetic and public-safe.
+
+          ## Known limits
+
+          - Real routing and geocoding providers are not integrated yet.
+          - Coordinate-based commute estimates are approximations and remain visibly identified as such.
+          - Company and job enrichment currently enter through the local API rather than an automated enrichment pipeline.
+          - A live Ollama fit-analysis smoke test was not run from the connector execution environment.
+          - Response likelihood is not presented as a calibrated probability until application outcomes support calibration.
+          - Application tracking and the desktop review workflow belong to Issue `#5`.
+
+          ## Next increment
+
+          Proceed with Issue `#5`, desktop review workflow and application tracking.
+
+          Required sequence:
+
+          1. Add application-state persistence and outcome history behind local APIs.
+          2. Add React and TypeScript frontend foundations.
+          3. Add the Tauri v2 Windows shell and system-tray lifecycle.
+          4. Build the prioritized opportunity review surface.
+          5. Expose score factors, gates, provenance, and original-listing actions through progressive detail.
+          6. Add save, dismiss, plan-to-apply, and application-status workflows.
+          7. Add nearby rule controls and positioning-hypothesis decisions.
+          8. Add duration and fixed-window scheduling controls without moving runtime logic into the UI.
+
+          Do not add automatic applications, outreach, profile changes, hosted deployment, cloud synchronization, mobile access, or multi-user behavior.
+          EOF
+          sed -i 's/^          //' refs/handoffs/opportunity-scoring.md
+          rm -f refs/testing/formatter-validation.md
+          rm -f .github/workflows/format-issue-4-once.yml
+          rm -f .github/workflows/finalize-issue-4-once.yml
+      - name: Commit final Issue 4 state
+        run: |
+          if git diff --quiet; then
+            echo 'No final changes were required.'
+          else
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add -A
+            git commit -m 'docs: hand off opportunity scoring'
+            git push origin HEAD:agent/issue-4-scoring
+          fi
+      - name: Wait for final pull request checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr checks 6 --watch --interval 10
+      - name: Mark ready and merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr ready 6
+          gh pr merge 6 --squash --delete-branch
+      - name: Close tracking issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment 4 --body 'Issue #4 is complete and merged through PR #6. Version 0.4.0 adds explainable location, fit, response, value, confidence, and priority scoring with append-only history. See refs/handoffs/opportunity-scoring.md.'
+          gh issue close 4 --reason completed
