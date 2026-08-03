@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import timedelta
 from enum import StrEnum
 from pathlib import Path
+from typing import Protocol
 from urllib.parse import parse_qs, quote_plus, urlsplit
 
 from pydantic import BaseModel, ConfigDict
@@ -36,6 +37,10 @@ class SearchResult(BaseModel):
     domain: str = ""
 
 
+class SearchAdapter(Protocol):
+    async def search(self, query: str) -> list[SearchResult]: ...
+
+
 class PlaywrightSearchAdapter:
     provider = "playwright_google"
 
@@ -46,17 +51,27 @@ class PlaywrightSearchAdapter:
         *,
         headless: bool = True,
         max_results: int = 25,
+        manual_challenge_timeout_seconds: int = 300,
     ) -> None:
         self.cache = cache
         self.profile_dir = profile_dir
         self.headless = headless
         self.max_results = max_results
+        self.manual_challenge_timeout_seconds = manual_challenge_timeout_seconds
 
     async def search(self, query: str) -> list[SearchResult]:
         cache_provider = f"{self.provider}:{self.max_results}"
         cached = self.cache.get(cache_provider, query)
         if cached is not None:
-            return [SearchResult.model_validate(item) for item in cached.get("results", [])]
+            if cached.get("status") == "challenged" and self.headless:
+                raise SearchChallengeError(
+                    str(cached.get("message") or "Search is cooling down after a challenge.")
+                )
+            if cached.get("status") == "succeeded":
+                return [
+                    SearchResult.model_validate(item)
+                    for item in cached.get("results", [])
+                ]
         try:
             from playwright.async_api import async_playwright
         except ImportError as error:
@@ -78,19 +93,36 @@ class PlaywrightSearchAdapter:
                     wait_until="domcontentloaded",
                     timeout=45_000,
                 )
+                challenge_markers = (
+                    "unusual traffic",
+                    "verify you are human",
+                    "our systems have detected",
+                    "captcha",
+                )
                 body_text = (await page.locator("body").inner_text()).casefold()
-                if any(
-                    marker in body_text
-                    for marker in (
-                        "unusual traffic",
-                        "verify you are human",
-                        "our systems have detected",
-                        "captcha",
+                challenged = any(marker in body_text for marker in challenge_markers)
+                if challenged and not self.headless:
+                    attempts = max(self.manual_challenge_timeout_seconds // 2, 1)
+                    for _ in range(attempts):
+                        await page.wait_for_timeout(2000)
+                        body_text = (await page.locator("body").inner_text()).casefold()
+                        challenged = any(
+                            marker in body_text for marker in challenge_markers
+                        )
+                        if not challenged:
+                            break
+                if challenged:
+                    message = (
+                        "Google presented a challenge page. "
+                        "Headful manual continuation is required after the cooldown."
                     )
-                ):
-                    raise SearchChallengeError(
-                        "Google presented a challenge page. Manual continuation is required."
+                    self.cache.put(
+                        cache_provider,
+                        query,
+                        {"status": "challenged", "message": message},
+                        ttl=timedelta(hours=1),
                     )
+                    raise SearchChallengeError(message)
                 anchors = await page.locator("a[href]").evaluate_all(
                     "els => els.map(a => ({href: a.href, text: a.innerText || ''}))"
                 )
@@ -120,7 +152,10 @@ class PlaywrightSearchAdapter:
         self.cache.put(
             cache_provider,
             query,
-            {"results": [item.model_dump(mode="json") for item in results]},
+            {
+                "status": "succeeded",
+                "results": [item.model_dump(mode="json") for item in results],
+            },
             ttl=timedelta(days=7),
         )
         return results
