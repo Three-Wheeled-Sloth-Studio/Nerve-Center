@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from sqlalchemy import select
+from sqlalchemy import literal_column, select
 
 from nerve_center.applications.models import (
     RESPONSE_STATUSES,
@@ -105,7 +105,10 @@ class ApplicationRepository:
             models = session.scalars(
                 select(ApplicationEventModel)
                 .where(ApplicationEventModel.job_id == job_id)
-                .order_by(ApplicationEventModel.created_at.desc())
+                .order_by(
+                    ApplicationEventModel.created_at.desc(),
+                    literal_column("rowid").desc(),
+                )
             ).all()
             return [
                 ApplicationEvent.model_validate(
