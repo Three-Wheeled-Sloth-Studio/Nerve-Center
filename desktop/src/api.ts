@@ -9,6 +9,7 @@ import type {
 
 const API_BASE =
   import.meta.env.VITE_NERVE_CENTER_API ?? "http://127.0.0.1:8765";
+const JOB_SCOUT_TASK_ID = "job_scout.discovery";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
@@ -57,7 +58,7 @@ export function createDurationRun(minutes: number): Promise<RunRecord> {
   return request("/api/v1/runs", {
     method: "POST",
     body: JSON.stringify({
-      task_id: "job-discovery",
+      task_id: JOB_SCOUT_TASK_ID,
       duration_seconds: minutes * 60,
       configuration: {},
     }),
@@ -71,7 +72,7 @@ export function createFixedRun(
   return request("/api/v1/runs", {
     method: "POST",
     body: JSON.stringify({
-      task_id: "job-discovery",
+      task_id: JOB_SCOUT_TASK_ID,
       starts_at: new Date(startsAt).toISOString(),
       ends_at: new Date(endsAt).toISOString(),
       configuration: {},
