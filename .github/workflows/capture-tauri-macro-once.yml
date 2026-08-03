@@ -12,6 +12,8 @@ jobs:
   diagnose:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
+    env:
+      RUST_BACKTRACE: "1"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,7 +37,7 @@ jobs:
           set +e
           cargo check --manifest-path desktop/src-tauri/Cargo.toml > /tmp/tauri-check.txt 2>&1
           status=$?
-          tail -n 80 /tmp/tauri-check.txt > refs/testing/tauri-macro-diagnostic.txt
+          tail -n 160 /tmp/tauri-check.txt > refs/testing/tauri-macro-diagnostic.txt
           echo "exit_status=$status" >> refs/testing/tauri-macro-diagnostic.txt
           rm .github/workflows/capture-tauri-macro-once.yml
       - name: Commit diagnostic
