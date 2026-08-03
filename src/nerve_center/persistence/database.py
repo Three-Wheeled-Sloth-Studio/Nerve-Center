@@ -5,11 +5,13 @@ from __future__ import annotations
 from collections.abc import Iterator
 from contextlib import contextmanager
 
-from sqlalchemy import create_engine, event, text
+from sqlalchemy import Connection, create_engine, event, text
 from sqlalchemy.orm import Session
 
 from nerve_center.config import Settings
 from nerve_center.persistence.models import Base
+
+SCHEMA_VERSION = 2
 
 
 class Database:
@@ -22,10 +24,7 @@ class Database:
         self.settings.ensure_runtime_directories()
         Base.metadata.create_all(self.engine)
         with self.engine.begin() as connection:
-            connection.execute(text("CREATE TABLE IF NOT EXISTS schema_state (version INTEGER NOT NULL)"))
-            existing = connection.execute(text("SELECT COUNT(*) FROM schema_state")).scalar_one()
-            if existing == 0:
-                connection.execute(text("INSERT INTO schema_state (version) VALUES (1)"))
+            _migrate(connection)
 
     @contextmanager
     def session(self) -> Iterator[Session]:
@@ -36,6 +35,22 @@ class Database:
             except Exception:
                 session.rollback()
                 raise
+
+
+def _migrate(connection: Connection) -> None:
+    connection.execute(text("CREATE TABLE IF NOT EXISTS schema_state (version INTEGER NOT NULL)"))
+    existing = connection.execute(text("SELECT COUNT(*) FROM schema_state")).scalar_one()
+    if existing == 0:
+        connection.execute(text("INSERT INTO schema_state (version) VALUES (1)"))
+
+    columns = {row[1] for row in connection.execute(text("PRAGMA table_info(runs)")).fetchall()}
+    if "budget" not in columns:
+        connection.execute(text("ALTER TABLE runs ADD COLUMN budget JSON NOT NULL DEFAULT '{}'"))
+    if "budget_usage" not in columns:
+        connection.execute(
+            text("ALTER TABLE runs ADD COLUMN budget_usage JSON NOT NULL DEFAULT '{}'")
+        )
+    connection.execute(text("UPDATE schema_state SET version = :version"), {"version": SCHEMA_VERSION})
 
 
 def _configure_sqlite(dbapi_connection: object, _connection_record: object) -> None:

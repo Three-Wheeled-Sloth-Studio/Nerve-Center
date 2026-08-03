@@ -31,6 +31,8 @@ class RunModel(Base):
     cancel_requested: Mapped[bool] = mapped_column(Boolean, default=False)
     configuration: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     checkpoint: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    budget: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    budget_usage: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     result_summary: Mapped[str | None] = mapped_column(Text)
     error_code: Mapped[str | None] = mapped_column(String(100))
     result_metrics: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)

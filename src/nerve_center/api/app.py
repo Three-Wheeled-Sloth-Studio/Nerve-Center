@@ -9,7 +9,7 @@ import uvicorn
 from fastapi import FastAPI, HTTPException, Query, status
 
 from nerve_center import __version__
-from nerve_center.api.schemas import RunCreateRequest, RunResponse
+from nerve_center.api.schemas import RunCreateRequest, RunEventResponse, RunResponse
 from nerve_center.config import Settings
 from nerve_center.domain.run import (
     InvalidRunTransitionError,
@@ -21,6 +21,7 @@ from nerve_center.persistence.runs import RunRepository
 from nerve_center.plugins.synthetic import SyntheticTaskPlugin
 from nerve_center.scheduler.registry import TaskRegistry
 from nerve_center.scheduler.runner import RunnerService
+from nerve_center.scheduler.service import SchedulerService
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -30,17 +31,25 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     registry = TaskRegistry()
     registry.register(SyntheticTaskPlugin())
     runner = RunnerService(repository, registry)
+    scheduler = SchedulerService(
+        repository,
+        runner,
+        poll_seconds=runtime_settings.scheduler_poll_seconds,
+    )
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         database.initialize()
         runner.recover_interrupted()
+        await scheduler.start()
         yield
+        await scheduler.stop()
         await runner.shutdown()
 
     application = FastAPI(title="Nerve Center", version=__version__, lifespan=lifespan)
     application.state.repository = repository
     application.state.runner = runner
+    application.state.scheduler = scheduler
 
     @application.get("/health")
     def health() -> dict[str, str]:
@@ -54,6 +63,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 task_id=request.task_id,
                 window=request.to_window(),
                 configuration=request.configuration,
+                budget=request.budget.to_domain(),
             )
             return RunResponse.from_snapshot(snapshot)
         except KeyError as error:
@@ -69,6 +79,19 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def get_run(run_id: str) -> RunResponse:
         try:
             return RunResponse.from_snapshot(repository.get(run_id))
+        except RunNotFoundError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+
+    @application.get("/api/v1/runs/{run_id}/events")
+    def get_run_events(
+        run_id: str,
+        limit: int = Query(default=500, ge=1, le=2000),
+    ) -> list[RunEventResponse]:
+        try:
+            return [
+                RunEventResponse.from_snapshot(item)
+                for item in repository.list_events(run_id, limit)
+            ]
         except RunNotFoundError as error:
             raise HTTPException(status_code=404, detail=str(error)) from error
 

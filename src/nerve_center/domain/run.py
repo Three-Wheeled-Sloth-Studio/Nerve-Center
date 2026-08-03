@@ -37,10 +37,16 @@ TERMINAL_RUN_STATUSES = frozenset(
 
 ALLOWED_RUN_TRANSITIONS: dict[RunStatus, frozenset[RunStatus]] = {
     RunStatus.REQUESTED: frozenset(
-        {RunStatus.SCHEDULED, RunStatus.RUNNING, RunStatus.CANCELLED, RunStatus.MISSED}
+        {
+            RunStatus.SCHEDULED,
+            RunStatus.RUNNING,
+            RunStatus.CANCELLED,
+            RunStatus.FAILED,
+            RunStatus.MISSED,
+        }
     ),
     RunStatus.SCHEDULED: frozenset(
-        {RunStatus.RUNNING, RunStatus.CANCELLED, RunStatus.MISSED}
+        {RunStatus.RUNNING, RunStatus.CANCELLED, RunStatus.FAILED, RunStatus.MISSED}
     ),
     RunStatus.RUNNING: frozenset(
         {
@@ -56,7 +62,13 @@ ALLOWED_RUN_TRANSITIONS: dict[RunStatus, frozenset[RunStatus]] = {
         {RunStatus.INTERRUPTED, RunStatus.CANCELLED, RunStatus.PARTIAL, RunStatus.FAILED}
     ),
     RunStatus.INTERRUPTED: frozenset(
-        {RunStatus.RUNNING, RunStatus.CANCELLED, RunStatus.PARTIAL, RunStatus.MISSED}
+        {
+            RunStatus.RUNNING,
+            RunStatus.CANCELLED,
+            RunStatus.PARTIAL,
+            RunStatus.FAILED,
+            RunStatus.MISSED,
+        }
     ),
     RunStatus.SUCCEEDED: frozenset(),
     RunStatus.PARTIAL: frozenset(),
@@ -102,6 +114,19 @@ class RunSnapshot:
     cancel_requested: bool
     configuration: dict[str, Any] = field(default_factory=dict)
     checkpoint: dict[str, Any] = field(default_factory=dict)
+    budget: dict[str, int] = field(default_factory=dict)
+    budget_usage: dict[str, int] = field(default_factory=dict)
     result_summary: str | None = None
     error_code: str | None = None
     result_metrics: dict[str, int | float | str | bool] = field(default_factory=dict)
+
+
+@dataclass(frozen=True, slots=True)
+class RunEventSnapshot:
+    id: int
+    run_id: str
+    created_at: datetime
+    event_type: str
+    source_status: str | None
+    target_status: str | None
+    detail: dict[str, Any] = field(default_factory=dict)

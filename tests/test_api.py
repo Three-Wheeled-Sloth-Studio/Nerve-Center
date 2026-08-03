@@ -22,11 +22,14 @@ def test_health_and_run_lifecycle(tmp_path: Path) -> None:
         run_id = created.json()["id"]
         cancelled = client.post(f"/api/v1/runs/{run_id}/cancel")
         fetched = client.get(f"/api/v1/runs/{run_id}")
+        events = client.get(f"/api/v1/runs/{run_id}/events")
 
     assert health.status_code == 200
     assert created.status_code == 201
     assert cancelled.json()["status"] == "cancelled"
     assert fetched.json()["status"] == "cancelled"
+    assert events.status_code == 200
+    assert len(events.json()) >= 2
     assert (tmp_path / "nerve-center.sqlite3").exists()
 
 

@@ -8,8 +8,18 @@ from typing import Any, Self
 
 from pydantic import BaseModel, Field, model_validator
 
-from nerve_center.domain.run import RunSnapshot, RunStatus
+from nerve_center.domain.budget import ResourceBudget
+from nerve_center.domain.run import RunEventSnapshot, RunSnapshot, RunStatus
 from nerve_center.domain.run_window import DurationRunWindow, FixedRunWindow
+
+
+class ResourceBudgetRequest(BaseModel):
+    max_requests: int = Field(default=500, ge=1)
+    max_llm_calls: int = Field(default=100, ge=1)
+    max_parallel_work: int = Field(default=3, ge=1, le=100)
+
+    def to_domain(self) -> ResourceBudget:
+        return ResourceBudget(**self.model_dump())
 
 
 class RunCreateRequest(BaseModel):
@@ -18,6 +28,7 @@ class RunCreateRequest(BaseModel):
     starts_at: datetime | None = None
     ends_at: datetime | None = None
     configuration: dict[str, Any] = Field(default_factory=dict)
+    budget: ResourceBudgetRequest = Field(default_factory=ResourceBudgetRequest)
 
     @model_validator(mode="after")
     def validate_window(self) -> Self:
@@ -53,10 +64,26 @@ class RunResponse(BaseModel):
     cancel_requested: bool
     configuration: dict[str, Any]
     checkpoint: dict[str, Any]
+    budget: dict[str, int]
+    budget_usage: dict[str, int]
     result_summary: str | None
     error_code: str | None
     result_metrics: dict[str, int | float | str | bool]
 
     @classmethod
     def from_snapshot(cls, snapshot: RunSnapshot) -> RunResponse:
+        return cls(**asdict(snapshot))
+
+
+class RunEventResponse(BaseModel):
+    id: int
+    run_id: str
+    created_at: datetime
+    event_type: str
+    source_status: str | None
+    target_status: str | None
+    detail: dict[str, Any]
+
+    @classmethod
+    def from_snapshot(cls, snapshot: RunEventSnapshot) -> RunEventResponse:
         return cls(**asdict(snapshot))

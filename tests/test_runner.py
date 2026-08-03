@@ -3,6 +3,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from nerve_center.config import Settings
+from nerve_center.domain.budget import ResourceBudget
 from nerve_center.domain.run import RunStatus
 from nerve_center.domain.run_window import DurationRunWindow
 from nerve_center.persistence.database import Database
@@ -61,3 +62,19 @@ def test_cancel_before_execution_is_terminal(tmp_path: Path) -> None:
 
     assert cancelled.status == RunStatus.CANCELLED
     assert result.status == RunStatus.CANCELLED
+
+
+def test_runner_stops_when_request_budget_is_exhausted(tmp_path: Path) -> None:
+    repository, runner = make_runner(tmp_path)
+    run = repository.create(
+        "synthetic",
+        DurationRunWindow(timedelta(seconds=5)),
+        configuration={"iterations": 3, "requests_per_iteration": 1},
+        budget=ResourceBudget(max_requests=2),
+    )
+
+    result = asyncio.run(runner.execute_now(run.id))
+
+    assert result.status == RunStatus.PARTIAL
+    assert result.error_code == "REQUESTS_BUDGET_EXHAUSTED"
+    assert result.budget_usage["requests"] == 2

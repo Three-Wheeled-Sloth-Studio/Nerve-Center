@@ -8,6 +8,8 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Any, Protocol
 
+from nerve_center.domain.budget import ResourceBudgetTracker
+
 
 class TaskStatus(StrEnum):
     SUCCEEDED = "succeeded"
@@ -23,6 +25,7 @@ class TaskContext:
     deadline: datetime
     cancellation_requested: Callable[[], bool]
     save_checkpoint: Callable[[Mapping[str, Any]], None]
+    resources: ResourceBudgetTracker
     configuration: Mapping[str, Any] = field(default_factory=dict)
     checkpoint: Mapping[str, Any] = field(default_factory=dict)
 

@@ -7,6 +7,12 @@ from collections.abc import Mapping
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from nerve_center.domain.budget import (
+    BudgetExceededError,
+    ResourceBudget,
+    ResourceBudgetTracker,
+    ResourceUsage,
+)
 from nerve_center.domain.run import RunNotReadyError, RunSnapshot, RunStatus
 from nerve_center.domain.task import TaskContext, TaskResult, TaskStatus
 from nerve_center.persistence.runs import RunRepository
@@ -22,8 +28,8 @@ class RunnerService:
     def recover_interrupted(self) -> list[RunSnapshot]:
         return self.repository.recover_interrupted()
 
-    async def start(self, run_id: str) -> RunSnapshot:
-        snapshot = self._prepare_start(run_id)
+    async def start(self, run_id: str, now: datetime | None = None) -> RunSnapshot:
+        snapshot = self._prepare_start(run_id, now)
         if snapshot.status != RunStatus.RUNNING:
             return snapshot
         if run_id not in self._active:
@@ -34,8 +40,8 @@ class RunnerService:
             )
         return snapshot
 
-    async def execute_now(self, run_id: str) -> RunSnapshot:
-        snapshot = self._prepare_start(run_id)
+    async def execute_now(self, run_id: str, now: datetime | None = None) -> RunSnapshot:
+        snapshot = self._prepare_start(run_id, now)
         if snapshot.status != RunStatus.RUNNING:
             return snapshot
         return await self._execute(run_id)
@@ -118,6 +124,11 @@ class RunnerService:
             raise ValueError("running task is missing concrete timing")
 
         plugin = self.registry.get(snapshot.task_id)
+        tracker = ResourceBudgetTracker(
+            budget=ResourceBudget(**snapshot.budget),
+            usage=ResourceUsage(**snapshot.budget_usage),
+            on_change=lambda usage: self.repository.save_budget_usage(run_id, usage),
+        )
 
         def cancellation_requested() -> bool:
             return self.repository.get(run_id).cancel_requested
@@ -131,6 +142,7 @@ class RunnerService:
             deadline=snapshot.deadline,
             cancellation_requested=cancellation_requested,
             save_checkpoint=save_checkpoint,
+            resources=tracker,
             configuration=snapshot.configuration,
             checkpoint=snapshot.checkpoint,
         )
@@ -150,6 +162,13 @@ class RunnerService:
                 RunStatus.PARTIAL,
                 result_summary="Run deadline reached; checkpoint preserved.",
                 error_code="RUN_DEADLINE_REACHED",
+            )
+        except BudgetExceededError as error:
+            return self.repository.transition(
+                run_id,
+                RunStatus.PARTIAL,
+                result_summary=str(error),
+                error_code=f"{error.resource.upper()}_BUDGET_EXHAUSTED",
             )
         except Exception as error:
             return self.repository.transition(

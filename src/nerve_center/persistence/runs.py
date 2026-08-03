@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict
 from datetime import UTC, datetime
 from math import ceil
 from typing import Any
@@ -9,9 +10,11 @@ from uuid import uuid4
 
 from sqlalchemy import select
 
+from nerve_center.domain.budget import ResourceBudget, ResourceUsage
 from nerve_center.domain.run import (
     ALLOWED_RUN_TRANSITIONS,
     InvalidRunTransitionError,
+    RunEventSnapshot,
     RunNotFoundError,
     RunSnapshot,
     RunStatus,
@@ -30,9 +33,11 @@ class RunRepository:
         task_id: str,
         window: DurationRunWindow | FixedRunWindow,
         configuration: dict[str, Any] | None = None,
+        budget: ResourceBudget | None = None,
         now: datetime | None = None,
     ) -> RunSnapshot:
         current = _utc(now)
+        resource_budget = budget or ResourceBudget()
         if isinstance(window, DurationRunWindow):
             status = RunStatus.REQUESTED
             window_kind = "duration"
@@ -76,6 +81,8 @@ class RunRepository:
             cancel_requested=False,
             configuration=dict(configuration or {}),
             checkpoint={},
+            budget=asdict(resource_budget),
+            budget_usage=asdict(ResourceUsage()),
             result_summary=summary,
             error_code=None,
             result_metrics={},
@@ -108,6 +115,26 @@ class RunRepository:
                 select(RunModel).order_by(RunModel.requested_at.desc()).limit(limit)
             ).all()
             return [_snapshot(model) for model in models]
+
+    def list_scheduled(self) -> list[RunSnapshot]:
+        with self.database.session() as session:
+            models = session.scalars(
+                select(RunModel)
+                .where(RunModel.status == RunStatus.SCHEDULED.value)
+                .order_by(RunModel.requested_starts_at.asc())
+            ).all()
+            return [_snapshot(model) for model in models]
+
+    def list_events(self, run_id: str, limit: int = 500) -> list[RunEventSnapshot]:
+        self.get(run_id)
+        with self.database.session() as session:
+            models = session.scalars(
+                select(RunEventModel)
+                .where(RunEventModel.run_id == run_id)
+                .order_by(RunEventModel.id.asc())
+                .limit(limit)
+            ).all()
+            return [_event_snapshot(model) for model in models]
 
     def transition(
         self,
@@ -217,6 +244,17 @@ class RunRepository:
             session.flush()
             return _snapshot(model)
 
+    def save_budget_usage(self, run_id: str, usage: ResourceUsage) -> RunSnapshot:
+        current = datetime.now(UTC)
+        with self.database.session() as session:
+            model = session.get(RunModel, run_id)
+            if model is None:
+                raise RunNotFoundError(f"run {run_id} was not found")
+            model.budget_usage = asdict(usage)
+            model.updated_at = current
+            session.flush()
+            return _snapshot(model)
+
     def recover_interrupted(self, now: datetime | None = None) -> list[RunSnapshot]:
         current = _utc(now)
         recovered: list[RunSnapshot] = []
@@ -263,9 +301,23 @@ def _snapshot(model: RunModel) -> RunSnapshot:
         cancel_requested=model.cancel_requested,
         configuration=dict(model.configuration or {}),
         checkpoint=dict(model.checkpoint or {}),
+        budget={key: int(value) for key, value in (model.budget or {}).items()},
+        budget_usage={key: int(value) for key, value in (model.budget_usage or {}).items()},
         result_summary=model.result_summary,
         error_code=model.error_code,
         result_metrics=dict(model.result_metrics or {}),
+    )
+
+
+def _event_snapshot(model: RunEventModel) -> RunEventSnapshot:
+    return RunEventSnapshot(
+        id=model.id,
+        run_id=model.run_id,
+        created_at=_restore_required_utc(model.created_at),
+        event_type=model.event_type,
+        source_status=model.source_status,
+        target_status=model.target_status,
+        detail=dict(model.detail or {}),
     )
 
 
