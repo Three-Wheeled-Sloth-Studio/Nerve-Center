@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from contextlib import suppress
 from datetime import datetime
 from time import perf_counter
 from typing import Any
@@ -215,12 +216,10 @@ class OllamaProvider:
         if response.status_code >= 400:
             retryable = response.status_code == 429 or response.status_code >= 500
             message = "Ollama rejected the request."
-            try:
+            with suppress(ValueError):
                 payload = response.json()
                 if isinstance(payload, dict) and isinstance(payload.get("error"), str):
                     message = payload["error"][:500]
-            except ValueError:
-                pass
             raise ProviderError(
                 self.name,
                 "OLLAMA_HTTP_ERROR",
