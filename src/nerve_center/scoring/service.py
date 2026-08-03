@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from nerve_center.discovery.models import NormalizedJobOpening
 from nerve_center.persistence.discovery import JobOpeningRepository
 from nerve_center.persistence.profile import CareerProfileRepository
 from nerve_center.persistence.scoring import (
@@ -47,7 +48,7 @@ class ScoringService:
         self.scorer = OpportunityScorer()
 
     async def analyze_fit(self, job_id: str, *, model: str) -> JobFitAnalysis:
-        opening = self.jobs.get(job_id)
+        opening = _get_job(self.jobs, job_id)
         profile = self.profiles.get_profile()
         analysis = await self.fit_analyzer.analyze(opening, profile, model=model)
         return self.fit_analyses.save(analysis)
@@ -58,7 +59,7 @@ class ScoringService:
         *,
         fit_analysis_id: str | None = None,
     ) -> OpportunityScore:
-        opening = self.jobs.get(job_id)
+        opening = _get_job(self.jobs, job_id)
         profile = self.profiles.get_profile()
         analysis = (
             self.fit_analyses.get(fit_analysis_id)
@@ -78,3 +79,10 @@ class ScoringService:
             rules=self.rules.list(enabled_only=True),
         )
         return self.scores.append(result)
+
+
+def _get_job(repository: JobOpeningRepository, job_id: str) -> NormalizedJobOpening:
+    for opening in repository.list(active_only=False):
+        if opening.id == job_id:
+            return opening
+    raise KeyError(f"unknown job opening: {job_id}")
