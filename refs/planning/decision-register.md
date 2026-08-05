@@ -41,3 +41,5 @@ Status values: `accepted`, `deferred`, `rejected`, `open`.
 | NC-035 | deferred | Wake-from-sleep. |
 | NC-036 | deferred | Cross-platform packaging. |
 | NC-037 | accepted | The repository is public; source, tests, issues, logs, and fixtures must be safe for public disclosure. |
+| NC-038 | accepted | Packaged Windows builds bundle the Python API as a self-contained local executable while source development retains an explicit Python fallback. |
+| NC-039 | accepted | The first distributable artifact is an unsigned per-user NSIS development package; signing, automatic updates, and release channels are deferred. |
