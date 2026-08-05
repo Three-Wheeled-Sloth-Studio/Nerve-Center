@@ -6,6 +6,7 @@ on:
     paths:
       - ".github/workflows/windows-package.yml"
       - "desktop/**"
+      - "launch.ps1"
       - "pyproject.toml"
       - "scripts/build_windows_backend.py"
       - "scripts/nerve_center_api_entry.py"
@@ -26,6 +27,21 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Validate source launcher syntax
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path "launch.ps1"),
+            [ref]$tokens,
+            [ref]$errors
+          ) | Out-Null
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_.Message }
+            throw "launch.ps1 contains PowerShell syntax errors."
+          }
 
       - uses: actions/setup-python@v5
         with:
