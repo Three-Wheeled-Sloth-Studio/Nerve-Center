@@ -54,15 +54,6 @@ export interface Company {
   career_url: string | null;
 }
 
-export interface ScoreFactor {
-  dimension: string;
-  code: string;
-  label: string;
-  kind: string;
-  points: number;
-  evidence: string[];
-}
-
 export interface OpportunityScore {
   fit: number;
   response_likelihood: number;
@@ -72,7 +63,14 @@ export interface OpportunityScore {
   excluded: boolean;
   retained: boolean;
   gates: Array<{ code: string; label: string; evidence: string[] }>;
-  factors: ScoreFactor[];
+  factors: Array<{
+    dimension: string;
+    code: string;
+    label: string;
+    kind: string;
+    points: number;
+    evidence: string[];
+  }>;
   location: {
     scope: string;
     commute_minutes: number | null;
@@ -176,15 +174,110 @@ export interface ScoringRule {
   note: string | null;
 }
 
+export interface CareerClaim {
+  id: string;
+  category: string;
+  label: string;
+  statement: string;
+  confidence: number;
+  decision: string;
+}
+
 export interface CareerProfile {
+  id: string;
+  version: number;
+  updated_at: string;
+  claims: CareerClaim[];
   hypotheses: Array<{
     id: string;
     label: string;
     summary: string;
     suggested_headline: string;
+    supporting_claim_ids: string[];
     decision: string;
     confidence: number;
   }>;
+  review_items: Array<{
+    id: string;
+    code: string;
+    message: string;
+    claim_ids: string[];
+    created_at: string;
+  }>;
+}
+
+export interface SourceDocument {
+  id: string;
+  source_path: string;
+  file_name: string;
+  format: string;
+  media_type: string;
+  sha256: string;
+  byte_size: number;
+  modified_at: string;
+  imported_at: string;
+}
+
+export interface DiscoverySource {
+  id: string;
+  company_id: string | null;
+  name: string;
+  kind: string;
+  acquisition_class: string;
+  base_url: string;
+  scan_interval_minutes: number;
+  enabled: boolean;
+  health: string;
+  last_success_at: string | null;
+  last_scan_at: string | null;
+  next_scan_at: string | null;
+}
+
+export interface JobScoutConfiguration {
+  resume_document_id: string | null;
+  resume_file_name: string | null;
+  target_titles: string[];
+  locations: string[];
+  remote_preference: "any" | "remote" | "hybrid" | "on_site";
+  source_urls: string[];
+  source_ids: string[];
+  allowed_domains: string[];
+  disallowed_domains: string[];
+  keywords: string[];
+  broad_search_enabled: boolean;
+  scan_interval_minutes: number;
+}
+
+export interface JobScoutKeywordSummary {
+  keywords: string[];
+  search_queries: string[];
+  evidence_terms: number;
+}
+
+export interface JobScoutWorkspace {
+  configuration: JobScoutConfiguration;
+  documents: SourceDocument[];
+  profile: CareerProfile;
+  keywords: JobScoutKeywordSummary;
+  sources: DiscoverySource[];
+  opening_count: number;
+}
+
+export interface JobScoutScanSummary {
+  queries_run: string[];
+  search_results_seen: number;
+  sources_registered: number;
+  sources_scanned: number;
+  openings_found: number;
+  scans: Array<{
+    source_id: string;
+    source_name: string;
+    status: string;
+    openings_found: number;
+    requests_made: number;
+    detail: Record<string, unknown>;
+  }>;
+  warnings: string[];
 }
 
 export type ModuleLifecycleState = "enabled" | "paused" | "not_installed";
@@ -203,11 +296,7 @@ export interface ModuleRecord {
       maximum_tested_core_version: string;
       data_schema_version: number;
     };
-    launch: {
-      runtime: string;
-      entrypoint: string;
-      arguments: string[];
-    };
+    launch: { runtime: string; entrypoint: string; arguments: string[] };
     permissions: Array<{
       kind: string;
       scopes: string[];
@@ -219,10 +308,7 @@ export interface ModuleRecord {
       display_name: string;
       work_classes: string[];
     }>;
-    ui_contributions: Array<{
-      slot: string;
-      renderer_key: string;
-    }>;
+    ui_contributions: Array<{ slot: string; renderer_key: string }>;
     configuration_schema: Record<string, unknown>;
     session_entry_task_id: string | null;
   };
