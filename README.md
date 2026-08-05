@@ -34,6 +34,16 @@ The `dev` line now includes:
 
 ## Local development
 
+### Windows launcher
+
+From the repository root, run `launch.bat` to bootstrap missing local dependencies and start the Tauri desktop shell with its managed Python API:
+
+```powershell
+.\launch.bat
+```
+
+The launcher uses `.venv\Scripts\python.exe` for the API, installs the editable Python package and desktop dependencies when needed, and reports missing Python, Node.js, or Rust prerequisites. Ollama is optional for launching the application but required for live local-model work. After the desktop shell starts, the API is available at `http://127.0.0.1:8765`.
+
 ### Python service
 
 Requirements:
@@ -233,6 +243,7 @@ This repository must never contain resumes, career-history source documents, app
 - `refs/handoffs/windows-packaging-runtime-bootstrap.md`
 - `refs/handoffs/provider-neutral-llm-manager.md`
 - `refs/testing/windows-desktop-smoke.md`
+- `refs/testing/source-launcher-and-ollama-smoke.md`
 
 Nerve Center also follows the canonical principles in `Three-Wheeled-Sloth-Studio/TWS-Design-Principles`, including `engineering/CI-Signal-Discipline.md`.
 
