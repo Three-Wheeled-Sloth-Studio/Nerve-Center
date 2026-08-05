@@ -20,6 +20,7 @@ from nerve_center.plugins.job_scout.configuration import (
 )
 from nerve_center.plugins.job_scout.manifest import job_scout_manifest
 from nerve_center.plugins.job_scout.runtime import JobScoutOperationBridge
+from nerve_center.plugins.job_scout.uploads import register_job_scout_upload_route
 from nerve_center.profile.api import register_profile_routes
 from nerve_center.providers.base import StructuredProvider
 from nerve_center.scoring.api import register_scoring_routes
@@ -59,6 +60,7 @@ def install_job_scout(
         source_repository,
         job_repository,
     )
+    register_job_scout_upload_route(application, settings)
     return JobScoutModulePackage(
         manifest=job_scout_manifest(),
         operation_bridge=JobScoutOperationBridge(discovery_service, source_repository),

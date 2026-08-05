@@ -127,6 +127,16 @@ export function loadJobScoutResume(path: string, analyzeResume: boolean) {
     method: "POST", body: JSON.stringify({ path, analyze_resume: analyzeResume }),
   });
 }
+export function uploadJobScoutResume(fileName: string, contentBase64: string, analyzeResume: boolean) {
+  return request<JobScoutWorkspace>("/api/v1/modules/job_scout/resume/upload", {
+    method: "POST",
+    body: JSON.stringify({
+      file_name: fileName,
+      content_base64: contentBase64,
+      analyze_resume: analyzeResume,
+    }),
+  });
+}
 export function discoverJobScoutKeywords() {
   return request<JobScoutWorkspace>("/api/v1/modules/job_scout/keywords/discover", { method: "POST" });
 }
