@@ -16,6 +16,7 @@ node_modules/
 target/
 src-tauri/target/
 frontend/dist/
+desktop/src-tauri/resources/nerve-center-api.exe
 
 # IDE and OS
 .vscode/
