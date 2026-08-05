@@ -4,6 +4,7 @@
 
 - Integration branch: `dev`.
 - Tracking issue: `#10`.
+- Pull request: `#11`.
 - Visible version: `0.6.0`.
 - SQLite schema version: `6`.
 - Initial artifact: unsigned per-user NSIS development installer.
