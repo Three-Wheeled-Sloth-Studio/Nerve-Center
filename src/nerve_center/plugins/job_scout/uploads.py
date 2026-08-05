@@ -11,10 +11,7 @@ from fastapi import FastAPI, HTTPException, status
 
 from nerve_center.config import Settings
 from nerve_center.plugins.job_scout.settings import ResumeLoadRequest, ResumeUploadRequest
-from nerve_center.profile.documents import (
-    MAX_DOCUMENT_BYTES,
-    DocumentImportError,
-)
+from nerve_center.profile.documents import MAX_DOCUMENT_BYTES, DocumentImportError
 from nerve_center.providers.errors import ProviderError
 
 
@@ -52,9 +49,10 @@ def register_job_scout_upload_route(application: FastAPI, settings: Settings) ->
                 },
             )
 
-        import_dir = settings.module_data_dir("job_scout") / "imports"
-        import_dir.mkdir(parents=True, exist_ok=True)
-        stored_path = import_dir / f"{uuid4().hex}-{safe_name}"
+        import_root = settings.module_data_dir("job_scout") / "imports"
+        import_dir = import_root / uuid4().hex
+        import_dir.mkdir(parents=True, exist_ok=False)
+        stored_path = import_dir / safe_name
         try:
             stored_path.write_bytes(raw)
             coordinator = application.state.job_scout_coordinator
@@ -66,6 +64,7 @@ def register_job_scout_upload_route(application: FastAPI, settings: Settings) ->
             )
         except (DocumentImportError, OSError) as error:
             stored_path.unlink(missing_ok=True)
+            import_dir.rmdir()
             detail = (
                 {"code": error.code, "message": str(error)}
                 if isinstance(error, DocumentImportError)
