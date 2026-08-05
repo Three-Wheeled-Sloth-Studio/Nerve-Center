@@ -32,6 +32,18 @@ function Get-NerveCenterHealth {
     }
 }
 
+function Test-NerveCenterManager {
+    try {
+        $modules = @(Invoke-RestMethod -Uri "http://127.0.0.1:8765/api/v1/modules" -TimeoutSec 2)
+        return [bool]($modules | Where-Object {
+            $_.manifest.module_id -eq "job_scout"
+        } | Select-Object -First 1)
+    }
+    catch {
+        return $false
+    }
+}
+
 function Test-JobScoutWorkspace {
     try {
         Invoke-RestMethod -Uri "http://127.0.0.1:8765/api/v1/modules/job_scout/workspace" -TimeoutSec 2 | Out-Null
@@ -52,11 +64,17 @@ function Stop-StaleNerveCenterApi {
     if ($null -eq $health -or [string]$health.status -ne "ok") {
         return
     }
+    if (-not (Test-NerveCenterManager)) {
+        return
+    }
 
     $runningVersion = [string]$health.version
     $workspaceAvailable = Test-JobScoutWorkspace
     if ($runningVersion -eq $ExpectedVersion -and $workspaceAvailable) {
         return
+    }
+    if ($env:NERVE_CENTER_API_MANAGED -eq "0") {
+        throw "The externally managed Nerve Center API on port 8765 is stale. Restart that API before launching the desktop shell."
     }
 
     $reason = if ($runningVersion -ne $ExpectedVersion) {
