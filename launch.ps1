@@ -54,6 +54,24 @@ function Test-JobScoutWorkspace {
     }
 }
 
+function Stop-NerveCenterProcessTree {
+    param(
+        [Parameter(Mandatory)]
+        [int]$ApiProcessId
+    )
+
+    $apiProcess = Get-CimInstance Win32_Process -Filter "ProcessId = $ApiProcessId" -ErrorAction SilentlyContinue
+    if ($null -ne $apiProcess -and $apiProcess.ParentProcessId) {
+        $parentProcess = Get-CimInstance Win32_Process -Filter "ProcessId = $($apiProcess.ParentProcessId)" -ErrorAction SilentlyContinue
+        if ($null -ne $parentProcess -and [string]$parentProcess.Name -ieq "nerve-center-desktop.exe") {
+            Stop-Process -Id $parentProcess.ProcessId -Force -ErrorAction SilentlyContinue
+            Start-Sleep -Milliseconds 200
+        }
+    }
+
+    Stop-Process -Id $ApiProcessId -Force -ErrorAction SilentlyContinue
+}
+
 function Stop-StaleNerveCenterApi {
     param(
         [Parameter(Mandatory)]
@@ -91,7 +109,7 @@ function Stop-StaleNerveCenterApi {
         throw "A stale Nerve Center API is responding on port 8765, but its process could not be identified. Quit Nerve Center from the system tray, then run launch.bat again."
     }
 
-    Stop-Process -Id $listener.OwningProcess -Force -ErrorAction Stop
+    Stop-NerveCenterProcessTree -ApiProcessId $listener.OwningProcess
     for ($attempt = 0; $attempt -lt 40; $attempt++) {
         Start-Sleep -Milliseconds 100
         if ($null -eq (Get-NerveCenterHealth)) {
