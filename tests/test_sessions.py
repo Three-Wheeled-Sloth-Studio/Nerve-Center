@@ -97,7 +97,7 @@ def test_restart_preserves_original_session_end(tmp_path: Path) -> None:
     assert running.status == SessionStatus.RUNNING
     assert recovered.status == SessionStatus.INTERRUPTED
     assert recovered.ends_at == starts_at + timedelta(hours=2)
-    assert SCHEMA_VERSION == 9
+    assert SCHEMA_VERSION == 10
 
 
 def test_module_priorities_normalize_to_exactly_one_hundred() -> None:

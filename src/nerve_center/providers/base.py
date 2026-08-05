@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Generic, Protocol, TypeVar
+from typing import Any, Generic, Protocol, TypeVar, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -45,6 +45,23 @@ class StructuredGenerationResult(BaseModel, Generic[TResponse]):
     metadata: ProviderCallMetadata
 
 
+class JsonGenerationResult(BaseModel):
+    value: dict[str, Any] | list[Any]
+    metadata: ProviderCallMetadata
+
+
+class ModelBlindRequest(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    task_id: str
+    request_id: str | None = None
+    system_prompt: str
+    user_prompt: str
+    output_schema: dict[str, Any]
+    requirements: dict[str, Any] = Field(default_factory=dict)
+    contract_version: str
+
+
 class ProviderTelemetry(Protocol):
     def record(self, metadata: ProviderCallMetadata) -> None: ...
 
@@ -68,3 +85,20 @@ class StructuredProvider(Protocol):
         response_type: type[TResponse],
         contract_version: str,
     ) -> StructuredGenerationResult[TResponse]: ...
+
+
+@runtime_checkable
+class JsonProvider(Protocol):
+    name: str
+
+    async def list_models(self) -> list[ProviderModel]: ...
+
+    async def generate_json(
+        self,
+        *,
+        model: str,
+        system_prompt: str,
+        user_prompt: str,
+        output_schema: dict[str, Any],
+        contract_version: str,
+    ) -> JsonGenerationResult: ...

@@ -116,3 +116,34 @@ def test_records_retry_count_when_ollama_stays_unavailable() -> None:
 
     assert telemetry.items[0].status == "failed"
     assert telemetry.items[0].retry_count == 1
+
+
+def test_generates_model_blind_json_contract() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        payload = json.loads(request.content)
+        assert payload["model"] == "qwen3:8b"
+        assert payload["format"]["required"] == ["score"]
+        return httpx.Response(
+            200,
+            json={"message": {"content": '{"score":88}'}, "eval_count": 5},
+        )
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    provider = OllamaProvider(client=client)
+    result = asyncio.run(
+        provider.generate_json(
+            model="qwen3:8b",
+            system_prompt="system",
+            user_prompt="user",
+            output_schema={
+                "type": "object",
+                "properties": {"score": {"type": "integer"}},
+                "required": ["score"],
+            },
+            contract_version="example-v1",
+        )
+    )
+    asyncio.run(client.aclose())
+
+    assert result.value == {"score": 88}
+    assert result.metadata.model == "qwen3:8b"

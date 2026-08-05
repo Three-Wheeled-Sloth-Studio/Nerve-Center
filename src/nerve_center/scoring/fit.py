@@ -35,19 +35,19 @@ class JobFitAnalyzer:
         opening: NormalizedJobOpening,
         profile: CanonicalCareerProfile,
         *,
-        model: str,
+        model: str | None = None,
     ) -> JobFitAnalysis:
         active_claims = [
             claim for claim in profile.claims if claim.decision is not ClaimDecision.REJECTED
         ]
         result = await self.provider.generate_structured(
-            model=model,
+            model=model or "auto",
             system_prompt=_SYSTEM_PROMPT,
             user_prompt=_build_prompt(opening, active_claims),
             response_type=FitAnalysisResponse,
             contract_version=FIT_ANALYSIS_CONTRACT_VERSION,
         )
-        return _validate_analysis(opening, profile, model, result.value)
+        return _validate_analysis(opening, profile, result.metadata.model, result.value)
 
 
 def required_coverage(analysis: JobFitAnalysis) -> float:

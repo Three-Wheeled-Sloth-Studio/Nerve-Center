@@ -2,7 +2,7 @@
 
 > Product intent and non-negotiable boundaries are defined in `refs/planning/product-requirements-document.md`. This roadmap orders implementation; it does not redefine the product.
 
-## Accepted baseline through 0.10.0
+## Accepted baseline through 0.11.0
 
 The repository already contains a working local API, durable SQLite foundation, initial scheduling and task concepts, the Job Scout reference workflow, a Tauri/React desktop shell, and Windows packaging/runtime bootstrap.
 
@@ -81,7 +81,7 @@ telemetry and the desktop inspector. Initial ordering uses module priority,
 task priority, and age. Model suitability and switch-cost terms become active
 with the provider-neutral manager in Increment 11.
 
-## Increment 11: Provider-neutral LLM manager
+## Increment 11: Provider-neutral LLM manager (implemented)
 
 - Move every LLM invocation behind manager-owned provider adapters.
 - Prohibit direct provider calls from modules.
@@ -90,6 +90,18 @@ with the provider-neutral manager in Increment 11.
 - Add capability, hardware-fit, performance, failure, retry, validation, and acceptance observations by task type.
 - Add policy-driven retry and quality-tier escalation without exposing model names to modules.
 - Preserve a cloud-provider abstraction with local-only as the default and bring-your-own credentials when enabled later.
+
+Implemented in `0.11.0`. Production model calls now pass through a manager-owned,
+provider-neutral JSON contract. The manager discovers Ollama models, records a
+durable installed-model catalog and task-specific outcome evidence, selects models
+without module-supplied identities, retains loaded-model affinity when evidence
+supports it, and falls back or escalates after provider or schema failures. Durable
+queue execution validates output schemas before delivery and records provider
+timing, retries, failures, schema validity, and explicit module dispositions. Cloud
+Task evidence and loaded-model affinity provide a bounded queue-ordering adjustment
+without overriding module priority. Cloud provider credentials and routing remain
+disabled; future adapters can implement the same contract without changing module
+requests.
 
 ## Increment 12: Model Lab
 

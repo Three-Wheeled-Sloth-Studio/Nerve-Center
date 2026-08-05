@@ -40,7 +40,7 @@ from nerve_center.scoring.service import ScoringService
 
 
 class FitAnalyzeRequest(BaseModel):
-    model: str = Field(min_length=1, max_length=200)
+    model: str | None = Field(default=None, min_length=1, max_length=200)
 
 
 class ScoreRequest(BaseModel):

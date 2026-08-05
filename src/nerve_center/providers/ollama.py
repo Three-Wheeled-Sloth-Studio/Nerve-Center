@@ -14,6 +14,7 @@ import httpx
 from pydantic import BaseModel, ValidationError
 
 from nerve_center.providers.base import (
+    JsonGenerationResult,
     NullProviderTelemetry,
     ProviderCallMetadata,
     ProviderModel,
@@ -159,6 +160,10 @@ class OllamaProvider:
             return StructuredGenerationResult(value=value, metadata=metadata)
         except ProviderError as error:
             error_code = error.code
+            error.call_id = request_id
+            error.model = model
+            error.duration_ms = max(0, round((perf_counter() - started) * 1000))
+            error.retry_count = retry_count
             raise
         finally:
             if status != "succeeded":
@@ -170,6 +175,120 @@ class OllamaProvider:
                         response_type=response_type,
                         started_at=started_at,
                         started=started,
+                        status="failed",
+                        error_code=error_code or "UNKNOWN_PROVIDER_ERROR",
+                        retry_count=retry_count,
+                        input_char_count=len(system_prompt) + len(grounded_prompt),
+                        output_char_count=len(output_text),
+                        prompt_eval_count=prompt_eval_count,
+                        eval_count=eval_count,
+                    )
+                )
+
+    async def generate_json(
+        self,
+        *,
+        model: str,
+        system_prompt: str,
+        user_prompt: str,
+        output_schema: dict[str, Any],
+        contract_version: str,
+    ) -> JsonGenerationResult:
+        request_id = str(uuid4())
+        started = perf_counter()
+        started_at = datetime.now(UTC)
+        retry_count = 0
+        output_text = ""
+        status = "failed"
+        error_code: str | None = None
+        prompt_eval_count: int | None = None
+        eval_count: int | None = None
+        grounded_prompt = (
+            f"{user_prompt.rstrip()}\n\n"
+            "Return only data matching this JSON schema:\n"
+            f"{json.dumps(output_schema, separators=(',', ':'), ensure_ascii=True)}"
+        )
+        body = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": grounded_prompt},
+            ],
+            "stream": False,
+            "format": output_schema,
+            "options": {"temperature": 0},
+        }
+        try:
+            while True:
+                try:
+                    response = await self._send("POST", "/api/chat", json=body)
+                    break
+                except ProviderError as error:
+                    if not error.retryable or retry_count >= self.max_retries:
+                        raise
+                    retry_count += 1
+                    await asyncio.sleep(0.2 * retry_count)
+            payload = self._json_object(response)
+            message = payload.get("message")
+            if not isinstance(message, dict) or not isinstance(message.get("content"), str):
+                raise ProviderError(
+                    self.name,
+                    "INVALID_RESPONSE",
+                    "Ollama returned a response without structured content.",
+                )
+            output_text = message["content"]
+            prompt_eval_count = _optional_int(payload.get("prompt_eval_count"))
+            eval_count = _optional_int(payload.get("eval_count"))
+            try:
+                value = json.loads(output_text)
+            except json.JSONDecodeError as error:
+                raise ProviderError(
+                    self.name,
+                    "INVALID_RESPONSE",
+                    "Ollama returned invalid structured JSON.",
+                ) from error
+            if not isinstance(value, (dict, list)):
+                raise ProviderError(
+                    self.name,
+                    "INVALID_RESPONSE",
+                    "Ollama returned a scalar instead of structured JSON.",
+                )
+            status = "succeeded"
+            metadata = ProviderCallMetadata(
+                id=request_id,
+                provider=self.name,
+                model=model,
+                contract_version=contract_version,
+                response_schema="json_schema",
+                started_at=started_at,
+                duration_ms=max(0, round((perf_counter() - started) * 1000)),
+                status=status,
+                retry_count=retry_count,
+                input_char_count=len(system_prompt) + len(grounded_prompt),
+                output_char_count=len(output_text),
+                prompt_eval_count=prompt_eval_count,
+                eval_count=eval_count,
+            )
+            self.telemetry.record(metadata)
+            return JsonGenerationResult(value=value, metadata=metadata)
+        except ProviderError as error:
+            error_code = error.code
+            error.call_id = request_id
+            error.model = model
+            error.duration_ms = max(0, round((perf_counter() - started) * 1000))
+            error.retry_count = retry_count
+            raise
+        finally:
+            if status != "succeeded":
+                self.telemetry.record(
+                    ProviderCallMetadata(
+                        id=request_id,
+                        provider=self.name,
+                        model=model,
+                        contract_version=contract_version,
+                        response_schema="json_schema",
+                        started_at=started_at,
+                        duration_ms=max(0, round((perf_counter() - started) * 1000)),
                         status="failed",
                         error_code=error_code or "UNKNOWN_PROVIDER_ERROR",
                         retry_count=retry_count,

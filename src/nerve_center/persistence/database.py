@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from nerve_center.config import Settings
 from nerve_center.persistence.models import Base
 
-SCHEMA_VERSION = 9
+SCHEMA_VERSION = 10
 
 
 class Database:

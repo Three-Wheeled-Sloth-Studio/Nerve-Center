@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -85,6 +86,33 @@ def test_failed_attempt_requeues_and_preserves_attempt_history(tmp_path: Path) -
     assert requeued.status == WorkRequestStatus.QUEUED
     assert second is not None and second.number == 2
     assert len(service.attempts(request.id)) == 2
+
+
+def test_model_routing_score_can_outweigh_small_task_priority_gap(tmp_path: Path) -> None:
+    service, run_id = make_service(tmp_path)
+    higher_priority = service.submit(
+        replace(
+            spec(run_id, "higher-priority"),
+            task_id="task.unproven",
+            task_priority=55,
+        )
+    )
+    empirically_suitable = service.submit(
+        replace(
+            spec(run_id, "empirically-suitable"),
+            task_id="task.proven",
+            task_priority=50,
+        )
+    )
+
+    claimed = service.claim_next(
+        "provider-worker",
+        routing_scores={"task.unproven": 2.0, "task.proven": 9.0},
+    )
+
+    assert claimed is not None
+    assert claimed.request_id == empirically_suitable.id
+    assert claimed.request_id != higher_priority.id
 
 
 def test_hard_module_limit_rejects_before_acknowledgement(tmp_path: Path) -> None:

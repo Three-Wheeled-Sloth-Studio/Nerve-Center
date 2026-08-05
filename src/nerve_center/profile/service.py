@@ -49,10 +49,10 @@ class CareerProfileService:
         self,
         document: SourceDocument,
         *,
-        model: str,
+        model: str | None = None,
     ) -> CanonicalCareerProfile:
         result = await self.provider.generate_structured(
-            model=model,
+            model=model or "auto",
             system_prompt=SYSTEM_PROMPT,
             user_prompt=build_extraction_prompt(document),
             response_type=CareerExtractionResponse,

@@ -47,7 +47,7 @@ class ScoringService:
         self.fit_analyzer = JobFitAnalyzer(provider)
         self.scorer = OpportunityScorer()
 
-    async def analyze_fit(self, job_id: str, *, model: str) -> JobFitAnalysis:
+    async def analyze_fit(self, job_id: str, *, model: str | None = None) -> JobFitAnalysis:
         opening = _get_job(self.jobs, job_id)
         profile = self.profiles.get_profile()
         analysis = await self.fit_analyzer.analyze(opening, profile, model=model)

@@ -343,7 +343,7 @@ class DocumentRegisterRequest(BaseModel):
 
 class ProfileExtractRequest(BaseModel):
     document_id: str = Field(min_length=1, max_length=100)
-    model: str = Field(min_length=1, max_length=200)
+    model: str | None = Field(default=None, min_length=1, max_length=200)
 
 
 class HypothesisDecisionRequest(BaseModel):

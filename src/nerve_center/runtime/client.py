@@ -80,8 +80,18 @@ class ModuleRuntimeClient:
             (await self._request("GET", "/results")).json(),
         )
 
-    async def acknowledge_result(self, result_id: str) -> None:
-        await self._request("POST", f"/results/{result_id}/acknowledge")
+    async def acknowledge_result(
+        self,
+        result_id: str,
+        *,
+        accepted: bool | None = None,
+        reason: str | None = None,
+    ) -> None:
+        await self._request(
+            "POST",
+            f"/results/{result_id}/acknowledge",
+            json={"accepted": accepted, "reason": reason},
+        )
 
     async def complete(
         self,

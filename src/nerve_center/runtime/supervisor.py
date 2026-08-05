@@ -41,7 +41,14 @@ class ModuleWorkQueue(Protocol):
 
     def deliver_results(self, module_id: str) -> list[WorkResultSnapshot]: ...
 
-    def acknowledge(self, result_id: str, module_id: str) -> WorkResultSnapshot: ...
+    def acknowledge(
+        self,
+        result_id: str,
+        module_id: str,
+        *,
+        accepted: bool | None = None,
+        disposition_reason: str | None = None,
+    ) -> WorkResultSnapshot: ...
 
 
 @dataclass(slots=True)
@@ -300,12 +307,25 @@ class ModuleSupervisor:
         return [asdict(item) for item in self._work_queue.deliver_results(module_id)]
 
     def acknowledge_result(
-        self, module_id: str, token: str, result_id: str
+        self,
+        module_id: str,
+        token: str,
+        result_id: str,
+        *,
+        accepted: bool | None = None,
+        disposition_reason: str | None = None,
     ) -> dict[str, Any]:
         self.authorize(module_id, token)
         if self._work_queue is None:
             raise ModuleRuntimeConflictError("durable work queue is unavailable")
-        return asdict(self._work_queue.acknowledge(result_id, module_id))
+        return asdict(
+            self._work_queue.acknowledge(
+                result_id,
+                module_id,
+                accepted=accepted,
+                disposition_reason=disposition_reason,
+            )
+        )
 
     def complete(
         self,

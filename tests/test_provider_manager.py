@@ -1,0 +1,263 @@
+import asyncio
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
+from typing import Any
+
+from fastapi.testclient import TestClient
+
+from nerve_center.api.app import create_app
+from nerve_center.config import Settings
+from nerve_center.domain.run_window import DurationRunWindow
+from nerve_center.domain.work_queue import WorkClass, WorkRequestSpec, WorkRequestStatus
+from nerve_center.persistence.database import Database
+from nerve_center.persistence.providers import ModelEvidenceRepository
+from nerve_center.persistence.runs import RunRepository
+from nerve_center.persistence.work_queue import WorkQueueRepository
+from nerve_center.providers.base import (
+    JsonGenerationResult,
+    ModelBlindRequest,
+    ProviderCallMetadata,
+    ProviderModel,
+)
+from nerve_center.providers.errors import ProviderError
+from nerve_center.providers.manager import ProviderManager
+from nerve_center.scheduler.provider_worker import ProviderWorkExecutor
+from nerve_center.scheduler.work_queue import WorkQueueService
+
+
+class FakeJsonProvider:
+    def __init__(self, name: str, model: str, value: dict[str, Any]) -> None:
+        self.name = name
+        self.model = model
+        self.value = value
+        self.selected_models: list[str] = []
+
+    async def list_models(self) -> list[ProviderModel]:
+        return [ProviderModel(id=self.model, label=self.model)]
+
+    async def generate_json(
+        self,
+        *,
+        model: str,
+        system_prompt: str,
+        user_prompt: str,
+        output_schema: dict[str, Any],
+        contract_version: str,
+    ) -> JsonGenerationResult:
+        del system_prompt, user_prompt, output_schema
+        self.selected_models.append(model)
+        return JsonGenerationResult(
+            value=self.value,
+            metadata=ProviderCallMetadata(
+                id=f"call-{model}",
+                provider=self.name,
+                model=model,
+                contract_version=contract_version,
+                response_schema="json_schema",
+                started_at=datetime.now(UTC),
+                duration_ms=25,
+                status="succeeded",
+            ),
+        )
+
+
+class FailingJsonProvider(FakeJsonProvider):
+    async def generate_json(
+        self,
+        *,
+        model: str,
+        system_prompt: str,
+        user_prompt: str,
+        output_schema: dict[str, Any],
+        contract_version: str,
+    ) -> JsonGenerationResult:
+        del model, system_prompt, user_prompt, output_schema, contract_version
+        raise ProviderError(self.name, "MODEL_FAILED", "The model failed.")
+
+
+def make_queue(tmp_path: Path) -> tuple[WorkQueueService, str]:
+    database = Database(Settings(data_dir=tmp_path))
+    database.initialize()
+    run = RunRepository(database).create(
+        "job_scout.discovery", DurationRunWindow(timedelta(minutes=5))
+    )
+    return WorkQueueService(WorkQueueRepository(database)), run.id
+
+
+def model_request() -> ModelBlindRequest:
+    return ModelBlindRequest(
+        task_id="job_scout.evaluate_fit",
+        system_prompt="Use only supplied evidence.",
+        user_prompt="Evaluate this job.",
+        output_schema={
+            "type": "object",
+            "properties": {"score": {"type": "integer"}},
+            "required": ["score"],
+        },
+        contract_version="fit-v1",
+    )
+
+
+def test_manager_selects_model_without_request_naming_one() -> None:
+    later = FakeJsonProvider("ollama", "z-model", {"score": 80})
+    first = FakeJsonProvider("ollama", "a-model", {"score": 90})
+    manager = ProviderManager((later, first))
+
+    result = asyncio.run(manager.execute(model_request()))
+
+    assert result.value == {"score": 90}
+    assert first.selected_models == ["a-model"]
+    assert later.selected_models == []
+
+
+def test_provider_executor_completes_valid_model_blind_work(tmp_path: Path) -> None:
+    queue, run_id = make_queue(tmp_path)
+    request = queue.submit(_queue_spec(run_id))
+    executor = ProviderWorkExecutor(
+        queue,
+        ProviderManager((FakeJsonProvider("ollama", "local", {"score": 91}),)),
+    )
+
+    final = asyncio.run(executor.tick())
+    delivered = queue.deliver_results("job_scout")
+
+    assert final is not None
+    assert final.status == WorkRequestStatus.AWAITING_ACKNOWLEDGEMENT
+    assert delivered[0].request_id == request.id
+    assert delivered[0].payload["value"] == {"score": 91}
+    assert delivered[0].payload["manager"]["schema_valid"] is True
+
+
+def test_provider_executor_rejects_schema_invalid_result(tmp_path: Path) -> None:
+    queue, run_id = make_queue(tmp_path)
+    request = queue.submit(_queue_spec(run_id, max_retries=0))
+    executor = ProviderWorkExecutor(
+        queue,
+        ProviderManager((FakeJsonProvider("ollama", "local", {"score": "bad"}),)),
+    )
+
+    final = asyncio.run(executor.tick())
+
+    assert final is not None
+    assert final.id == request.id
+    assert final.status == WorkRequestStatus.FAILED
+    assert final.error_code == "SCHEMA_VALIDATION_FAILED"
+    assert queue.deliver_results("job_scout") == []
+
+
+def test_manager_prefers_task_model_with_stronger_observed_results(tmp_path: Path) -> None:
+    database = Database(Settings(data_dir=tmp_path))
+    database.initialize()
+    evidence = ModelEvidenceRepository(database)
+    evidence.record_outcome(
+        task_id="job_scout.evaluate_fit",
+        provider="ollama",
+        model="b-model",
+        status="succeeded",
+        duration_ms=100,
+        schema_valid=True,
+    )
+    first = FakeJsonProvider("ollama", "a-model", {"score": 70})
+    stronger = FakeJsonProvider("ollama", "b-model", {"score": 95})
+    manager = ProviderManager((first, stronger), evidence=evidence)
+
+    result = asyncio.run(manager.execute(model_request()))
+
+    assert result.value == {"score": 95}
+    assert stronger.selected_models == ["b-model"]
+
+
+def test_manager_falls_back_without_exposing_models_to_request() -> None:
+    failing = FailingJsonProvider("ollama", "a-model", {})
+    fallback = FakeJsonProvider("ollama", "b-model", {"score": 88})
+    manager = ProviderManager((failing, fallback))
+
+    result = asyncio.run(manager.execute(model_request()))
+
+    assert result.value == {"score": 88}
+    assert fallback.selected_models == ["b-model"]
+
+
+def test_module_acknowledgement_records_acceptance_evidence(tmp_path: Path) -> None:
+    database = Database(Settings(data_dir=tmp_path))
+    database.initialize()
+    evidence = ModelEvidenceRepository(database)
+    run = RunRepository(database).create(
+        "job_scout.discovery", DurationRunWindow(timedelta(minutes=5))
+    )
+    queue = WorkQueueService(WorkQueueRepository(database), model_evidence=evidence)
+    request = queue.submit(_queue_spec(run.id))
+    executor = ProviderWorkExecutor(
+        queue,
+        ProviderManager(
+            (FakeJsonProvider("ollama", "local", {"score": 91}),),
+            evidence=evidence,
+        ),
+    )
+
+    asyncio.run(executor.tick())
+    result = queue.deliver_results("job_scout")[0]
+    queue.acknowledge(result.id, "job_scout", accepted=True)
+    observed = evidence.task_evidence(request.task_id)
+
+    assert observed[0].schema_valid_rate == 1.0
+    assert observed[0].acceptance_rate == 1.0
+
+
+def test_schema_failure_escalates_to_untried_model_on_queue_retry(tmp_path: Path) -> None:
+    database = Database(Settings(data_dir=tmp_path))
+    database.initialize()
+    evidence = ModelEvidenceRepository(database)
+    run = RunRepository(database).create(
+        "job_scout.discovery", DurationRunWindow(timedelta(minutes=5))
+    )
+    queue = WorkQueueService(WorkQueueRepository(database), model_evidence=evidence)
+    queue.submit(_queue_spec(run.id, max_retries=1))
+    invalid = FakeJsonProvider("ollama", "a-model", {"score": "bad"})
+    valid = FakeJsonProvider("ollama", "b-model", {"score": 90})
+    executor = ProviderWorkExecutor(
+        queue, ProviderManager((invalid, valid), evidence=evidence)
+    )
+
+    first = asyncio.run(executor.tick())
+    second = asyncio.run(executor.tick())
+
+    assert first is not None and first.status == WorkRequestStatus.QUEUED
+    assert second is not None
+    assert second.status == WorkRequestStatus.AWAITING_ACKNOWLEDGEMENT
+    assert invalid.selected_models == ["a-model"]
+    assert valid.selected_models == ["b-model"]
+
+
+def test_provider_catalog_is_inspectable_without_exposing_routing_control(
+    tmp_path: Path,
+) -> None:
+    provider = FakeJsonProvider("ollama", "local-model", {"score": 90})
+    app = create_app(Settings(data_dir=tmp_path), provider=provider)
+
+    with TestClient(app) as client:
+        response = client.get("/api/v1/providers/models")
+
+    assert response.status_code == 200
+    assert response.json()[0]["model"] == "local-model"
+    assert response.json()[0]["hardware_fit"]["status"] == "observed"
+
+
+def _queue_spec(run_id: str, *, max_retries: int = 2) -> WorkRequestSpec:
+    request = model_request()
+    return WorkRequestSpec(
+        module_id="job_scout",
+        run_id=run_id,
+        task_id=request.task_id,
+        work_class=WorkClass.LLM,
+        payload={
+            "system_prompt": request.system_prompt,
+            "user_prompt": request.user_prompt,
+        },
+        output_contract=request.output_schema,
+        requirements={"contract_version": request.contract_version},
+        idempotency_key="fit-job-1",
+        module_priority=100,
+        task_priority=70,
+        max_retries=max_retries,
+    )

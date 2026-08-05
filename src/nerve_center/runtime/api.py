@@ -58,6 +58,11 @@ class WorkSubmissionRequest(BaseModel):
     max_retries: int = Field(default=2, ge=0, le=20)
 
 
+class ResultDispositionRequest(BaseModel):
+    accepted: bool | None = None
+    reason: str | None = Field(default=None, max_length=1000)
+
+
 def register_runtime_routes(application: FastAPI, supervisor: ModuleSupervisor) -> None:
     router = APIRouter(prefix="/runtime/v1/modules/{module_id}")
 
@@ -187,11 +192,16 @@ def register_runtime_routes(application: FastAPI, supervisor: ModuleSupervisor) 
     def acknowledge_result(
         module_id: str,
         result_id: str,
+        request: ResultDispositionRequest | None = None,
         authorization: str = Header(default=""),
     ) -> dict[str, Any]:
         try:
             return supervisor.acknowledge_result(
-                module_id, token(authorization), result_id
+                module_id,
+                token(authorization),
+                result_id,
+                accepted=request.accepted if request else None,
+                disposition_reason=request.reason if request else None,
             )
         except Exception as error:
             raise translate(error) from error

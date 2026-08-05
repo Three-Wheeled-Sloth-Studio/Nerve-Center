@@ -231,6 +231,7 @@ This repository must never contain resumes, career-history source documents, app
 - `refs/handoffs/opportunity-scoring.md`
 - `refs/handoffs/desktop-review-application-tracking.md`
 - `refs/handoffs/windows-packaging-runtime-bootstrap.md`
+- `refs/handoffs/provider-neutral-llm-manager.md`
 - `refs/testing/windows-desktop-smoke.md`
 
 Nerve Center also follows the canonical principles in `Three-Wheeled-Sloth-Studio/TWS-Design-Principles`, including `engineering/CI-Signal-Discipline.md`.

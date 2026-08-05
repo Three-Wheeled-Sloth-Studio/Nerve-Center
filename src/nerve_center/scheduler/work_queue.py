@@ -17,6 +17,7 @@ from nerve_center.domain.work_queue import (
     WorkRequestStatus,
     WorkResultSnapshot,
 )
+from nerve_center.persistence.providers import ModelEvidenceRepository
 from nerve_center.persistence.work_queue import WorkQueueRepository
 
 
@@ -28,11 +29,13 @@ class WorkQueueService:
         limits: QueueLimits | None = None,
         max_parallel_work: int = 1,
         default_attempt_seconds: float = 30.0,
+        model_evidence: ModelEvidenceRepository | None = None,
     ) -> None:
         self.repository = repository
         self.limits = limits or QueueLimits()
         self.max_parallel_work = max(max_parallel_work, 1)
         self.default_attempt_seconds = max(default_attempt_seconds, 0.1)
+        self.model_evidence = model_evidence
         self._admission_lock = RLock()
 
     def submit(
@@ -75,10 +78,17 @@ class WorkQueueService:
         worker_id: str,
         work_classes: tuple[WorkClass, ...] | None = None,
         now: datetime | None = None,
+        *,
+        routing_scores: dict[str, float] | None = None,
     ) -> WorkAttemptSnapshot | None:
         classes = tuple(item.value for item in work_classes) if work_classes else None
         with self._admission_lock:
-            return self.repository.claim_next(worker_id, work_classes=classes, now=now)
+            return self.repository.claim_next(
+                worker_id,
+                work_classes=classes,
+                routing_scores=routing_scores,
+                now=now,
+            )
 
     def complete(
         self, attempt_id: str, payload: dict[str, Any], now: datetime | None = None
@@ -111,9 +121,29 @@ class WorkQueueService:
         return self.repository.deliver_results(module_id, now)
 
     def acknowledge(
-        self, result_id: str, module_id: str, now: datetime | None = None
+        self,
+        result_id: str,
+        module_id: str,
+        now: datetime | None = None,
+        *,
+        accepted: bool | None = None,
+        disposition_reason: str | None = None,
     ) -> WorkResultSnapshot:
-        return self.repository.acknowledge(result_id, module_id, now)
+        result = self.repository.acknowledge(result_id, module_id, now)
+        manager = result.payload.get("manager")
+        if (
+            self.model_evidence is not None
+            and accepted is not None
+            and isinstance(manager, dict)
+        ):
+            provider_call_id = manager.get("provider_call_id")
+            if isinstance(provider_call_id, str):
+                self.model_evidence.mark_disposition(
+                    provider_call_id,
+                    accepted=accepted,
+                    reason=disposition_reason,
+                )
+        return result
 
     def cancel(self, request_id: str) -> WorkRequestSnapshot:
         return self.repository.cancel(request_id)

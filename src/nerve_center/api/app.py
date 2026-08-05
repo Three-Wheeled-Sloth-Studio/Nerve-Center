@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from typing import Annotated
 
 import uvicorn
@@ -44,15 +44,20 @@ from nerve_center.domain.work_queue import (
 )
 from nerve_center.persistence.database import Database
 from nerve_center.persistence.modules import ModuleNotFoundError, ModuleRepository
+from nerve_center.persistence.providers import ModelEvidenceRepository, ProviderCallRepository
 from nerve_center.persistence.runs import RunRepository
 from nerve_center.persistence.sessions import SessionNotFoundError, SessionRepository
 from nerve_center.persistence.work_queue import WorkQueueRepository
 from nerve_center.plugins.job_scout.bootstrap import install_job_scout
 from nerve_center.plugins.synthetic import SyntheticTaskPlugin
-from nerve_center.providers.base import StructuredProvider
+from nerve_center.providers.base import JsonProvider, StructuredProvider
+from nerve_center.providers.errors import ProviderError
+from nerve_center.providers.manager import ProviderManager
+from nerve_center.providers.ollama import OllamaProvider
 from nerve_center.runtime.api import register_runtime_routes
 from nerve_center.runtime.plugin import ModuleProcessTaskPlugin
 from nerve_center.runtime.supervisor import ModuleSupervisor
+from nerve_center.scheduler.provider_worker import ProviderWorkExecutor
 from nerve_center.scheduler.registry import TaskRegistry
 from nerve_center.scheduler.runner import RunnerService
 from nerve_center.scheduler.service import SchedulerService
@@ -77,7 +82,22 @@ def create_app(
     repository = RunRepository(database)
     module_repository = ModuleRepository(database)
     session_repository = SessionRepository(database)
-    work_queue = WorkQueueService(WorkQueueRepository(database))
+    model_evidence = ModelEvidenceRepository(database)
+    work_queue = WorkQueueService(
+        WorkQueueRepository(database), model_evidence=model_evidence
+    )
+    provider_manager: ProviderManager | None = None
+    runtime_provider = provider
+    if runtime_provider is None:
+        ollama = OllamaProvider(
+            base_url=runtime_settings.ollama_base_url,
+            timeout_seconds=runtime_settings.ollama_timeout_seconds,
+            telemetry=ProviderCallRepository(database),
+        )
+        provider_manager = ProviderManager((ollama,), evidence=model_evidence)
+        runtime_provider = provider_manager
+    elif isinstance(runtime_provider, JsonProvider):
+        provider_manager = ProviderManager((runtime_provider,), evidence=model_evidence)
     registry = TaskRegistry()
     registry.register(SyntheticTaskPlugin())
 
@@ -111,7 +131,7 @@ def create_app(
         application,
         database,
         runtime_settings,
-        provider,
+        runtime_provider,
     )
     module_supervisor = ModuleSupervisor(runtime_settings)
     module_supervisor.register(job_scout.manifest, job_scout.operation_bridge)
@@ -142,17 +162,22 @@ def create_app(
     )
     module_supervisor.set_session_control_resolver(work_sessions.control)
     module_supervisor.set_work_queue(work_queue)
+    provider_executor = (
+        ProviderWorkExecutor(work_queue, provider_manager) if provider_manager else None
+    )
     scheduler = SchedulerService(
         repository,
         runner,
         poll_seconds=runtime_settings.scheduler_poll_seconds,
         session_tick=work_sessions.tick,
+        queue_tick=provider_executor.tick if provider_executor else None,
     )
     application.state.runner = runner
     application.state.scheduler = scheduler
     application.state.module_supervisor = module_supervisor
     application.state.work_sessions = work_sessions
     application.state.work_queue = work_queue
+    application.state.provider_manager = provider_manager
     register_runtime_routes(application, module_supervisor)
 
     def queue_error(error: Exception) -> HTTPException:
@@ -167,6 +192,17 @@ def create_app(
     @application.get("/health")
     def health() -> dict[str, str]:
         return {"status": "ok", "version": __version__}
+
+    @application.get("/api/v1/providers/models")
+    async def list_provider_models() -> list[object]:
+        if provider_manager is not None:
+            with suppress(ProviderError):
+                await provider_manager.list_models()
+        return list(model_evidence.list_models())
+
+    @application.get("/api/v1/providers/evidence/{task_id}")
+    def list_provider_evidence(task_id: str) -> list[object]:
+        return list(model_evidence.task_evidence(task_id))
 
     @application.post("/api/v1/sessions", status_code=status.HTTP_201_CREATED)
     async def create_session(request: SessionCreateRequest) -> SessionResponse:

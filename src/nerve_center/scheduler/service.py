@@ -18,11 +18,13 @@ class SchedulerService:
         runner: RunnerService,
         poll_seconds: float = 1.0,
         session_tick: Callable[[datetime], Awaitable[object]] | None = None,
+        queue_tick: Callable[[], Awaitable[object]] | None = None,
     ) -> None:
         self.repository = repository
         self.runner = runner
         self.poll_seconds = poll_seconds
         self.session_tick = session_tick
+        self.queue_tick = queue_tick
         self._stop = asyncio.Event()
         self._task: asyncio.Task[None] | None = None
 
@@ -43,6 +45,8 @@ class SchedulerService:
         changed: list[RunSnapshot] = []
         if self.session_tick is not None:
             await self.session_tick(current)
+        if self.queue_tick is not None:
+            await self.queue_tick()
         for snapshot in self.repository.list_scheduled():
             if snapshot.requested_starts_at is None or snapshot.requested_ends_at is None:
                 changed.append(

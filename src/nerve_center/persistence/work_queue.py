@@ -6,7 +6,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import uuid4
 
-from sqlalchemy import func, select
+from sqlalchemy import case, func, literal, select
 from sqlalchemy.orm import Session
 
 from nerve_center.domain.work_queue import (
@@ -147,6 +147,7 @@ class WorkQueueRepository:
         worker_id: str,
         *,
         work_classes: tuple[str, ...] | None = None,
+        routing_scores: dict[str, float] | None = None,
         now: datetime | None = None,
     ) -> WorkAttemptSnapshot | None:
         current = _utc(now)
@@ -157,10 +158,19 @@ class WorkQueueRepository:
             )
             if work_classes:
                 statement = statement.where(WorkRequestModel.work_class.in_(work_classes))
+            routing_score = (
+                case(
+                    routing_scores,
+                    value=WorkRequestModel.task_id,
+                    else_=0.0,
+                )
+                if routing_scores
+                else literal(0.0)
+            )
             request = session.scalar(
                 statement.order_by(
                     WorkRequestModel.module_priority.desc(),
-                    WorkRequestModel.task_priority.desc(),
+                    (WorkRequestModel.task_priority + routing_score).desc(),
                     WorkRequestModel.created_at.asc(),
                 ).limit(1)
             )

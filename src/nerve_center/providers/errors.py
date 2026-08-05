@@ -12,6 +12,10 @@ class ProviderError(RuntimeError):
     safe_message: str
     retryable: bool = False
     status_code: int | None = None
+    call_id: str | None = None
+    model: str | None = None
+    duration_ms: int = 0
+    retry_count: int = 0
 
     def __post_init__(self) -> None:
         RuntimeError.__init__(self, self.safe_message)
