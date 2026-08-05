@@ -1,16 +1,16 @@
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   createRule,
   decideHypothesis,
   deleteRule,
   discoverJobScoutKeywords,
-  loadJobScoutResume,
   saveJobScoutConfiguration,
   saveLocationPreferences,
   saveScoringSettings,
   scanJobScout,
   updateApplication,
+  uploadJobScoutResume,
 } from "./api";
 import type {
   ApplicationStatus,
@@ -20,9 +20,43 @@ import type {
   ReviewOpportunity,
   ScoringRule,
 } from "./types";
-import { lines, messageOf, Metric, score, titleCase } from "./display";
+import { messageOf, Metric, score, titleCase } from "./display";
+import { formatMultivalueText, parseMultivalueText } from "./multivalue";
 
 type SortKey = "priority" | "response" | "fit" | "freshness";
+type DraftField =
+  | "target_titles"
+  | "locations"
+  | "source_urls"
+  | "allowed_domains"
+  | "disallowed_domains"
+  | "manual_keywords";
+type ConfigurationDrafts = Record<DraftField, string>;
+
+const MAX_RESUME_BYTES = 25 * 1024 * 1024;
+
+function draftsFrom(configuration: JobScoutConfiguration): ConfigurationDrafts {
+  return {
+    target_titles: formatMultivalueText(configuration.target_titles),
+    locations: formatMultivalueText(configuration.locations),
+    source_urls: formatMultivalueText(configuration.source_urls),
+    allowed_domains: formatMultivalueText(configuration.allowed_domains),
+    disallowed_domains: formatMultivalueText(configuration.disallowed_domains),
+    manual_keywords: formatMultivalueText(configuration.manual_keywords),
+  };
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return file.arrayBuffer().then((buffer) => {
+    const bytes = new Uint8Array(buffer);
+    let binary = "";
+    const chunkSize = 0x8000;
+    for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
+    }
+    return btoa(binary);
+  });
+}
 
 export function JobScoutPanel({ workspace, opportunities, rules, scoringSettings, location, sort, includeDismissed, scanSummary, busy, onBusy, onSort, onIncludeDismissed, onScanSummary, onRefresh, onError }: {
   workspace: JobScoutWorkspace | null;
@@ -80,47 +114,99 @@ function JobScoutSetup({ workspace, scanSummary, busy, onBusy, onScanSummary, on
   onRefresh: () => Promise<void>;
   onError: (message: string) => void;
 }) {
-  const [resumePath, setResumePath] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedResume, setSelectedResume] = useState<File | null>(null);
   const [configuration, setConfiguration] = useState<JobScoutConfiguration>(workspace.configuration);
+  const [drafts, setDrafts] = useState<ConfigurationDrafts>(() => draftsFrom(workspace.configuration));
 
-  useEffect(() => setConfiguration(workspace.configuration), [workspace.configuration]);
+  useEffect(() => {
+    setConfiguration(workspace.configuration);
+    setDrafts(draftsFrom(workspace.configuration));
+  }, [workspace.configuration]);
 
-  function setLines(field: keyof JobScoutConfiguration, value: string) {
-    setConfiguration((current) => ({ ...current, [field]: lines(value) }));
+  function updateDraft(field: DraftField, value: string) {
+    setDrafts((current) => ({ ...current, [field]: value }));
+  }
+  function materializeConfiguration(): JobScoutConfiguration {
+    return {
+      ...configuration,
+      target_titles: parseMultivalueText(drafts.target_titles),
+      locations: parseMultivalueText(drafts.locations),
+      source_urls: parseMultivalueText(drafts.source_urls),
+      allowed_domains: parseMultivalueText(drafts.allowed_domains),
+      disallowed_domains: parseMultivalueText(drafts.disallowed_domains),
+      manual_keywords: parseMultivalueText(drafts.manual_keywords),
+    };
   }
   async function perform(operation: () => Promise<unknown>) {
     onBusy(true);
     try { await operation(); await onRefresh(); } catch (reason) { onError(messageOf(reason)); } finally { onBusy(false); }
   }
+  function chooseResume(file: File | null) {
+    if (file && file.size > MAX_RESUME_BYTES) {
+      onError("Resume source files must be 25 MB or smaller.");
+      setSelectedResume(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+    setSelectedResume(file);
+  }
+  async function uploadResume() {
+    if (!selectedResume) return;
+    const content = await fileToBase64(selectedResume);
+    await uploadJobScoutResume(selectedResume.name, content, false);
+    setSelectedResume(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+  const sourceUrls = parseMultivalueText(drafts.source_urls);
+
   return (
     <div className="setup-grid">
       <section className="panel setup-card">
         <p className="eyebrow">1 · Career evidence</p>
         <h3>Load a resume</h3>
         <p className="muted">PDF, DOCX, Markdown, and text are imported into local durable storage. Model analysis is optional; keyword discovery also has a deterministic fallback.</p>
-        <label>Resume path<input value={resumePath} onChange={(event) => setResumePath(event.target.value)} placeholder="C:\\Users\\you\\Documents\\resume.docx" /></label>
-        <button type="button" className="primary" disabled={busy || !resumePath.trim()} onClick={() => void perform(() => loadJobScoutResume(resumePath, false))}>Load resume</button>
+        <label htmlFor="resume-file-name">Resume file</label>
+        <div className="file-picker">
+          <input id="resume-file-name" readOnly value={selectedResume?.name ?? ""} placeholder="No file selected" />
+          <button type="button" className="file-picker-button" aria-label="Browse for a resume file" title="Browse for a resume file" disabled={busy} onClick={() => fileInputRef.current?.click()}>
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 6.75A1.75 1.75 0 0 1 4.75 5h4.19c.46 0 .9.18 1.23.51l1.32 1.32c.14.14.33.22.53.22h7.23A1.75 1.75 0 0 1 21 8.8v8.45A1.75 1.75 0 0 1 19.25 19H4.75A1.75 1.75 0 0 1 3 17.25V6.75Zm1.5.05v10.45c0 .14.11.25.25.25h14.5c.14 0 .25-.11.25-.25V8.8a.25.25 0 0 0-.25-.25h-7.23c-.6 0-1.17-.24-1.59-.66L9.1 6.56a.25.25 0 0 0-.17-.06H4.75a.25.25 0 0 0-.25.25v.05Z" /></svg>
+          </button>
+          <input ref={fileInputRef} className="visually-hidden" type="file" accept=".pdf,.docx,.md,.markdown,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,text/plain" onChange={(event) => chooseResume(event.target.files?.[0] ?? null)} />
+        </div>
+        <button type="button" className="primary" disabled={busy || !selectedResume} onClick={() => void perform(uploadResume)}>Load resume</button>
         <p className="setup-result">Current: {workspace.configuration.resume_file_name ?? "No resume loaded"}</p>
       </section>
 
       <section className="panel setup-card">
         <p className="eyebrow">2 · Search intent</p>
         <h3>Basic configuration</h3>
-        <label>Target titles<textarea value={configuration.target_titles.join("\n")} onChange={(event) => setLines("target_titles", event.target.value)} placeholder="Director of Product\nPrincipal Product Manager" /></label>
-        <label>Locations<textarea value={configuration.locations.join("\n")} onChange={(event) => setLines("locations", event.target.value)} placeholder="Remote\nRaleigh, NC" /></label>
+        <label>Target titles<textarea value={drafts.target_titles} onChange={(event) => updateDraft("target_titles", event.target.value)} placeholder={"Director of Product\nPrincipal Product Manager"} /><small>One title per line.</small></label>
+        <label>Locations<textarea value={drafts.locations} onChange={(event) => updateDraft("locations", event.target.value)} placeholder={"Remote\nRaleigh, NC"} /><small>One location per line; commas remain part of the location.</small></label>
         <label>Work arrangement<select value={configuration.remote_preference} onChange={(event) => setConfiguration({ ...configuration, remote_preference: event.target.value as JobScoutConfiguration["remote_preference"] })}><option value="any">Any</option><option value="remote">Remote</option><option value="hybrid">Hybrid</option><option value="on_site">On site</option></select></label>
-        <label>Public career or ATS URLs<textarea value={configuration.source_urls.join("\n")} onChange={(event) => setLines("source_urls", event.target.value)} placeholder="https://boards.greenhouse.io/company\nhttps://jobs.lever.co/company" /></label>
+        <label>Public career or ATS URLs<textarea value={drafts.source_urls} onChange={(event) => updateDraft("source_urls", event.target.value)} placeholder={"https://boards.greenhouse.io/company\nhttps://jobs.lever.co/company"} /><small>One URL per line.</small></label>
         <label className="checkbox"><input type="checkbox" checked={configuration.broad_search_enabled} onChange={(event) => setConfiguration({ ...configuration, broad_search_enabled: event.target.checked })} />Use public browser search to discover additional direct sources</label>
-        <details><summary>Source policy and timing</summary><label>Allowed domains, one per line<textarea value={configuration.allowed_domains.join("\n")} onChange={(event) => setLines("allowed_domains", event.target.value)} placeholder="Leave empty to allow any public source" /></label><label>Disallowed domains, one per line<textarea value={configuration.disallowed_domains.join("\n")} onChange={(event) => setLines("disallowed_domains", event.target.value)} /></label><label>Scheduled rescan interval, minutes<input type="number" min={5} max={10080} value={configuration.scan_interval_minutes} onChange={(event) => setConfiguration({ ...configuration, scan_interval_minutes: Number(event.target.value) })} /></label></details>
-        <button type="button" className="primary" disabled={busy} onClick={() => void perform(() => saveJobScoutConfiguration(configuration))}>Save configuration</button>
+        <details><summary>Source policy and timing</summary><label>Allowed domains<textarea value={drafts.allowed_domains} onChange={(event) => updateDraft("allowed_domains", event.target.value)} placeholder="Leave empty to allow any public source" /><small>One domain per line.</small></label><label>Disallowed domains<textarea value={drafts.disallowed_domains} onChange={(event) => updateDraft("disallowed_domains", event.target.value)} /><small>One domain per line.</small></label><label>Scheduled rescan interval, minutes<input type="number" min={5} max={10080} value={configuration.scan_interval_minutes} onChange={(event) => setConfiguration({ ...configuration, scan_interval_minutes: Number(event.target.value) })} /></label></details>
+        <button type="button" className="primary" disabled={busy} onClick={() => {
+          const next = materializeConfiguration();
+          setConfiguration(next);
+          void perform(() => saveJobScoutConfiguration(next));
+        }}>Save configuration</button>
       </section>
 
       <section className="panel setup-card">
         <p className="eyebrow">3 · Keywords</p>
         <h3>Relevant terms</h3>
         <div className="keyword-cloud">{workspace.keywords.keywords.length ? workspace.keywords.keywords.map((keyword) => <span key={keyword}>{keyword}</span>) : <p className="muted">Load a resume or add target titles to discover terms.</p>}</div>
-        <label>Manual additions<textarea value={configuration.keywords.join("\n")} onChange={(event) => setLines("keywords", event.target.value)} /></label>
-        <button type="button" disabled={busy} onClick={() => void perform(discoverJobScoutKeywords)}>Rediscover keywords</button>
+        <label>Manual additions<textarea value={drafts.manual_keywords} onChange={(event) => updateDraft("manual_keywords", event.target.value)} /><small>One meaningful term or phrase per line.</small></label>
+        <button type="button" disabled={busy} onClick={() => {
+          const next = materializeConfiguration();
+          setConfiguration(next);
+          void perform(async () => {
+            await saveJobScoutConfiguration(next);
+            return discoverJobScoutKeywords();
+          });
+        }}>Rediscover keywords</button>
         {workspace.keywords.search_queries.length ? <details><summary>Search queries</summary><ul>{workspace.keywords.search_queries.map((query) => <li key={query}>{query}</li>)}</ul></details> : null}
       </section>
 
@@ -128,10 +214,12 @@ function JobScoutSetup({ workspace, scanSummary, busy, onBusy, onScanSummary, on
         <p className="eyebrow">4 · Scan</p>
         <h3>Run the basic scanner</h3>
         <p className="muted">Scans configured Greenhouse, Lever, and structured career pages now. Public browser discovery is used only when enabled.</p>
-        <button type="button" className="primary" disabled={busy || (configuration.source_urls.length === 0 && workspace.sources.length === 0 && !configuration.broad_search_enabled)} onClick={() => {
+        <button type="button" className="primary" disabled={busy || (sourceUrls.length === 0 && workspace.sources.length === 0 && !configuration.broad_search_enabled)} onClick={() => {
+          const next = materializeConfiguration();
+          setConfiguration(next);
           onBusy(true); onScanSummary(null);
-          void saveJobScoutConfiguration(configuration)
-            .then(() => scanJobScout(configuration.broad_search_enabled))
+          void saveJobScoutConfiguration(next)
+            .then(() => scanJobScout(next.broad_search_enabled))
             .then(onScanSummary)
             .then(onRefresh)
             .catch((reason: unknown) => onError(messageOf(reason)))
@@ -194,4 +282,3 @@ function PreferencesPanel({ settings, location, onRefresh, onError }: { settings
   async function saveWeights(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const data = new FormData(event.currentTarget); try { await saveScoringSettings({ ...settings, weights: { fit: Number(data.get("fit")), response_likelihood: Number(data.get("response")), opportunity_value: Number(data.get("value")) } }); await onRefresh(); } catch (reason) { onError(messageOf(reason)); } }
   return <div className="two-column embedded-panel"><form onSubmit={(event) => void saveLocation(event)}><h3>Location</h3><label>Home region<input name="home_region" defaultValue={String(location?.home_region ?? "")} /></label><label>Maximum commute<input name="commute" type="number" defaultValue={Number(location?.local_max_commute_minutes ?? 90)} /></label><button className="primary">Save</button></form><form onSubmit={(event) => void saveWeights(event)}><h3>Priority weights</h3><label>Fit<input name="fit" type="number" step="0.05" defaultValue={weights.fit ?? 0.35} /></label><label>Response likelihood<input name="response" type="number" step="0.05" defaultValue={weights.response_likelihood ?? 0.45} /></label><label>Opportunity value<input name="value" type="number" step="0.05" defaultValue={weights.opportunity_value ?? 0.2} /></label><button className="primary">Save</button></form></div>;
 }
-
