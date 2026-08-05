@@ -553,13 +553,12 @@ fn managed_process_exit(app: &AppHandle) -> Result<Option<String>, String> {
 
 fn terminate_managed_process(app: &AppHandle) {
     let runtime = app.state::<ApiRuntime>();
-    if let Ok(mut process) = runtime.process.lock() {
-        if let Some(child) = process.as_mut() {
-            let _ = child.kill();
-            let _ = child.wait();
-        }
-        *process = None;
+    let mut process = runtime.process.lock().expect("API process lock");
+    if let Some(child) = process.as_mut() {
+        let _ = child.kill();
+        let _ = child.wait();
     }
+    *process = None;
 }
 
 fn stop_api(app: &AppHandle) {
