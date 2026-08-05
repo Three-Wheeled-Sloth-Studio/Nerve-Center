@@ -34,6 +34,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     } catch {
       // Keep the server response text when it is not JSON.
     }
+    if (response.status === 404 && path.startsWith("/api/v1/modules/job_scout/")) {
+      message =
+        "The running Nerve Center service predates this Job Scout workspace. " +
+        "Quit Nerve Center from the system tray, then relaunch it.";
+    }
     throw new Error(message);
   }
   if (response.status === 204) return undefined as T;
