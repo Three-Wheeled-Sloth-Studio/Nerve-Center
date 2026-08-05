@@ -1,0 +1,71 @@
+name: Windows package
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".github/workflows/windows-package.yml"
+      - "desktop/**"
+      - "pyproject.toml"
+      - "scripts/build_windows_backend.py"
+      - "scripts/nerve_center_api_entry.py"
+      - "scripts/smoke_packaged_backend.py"
+      - "src/**"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  windows-package:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install backend packaging dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[packaging]"
+      - name: Build self-contained backend
+        run: python scripts/build_windows_backend.py
+      - name: Smoke-test packaged backend
+        run: python scripts/smoke_packaged_backend.py
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install desktop dependencies
+        working-directory: desktop
+        run: npm install --no-audit --no-fund
+
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build unsigned NSIS package
+        working-directory: desktop
+        run: npm run tauri build -- --config src-tauri/tauri.package.conf.json --bundles nsis
+
+      - name: Verify package output
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem "desktop/src-tauri/target/release/bundle/nsis/*-setup.exe" | Select-Object -First 1
+          if (-not $installer) {
+            throw "Tauri did not produce an NSIS installer."
+          }
+          Write-Host "Built $($installer.FullName)"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nerve-center-windows-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            desktop/src-tauri/target/release/bundle/nsis/*-setup.exe
+            desktop/src-tauri/target/release/nerve-center-desktop.exe
