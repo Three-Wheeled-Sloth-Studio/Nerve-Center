@@ -6,13 +6,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from nerve_center.config import Settings
-from nerve_center.discovery.service import DiscoveryService
 from nerve_center.persistence.database import Database
-from nerve_center.persistence.discovery import (
-    CompanyRepository,
-    DiscoverySourceRepository,
-    JobOpeningRepository,
-)
 from nerve_center.plugins.job_scout.bootstrap import install_job_scout
 from nerve_center.plugins.job_scout.settings import (
     JobScoutConfiguration,
@@ -24,10 +18,6 @@ def _application(tmp_path: Path) -> FastAPI:
     settings = Settings(data_dir=tmp_path / "runtime")
     database = Database(settings)
     database.initialize()
-    companies = CompanyRepository(database)
-    sources = DiscoverySourceRepository(database)
-    jobs = JobOpeningRepository(database)
-    discovery = DiscoveryService(companies, sources, jobs)
     application = FastAPI()
     # Use the normal module composition path so the upload and configuration
     # contracts are exercised together.
