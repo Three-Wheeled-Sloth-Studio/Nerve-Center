@@ -11,7 +11,12 @@
 .setup-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
 .setup-card { display: flex; flex-direction: column; gap: .75rem; }
 .setup-card textarea { min-height: 5.5rem; }
+.setup-card label small { color: #94a3b8; font-size: .78rem; }
 .setup-result { margin: 0; font-size: .88rem; }
+.file-picker { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem; align-items: center; }
+.file-picker-button { display: inline-grid; place-items: center; width: 2.75rem; min-width: 2.75rem; height: 2.75rem; padding: .55rem; }
+.file-picker-button svg { width: 1.35rem; height: 1.35rem; fill: currentColor; }
+.visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
 .keyword-cloud { display: flex; flex-wrap: wrap; gap: .4rem; max-height: 10rem; overflow: auto; }
 .scan-summary { display: grid; gap: .25rem; padding: .75rem; border-radius: .7rem; background: rgba(255,255,255,.04); }
 .scan-summary small { color: #d6a75c; }
