@@ -1,0 +1,144 @@
+.startup-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background:
+    radial-gradient(circle at top, rgba(79, 70, 229, 0.16), transparent 35%),
+    #0b1020;
+  color: #e5e7eb;
+}
+
+.startup-card {
+  width: min(42rem, 100%);
+  padding: 2.25rem;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 1.25rem;
+  background: rgba(15, 23, 42, 0.94);
+  box-shadow: 0 1.5rem 5rem rgba(0, 0, 0, 0.35);
+}
+
+.startup-card h1 {
+  margin: 0.25rem 0 0.75rem;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+}
+
+.startup-eyebrow {
+  margin: 0;
+  color: #a5b4fc;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.startup-message,
+.startup-note {
+  color: #cbd5e1;
+  line-height: 1.6;
+}
+
+.startup-note {
+  margin: 1.5rem 0 0;
+  font-size: 0.82rem;
+}
+
+.startup-mark {
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  margin-bottom: 1.25rem;
+  border-radius: 0.9rem;
+  background: rgba(99, 102, 241, 0.18);
+}
+
+.startup-mark span {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 999px;
+  background: #818cf8;
+  box-shadow: 0 0 0 0.45rem rgba(129, 140, 248, 0.14);
+}
+
+.startup-mark.failed {
+  background: rgba(239, 68, 68, 0.14);
+}
+
+.startup-mark.failed span {
+  background: #f87171;
+  box-shadow: 0 0 0 0.45rem rgba(248, 113, 113, 0.12);
+}
+
+.startup-detail {
+  max-height: 12rem;
+  overflow: auto;
+  margin: 1.25rem 0;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: #070b16;
+  color: #fecaca;
+  font: 0.82rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+}
+
+.startup-facts {
+  display: grid;
+  grid-template-columns: minmax(7rem, auto) 1fr;
+  gap: 0.45rem 1rem;
+  margin: 1.25rem 0;
+  font-size: 0.88rem;
+}
+
+.startup-facts dt {
+  color: #94a3b8;
+}
+
+.startup-facts dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.startup-progress {
+  height: 0.35rem;
+  overflow: hidden;
+  margin-top: 1.5rem;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.18);
+}
+
+.startup-progress span {
+  display: block;
+  width: 42%;
+  height: 100%;
+  border-radius: inherit;
+  background: #818cf8;
+  animation: startup-sweep 1.4s ease-in-out infinite;
+}
+
+.startup-retry {
+  margin-top: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 0;
+  border-radius: 0.7rem;
+  background: #6366f1;
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.startup-retry:disabled {
+  cursor: progress;
+  opacity: 0.65;
+}
+
+@keyframes startup-sweep {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(240%);
+  }
+}
