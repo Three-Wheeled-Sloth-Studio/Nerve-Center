@@ -1,4 +1,4 @@
-"""Launch the packaged backend and verify its public health contract."""
+"""Launch the packaged backend and verify its public runtime contracts."""
 
 from __future__ import annotations
 
@@ -46,6 +46,17 @@ def request_json(
     with urllib.request.urlopen(request, timeout=10) as response:  # noqa: S310
         raw = response.read()
         return json.loads(raw.decode("utf-8")) if raw else {}
+
+
+def smoke_job_scout_workspace() -> None:
+    workspace = request_json("/api/v1/modules/job_scout/workspace")
+    if not isinstance(workspace, dict):
+        raise SystemExit(f"Unexpected Job Scout workspace payload: {workspace}")
+    required = {"configuration", "documents", "profile", "keywords", "sources", "opening_count"}
+    missing = sorted(required - workspace.keys())
+    if missing:
+        raise SystemExit(f"Packaged Job Scout workspace is missing fields: {missing}")
+    print("Packaged Job Scout workspace route healthy.")
 
 
 def smoke_module_runtime(timeout: float) -> None:
@@ -165,6 +176,7 @@ def main() -> int:
                 if health.get("status") != "ok":
                     raise SystemExit(f"Unexpected health payload: {health}")
                 print(f"Packaged backend healthy: {health}")
+                smoke_job_scout_workspace()
                 smoke_module_runtime(args.timeout)
                 return 0
             time.sleep(0.25)
