@@ -28,7 +28,7 @@ def job_scout_manifest() -> ModuleManifest:
             module_api_version=MODULE_API_VERSION,
             minimum_core_version=__version__,
             maximum_tested_core_version=__version__,
-            data_schema_version=2,
+            data_schema_version=3,
         ),
         launch=ModuleLaunchDefinition(
             runtime="managed_python",
@@ -104,7 +104,7 @@ def job_scout_manifest() -> ModuleManifest:
                     "items": {"type": "string"},
                     "uniqueItems": True,
                 },
-                "keywords": {
+                "manual_keywords": {
                     "type": "array",
                     "items": {"type": "string"},
                     "uniqueItems": True,
