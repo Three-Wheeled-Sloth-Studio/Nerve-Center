@@ -1,11 +1,12 @@
 {
   "name": "nerve-center-desktop",
   "private": true,
-  "version": "0.12.0",
+  "version": "0.12.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "test:multivalue": "node scripts/test-multivalue.mjs",
+    "build": "npm run test:multivalue && tsc --noEmit && vite build",
     "tauri": "tauri"
   },
   "dependencies": {
