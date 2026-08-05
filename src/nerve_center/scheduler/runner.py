@@ -159,6 +159,8 @@ class RunnerService:
             resources=tracker,
             configuration=snapshot.configuration,
             checkpoint=snapshot.checkpoint,
+            session_id=snapshot.session_id,
+            module_priority=snapshot.module_priority,
         )
         remaining = (snapshot.deadline - datetime.now(UTC)).total_seconds()
         if remaining <= 0:

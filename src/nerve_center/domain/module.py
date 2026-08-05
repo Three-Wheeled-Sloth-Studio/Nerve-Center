@@ -85,6 +85,7 @@ class ModuleManifest:
     task_types: tuple[ModuleTaskDeclaration, ...]
     ui_contributions: tuple[ModuleUiContribution, ...] = ()
     configuration_schema: dict[str, Any] = field(default_factory=dict)
+    session_entry_task_id: str | None = None
 
     def __post_init__(self) -> None:
         self.validate()
@@ -122,6 +123,8 @@ class ModuleManifest:
             if not task.work_classes:
                 raise ValueError(f"module task {task.task_id!r} must declare work classes")
             task_ids.add(task.task_id)
+        if self.session_entry_task_id is not None and self.session_entry_task_id not in task_ids:
+            raise ValueError("session entry task must be declared by the module")
 
     def supports_core(self, core_version: str) -> bool:
         current = _parse_version(core_version)
@@ -174,6 +177,7 @@ class ModuleManifest:
             task_types=tasks,
             ui_contributions=ui,
             configuration_schema=dict(value.get("configuration_schema", {})),
+            session_entry_task_id=value.get("session_entry_task_id"),
         )
 
 

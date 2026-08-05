@@ -110,6 +110,20 @@ def stop_process_tree(process: subprocess.Popen[str]) -> None:
         process.wait(timeout=10)
 
 
+def remove_data_directory(path: Path, timeout: float = 5.0) -> None:
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            shutil.rmtree(path)
+            return
+        except FileNotFoundError:
+            return
+        except PermissionError:
+            if time.monotonic() >= deadline:
+                raise
+            time.sleep(0.1)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--executable", type=Path, default=DEFAULT_EXECUTABLE)
@@ -123,9 +137,11 @@ def main() -> int:
         raise SystemExit("Port 8765 is already serving a health endpoint.")
 
     creation_flags = 0x08000000 if os.name == "nt" else 0
-    with tempfile.TemporaryDirectory(prefix="nerve-center-package-smoke-") as data_dir:
+    data_dir = Path(tempfile.mkdtemp(prefix="nerve-center-package-smoke-"))
+    process: subprocess.Popen[str] | None = None
+    try:
         environment = os.environ.copy()
-        environment["NERVE_CENTER_DATA_DIR"] = data_dir
+        environment["NERVE_CENTER_DATA_DIR"] = str(data_dir)
         process = subprocess.Popen(  # noqa: S603
             [str(executable)],
             cwd=ROOT,
@@ -137,25 +153,26 @@ def main() -> int:
             creationflags=creation_flags,
         )
         deadline = time.monotonic() + args.timeout
-        try:
-            while time.monotonic() < deadline:
-                return_code = process.poll()
-                if return_code is not None:
-                    output = process.stdout.read() if process.stdout else ""
-                    raise SystemExit(
-                        f"Packaged backend exited with code {return_code}.\n{output[-4000:]}"
-                    )
-                health = read_health()
-                if health is not None:
-                    if health.get("status") != "ok":
-                        raise SystemExit(f"Unexpected health payload: {health}")
-                    print(f"Packaged backend healthy: {health}")
-                    smoke_module_runtime(args.timeout)
-                    return 0
-                time.sleep(0.25)
-            raise SystemExit(f"Packaged backend did not become healthy in {args.timeout}s.")
-        finally:
+        while time.monotonic() < deadline:
+            return_code = process.poll()
+            if return_code is not None:
+                output = process.stdout.read() if process.stdout else ""
+                raise SystemExit(
+                    f"Packaged backend exited with code {return_code}.\n{output[-4000:]}"
+                )
+            health = read_health()
+            if health is not None:
+                if health.get("status") != "ok":
+                    raise SystemExit(f"Unexpected health payload: {health}")
+                print(f"Packaged backend healthy: {health}")
+                smoke_module_runtime(args.timeout)
+                return 0
+            time.sleep(0.25)
+        raise SystemExit(f"Packaged backend did not become healthy in {args.timeout}s.")
+    finally:
+        if process is not None:
             stop_process_tree(process)
+        remove_data_directory(data_dir)
 
 
 if __name__ == "__main__":

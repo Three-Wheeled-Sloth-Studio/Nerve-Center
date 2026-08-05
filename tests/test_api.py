@@ -87,3 +87,23 @@ def test_paused_module_cannot_start_previously_queued_run(tmp_path: Path) -> Non
     assert created.status_code == 201
     assert started.status_code == 409
     assert "module job_scout is paused" in started.json()["detail"]
+
+
+def test_recurring_session_persists_concrete_next_window(tmp_path: Path) -> None:
+    app = create_app(Settings(data_dir=tmp_path))
+
+    with TestClient(app) as client:
+        created = client.post(
+            "/api/v1/sessions",
+            json={
+                "recurrence_timezone": "America/New_York",
+                "recurrence_local_start_time": "18:00",
+                "recurrence_duration_seconds": 3600,
+                "recurrence_weekdays": [0, 1, 2, 3, 4],
+            },
+        )
+
+    assert created.status_code == 201
+    assert created.json()["status"] == "scheduled"
+    assert created.json()["starts_at"] < created.json()["ends_at"]
+    assert created.json()["recurrence"]["timezone"] == "America/New_York"

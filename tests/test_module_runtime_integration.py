@@ -21,13 +21,10 @@ def test_job_scout_run_crosses_supervised_process_boundary(tmp_path: Path) -> No
     client = httpx.Client(base_url=f"http://127.0.0.1:{port}", timeout=10)
     try:
         _wait_until(lambda: client.get("/health").status_code == 200)
-        created = client.post(
-            "/api/v1/runs",
-            json={"task_id": "job_scout.discovery", "duration_seconds": 30},
-        )
+        created = client.post("/api/v1/sessions", json={"duration_seconds": 30})
         created.raise_for_status()
-        run_id = created.json()["id"]
-        client.post(f"/api/v1/runs/{run_id}/start").raise_for_status()
+        session = created.json()
+        run_id = session["module_run_ids"]["job_scout"]
 
         final = _wait_until(
             lambda: _terminal_run(client.get(f"/api/v1/runs/{run_id}").json())
@@ -35,13 +32,16 @@ def test_job_scout_run_crosses_supervised_process_boundary(tmp_path: Path) -> No
         module = client.get("/api/v1/modules/job_scout").json()
 
         assert final["status"] == "succeeded"
+        assert final["session_id"] == session["id"]
+        assert final["module_priority"] == 100
         assert final["result_metrics"]["sources_completed"] == 0
         assert module["manifest"]["launch"]["runtime"] == "managed_python"
         assert module["runtime"]["process_id"] is not None
         assert module["runtime"]["work_items_processed"] == 1
-        client.patch(
-            "/api/v1/modules/job_scout", json={"lifecycle_state": "paused"}
-        ).raise_for_status()
+        stopped = client.post(f"/api/v1/sessions/{session['id']}/emergency-stop")
+        stopped.raise_for_status()
+        assert stopped.json()["status"] == "cancelled"
+        assert stopped.json()["emergency_stop"] is True
     finally:
         client.close()
         server.should_exit = True

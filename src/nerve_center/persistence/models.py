@@ -36,6 +36,10 @@ class RunModel(Base):
     result_summary: Mapped[str | None] = mapped_column(Text)
     error_code: Mapped[str | None] = mapped_column(String(100))
     result_metrics: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    session_id: Mapped[str | None] = mapped_column(
+        ForeignKey("core_sessions.id"), nullable=True, index=True
+    )
+    module_priority: Mapped[int] = mapped_column(Integer, default=10)
 
 
 class RunEventModel(Base):
@@ -59,6 +63,26 @@ class ModuleModel(Base):
     manifest: Mapped[dict[str, Any]] = mapped_column(JSON)
     installed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class WorkSessionModel(Base):
+    __tablename__ = "core_sessions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    admission_phase: Mapped[str] = mapped_column(String(32), index=True)
+    starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    ends_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    requested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    recurrence: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    recurrence_parent_id: Mapped[str | None] = mapped_column(String(36), index=True)
+    module_run_ids: Mapped[dict[str, str]] = mapped_column(JSON, default=dict)
+    module_priorities: Mapped[dict[str, int]] = mapped_column(JSON, default=dict)
+    resource_policy: Mapped[dict[str, int]] = mapped_column(JSON, default=dict)
+    emergency_stop: Mapped[bool] = mapped_column(Boolean, default=False)
+    result_summary: Mapped[str | None] = mapped_column(Text)
 
 
 class SourceDocumentModel(Base):

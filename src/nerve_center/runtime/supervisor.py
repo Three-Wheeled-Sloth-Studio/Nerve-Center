@@ -62,10 +62,12 @@ class ModuleSupervisor:
         self,
         settings: Settings,
         process_factory: Callable[..., Awaitable[asyncio.subprocess.Process]] | None = None,
+        session_control: Callable[[str], Mapping[str, Any]] | None = None,
     ) -> None:
         self.settings = settings
         self._process_factory = process_factory or asyncio.create_subprocess_exec
         self._sessions: dict[str, _ModuleSession] = {}
+        self._session_control = session_control
 
     def register(self, manifest: ModuleManifest, bridge: ModuleOperationBridge) -> None:
         if manifest.module_id in self._sessions:
@@ -80,6 +82,11 @@ class ModuleSupervisor:
                 activity="Not running",
             ),
         )
+
+    def set_session_control_resolver(
+        self, resolver: Callable[[str], Mapping[str, Any]]
+    ) -> None:
+        self._session_control = resolver
 
     def report(self, module_id: str) -> ModuleRuntimeReport:
         session = self._session(module_id)
@@ -122,6 +129,7 @@ class ModuleSupervisor:
                 module_id=module_id,
                 module_version=session.manifest.version,
                 run_id=context.run_id,
+                session_id=context.session_id,
                 task_id=task_id,
                 deadline=context.deadline,
                 priority=priority,
@@ -133,6 +141,9 @@ class ModuleSupervisor:
                 },
                 data_directory=str(
                     self.settings.module_data_dir(session.manifest.storage_namespace)
+                ),
+                admission_phase=str(
+                    self._session_policy(context.session_id)["admission_phase"]
                 ),
                 configuration=dict(context.configuration),
                 checkpoint=dict(context.checkpoint),
@@ -170,6 +181,7 @@ class ModuleSupervisor:
             "cancel_requested": pending.context.cancellation_requested(),
             "shutdown_requested": session.stop_requested,
             "deadline": pending.assignment.deadline,
+            **self._session_policy(pending.assignment.session_id),
         }
 
     def module_control(self, module_id: str, token: str) -> dict[str, bool]:
@@ -388,6 +400,17 @@ class ModuleSupervisor:
         except KeyError as error:
             raise KeyError(f"module runtime {module_id!r} is not registered") from error
 
+    def _session_policy(self, session_id: str | None) -> Mapping[str, Any]:
+        if session_id is None or self._session_control is None:
+            return {
+                "admission_phase": "open",
+                "remaining_seconds": None,
+                "estimated_queue_clear_seconds": 0.0,
+                "estimated_next_request_wait_seconds": 0.0,
+                "accept_new_llm_work": True,
+            }
+        return self._session_control(session_id)
+
     @staticmethod
     def _updated_report(
         session: _ModuleSession,
@@ -403,4 +426,3 @@ class ModuleSupervisor:
         if touch_heartbeat:
             values["last_heartbeat_at"] = datetime.now(UTC)
         return ModuleRuntimeReport(**values)
-

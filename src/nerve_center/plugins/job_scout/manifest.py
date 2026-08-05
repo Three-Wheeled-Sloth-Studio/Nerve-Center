@@ -73,4 +73,5 @@ def job_scout_manifest() -> ModuleManifest:
             },
             "additionalProperties": False,
         },
+        session_entry_task_id="job_scout.discovery",
     )

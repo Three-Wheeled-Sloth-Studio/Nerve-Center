@@ -2,7 +2,7 @@
 
 > Product intent and non-negotiable boundaries are defined in `refs/planning/product-requirements-document.md`. This roadmap orders implementation; it does not redefine the product.
 
-## Accepted baseline through 0.8.0
+## Accepted baseline through 0.9.0
 
 The repository already contains a working local API, durable SQLite foundation, initial scheduling and task concepts, the Job Scout reference workflow, a Tauri/React desktop shell, and Windows packaging/runtime bootstrap.
 
@@ -41,7 +41,7 @@ accounting. Runtime cards report process state, activity, heartbeat, backlog,
 queue pressure, and completed work. Pause requests perform graceful shutdown
 with bounded forced termination.
 
-## Increment 9: Session scheduler and wind-down
+## Increment 9: Session scheduler and wind-down (implemented)
 
 - Make manager work sessions the primary scheduling unit.
 - Support duration-based, fixed-time, and recurring wall-clock windows.
@@ -51,6 +51,14 @@ with bounded forced termination.
 - Complete queued LLM work during normal graceful wind-down.
 - Add explicit Emergency Stop.
 - Restore active sessions after application or machine restart using the original wall-clock end.
+
+Implemented in `0.9.0`. Durable manager work sessions now own concrete
+wall-clock windows, enabled-module selection, normalized priority allocation,
+resource policy, module run IDs, and recurrence history. The scheduler derives
+Open, Constrained, Draining, and Closed admission from remaining time and queue
+estimates; workers receive that control state on every checkpoint boundary.
+Restart recovery preserves the original end, missed recurrence windows are not
+replayed, and Emergency Stop cancels runs and applies bounded process shutdown.
 
 ## Increment 10: Durable shared work queue
 

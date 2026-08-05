@@ -27,6 +27,7 @@ Increment 8.
 - stable module ID, display metadata, and storage namespace;
 - launch runtime, entry point, and arguments;
 - declared task types and work classes;
+- one optional session-entry task identifying the module's normal session loop;
 - requested permissions with scopes, rationale, and required/optional state;
 - manager-compatible UI contribution slots and renderer keys;
 - declarative configuration schema.
@@ -115,3 +116,7 @@ database path or provider credentials.
 Pause requests stop admission, request graceful worker shutdown, then apply a
 bounded terminate/kill fallback. Unexpected process exits fail active work and
 surface a failed runtime state. Overdue heartbeats surface a degraded state.
+
+Manager work sessions invoke only `session_entry_task_id`. Additional declared
+tasks remain available for explicit workflows and future durable queue
+composition; manifest tuple ordering is never used to infer session behavior.

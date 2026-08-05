@@ -28,6 +28,8 @@ class TaskContext:
     resources: ResourceBudgetTracker
     configuration: Mapping[str, Any] = field(default_factory=dict)
     checkpoint: Mapping[str, Any] = field(default_factory=dict)
+    session_id: str | None = None
+    module_priority: int = 10
 
 
 @dataclass(frozen=True, slots=True)

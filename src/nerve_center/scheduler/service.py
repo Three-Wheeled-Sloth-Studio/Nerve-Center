@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 
 from nerve_center.domain.run import RunNotReadyError, RunSnapshot, RunStatus
@@ -16,10 +17,12 @@ class SchedulerService:
         repository: RunRepository,
         runner: RunnerService,
         poll_seconds: float = 1.0,
+        session_tick: Callable[[datetime], Awaitable[object]] | None = None,
     ) -> None:
         self.repository = repository
         self.runner = runner
         self.poll_seconds = poll_seconds
+        self.session_tick = session_tick
         self._stop = asyncio.Event()
         self._task: asyncio.Task[None] | None = None
 
@@ -38,6 +41,8 @@ class SchedulerService:
     async def tick(self, now: datetime | None = None) -> list[RunSnapshot]:
         current = (now or datetime.now(UTC)).astimezone(UTC)
         changed: list[RunSnapshot] = []
+        if self.session_tick is not None:
+            await self.session_tick(current)
         for snapshot in self.repository.list_scheduled():
             if snapshot.requested_starts_at is None or snapshot.requested_ends_at is None:
                 changed.append(

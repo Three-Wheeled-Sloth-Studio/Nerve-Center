@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from nerve_center.config import Settings
 from nerve_center.persistence.models import Base
 
-SCHEMA_VERSION = 7
+SCHEMA_VERSION = 8
 
 
 class Database:
@@ -69,6 +69,12 @@ def _migrate(connection: Connection) -> None:
                 text(
                     "ALTER TABLE runs ADD COLUMN budget_usage JSON NOT NULL DEFAULT '{}'"
                 )
+            )
+        if "session_id" not in columns:
+            connection.execute(text("ALTER TABLE runs ADD COLUMN session_id VARCHAR(36)"))
+        if "module_priority" not in columns:
+            connection.execute(
+                text("ALTER TABLE runs ADD COLUMN module_priority INTEGER NOT NULL DEFAULT 10")
             )
     connection.execute(
         text("UPDATE schema_state SET version = :version"),

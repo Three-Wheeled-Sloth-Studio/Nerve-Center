@@ -12,18 +12,16 @@ class ModuleProcessTaskPlugin:
         manifest: ModuleManifest,
         task_id: str,
         display_name: str,
-        priority: int = 10,
     ) -> None:
         self.supervisor = supervisor
         self.manifest = manifest
         self.plugin_id = task_id
         self.display_name = display_name
-        self.priority = priority
 
     async def run(self, context: TaskContext) -> TaskResult:
         return await self.supervisor.execute(
             self.manifest.module_id,
             self.plugin_id,
             context,
-            priority=self.priority,
+            priority=context.module_priority,
         )

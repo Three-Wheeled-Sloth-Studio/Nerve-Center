@@ -101,7 +101,7 @@ def test_application_status_history_and_dates(tmp_path: Path) -> None:
         ApplicationStatus.SCREENING,
         ApplicationStatus.APPLIED,
     ]
-    assert SCHEMA_VERSION == 7
+    assert SCHEMA_VERSION == 8
 
 
 def test_review_api_tracks_reversible_pursuit_state(tmp_path: Path) -> None:

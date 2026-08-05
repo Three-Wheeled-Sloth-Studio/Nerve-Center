@@ -35,6 +35,8 @@ class RunRepository:
         configuration: dict[str, Any] | None = None,
         budget: ResourceBudget | None = None,
         now: datetime | None = None,
+        session_id: str | None = None,
+        module_priority: int = 10,
     ) -> RunSnapshot:
         current = _utc(now)
         resource_budget = budget or ResourceBudget()
@@ -86,6 +88,8 @@ class RunRepository:
             result_summary=summary,
             error_code=None,
             result_metrics={},
+            session_id=session_id,
+            module_priority=module_priority,
         )
         with self.database.session() as session:
             session.add(model)
@@ -306,6 +310,8 @@ def _snapshot(model: RunModel) -> RunSnapshot:
         result_summary=model.result_summary,
         error_code=model.error_code,
         result_metrics=dict(model.result_metrics or {}),
+        session_id=model.session_id,
+        module_priority=model.module_priority,
     )
 
 

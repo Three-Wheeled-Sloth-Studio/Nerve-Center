@@ -13,6 +13,7 @@ from nerve_center.domain.module import InstalledModule, ModuleLifecycleState
 from nerve_center.domain.module_runtime import ModuleRuntimeReport
 from nerve_center.domain.run import RunEventSnapshot, RunSnapshot, RunStatus
 from nerve_center.domain.run_window import DurationRunWindow, FixedRunWindow
+from nerve_center.domain.session import RecurrenceRule, WorkSessionSnapshot
 from nerve_center.profile.models import ClaimCategory, ClaimDecision, HypothesisDecision
 
 
@@ -72,6 +73,8 @@ class RunResponse(BaseModel):
     result_summary: str | None
     error_code: str | None
     result_metrics: dict[str, int | float | str | bool]
+    session_id: str | None
+    module_priority: int
 
     @classmethod
     def from_snapshot(cls, snapshot: RunSnapshot) -> RunResponse:
@@ -121,6 +124,92 @@ class ModuleResponse(BaseModel):
             lifecycle_state=installed.lifecycle_state,
             saved_priority=installed.saved_priority,
             runtime=runtime.to_dict() if runtime else None,
+        )
+
+
+class SessionCreateRequest(BaseModel):
+    duration_seconds: int | None = Field(default=None, ge=1)
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
+    recurrence_timezone: str | None = None
+    recurrence_local_start_time: str | None = None
+    recurrence_duration_seconds: int | None = Field(default=None, ge=1)
+    recurrence_weekdays: list[int] = Field(default_factory=lambda: list(range(7)))
+    resource_policy: ResourceBudgetRequest = Field(default_factory=ResourceBudgetRequest)
+
+    @model_validator(mode="after")
+    def validate_mode(self) -> Self:
+        duration = self.duration_seconds is not None
+        fixed = self.starts_at is not None or self.ends_at is not None
+        recurring = any(
+            value is not None
+            for value in (
+                self.recurrence_timezone,
+                self.recurrence_local_start_time,
+                self.recurrence_duration_seconds,
+            )
+        )
+        if sum((duration, fixed, recurring)) != 1:
+            raise ValueError("provide exactly one duration, fixed, or recurring session")
+        if fixed and (self.starts_at is None or self.ends_at is None):
+            raise ValueError("fixed sessions require starts_at and ends_at")
+        if recurring and any(
+            value is None
+            for value in (
+                self.recurrence_timezone,
+                self.recurrence_local_start_time,
+                self.recurrence_duration_seconds,
+            )
+        ):
+            raise ValueError("recurring sessions require timezone, local start, and duration")
+        return self
+
+    def recurrence(self) -> RecurrenceRule | None:
+        if self.recurrence_timezone is None:
+            return None
+        return RecurrenceRule(
+            timezone=self.recurrence_timezone,
+            local_start_time=str(self.recurrence_local_start_time),
+            duration_seconds=int(self.recurrence_duration_seconds or 0),
+            weekdays=tuple(self.recurrence_weekdays),
+        )
+
+
+class SessionResponse(BaseModel):
+    id: str
+    status: str
+    admission_phase: str
+    starts_at: datetime
+    ends_at: datetime
+    requested_at: datetime
+    updated_at: datetime
+    finished_at: datetime | None
+    recurrence: dict[str, Any] | None
+    recurrence_parent_id: str | None
+    module_run_ids: dict[str, str]
+    module_priorities: dict[str, int]
+    resource_policy: dict[str, int]
+    emergency_stop: bool
+    result_summary: str | None
+
+    @classmethod
+    def from_snapshot(cls, snapshot: WorkSessionSnapshot) -> SessionResponse:
+        return cls(
+            id=snapshot.id,
+            status=snapshot.status.value,
+            admission_phase=snapshot.admission_phase.value,
+            starts_at=snapshot.starts_at,
+            ends_at=snapshot.ends_at,
+            requested_at=snapshot.requested_at,
+            updated_at=snapshot.updated_at,
+            finished_at=snapshot.finished_at,
+            recurrence=snapshot.recurrence.to_dict() if snapshot.recurrence else None,
+            recurrence_parent_id=snapshot.recurrence_parent_id,
+            module_run_ids=snapshot.module_run_ids,
+            module_priorities=snapshot.module_priorities,
+            resource_policy=snapshot.resource_policy,
+            emergency_stop=snapshot.emergency_stop,
+            result_summary=snapshot.result_summary,
         )
 
 

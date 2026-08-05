@@ -1,9 +1,10 @@
-# Module Process Runtime Handoff
+# Module Process Runtime Handoff (Archived)
 
 ## Accepted baseline
 
 - Branch: `dev`
 - Version: `0.8.0`
+- Superseded by: `refs/handoffs/session-scheduler-wind-down.md`
 - Product authority: `refs/planning/product-requirements-document.md`
 - Package contract: `refs/planning/module-package-contract.md`
 

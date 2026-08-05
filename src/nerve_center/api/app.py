@@ -17,6 +17,8 @@ from nerve_center.api.schemas import (
     RunCreateRequest,
     RunEventResponse,
     RunResponse,
+    SessionCreateRequest,
+    SessionResponse,
 )
 from nerve_center.config import Settings
 from nerve_center.domain.run import (
@@ -27,6 +29,7 @@ from nerve_center.domain.run import (
 from nerve_center.persistence.database import Database
 from nerve_center.persistence.modules import ModuleNotFoundError, ModuleRepository
 from nerve_center.persistence.runs import RunRepository
+from nerve_center.persistence.sessions import SessionNotFoundError, SessionRepository
 from nerve_center.plugins.job_scout.bootstrap import install_job_scout
 from nerve_center.plugins.synthetic import SyntheticTaskPlugin
 from nerve_center.providers.base import StructuredProvider
@@ -36,6 +39,7 @@ from nerve_center.runtime.supervisor import ModuleSupervisor
 from nerve_center.scheduler.registry import TaskRegistry
 from nerve_center.scheduler.runner import RunnerService
 from nerve_center.scheduler.service import SchedulerService
+from nerve_center.scheduler.sessions import WorkSessionService
 
 LOCAL_DESKTOP_ORIGINS = [
     "http://127.0.0.1:1420",
@@ -54,6 +58,7 @@ def create_app(
     database = Database(runtime_settings)
     repository = RunRepository(database)
     module_repository = ModuleRepository(database)
+    session_repository = SessionRepository(database)
     registry = TaskRegistry()
     registry.register(SyntheticTaskPlugin())
 
@@ -62,6 +67,7 @@ def create_app(
         database.initialize()
         module_repository.synchronize(registry.list_modules())
         runner.recover_interrupted()
+        work_sessions.recover()
         await scheduler.start()
         yield
         await scheduler.stop()
@@ -106,19 +112,89 @@ def create_app(
         registry,
         module_lifecycle=lambda module_id: module_repository.get(module_id).lifecycle_state,
     )
+    work_sessions = WorkSessionService(
+        session_repository,
+        module_repository,
+        repository,
+        registry,
+        runner,
+        module_supervisor,
+    )
+    module_supervisor.set_session_control_resolver(work_sessions.control)
     scheduler = SchedulerService(
         repository,
         runner,
         poll_seconds=runtime_settings.scheduler_poll_seconds,
+        session_tick=work_sessions.tick,
     )
     application.state.runner = runner
     application.state.scheduler = scheduler
     application.state.module_supervisor = module_supervisor
+    application.state.work_sessions = work_sessions
     register_runtime_routes(application, module_supervisor)
 
     @application.get("/health")
     def health() -> dict[str, str]:
         return {"status": "ok", "version": __version__}
+
+    @application.post("/api/v1/sessions", status_code=status.HTTP_201_CREATED)
+    async def create_session(request: SessionCreateRequest) -> SessionResponse:
+        try:
+            recurrence = request.recurrence()
+            resource_policy = request.resource_policy.model_dump()
+            if request.duration_seconds is not None:
+                snapshot = work_sessions.create_duration(
+                    request.duration_seconds, resource_policy=resource_policy
+                )
+            elif recurrence is not None:
+                snapshot = work_sessions.create_recurring(
+                    recurrence, resource_policy=resource_policy
+                )
+            else:
+                if request.starts_at is None or request.ends_at is None:
+                    raise ValueError("fixed session window is incomplete")
+                snapshot = work_sessions.create_fixed(
+                    request.starts_at,
+                    request.ends_at,
+                    resource_policy=resource_policy,
+                )
+            if snapshot.status.value == "requested":
+                snapshot = await work_sessions.start(snapshot.id)
+            return SessionResponse.from_snapshot(snapshot)
+        except ValueError as error:
+            raise HTTPException(status_code=422, detail=str(error)) from error
+
+    @application.get("/api/v1/sessions")
+    def list_sessions(
+        limit: Annotated[int, Query(ge=1, le=500)] = 100,
+    ) -> list[SessionResponse]:
+        return [
+            SessionResponse.from_snapshot(item)
+            for item in session_repository.list_recent(limit)
+        ]
+
+    @application.get("/api/v1/sessions/{session_id}")
+    def get_session(session_id: str) -> SessionResponse:
+        try:
+            return SessionResponse.from_snapshot(session_repository.get(session_id))
+        except SessionNotFoundError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+
+    @application.post("/api/v1/sessions/{session_id}/start")
+    async def start_session(session_id: str) -> SessionResponse:
+        try:
+            return SessionResponse.from_snapshot(await work_sessions.start(session_id))
+        except SessionNotFoundError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+
+    @application.post("/api/v1/sessions/{session_id}/emergency-stop")
+    async def emergency_stop_session(session_id: str) -> SessionResponse:
+        try:
+            return SessionResponse.from_snapshot(
+                await work_sessions.emergency_stop(session_id)
+            )
+        except SessionNotFoundError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
 
     @application.get("/api/v1/modules")
     def list_modules() -> list[ModuleResponse]:

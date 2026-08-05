@@ -103,6 +103,31 @@ export interface RunRecord {
   checkpoint: Record<string, unknown>;
   result_summary: string | null;
   error_code: string | null;
+  session_id: string | null;
+  module_priority: number;
+}
+
+export interface SessionRecord {
+  id: string;
+  status: string;
+  admission_phase: "open" | "constrained" | "draining" | "closed";
+  starts_at: string;
+  ends_at: string;
+  requested_at: string;
+  updated_at: string;
+  finished_at: string | null;
+  recurrence: {
+    timezone: string;
+    local_start_time: string;
+    duration_seconds: number;
+    weekdays: number[];
+  } | null;
+  recurrence_parent_id: string | null;
+  module_run_ids: Record<string, string>;
+  module_priorities: Record<string, number>;
+  resource_policy: Record<string, number>;
+  emergency_stop: boolean;
+  result_summary: string | null;
 }
 
 export interface ScoringRule {
@@ -162,6 +187,7 @@ export interface ModuleRecord {
       renderer_key: string;
     }>;
     configuration_schema: Record<string, unknown>;
+    session_entry_task_id: string | null;
   };
   lifecycle_state: ModuleLifecycleState;
   saved_priority: number;
@@ -174,6 +200,8 @@ export interface ModuleRecord {
     work_items_processed: number;
     deterministic_backlog: number;
     pending_llm_requests: number;
+    estimated_next_request_wait_seconds: number | null;
+    estimated_queue_clear_seconds: number | null;
     queue_pressure: number;
     reason: string | null;
   } | null;

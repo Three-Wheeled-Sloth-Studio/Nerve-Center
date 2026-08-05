@@ -48,12 +48,14 @@ class ModuleRunAssignment:
     module_id: str
     module_version: str
     run_id: str
+    session_id: str | None
     task_id: str
     deadline: datetime
     priority: int
     queue_limits: dict[str, int]
     resource_policy: dict[str, int]
     data_directory: str
+    admission_phase: str = "open"
     configuration: dict[str, Any] = field(default_factory=dict)
     checkpoint: dict[str, Any] = field(default_factory=dict)
 

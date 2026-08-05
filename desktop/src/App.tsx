@@ -7,9 +7,9 @@ import {
 } from "react";
 
 import {
-  cancelRun,
-  createDurationRun,
-  createFixedRun,
+  createDurationSession,
+  createFixedSession,
+  createRecurringSession,
   createRule,
   decideHypothesis,
   deleteRule,
@@ -19,11 +19,12 @@ import {
   getProfile,
   getRules,
   getRuns,
+  getSessions,
   getScoringSettings,
   saveLocationPreferences,
   saveScoringSettings,
   setModuleLifecycle,
-  startRun,
+  emergencyStopSession,
   updateApplication,
 } from "./api";
 import type {
@@ -32,10 +33,11 @@ import type {
   ModuleRecord,
   ReviewOpportunity,
   RunRecord,
+  SessionRecord,
   ScoringRule,
 } from "./types";
 
-type Tab = "modules" | "review" | "runs" | "rules" | "profile" | "preferences";
+type Tab = "modules" | "review" | "sessions" | "rules" | "profile" | "preferences";
 type SortKey = "priority" | "response" | "fit" | "freshness";
 
 const ACTIVE_RUN_STATUSES = new Set(["queued", "scheduled", "running", "cancelling"]);
@@ -44,6 +46,7 @@ export default function App() {
   const [tab, setTab] = useState<Tab>("review");
   const [opportunities, setOpportunities] = useState<ReviewOpportunity[]>([]);
   const [runs, setRuns] = useState<RunRecord[]>([]);
+  const [sessions, setSessions] = useState<SessionRecord[]>([]);
   const [modules, setModules] = useState<ModuleRecord[]>([]);
   const [rules, setRules] = useState<ScoringRule[]>([]);
   const [profile, setProfile] = useState<CareerProfile | null>(null);
@@ -62,19 +65,21 @@ export default function App() {
   const refresh = useCallback(async () => {
     try {
       setError(null);
-      const [nextOpportunities, nextRuns, nextRules, nextProfile, nextModules] =
+      const [nextOpportunities, nextRuns, nextRules, nextProfile, nextModules, nextSessions] =
         await Promise.all([
           getOpportunities(sort, includeDismissed),
           getRuns(),
           getRules(),
           getProfile(),
           getModules(),
+          getSessions(),
         ]);
       setOpportunities(nextOpportunities);
       setRuns(nextRuns);
       setRules(nextRules);
       setProfile(nextProfile);
       setModules(nextModules);
+      setSessions(nextSessions);
       const [nextSettings, nextLocation] = await Promise.all([
         getScoringSettings(),
         getLocationPreferences(),
@@ -89,10 +94,11 @@ export default function App() {
   useEffect(() => {
     void refresh();
     const timer = window.setInterval(() => {
-      void Promise.all([getRuns(), getModules()])
-        .then(([nextRuns, nextModules]) => {
+      void Promise.all([getRuns(), getModules(), getSessions()])
+        .then(([nextRuns, nextModules, nextSessions]) => {
           setRuns(nextRuns);
           setModules(nextModules);
+          setSessions(nextSessions);
         })
         .catch(() => undefined);
     }, 5000);
@@ -117,6 +123,11 @@ export default function App() {
   }, [opportunities, query]);
 
   const activeRun = runs.find((run) => ACTIVE_RUN_STATUSES.has(run.status));
+  const activeSession = sessions.find((session) =>
+    ["requested", "running", "interrupted", "draining"].includes(
+      session.status,
+    ),
+  );
   const jobScout = modules.find((module) => module.manifest.module_id === "job_scout");
 
   async function changeStatus(
@@ -158,14 +169,16 @@ export default function App() {
         </div>
         <div className="runner-chip" aria-live="polite">
           <span className={activeRun ? "pulse" : "dot"} />
-          {activeRun
-            ? `${activeRun.status}: ${remaining(activeRun.deadline)}`
-            : "Runner idle"}
+          {activeSession
+            ? `${titleCase(activeSession.admission_phase)}: ${remaining(activeSession.ends_at)}`
+            : activeRun
+              ? `${activeRun.status}: ${remaining(activeRun.deadline)}`
+              : "Manager idle"}
         </div>
       </header>
 
       <nav className="tabs" aria-label="Primary">
-        {(["modules", "review", "runs", "rules", "profile", "preferences"] as Tab[]).map(
+        {(["modules", "review", "sessions", "rules", "profile", "preferences"] as Tab[]).map(
           (item) => (
             <button
               key={item}
@@ -214,10 +227,11 @@ export default function App() {
             onStatus={changeStatus}
           />
         ) : null}
-        {tab === "runs" ? (
-          <RunsPanel
+        {tab === "sessions" ? (
+          <SessionsPanel
+            sessions={sessions}
             runs={runs}
-            module={jobScout}
+            modules={modules}
             onRefresh={refresh}
             onError={setError}
           />
@@ -519,33 +533,49 @@ function ReviewPanel({
   );
 }
 
-function RunsPanel({
+function SessionsPanel({
+  sessions,
   runs,
-  module,
+  modules,
   onRefresh,
   onError,
 }: {
+  sessions: SessionRecord[];
   runs: RunRecord[];
-  module: ModuleRecord | undefined;
+  modules: ModuleRecord[];
   onRefresh: () => Promise<void>;
   onError: (message: string) => void;
 }) {
-  const [mode, setMode] = useState<"duration" | "fixed">("duration");
+  const [mode, setMode] = useState<"duration" | "fixed" | "recurring">("duration");
   const [minutes, setMinutes] = useState(30);
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
-  const active = runs.find((run) => ACTIVE_RUN_STATUSES.has(run.status));
-  const taskId = module?.manifest.task_types[0]?.task_id;
-  const moduleEnabled = module?.lifecycle_state === "enabled";
+  const [recurrenceTime, setRecurrenceTime] = useState("18:00");
+  const [recurrenceMinutes, setRecurrenceMinutes] = useState(720);
+  const active = sessions.find((session) =>
+    ["requested", "running", "interrupted", "draining"].includes(
+      session.status,
+    ),
+  );
+  const enabledCount = modules.filter(
+    (module) =>
+      module.lifecycle_state === "enabled" && module.manifest.session_entry_task_id,
+  ).length;
 
   async function submit(event: FormEvent) {
     event.preventDefault();
     try {
-      const created =
-        mode === "duration"
-          ? await createDurationRun(String(taskId), minutes)
-          : await createFixedRun(String(taskId), startsAt, endsAt);
-      await startRun(created.id);
+      if (mode === "duration") {
+        await createDurationSession(minutes);
+      } else if (mode === "fixed") {
+        await createFixedSession(startsAt, endsAt);
+      } else {
+        await createRecurringSession({
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          localStartTime: recurrenceTime,
+          durationMinutes: recurrenceMinutes,
+        });
+      }
       await onRefresh();
     } catch (reason) {
       onError(reason instanceof Error ? reason.message : String(reason));
@@ -553,17 +583,17 @@ function RunsPanel({
   }
 
   return (
-    <section aria-labelledby="runs-heading">
+    <section aria-labelledby="sessions-heading">
       <div className="section-heading">
         <div>
           <p className="eyebrow">Bounded work, visible state</p>
-          <h2 id="runs-heading">Job Scout runs</h2>
+          <h2 id="sessions-heading">Work sessions</h2>
         </div>
       </div>
       <div className="two-column">
         <form className="panel" onSubmit={(event) => void submit(event)}>
-          <h3>Start a run</h3>
-          <div className="segmented" role="group" aria-label="Run window type">
+          <h3>Authorize work</h3>
+          <div className="segmented" role="group" aria-label="Session window type">
             <button
               type="button"
               className={mode === "duration" ? "active" : ""}
@@ -578,6 +608,13 @@ function RunsPanel({
             >
               Fixed window
             </button>
+            <button
+              type="button"
+              className={mode === "recurring" ? "active" : ""}
+              onClick={() => setMode("recurring")}
+            >
+              Recurring
+            </button>
           </div>
           {mode === "duration" ? (
             <label>
@@ -590,7 +627,7 @@ function RunsPanel({
                 onChange={(event) => setMinutes(Number(event.target.value))}
               />
             </label>
-          ) : (
+          ) : mode === "fixed" ? (
             <>
               <label>
                 Start
@@ -611,47 +648,84 @@ function RunsPanel({
                 />
               </label>
             </>
+          ) : (
+            <>
+              <label>
+                Daily start
+                <input
+                  type="time"
+                  required
+                  value={recurrenceTime}
+                  onChange={(event) => setRecurrenceTime(event.target.value)}
+                />
+              </label>
+              <label>
+                Minutes
+                <input
+                  type="number"
+                  min={1}
+                  max={1440}
+                  value={recurrenceMinutes}
+                  onChange={(event) => setRecurrenceMinutes(Number(event.target.value))}
+                />
+              </label>
+            </>
           )}
           <button
             className="primary"
             type="submit"
-            disabled={Boolean(active) || !moduleEnabled || !taskId}
+            disabled={Boolean(active) || enabledCount === 0}
           >
             {active
-              ? "A run is already active"
-              : moduleEnabled
-                ? "Start Job Scout"
-                : "Enable Job Scout to run"}
+              ? "A session is already active"
+              : enabledCount > 0
+                ? `Start ${enabledCount} module${enabledCount === 1 ? "" : "s"}`
+                : "Enable a module to run"}
           </button>
           {active ? (
             <button
+              className="danger"
               type="button"
               onClick={() =>
-                void cancelRun(active.id).then(onRefresh).catch((reason: unknown) =>
+                void emergencyStopSession(active.id).then(onRefresh).catch((reason: unknown) =>
                   onError(reason instanceof Error ? reason.message : String(reason)),
                 )
               }
             >
-              Cancel active run
+              Emergency Stop
             </button>
           ) : null}
         </form>
         <div className="panel">
-          <h3>Run history</h3>
+          <h3>Session history</h3>
           <div className="run-list">
-            {runs.map((run) => (
-              <div className="run-row" key={run.id}>
+            {sessions.map((session) => (
+              <div className="run-row" key={session.id}>
                 <div>
-                  <strong>{titleCase(run.status)}</strong>
-                  <span>{new Date(run.requested_at).toLocaleString()}</span>
+                  <strong>{titleCase(session.status)}</strong>
+                  <span>{new Date(session.starts_at).toLocaleString()}</span>
                 </div>
                 <div>
-                  <span>{remaining(run.deadline)}</span>
-                  <span>{run.result_summary ?? run.error_code ?? "No result yet"}</span>
+                  <span>{titleCase(session.admission_phase)}</span>
+                  <span>{remaining(session.ends_at)}</span>
                 </div>
               </div>
             ))}
           </div>
+          <details>
+            <summary>Module run diagnostics</summary>
+            <div className="run-list">
+              {runs.map((run) => (
+                <div className="run-row" key={run.id}>
+                  <div>
+                    <strong>{titleCase(run.status)}</strong>
+                    <span>{run.task_id}</span>
+                  </div>
+                  <span>{run.result_summary ?? run.error_code ?? "No result yet"}</span>
+                </div>
+              ))}
+            </div>
+          </details>
         </div>
       </div>
     </section>

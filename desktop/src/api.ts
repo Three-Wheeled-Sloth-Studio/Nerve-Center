@@ -6,6 +6,7 @@ import type {
   ModuleRecord,
   ReviewOpportunity,
   RunRecord,
+  SessionRecord,
   ScoringRule,
 } from "./types";
 
@@ -53,6 +54,47 @@ export function updateApplication(
 
 export function getRuns(): Promise<RunRecord[]> {
   return request("/api/v1/runs?limit=50");
+}
+
+export function getSessions(): Promise<SessionRecord[]> {
+  return request("/api/v1/sessions?limit=50");
+}
+
+export function createDurationSession(minutes: number): Promise<SessionRecord> {
+  return request("/api/v1/sessions", {
+    method: "POST",
+    body: JSON.stringify({ duration_seconds: minutes * 60 }),
+  });
+}
+
+export function createFixedSession(startsAt: string, endsAt: string): Promise<SessionRecord> {
+  return request("/api/v1/sessions", {
+    method: "POST",
+    body: JSON.stringify({
+      starts_at: new Date(startsAt).toISOString(),
+      ends_at: new Date(endsAt).toISOString(),
+    }),
+  });
+}
+
+export function createRecurringSession(input: {
+  timezone: string;
+  localStartTime: string;
+  durationMinutes: number;
+}): Promise<SessionRecord> {
+  return request("/api/v1/sessions", {
+    method: "POST",
+    body: JSON.stringify({
+      recurrence_timezone: input.timezone,
+      recurrence_local_start_time: input.localStartTime,
+      recurrence_duration_seconds: input.durationMinutes * 60,
+      recurrence_weekdays: [0, 1, 2, 3, 4, 5, 6],
+    }),
+  });
+}
+
+export function emergencyStopSession(sessionId: string): Promise<SessionRecord> {
+  return request(`/api/v1/sessions/${sessionId}/emergency-stop`, { method: "POST" });
 }
 
 export function getModules(): Promise<ModuleRecord[]> {

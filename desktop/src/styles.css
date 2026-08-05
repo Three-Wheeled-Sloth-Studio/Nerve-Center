@@ -404,6 +404,12 @@ summary {
   background: #1d4ed8;
 }
 
+button.danger {
+  border-color: #b91c1c;
+  background: #7f1d1d;
+  color: #fee2e2;
+}
+
 .run-row,
 .rule-row {
   align-items: flex-start;

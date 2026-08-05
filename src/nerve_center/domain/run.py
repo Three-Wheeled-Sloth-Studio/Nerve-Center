@@ -119,6 +119,8 @@ class RunSnapshot:
     result_summary: str | None = None
     error_code: str | None = None
     result_metrics: dict[str, int | float | str | bool] = field(default_factory=dict)
+    session_id: str | None = None
+    module_priority: int = 10
 
 
 @dataclass(frozen=True, slots=True)

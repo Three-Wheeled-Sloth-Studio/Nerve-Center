@@ -62,6 +62,14 @@ async def _execute_assignment(
                     {"sources_completed": len(completed), "openings_found": openings_found},
                 )
                 return
+            if control["admission_phase"] in {"draining", "closed"}:
+                await client.complete(
+                    run_id,
+                    "partial",
+                    "Job discovery stopped during session wind-down.",
+                    {"sources_completed": len(completed), "openings_found": openings_found},
+                )
+                return
             deadline = datetime.fromisoformat(str(assignment["deadline"]))
             if datetime.now(UTC) >= deadline:
                 await client.complete(
