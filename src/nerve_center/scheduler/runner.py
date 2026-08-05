@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -13,6 +13,7 @@ from nerve_center.domain.budget import (
     ResourceBudgetTracker,
     ResourceUsage,
 )
+from nerve_center.domain.module import ModuleLifecycleState
 from nerve_center.domain.run import RunNotReadyError, RunSnapshot, RunStatus
 from nerve_center.domain.task import TaskContext, TaskResult, TaskStatus
 from nerve_center.persistence.runs import RunRepository
@@ -20,9 +21,15 @@ from nerve_center.scheduler.registry import TaskRegistry
 
 
 class RunnerService:
-    def __init__(self, repository: RunRepository, registry: TaskRegistry) -> None:
+    def __init__(
+        self,
+        repository: RunRepository,
+        registry: TaskRegistry,
+        module_lifecycle: Callable[[str], ModuleLifecycleState] | None = None,
+    ) -> None:
         self.repository = repository
         self.registry = registry
+        self.module_lifecycle = module_lifecycle
         self._active: dict[str, asyncio.Task[RunSnapshot]] = {}
 
     def recover_interrupted(self) -> list[RunSnapshot]:
@@ -76,6 +83,13 @@ class RunnerService:
             return snapshot
         if snapshot.cancel_requested:
             return self.repository.request_cancel(run_id, current)
+        module = self.registry.module_for_task(snapshot.task_id)
+        if module is not None and self.module_lifecycle is not None:
+            lifecycle = self.module_lifecycle(module.module_id)
+            if lifecycle != ModuleLifecycleState.ENABLED:
+                raise RunNotReadyError(
+                    f"module {module.module_id} is {lifecycle.value}"
+                )
 
         if snapshot.window_kind == "duration":
             if snapshot.duration_seconds is None:

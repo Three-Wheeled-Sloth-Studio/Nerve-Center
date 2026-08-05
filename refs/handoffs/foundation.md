@@ -1,4 +1,8 @@
-# Foundation Handoff
+# Archived Foundation Handoff
+
+This document records the original `0.1.0` foundation and is no longer the
+current implementation handoff. Continue from
+`refs/handoffs/core-module-boundary.md` and the increment-specific handoffs.
 
 ## Accepted baseline
 

@@ -33,5 +33,18 @@ class Settings(BaseSettings):
     def database_url(self) -> str:
         return f"sqlite:///{self.database_path.as_posix()}"
 
+    @property
+    def modules_data_dir(self) -> Path:
+        return self.data_dir / "modules"
+
+    def module_data_dir(self, storage_namespace: str) -> Path:
+        if not storage_namespace or any(
+            character not in "abcdefghijklmnopqrstuvwxyz0123456789_.-"
+            for character in storage_namespace
+        ):
+            raise ValueError("invalid module storage namespace")
+        return self.modules_data_dir / storage_namespace
+
     def ensure_runtime_directories(self) -> None:
         self.data_dir.mkdir(parents=True, exist_ok=True)
+        self.modules_data_dir.mkdir(parents=True, exist_ok=True)

@@ -9,6 +9,7 @@ from typing import Any, Self
 from pydantic import BaseModel, Field, model_validator
 
 from nerve_center.domain.budget import ResourceBudget
+from nerve_center.domain.module import InstalledModule, ModuleLifecycleState
 from nerve_center.domain.run import RunEventSnapshot, RunSnapshot, RunStatus
 from nerve_center.domain.run_window import DurationRunWindow, FixedRunWindow
 from nerve_center.profile.models import ClaimCategory, ClaimDecision, HypothesisDecision
@@ -96,6 +97,24 @@ class RunEventResponse(BaseModel):
     @classmethod
     def from_snapshot(cls, snapshot: RunEventSnapshot) -> RunEventResponse:
         return cls(**asdict(snapshot))
+
+
+class ModuleLifecycleRequest(BaseModel):
+    lifecycle_state: ModuleLifecycleState
+
+
+class ModuleResponse(BaseModel):
+    manifest: dict[str, Any]
+    lifecycle_state: ModuleLifecycleState
+    saved_priority: int
+
+    @classmethod
+    def from_installed(cls, installed: InstalledModule) -> ModuleResponse:
+        return cls(
+            manifest=installed.manifest.to_dict(),
+            lifecycle_state=installed.lifecycle_state,
+            saved_priority=installed.saved_priority,
+        )
 
 
 class DocumentRegisterRequest(BaseModel):

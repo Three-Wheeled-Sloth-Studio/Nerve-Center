@@ -113,7 +113,7 @@ def test_persists_registry_health_jobs_and_cache(tmp_path: Path) -> None:
     assert source.next_scan_at is not None
     assert source.next_scan_at > started + timedelta(minutes=60)
     assert cache.get("playwright", "product manager Greensboro") == {"urls": ["https://x.test"]}
-    assert SCHEMA_VERSION == 6
+    assert SCHEMA_VERSION == 7
 
 
 def test_search_cache_expires(tmp_path: Path) -> None:

@@ -2,13 +2,13 @@
 
 > Product intent and non-negotiable boundaries are defined in `refs/planning/product-requirements-document.md`. This roadmap orders implementation; it does not redefine the product.
 
-## Accepted baseline through 0.6.0
+## Accepted baseline through 0.7.0
 
 The repository already contains a working local API, durable SQLite foundation, initial scheduling and task concepts, the Job Scout reference workflow, a Tauri/React desktop shell, and Windows packaging/runtime bootstrap.
 
 That baseline proved the application can be packaged and launched. The next work must separate the reusable manager from Job Scout-specific assumptions before adding more domain modules.
 
-## Increment 7: Core and module boundary
+## Increment 7: Core and module boundary (implemented)
 
 - Audit current schemas, services, API routes, UI surfaces, and storage for Job Scout entanglement.
 - Define the versioned module manifest and compatibility contract.
@@ -16,6 +16,13 @@ That baseline proved the application can be packaged and launched. The next work
 - Define module permissions, package shape, UI contribution points, and migration boundaries.
 - Move Job Scout-specific behavior behind the same contracts future modules will use.
 - Preserve the accepted Windows package and startup-health baseline.
+
+Implemented in `0.7.0`. The manager now validates versioned manifests and
+task declarations, persists module lifecycle state, owns module storage roots,
+enforces pause state during run admission, and installs Job Scout through a
+module bootstrap adapter. The existing Job Scout tables retain their names for
+migration safety but have explicit module ownership. Process isolation and the
+loopback runtime protocol begin in Increment 8.
 
 ## Increment 8: Module process runtime
 

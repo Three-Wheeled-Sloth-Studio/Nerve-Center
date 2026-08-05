@@ -421,6 +421,33 @@ summary {
   margin-bottom: 0.8rem;
 }
 
+.module-card p {
+  color: #cbd5e1;
+}
+
+.module-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin: 1rem 0 0;
+}
+
+.module-facts div {
+  border-top: 1px solid #263249;
+  padding-top: 0.55rem;
+}
+
+.module-facts dt {
+  color: #94a3b8;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.module-facts dd {
+  margin: 0.2rem 0 0;
+  overflow-wrap: anywhere;
+}
+
 blockquote {
   margin: 1rem 0;
   border-left: 3px solid #3b82f6;

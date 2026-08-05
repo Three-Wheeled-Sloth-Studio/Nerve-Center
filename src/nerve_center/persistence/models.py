@@ -50,6 +50,17 @@ class RunEventModel(Base):
     detail: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
 
 
+class ModuleModel(Base):
+    __tablename__ = "core_modules"
+
+    module_id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    lifecycle_state: Mapped[str] = mapped_column(String(32), index=True)
+    saved_priority: Mapped[int] = mapped_column(Integer, default=10)
+    manifest: Mapped[dict[str, Any]] = mapped_column(JSON)
+    installed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
 class SourceDocumentModel(Base):
     __tablename__ = "source_documents"
 

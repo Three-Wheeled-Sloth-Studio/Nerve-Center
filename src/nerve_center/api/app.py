@@ -11,31 +11,28 @@ from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 
 from nerve_center import __version__
-from nerve_center.api.schemas import RunCreateRequest, RunEventResponse, RunResponse
-from nerve_center.applications.api import register_application_routes
+from nerve_center.api.schemas import (
+    ModuleLifecycleRequest,
+    ModuleResponse,
+    RunCreateRequest,
+    RunEventResponse,
+    RunResponse,
+)
 from nerve_center.config import Settings
-from nerve_center.discovery.api import register_discovery_routes
-from nerve_center.discovery.plugin import JobDiscoveryTaskPlugin
-from nerve_center.discovery.service import DiscoveryService
 from nerve_center.domain.run import (
     InvalidRunTransitionError,
     RunNotFoundError,
     RunNotReadyError,
 )
 from nerve_center.persistence.database import Database
-from nerve_center.persistence.discovery import (
-    CompanyRepository,
-    DiscoverySourceRepository,
-    JobOpeningRepository,
-)
+from nerve_center.persistence.modules import ModuleNotFoundError, ModuleRepository
 from nerve_center.persistence.runs import RunRepository
+from nerve_center.plugins.job_scout.bootstrap import install_job_scout
 from nerve_center.plugins.synthetic import SyntheticTaskPlugin
-from nerve_center.profile.api import register_profile_routes
 from nerve_center.providers.base import StructuredProvider
 from nerve_center.scheduler.registry import TaskRegistry
 from nerve_center.scheduler.runner import RunnerService
 from nerve_center.scheduler.service import SchedulerService
-from nerve_center.scoring.api import register_scoring_routes
 
 LOCAL_DESKTOP_ORIGINS = [
     "http://127.0.0.1:1420",
@@ -53,20 +50,14 @@ def create_app(
     runtime_settings = settings or Settings()
     database = Database(runtime_settings)
     repository = RunRepository(database)
-    company_repository = CompanyRepository(database)
-    discovery_source_repository = DiscoverySourceRepository(database)
-    job_repository = JobOpeningRepository(database)
-    discovery_service = DiscoveryService(
-        company_repository,
-        discovery_source_repository,
-        job_repository,
-    )
+    module_repository = ModuleRepository(database)
     registry = TaskRegistry()
     registry.register(SyntheticTaskPlugin())
-    registry.register(
-        JobDiscoveryTaskPlugin(discovery_service, discovery_source_repository)
+    runner = RunnerService(
+        repository,
+        registry,
+        module_lifecycle=lambda module_id: module_repository.get(module_id).lifecycle_state,
     )
-    runner = RunnerService(repository, registry)
     scheduler = SchedulerService(
         repository,
         runner,
@@ -76,6 +67,7 @@ def create_app(
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         database.initialize()
+        module_repository.synchronize(registry.list_modules())
         runner.recover_interrupted()
         await scheduler.start()
         yield
@@ -96,24 +88,56 @@ def create_app(
     application.state.repository = repository
     application.state.runner = runner
     application.state.scheduler = scheduler
-    register_profile_routes(application, database, runtime_settings, provider)
-    register_discovery_routes(
+    application.state.module_repository = module_repository
+    job_scout = install_job_scout(
         application,
         database,
         runtime_settings,
-        discovery_service,
+        provider,
     )
-    register_scoring_routes(application, database, runtime_settings, provider)
-    register_application_routes(application, database)
+    registry.register_module(job_scout.manifest, job_scout.task_plugins)
 
     @application.get("/health")
     def health() -> dict[str, str]:
         return {"status": "ok", "version": __version__}
 
+    @application.get("/api/v1/modules")
+    def list_modules() -> list[ModuleResponse]:
+        return [ModuleResponse.from_installed(item) for item in module_repository.list()]
+
+    @application.get("/api/v1/modules/{module_id}")
+    def get_module(module_id: str) -> ModuleResponse:
+        try:
+            return ModuleResponse.from_installed(module_repository.get(module_id))
+        except ModuleNotFoundError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+
+    @application.patch("/api/v1/modules/{module_id}")
+    def update_module(
+        module_id: str,
+        request: ModuleLifecycleRequest,
+    ) -> ModuleResponse:
+        try:
+            return ModuleResponse.from_installed(
+                module_repository.set_lifecycle(module_id, request.lifecycle_state)
+            )
+        except ModuleNotFoundError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+        except ValueError as error:
+            raise HTTPException(status_code=422, detail=str(error)) from error
+
     @application.post("/api/v1/runs", status_code=status.HTTP_201_CREATED)
     def create_run(request: RunCreateRequest) -> RunResponse:
         try:
             registry.get(request.task_id)
+            module = registry.module_for_task(request.task_id)
+            if module is not None:
+                installed = module_repository.get(module.module_id)
+                if installed.lifecycle_state.value != "enabled":
+                    raise HTTPException(
+                        status_code=409,
+                        detail=f"module {module.module_id} is {installed.lifecycle_state.value}",
+                    )
             snapshot = repository.create(
                 task_id=request.task_id,
                 window=request.to_window(),

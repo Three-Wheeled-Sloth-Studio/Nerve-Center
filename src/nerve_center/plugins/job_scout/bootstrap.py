@@ -1,0 +1,53 @@
+"""Job Scout composition adapter for the Nerve Center manager."""
+
+from dataclasses import dataclass
+
+from fastapi import FastAPI
+
+from nerve_center.applications.api import register_application_routes
+from nerve_center.config import Settings
+from nerve_center.discovery.api import register_discovery_routes
+from nerve_center.discovery.plugin import JobDiscoveryTaskPlugin
+from nerve_center.discovery.service import DiscoveryService
+from nerve_center.domain.module import ModuleManifest
+from nerve_center.domain.task import TaskPlugin
+from nerve_center.persistence.database import Database
+from nerve_center.persistence.discovery import (
+    CompanyRepository,
+    DiscoverySourceRepository,
+    JobOpeningRepository,
+)
+from nerve_center.plugins.job_scout.manifest import job_scout_manifest
+from nerve_center.profile.api import register_profile_routes
+from nerve_center.providers.base import StructuredProvider
+from nerve_center.scoring.api import register_scoring_routes
+
+
+@dataclass(frozen=True, slots=True)
+class JobScoutModulePackage:
+    manifest: ModuleManifest
+    task_plugins: tuple[TaskPlugin, ...]
+
+
+def install_job_scout(
+    application: FastAPI,
+    database: Database,
+    settings: Settings,
+    provider: StructuredProvider | None,
+) -> JobScoutModulePackage:
+    company_repository = CompanyRepository(database)
+    source_repository = DiscoverySourceRepository(database)
+    job_repository = JobOpeningRepository(database)
+    discovery_service = DiscoveryService(
+        company_repository,
+        source_repository,
+        job_repository,
+    )
+    register_profile_routes(application, database, settings, provider)
+    register_discovery_routes(application, database, settings, discovery_service)
+    register_scoring_routes(application, database, settings, provider)
+    register_application_routes(application, database)
+    return JobScoutModulePackage(
+        manifest=job_scout_manifest(),
+        task_plugins=(JobDiscoveryTaskPlugin(discovery_service, source_repository),),
+    )

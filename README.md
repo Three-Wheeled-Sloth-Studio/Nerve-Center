@@ -8,6 +8,10 @@ The first task module is **Job Scout**, a job-discovery and decision-support wor
 
 The `dev` line now includes:
 
+- A versioned module manifest, compatibility, permission, storage, task, launch, and UI-contribution contract.
+- Durable manager-owned module inventory with Enabled, Paused, and Not Installed lifecycle state.
+- Run-admission enforcement that prevents paused modules from starting new work.
+- Job Scout composition behind the same module bootstrap and task-registration boundary intended for future modules.
 - Duration-based runs and fixed start/end windows.
 - Automatic launch of due fixed-window runs while Nerve Center is active.
 - Explicit persisted run states, transitions, checkpoints, results, budgets, and events.
@@ -115,6 +119,9 @@ The packaging-only Tauri config is deliberately not auto-loaded during source de
 ### Runtime
 
 - `GET /health`
+- `GET /api/v1/modules`
+- `GET /api/v1/modules/{module_id}`
+- `PATCH /api/v1/modules/{module_id}`
 - `POST /api/v1/runs`
 - `GET /api/v1/runs`
 - `GET /api/v1/runs/{run_id}`

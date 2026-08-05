@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from datetime import UTC, datetime
 
-from nerve_center.domain.run import RunSnapshot, RunStatus
+from nerve_center.domain.run import RunNotReadyError, RunSnapshot, RunStatus
 from nerve_center.persistence.runs import RunRepository
 from nerve_center.scheduler.runner import RunnerService
 
@@ -59,7 +59,11 @@ class SchedulerService:
                     )
                 )
             elif current >= snapshot.requested_starts_at:
-                changed.append(await self.runner.start(snapshot.id, now=current))
+                try:
+                    changed.append(await self.runner.start(snapshot.id, now=current))
+                except RunNotReadyError:
+                    # A paused module leaves its scheduled work intact for a later resume.
+                    continue
         return changed
 
     async def _run_loop(self) -> None:

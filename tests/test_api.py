@@ -43,3 +43,47 @@ def test_unknown_task_is_rejected(tmp_path: Path) -> None:
         )
 
     assert response.status_code == 404
+
+
+def test_module_inventory_and_pause_gate_run_admission(tmp_path: Path) -> None:
+    app = create_app(Settings(data_dir=tmp_path))
+
+    with TestClient(app) as client:
+        modules = client.get("/api/v1/modules")
+        paused = client.patch(
+            "/api/v1/modules/job_scout",
+            json={"lifecycle_state": "paused"},
+        )
+        rejected = client.post(
+            "/api/v1/runs",
+            json={"task_id": "job_scout.discovery", "duration_seconds": 60},
+        )
+        resumed = client.patch(
+            "/api/v1/modules/job_scout",
+            json={"lifecycle_state": "enabled"},
+        )
+
+    assert modules.status_code == 200
+    assert modules.json()[0]["manifest"]["module_id"] == "job_scout"
+    assert paused.json()["lifecycle_state"] == "paused"
+    assert rejected.status_code == 409
+    assert resumed.json()["lifecycle_state"] == "enabled"
+
+
+def test_paused_module_cannot_start_previously_queued_run(tmp_path: Path) -> None:
+    app = create_app(Settings(data_dir=tmp_path))
+
+    with TestClient(app) as client:
+        created = client.post(
+            "/api/v1/runs",
+            json={"task_id": "job_scout.discovery", "duration_seconds": 60},
+        )
+        client.patch(
+            "/api/v1/modules/job_scout",
+            json={"lifecycle_state": "paused"},
+        )
+        started = client.post(f"/api/v1/runs/{created.json()['id']}/start")
+
+    assert created.status_code == 201
+    assert started.status_code == 409
+    assert "module job_scout is paused" in started.json()["detail"]

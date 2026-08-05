@@ -124,3 +124,45 @@ export interface CareerProfile {
     confidence: number;
   }>;
 }
+
+export type ModuleLifecycleState = "enabled" | "paused" | "not_installed";
+
+export interface ModuleRecord {
+  manifest: {
+    manifest_version: number;
+    module_id: string;
+    display_name: string;
+    description: string;
+    version: string;
+    storage_namespace: string;
+    compatibility: {
+      module_api_version: number;
+      minimum_core_version: string;
+      maximum_tested_core_version: string;
+      data_schema_version: number;
+    };
+    launch: {
+      runtime: string;
+      entrypoint: string;
+      arguments: string[];
+    };
+    permissions: Array<{
+      kind: string;
+      scopes: string[];
+      rationale: string;
+      required: boolean;
+    }>;
+    task_types: Array<{
+      task_id: string;
+      display_name: string;
+      work_classes: string[];
+    }>;
+    ui_contributions: Array<{
+      slot: string;
+      renderer_key: string;
+    }>;
+    configuration_schema: Record<string, unknown>;
+  };
+  lifecycle_state: ModuleLifecycleState;
+  saved_priority: number;
+}

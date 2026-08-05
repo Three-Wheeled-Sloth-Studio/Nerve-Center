@@ -14,6 +14,7 @@ import {
   decideHypothesis,
   deleteRule,
   getLocationPreferences,
+  getModules,
   getOpportunities,
   getProfile,
   getRules,
@@ -21,18 +22,20 @@ import {
   getScoringSettings,
   saveLocationPreferences,
   saveScoringSettings,
+  setModuleLifecycle,
   startRun,
   updateApplication,
 } from "./api";
 import type {
   ApplicationStatus,
   CareerProfile,
+  ModuleRecord,
   ReviewOpportunity,
   RunRecord,
   ScoringRule,
 } from "./types";
 
-type Tab = "review" | "runs" | "rules" | "profile" | "preferences";
+type Tab = "modules" | "review" | "runs" | "rules" | "profile" | "preferences";
 type SortKey = "priority" | "response" | "fit" | "freshness";
 
 const ACTIVE_RUN_STATUSES = new Set(["queued", "scheduled", "running", "cancelling"]);
@@ -41,6 +44,7 @@ export default function App() {
   const [tab, setTab] = useState<Tab>("review");
   const [opportunities, setOpportunities] = useState<ReviewOpportunity[]>([]);
   const [runs, setRuns] = useState<RunRecord[]>([]);
+  const [modules, setModules] = useState<ModuleRecord[]>([]);
   const [rules, setRules] = useState<ScoringRule[]>([]);
   const [profile, setProfile] = useState<CareerProfile | null>(null);
   const [settings, setSettings] = useState<Record<string, unknown> | null>(null);
@@ -58,17 +62,19 @@ export default function App() {
   const refresh = useCallback(async () => {
     try {
       setError(null);
-      const [nextOpportunities, nextRuns, nextRules, nextProfile] =
+      const [nextOpportunities, nextRuns, nextRules, nextProfile, nextModules] =
         await Promise.all([
           getOpportunities(sort, includeDismissed),
           getRuns(),
           getRules(),
           getProfile(),
+          getModules(),
         ]);
       setOpportunities(nextOpportunities);
       setRuns(nextRuns);
       setRules(nextRules);
       setProfile(nextProfile);
+      setModules(nextModules);
       const [nextSettings, nextLocation] = await Promise.all([
         getScoringSettings(),
         getLocationPreferences(),
@@ -106,6 +112,7 @@ export default function App() {
   }, [opportunities, query]);
 
   const activeRun = runs.find((run) => ACTIVE_RUN_STATUSES.has(run.status));
+  const jobScout = modules.find((module) => module.manifest.module_id === "job_scout");
 
   async function changeStatus(
     item: ReviewOpportunity,
@@ -141,7 +148,7 @@ export default function App() {
     <div className="app-shell">
       <header className="topbar">
         <div>
-          <p className="eyebrow">Local job-search nerve center</p>
+          <p className="eyebrow">Local orchestration manager</p>
           <h1>Nerve Center</h1>
         </div>
         <div className="runner-chip" aria-live="polite">
@@ -153,7 +160,7 @@ export default function App() {
       </header>
 
       <nav className="tabs" aria-label="Primary">
-        {(["review", "runs", "rules", "profile", "preferences"] as Tab[]).map(
+        {(["modules", "review", "runs", "rules", "profile", "preferences"] as Tab[]).map(
           (item) => (
             <button
               key={item}
@@ -186,6 +193,9 @@ export default function App() {
       ) : null}
 
       <main>
+        {tab === "modules" ? (
+          <ModulesPanel modules={modules} onRefresh={refresh} onError={setError} />
+        ) : null}
         {tab === "review" ? (
           <ReviewPanel
             items={filtered}
@@ -200,7 +210,12 @@ export default function App() {
           />
         ) : null}
         {tab === "runs" ? (
-          <RunsPanel runs={runs} onRefresh={refresh} onError={setError} />
+          <RunsPanel
+            runs={runs}
+            module={jobScout}
+            onRefresh={refresh}
+            onError={setError}
+          />
         ) : null}
         {tab === "rules" ? (
           <RulesPanel rules={rules} onRefresh={refresh} onError={setError} />
@@ -223,6 +238,72 @@ export default function App() {
         contacts an employer, or changes your profile automatically.
       </footer>
     </div>
+  );
+}
+
+function ModulesPanel({
+  modules,
+  onRefresh,
+  onError,
+}: {
+  modules: ModuleRecord[];
+  onRefresh: () => Promise<void>;
+  onError: (message: string) => void;
+}) {
+  async function changeLifecycle(module: ModuleRecord) {
+    const target = module.lifecycle_state === "enabled" ? "paused" : "enabled";
+    try {
+      await setModuleLifecycle(module.manifest.module_id, target);
+      await onRefresh();
+    } catch (reason) {
+      onError(reason instanceof Error ? reason.message : String(reason));
+    }
+  }
+
+  return (
+    <section aria-labelledby="modules-heading">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">Manager-owned inventory</p>
+          <h2 id="modules-heading">Modules</h2>
+        </div>
+      </div>
+      <div className="card-grid">
+        {modules.map((module) => (
+          <article className="panel module-card" key={module.manifest.module_id}>
+            <div className="status-line">
+              <span>{titleCase(module.lifecycle_state)}</span>
+              <span>v{module.manifest.version}</span>
+            </div>
+            <h3>{module.manifest.display_name}</h3>
+            <p>{module.manifest.description}</p>
+            <dl className="module-facts">
+              <div>
+                <dt>Tasks</dt>
+                <dd>{module.manifest.task_types.map((task) => task.display_name).join(", ")}</dd>
+              </div>
+              <div>
+                <dt>Permissions</dt>
+                <dd>{module.manifest.permissions.length}</dd>
+              </div>
+              <div>
+                <dt>Storage</dt>
+                <dd>{module.manifest.storage_namespace}</dd>
+              </div>
+              <div>
+                <dt>Module API</dt>
+                <dd>v{module.manifest.compatibility.module_api_version}</dd>
+              </div>
+            </dl>
+            {module.lifecycle_state !== "not_installed" ? (
+              <button type="button" onClick={() => void changeLifecycle(module)}>
+                {module.lifecycle_state === "enabled" ? "Pause module" : "Enable module"}
+              </button>
+            ) : null}
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -419,10 +500,12 @@ function ReviewPanel({
 
 function RunsPanel({
   runs,
+  module,
   onRefresh,
   onError,
 }: {
   runs: RunRecord[];
+  module: ModuleRecord | undefined;
   onRefresh: () => Promise<void>;
   onError: (message: string) => void;
 }) {
@@ -431,14 +514,16 @@ function RunsPanel({
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
   const active = runs.find((run) => ACTIVE_RUN_STATUSES.has(run.status));
+  const taskId = module?.manifest.task_types[0]?.task_id;
+  const moduleEnabled = module?.lifecycle_state === "enabled";
 
   async function submit(event: FormEvent) {
     event.preventDefault();
     try {
       const created =
         mode === "duration"
-          ? await createDurationRun(minutes)
-          : await createFixedRun(startsAt, endsAt);
+          ? await createDurationRun(String(taskId), minutes)
+          : await createFixedRun(String(taskId), startsAt, endsAt);
       await startRun(created.id);
       await onRefresh();
     } catch (reason) {
@@ -506,8 +591,16 @@ function RunsPanel({
               </label>
             </>
           )}
-          <button className="primary" type="submit" disabled={Boolean(active)}>
-            {active ? "A run is already active" : "Start Job Scout"}
+          <button
+            className="primary"
+            type="submit"
+            disabled={Boolean(active) || !moduleEnabled || !taskId}
+          >
+            {active
+              ? "A run is already active"
+              : moduleEnabled
+                ? "Start Job Scout"
+                : "Enable Job Scout to run"}
           </button>
           {active ? (
             <button

@@ -2,6 +2,8 @@ import type {
   ApplicationRecord,
   ApplicationStatus,
   CareerProfile,
+  ModuleLifecycleState,
+  ModuleRecord,
   ReviewOpportunity,
   RunRecord,
   ScoringRule,
@@ -9,7 +11,6 @@ import type {
 
 const API_BASE =
   import.meta.env.VITE_NERVE_CENTER_API ?? "http://127.0.0.1:8765";
-const JOB_SCOUT_TASK_ID = "job_scout.discovery";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
@@ -54,11 +55,25 @@ export function getRuns(): Promise<RunRecord[]> {
   return request("/api/v1/runs?limit=50");
 }
 
-export function createDurationRun(minutes: number): Promise<RunRecord> {
+export function getModules(): Promise<ModuleRecord[]> {
+  return request("/api/v1/modules");
+}
+
+export function setModuleLifecycle(
+  moduleId: string,
+  lifecycleState: ModuleLifecycleState,
+): Promise<ModuleRecord> {
+  return request(`/api/v1/modules/${moduleId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ lifecycle_state: lifecycleState }),
+  });
+}
+
+export function createDurationRun(taskId: string, minutes: number): Promise<RunRecord> {
   return request("/api/v1/runs", {
     method: "POST",
     body: JSON.stringify({
-      task_id: JOB_SCOUT_TASK_ID,
+      task_id: taskId,
       duration_seconds: minutes * 60,
       configuration: {},
     }),
@@ -66,13 +81,14 @@ export function createDurationRun(minutes: number): Promise<RunRecord> {
 }
 
 export function createFixedRun(
+  taskId: string,
   startsAt: string,
   endsAt: string,
 ): Promise<RunRecord> {
   return request("/api/v1/runs", {
     method: "POST",
     body: JSON.stringify({
-      task_id: JOB_SCOUT_TASK_ID,
+      task_id: taskId,
       starts_at: new Date(startsAt).toISOString(),
       ends_at: new Date(endsAt).toISOString(),
       configuration: {},
