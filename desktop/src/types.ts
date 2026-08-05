@@ -243,7 +243,7 @@ export interface JobScoutConfiguration {
   source_ids: string[];
   allowed_domains: string[];
   disallowed_domains: string[];
-  keywords: string[];
+  manual_keywords: string[];
   broad_search_enabled: boolean;
   scan_interval_minutes: number;
 }
