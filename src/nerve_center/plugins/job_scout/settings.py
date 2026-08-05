@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import re
 from collections import Counter
-from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
