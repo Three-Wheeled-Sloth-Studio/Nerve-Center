@@ -17,6 +17,7 @@ target/
 src-tauri/target/
 frontend/dist/
 desktop/src-tauri/resources/nerve-center-api.exe
+desktop/src-tauri/gen/schemas/*-schema.json
 
 # IDE and OS
 .vscode/
