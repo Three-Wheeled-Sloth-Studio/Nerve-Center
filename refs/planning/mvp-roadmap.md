@@ -53,8 +53,18 @@
 - Add manual original-listing and company-career-page actions.
 - Add approve and disapprove feedback for positioning hypotheses.
 
+## Increment 6: Windows packaging and runtime bootstrap
+
+- Package the Python API as a self-contained Windows executable.
+- Bundle the backend into an unsigned NSIS development package.
+- Add desktop startup, health, port-conflict, and process-exit reporting.
+- Preserve a Python fallback for source development.
+- Add retry behavior and local diagnostic-log discovery.
+- Add a Windows artifact workflow and real-machine smoke-test checklist.
+
 ## Deferred increments
 
+- Code signing, automatic updates, and release channels.
 - Remote LLM providers.
 - Reviewable resume headline variants.
 - Cover letters from immutable masters.
