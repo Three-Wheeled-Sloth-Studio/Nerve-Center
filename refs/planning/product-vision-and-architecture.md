@@ -1,78 +1,75 @@
 # Nerve Center Product Vision and Architecture
 
+> The authoritative product definition is `refs/planning/product-requirements-document.md`. This document is the compact architectural summary.
+
 ## Vision
 
-Nerve Center is a single-user, local-first desktop orchestration platform. It schedules bounded task runs, coordinates local tools and local language models, persists inspectable state, and presents recommendations without silently performing consequential external actions.
+Nerve Center is a single-user, local-first orchestration runtime for long-horizon unattended work. A user authorizes bounded wall-clock sessions in which independently packaged modules can discover and process work while sharing manager-owned scheduling, resources, durable state, model infrastructure, review surfaces, and updates.
 
-Job Scout is the first task module. It discovers public job openings, interprets a canonical career evidence profile, evaluates opportunities, and prioritizes the positions most likely to produce a useful employer response.
+The core product is the manager. Job Scout and future workflows such as Asset Forge or Wordsmith are first-party reference modules, not core product features. Their domain logic, configuration, records, and views must remain separable from the manager.
 
 ## Architectural shape
 
 ```text
-Tauri desktop shell
+Tauri desktop shell and manager-owned UX
         |
-Local HTTP API
+Local manager API and event channel
         |
 Orchestration core
-  | scheduler and run windows
-  | task registry and plugin contracts
+  | wall-clock sessions and scheduler
+  | module lifecycle and process supervision
+  | durable task and result queue
+  | normalized module priorities
   | resource and concurrency budgets
-  | audit and event logging
-  | provider-neutral LLM gateway
-  | source-compliance registry
+  | provider-neutral LLM manager
+  | Model Lab and performance learning
+  | Attention and Review infrastructure
+  | backup, migration, and update coordination
         |
-Task plugins
+Manager-launched module processes
   | Job Scout
-  | future local-LLM or ComfyUI workflows
+  | future first-party modules
         |
-SQLite and operating-system application data
+SQLite, module namespaces, and isolated artifact directories
 ```
 
-The desktop shell is not the business-logic host. Scheduling, persistence, connectors, scoring, and task execution live behind reusable service contracts.
+The desktop shell is not the business-logic host. Core scheduling, persistence, queueing, model orchestration, module supervision, and update behavior live behind reusable local service contracts.
 
 ## Core platform responsibilities
 
-- Persist duration-based and fixed-time schedules.
-- Resolve each requested run to a concrete start and deadline.
-- Stop starting new work when a deadline is reached.
-- Checkpoint connector and task state for graceful cancellation or resumption.
-- Enforce request, domain, browser, LLM, and elapsed-time budgets.
-- Route structured prompts through provider-neutral LLM adapters.
-- Record model, prompt-contract, scoring-contract, and connector versions.
-- Store durable data outside the checkout.
-- Expose current state and next action clearly to the desktop UI.
+- Resolve duration-based and fixed-time schedules to concrete wall-clock sessions.
+- Launch, supervise, pause, update, and stop independent module processes.
+- Allocate exactly 100 module-priority points across enabled modules.
+- Enforce request, network, model, storage, cloud-spend, and elapsed-time budgets.
+- Own every LLM and provider call; modules remain model-blind.
+- Order requests using module priority, request age, model suitability, and model-switch cost.
+- Report queue depth and wait estimates to modules and users.
+- Persist tasks before acknowledgement and redeliver unacknowledged results.
+- Discover, evaluate, install, and benchmark local models within user policy.
+- Store durable data outside the checkout and snapshot before migrations.
+- Coordinate compatible core and module updates through stable and dev channels.
+- Present unified status, queue, review, attention, and diagnostics surfaces.
 
-## Job Scout pipeline
+## Module responsibilities
 
-```text
-resume and confirmed career evidence
-        |
-canonical evidence profile
-        |
-search concepts and learned positioning hypotheses
-        |
-web, ATS, and direct-company discovery
-        |
-normalization, provenance, and deduplication
-        |
-location and company enrichment
-        |
-fit, response, value, and confidence scoring
-        |
-priority ranking and user review
-        |
-application outcome tracking and calibration
-```
+Modules own domain work. They may perform deterministic and network work in their own threads or processes during an authorized session, queue typed LLM requests through the manager, throttle when queue pressure is high, and stop discovery when the manager begins draining.
+
+Modules provide domain configuration and module-specific UI panels within the manager-owned shell. They may contribute structured status and alerts to reserved dashboard cards, but may not replace core navigation, provider policy, queue policy, security settings, or the design system.
 
 ## Consequential-action boundary
 
-The system may recommend and draft. It does not submit, send, post, or alter accounts. Authenticated LinkedIn and job-board sessions are outside automated acquisition. Future resume and cover-letter generation creates reviewable copies from immutable master documents.
+The system may analyze, recommend, draft, transform, package, and stage. It does not submit, send, publish, purchase, accept terms, alter accounts, or perform comparable unattended external actions.
 
-## Design principles applied
+Authenticated read and non-public remote drafts may be supported only through explicit manager-owned connectors. Automated publishing and other autonomous external-action products remain outside Nerve Center.
 
-- Structured state is authoritative.
-- LLM output uses schemas and deterministic validation.
-- Reversible actions favor undo over modal confirmation.
-- Runtime, build output, and user data remain separate.
-- Explanations stay close to the decisions they justify.
-- Project-specific decisions live here; reusable principles remain in TWS Design Principles.
+## Design principles
+
+- The manager exclusively owns the LLM boundary.
+- Wall clock is authoritative for run windows.
+- Structured durable state is authoritative.
+- Modules are independently packaged and supervised.
+- Local execution and local storage are the default.
+- Provider and model choices remain manager concerns.
+- Reversible actions favor undo over unnecessary confirmation.
+- Human review precedes consequential external action.
+- Progressive disclosure keeps ordinary operation understandable while preserving deep diagnostics.
