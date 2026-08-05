@@ -30,6 +30,9 @@ from nerve_center.persistence.runs import RunRepository
 from nerve_center.plugins.job_scout.bootstrap import install_job_scout
 from nerve_center.plugins.synthetic import SyntheticTaskPlugin
 from nerve_center.providers.base import StructuredProvider
+from nerve_center.runtime.api import register_runtime_routes
+from nerve_center.runtime.plugin import ModuleProcessTaskPlugin
+from nerve_center.runtime.supervisor import ModuleSupervisor
 from nerve_center.scheduler.registry import TaskRegistry
 from nerve_center.scheduler.runner import RunnerService
 from nerve_center.scheduler.service import SchedulerService
@@ -53,16 +56,6 @@ def create_app(
     module_repository = ModuleRepository(database)
     registry = TaskRegistry()
     registry.register(SyntheticTaskPlugin())
-    runner = RunnerService(
-        repository,
-        registry,
-        module_lifecycle=lambda module_id: module_repository.get(module_id).lifecycle_state,
-    )
-    scheduler = SchedulerService(
-        repository,
-        runner,
-        poll_seconds=runtime_settings.scheduler_poll_seconds,
-    )
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
@@ -73,6 +66,7 @@ def create_app(
         yield
         await scheduler.stop()
         await runner.shutdown()
+        await module_supervisor.shutdown()
 
     application = FastAPI(
         title="Nerve Center",
@@ -86,8 +80,6 @@ def create_app(
         allow_headers=["*"],
     )
     application.state.repository = repository
-    application.state.runner = runner
-    application.state.scheduler = scheduler
     application.state.module_repository = module_repository
     job_scout = install_job_scout(
         application,
@@ -95,7 +87,34 @@ def create_app(
         runtime_settings,
         provider,
     )
-    registry.register_module(job_scout.manifest, job_scout.task_plugins)
+    module_supervisor = ModuleSupervisor(runtime_settings)
+    module_supervisor.register(job_scout.manifest, job_scout.operation_bridge)
+    registry.register_module(
+        job_scout.manifest,
+        tuple(
+            ModuleProcessTaskPlugin(
+                module_supervisor,
+                job_scout.manifest,
+                declaration.task_id,
+                declaration.display_name,
+            )
+            for declaration in job_scout.manifest.task_types
+        ),
+    )
+    runner = RunnerService(
+        repository,
+        registry,
+        module_lifecycle=lambda module_id: module_repository.get(module_id).lifecycle_state,
+    )
+    scheduler = SchedulerService(
+        repository,
+        runner,
+        poll_seconds=runtime_settings.scheduler_poll_seconds,
+    )
+    application.state.runner = runner
+    application.state.scheduler = scheduler
+    application.state.module_supervisor = module_supervisor
+    register_runtime_routes(application, module_supervisor)
 
     @application.get("/health")
     def health() -> dict[str, str]:
@@ -103,24 +122,33 @@ def create_app(
 
     @application.get("/api/v1/modules")
     def list_modules() -> list[ModuleResponse]:
-        return [ModuleResponse.from_installed(item) for item in module_repository.list()]
+        return [
+            ModuleResponse.from_installed(
+                item,
+                module_supervisor.report(item.manifest.module_id),
+            )
+            for item in module_repository.list()
+        ]
 
     @application.get("/api/v1/modules/{module_id}")
     def get_module(module_id: str) -> ModuleResponse:
         try:
-            return ModuleResponse.from_installed(module_repository.get(module_id))
+            return ModuleResponse.from_installed(
+                module_repository.get(module_id), module_supervisor.report(module_id)
+            )
         except ModuleNotFoundError as error:
             raise HTTPException(status_code=404, detail=str(error)) from error
 
     @application.patch("/api/v1/modules/{module_id}")
-    def update_module(
+    async def update_module(
         module_id: str,
         request: ModuleLifecycleRequest,
     ) -> ModuleResponse:
         try:
-            return ModuleResponse.from_installed(
-                module_repository.set_lifecycle(module_id, request.lifecycle_state)
-            )
+            installed = module_repository.set_lifecycle(module_id, request.lifecycle_state)
+            if request.lifecycle_state.value == "paused":
+                await module_supervisor.stop(module_id)
+            return ModuleResponse.from_installed(installed, module_supervisor.report(module_id))
         except ModuleNotFoundError as error:
             raise HTTPException(status_code=404, detail=str(error)) from error
         except ValueError as error:

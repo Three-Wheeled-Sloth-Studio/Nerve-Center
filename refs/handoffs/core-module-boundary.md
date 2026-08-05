@@ -1,9 +1,10 @@
-# Core and Module Boundary Handoff
+# Core and Module Boundary Handoff (Archived)
 
 ## Accepted baseline
 
 - Branch: `dev`
 - Version: `0.7.0`
+- Superseded by: `refs/handoffs/module-process-runtime.md`
 - Product authority: `refs/planning/product-requirements-document.md`
 - Package contract: `refs/planning/module-package-contract.md`
 

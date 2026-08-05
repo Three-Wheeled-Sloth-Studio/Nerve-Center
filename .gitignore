@@ -42,7 +42,7 @@ secrets/
 *.sqlite3
 *.sqlite-*
 data/
-runtime/
+/runtime/
 user-data/
 app-data/
 profiles/

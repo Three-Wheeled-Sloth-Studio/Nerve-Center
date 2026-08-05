@@ -28,8 +28,8 @@ def job_scout_manifest() -> ModuleManifest:
             data_schema_version=1,
         ),
         launch=ModuleLaunchDefinition(
-            runtime="in_process_adapter",
-            entrypoint="nerve_center.discovery.plugin:JobDiscoveryTaskPlugin",
+            runtime="managed_python",
+            entrypoint="nerve_center.plugins.job_scout.worker",
         ),
         storage_namespace="job_scout",
         permissions=(

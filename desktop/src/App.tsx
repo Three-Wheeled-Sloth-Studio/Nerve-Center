@@ -89,7 +89,12 @@ export default function App() {
   useEffect(() => {
     void refresh();
     const timer = window.setInterval(() => {
-      void getRuns().then(setRuns).catch(() => undefined);
+      void Promise.all([getRuns(), getModules()])
+        .then(([nextRuns, nextModules]) => {
+          setRuns(nextRuns);
+          setModules(nextModules);
+        })
+        .catch(() => undefined);
     }, 5000);
     return () => window.clearInterval(timer);
   }, [refresh]);
@@ -293,6 +298,22 @@ function ModulesPanel({
               <div>
                 <dt>Module API</dt>
                 <dd>v{module.manifest.compatibility.module_api_version}</dd>
+              </div>
+              <div>
+                <dt>Runtime</dt>
+                <dd>{titleCase(module.runtime?.status ?? "stopped")}</dd>
+              </div>
+              <div>
+                <dt>Activity</dt>
+                <dd>{module.runtime?.activity ?? "Not running"}</dd>
+              </div>
+              <div>
+                <dt>Backlog</dt>
+                <dd>{module.runtime?.deterministic_backlog ?? 0}</dd>
+              </div>
+              <div>
+                <dt>Queue pressure</dt>
+                <dd>{Math.round((module.runtime?.queue_pressure ?? 0) * 100)}%</dd>
               </div>
             </dl>
             {module.lifecycle_state !== "not_installed" ? (

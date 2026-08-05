@@ -2,7 +2,7 @@
 
 > Product intent and non-negotiable boundaries are defined in `refs/planning/product-requirements-document.md`. This roadmap orders implementation; it does not redefine the product.
 
-## Accepted baseline through 0.7.0
+## Accepted baseline through 0.8.0
 
 The repository already contains a working local API, durable SQLite foundation, initial scheduling and task concepts, the Job Scout reference workflow, a Tauri/React desktop shell, and Windows packaging/runtime bootstrap.
 
@@ -24,7 +24,7 @@ module bootstrap adapter. The existing Job Scout tables retain their names for
 migration safety but have explicit module ownership. Process isolation and the
 loopback runtime protocol begin in Increment 8.
 
-## Increment 8: Module process runtime
+## Increment 8: Module process runtime (implemented)
 
 - Launch enabled modules as supervised child processes.
 - Add scoped runtime tokens and a versioned loopback HTTP/event protocol.
@@ -32,6 +32,14 @@ loopback runtime protocol begin in Increment 8.
 - Add module heartbeat, lifecycle state, activity, backlog, queue-pressure, and degraded-state reporting.
 - Support Enabled, Paused, and Not Installed lifecycle states.
 - Add manager-rendered compact module cards and manager-owned module tabs.
+
+Implemented in `0.8.0`. Job Scout task orchestration now runs in a supervised
+managed-Python child process. The manager issues a per-launch scoped token,
+serves a versioned loopback protocol, delegates only registered module
+operations, and retains exclusive ownership of shared persistence and resource
+accounting. Runtime cards report process state, activity, heartbeat, backlog,
+queue pressure, and completed work. Pause requests perform graceful shutdown
+with bounded forced termination.
 
 ## Increment 9: Session scheduler and wind-down
 

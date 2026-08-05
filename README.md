@@ -122,6 +122,7 @@ The packaging-only Tauri config is deliberately not auto-loaded during source de
 - `GET /api/v1/modules`
 - `GET /api/v1/modules/{module_id}`
 - `PATCH /api/v1/modules/{module_id}`
+- authenticated `/runtime/v1/modules/{module_id}/*` worker protocol
 - `POST /api/v1/runs`
 - `GET /api/v1/runs`
 - `GET /api/v1/runs/{run_id}`

@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from nerve_center.domain.budget import ResourceBudget
 from nerve_center.domain.module import InstalledModule, ModuleLifecycleState
+from nerve_center.domain.module_runtime import ModuleRuntimeReport
 from nerve_center.domain.run import RunEventSnapshot, RunSnapshot, RunStatus
 from nerve_center.domain.run_window import DurationRunWindow, FixedRunWindow
 from nerve_center.profile.models import ClaimCategory, ClaimDecision, HypothesisDecision
@@ -107,13 +108,19 @@ class ModuleResponse(BaseModel):
     manifest: dict[str, Any]
     lifecycle_state: ModuleLifecycleState
     saved_priority: int
+    runtime: dict[str, Any] | None = None
 
     @classmethod
-    def from_installed(cls, installed: InstalledModule) -> ModuleResponse:
+    def from_installed(
+        cls,
+        installed: InstalledModule,
+        runtime: ModuleRuntimeReport | None = None,
+    ) -> ModuleResponse:
         return cls(
             manifest=installed.manifest.to_dict(),
             lifecycle_state=installed.lifecycle_state,
             saved_priority=installed.saved_priority,
+            runtime=runtime.to_dict() if runtime else None,
         )
 
 

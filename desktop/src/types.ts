@@ -165,4 +165,16 @@ export interface ModuleRecord {
   };
   lifecycle_state: ModuleLifecycleState;
   saved_priority: number;
+  runtime: {
+    module_id: string;
+    status: string;
+    activity: string;
+    process_id: number | null;
+    last_heartbeat_at: string | null;
+    work_items_processed: number;
+    deterministic_backlog: number;
+    pending_llm_requests: number;
+    queue_pressure: number;
+    reason: string | null;
+  } | null;
 }

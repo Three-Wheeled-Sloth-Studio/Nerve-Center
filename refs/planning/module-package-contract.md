@@ -97,15 +97,21 @@ Home accepts structured status only. Module dashboards, configuration, records,
 review content, and queue-detail renderers live in module-owned tabs within
 manager constraints.
 
-## Process handoff
+## Process runtime
 
-The launch definition is descriptive in `0.7.0`; Job Scout uses the
-`in_process_adapter` runtime while its existing behavior is migrated. Increment
-8 must add:
+As of `0.8.0`, `managed_python` launch definitions run through the generic
+module supervisor. A worker receives only its manager endpoint, scoped runtime
+token, module identity, and assigned data directory as process environment.
+Run identity, deadline, priority, queue limits, resource policy, configuration,
+and checkpoint are delivered through the authenticated loopback protocol.
 
-1. supervised child-process launch;
-2. scoped runtime tokens;
-3. versioned loopback HTTP and event contracts;
-4. assigned run, window, priority, queue, resource, and storage context;
-5. heartbeat and lifecycle supervision;
-6. graceful shutdown and bounded forced termination.
+Workers poll for one manager-authorized assignment at a time and report
+heartbeats, activity, backlog, queue pressure, checkpoints, resource
+consumption, and completion. Operations are dispatched only through a bridge
+registered for that module. The Job Scout bridge temporarily adapts its
+existing manager-owned repositories; the worker never receives the shared
+database path or provider credentials.
+
+Pause requests stop admission, request graceful worker shutdown, then apply a
+bounded terminate/kill fallback. Unexpected process exits fail active work and
+surface a failed runtime state. Overdue heartbeats surface a degraded state.
