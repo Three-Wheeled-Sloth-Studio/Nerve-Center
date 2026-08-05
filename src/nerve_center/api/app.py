@@ -177,7 +177,7 @@ app = create_app()
 def run() -> None:
     settings = Settings()
     uvicorn.run(
-        "nerve_center.api.app:app",
+        app,
         host=settings.host,
         port=settings.port,
         reload=False,

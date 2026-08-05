@@ -24,6 +24,8 @@ The `dev` line now includes:
 - Explainable, configurable opportunity scoring with deterministic location logic and append-only history.
 - Durable application tracking and outcome history.
 - A React review client and Tauri v2 desktop shell with close-to-tray behavior.
+- Windows runtime bootstrap with packaged-backend supervision and startup-health reporting.
+- A repeatable unsigned NSIS development-package workflow.
 - Public-repository privacy and security guardrails.
 
 ## Local development
@@ -70,11 +72,11 @@ The Vite development server uses `127.0.0.1:1420` and connects to the local API 
 
 ### Tauri desktop shell
 
-Requirements:
+Requirements for source development:
 
-- Rust stable toolchain
-- Tauri v2 platform prerequisites
-- The Python package installed in an environment available to the desktop process
+- Rust stable toolchain.
+- Tauri v2 platform prerequisites.
+- The Python package installed in an environment available to the desktop process.
 
 ```powershell
 cd desktop
@@ -82,9 +84,31 @@ npm install
 npm run tauri dev
 ```
 
-The shell starts the local Python service by default, hides the main window to the system tray when closed, and stops its managed service only when the user chooses Quit. Set `NERVE_CENTER_PYTHON` to an explicit Python executable when the desired environment is not on `PATH`. Set `NERVE_CENTER_API_MANAGED=0` to use a service started separately.
+Source development falls back to a Python-managed local API. Set `NERVE_CENTER_PYTHON` to an explicit interpreter when the desired environment is not on `PATH`. Set `NERVE_CENTER_API_EXECUTABLE` to test a specific packaged backend. Set `NERVE_CENTER_API_MANAGED=0` to use a service started separately.
 
-The source tree includes explicit PNG and ICO application assets used by the Tauri compile-time context. The repository currently validates the source build and Tauri shell. A signed Windows installer is not yet produced.
+The shell probes the local health endpoint before launching a child process, adopts an existing healthy Nerve Center service without taking ownership, reports unrelated port conflicts, hides the main window to the system tray, and stops its managed backend only when the user chooses Quit.
+
+### Windows development package
+
+The Windows package bundles a PyInstaller-built `nerve-center-api.exe`; users of the assembled artifact do not need to install Python, Node.js, Rust, or the repository package.
+
+Build the backend on Windows:
+
+```powershell
+python -m pip install -e ".[packaging]"
+python scripts/build_windows_backend.py
+python scripts/smoke_packaged_backend.py
+```
+
+Build the unsigned per-user NSIS installer:
+
+```powershell
+cd desktop
+npm install
+npm run tauri build -- --config src-tauri/tauri.package.conf.json --bundles nsis
+```
+
+The packaging-only Tauri config is deliberately not auto-loaded during source development. The draft-aware `Windows package` GitHub Actions workflow performs the same backend smoke test and uploads the installer as a short-lived workflow artifact. Code signing, automatic updates, release channels, and public distribution remain deferred.
 
 ## Local API
 
@@ -169,7 +193,7 @@ Nerve Center will not:
 
 ## Public repository safety
 
-This repository must never contain resumes, career-history source documents, application records, browser profiles, cookies, authenticated session data, credentials, generated personalized documents, or local runtime logs. See `SECURITY.md` and `refs/planning/data-and-privacy-boundary.md`.
+This repository must never contain resumes, career-history source documents, application records, browser profiles, cookies, authenticated session data, credentials, generated personalized documents, or local runtime logs. The generated packaged backend is build output and is not committed. See `SECURITY.md` and `refs/planning/data-and-privacy-boundary.md`.
 
 ## Durable references
 
@@ -182,6 +206,8 @@ This repository must never contain resumes, career-history source documents, app
 - `refs/handoffs/job-discovery-sources.md`
 - `refs/handoffs/opportunity-scoring.md`
 - `refs/handoffs/desktop-review-application-tracking.md`
+- `refs/handoffs/windows-packaging-runtime-bootstrap.md`
+- `refs/testing/windows-desktop-smoke.md`
 
 Nerve Center also follows the canonical principles in `Three-Wheeled-Sloth-Studio/TWS-Design-Principles`, including `engineering/CI-Signal-Discipline.md`.
 

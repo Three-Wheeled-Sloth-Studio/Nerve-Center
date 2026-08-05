@@ -1,0 +1,11 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "publisher": "Three-Wheeled Sloth Studio",
+    "resources": {
+      "resources/nerve-center-api.exe": "nerve-center-api.exe"
+    }
+  }
+}
