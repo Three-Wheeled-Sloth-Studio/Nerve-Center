@@ -130,6 +130,43 @@ export interface SessionRecord {
   result_summary: string | null;
 }
 
+export interface WorkRequestRecord {
+  id: string;
+  module_id: string;
+  run_id: string;
+  session_id: string | null;
+  task_id: string;
+  work_class: "deterministic" | "network" | "llm" | "human_review" | "composite";
+  status: string;
+  payload: Record<string, unknown>;
+  provenance: Record<string, unknown>;
+  output_contract: Record<string, unknown>;
+  requirements: Record<string, unknown>;
+  idempotency_key: string;
+  module_priority: number;
+  task_priority: number;
+  max_retries: number;
+  attempt_count: number;
+  available_at: string;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+  error_code: string | null;
+}
+
+export interface QueueStatusRecord {
+  module_id: string | null;
+  queued: number;
+  claimed: number;
+  awaiting_acknowledgement: number;
+  global_queued: number;
+  soft_limit: number;
+  hard_limit: number;
+  pressure: number;
+  estimated_next_request_wait_seconds: number;
+  estimated_queue_clear_seconds: number;
+}
+
 export interface ScoringRule {
   id: string;
   target: string;

@@ -2,7 +2,7 @@
 
 > Product intent and non-negotiable boundaries are defined in `refs/planning/product-requirements-document.md`. This roadmap orders implementation; it does not redefine the product.
 
-## Accepted baseline through 0.9.0
+## Accepted baseline through 0.10.0
 
 The repository already contains a working local API, durable SQLite foundation, initial scheduling and task concepts, the Job Scout reference workflow, a Tauri/React desktop shell, and Windows packaging/runtime bootstrap.
 
@@ -60,7 +60,7 @@ estimates; workers receive that control state on every checkpoint boundary.
 Restart recovery preserves the original end, missed recurrence windows are not
 replayed, and Emergency Stop cancels runs and applies bounded process shutdown.
 
-## Increment 10: Durable shared work queue
+## Increment 10: Durable shared work queue (implemented)
 
 - Add generic deterministic, network, LLM, human-review, and composite work classifications.
 - Persist typed requests before acknowledgement.
@@ -70,6 +70,16 @@ replayed, and Emergency Stop cancels runs and applies bounded process shutdown.
 - Normalize enabled-module priorities to exactly 100 points.
 - Order LLM work using module priority, request age, task priority, model suitability, and model-switch cost.
 - Add progressively disclosed queue inspection, retry, cancellation, and reprioritization controls.
+
+Implemented in `0.10.0`. The manager now persists typed work requests before
+acknowledgement, records every claim as an attempt, retains results until module
+acknowledgement, and redelivers both interrupted claims and unacknowledged
+results after restart. Module-scoped idempotency keys prevent duplicate
+admission. Global and per-module hard limits enforce backpressure while queue
+depth, pressure, next-request wait, and clear-time estimates feed both runtime
+telemetry and the desktop inspector. Initial ordering uses module priority,
+task priority, and age. Model suitability and switch-cost terms become active
+with the provider-neutral manager in Increment 11.
 
 ## Increment 11: Provider-neutral LLM manager
 

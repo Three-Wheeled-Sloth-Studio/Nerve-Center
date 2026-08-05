@@ -11,18 +11,23 @@ import {
   createFixedSession,
   createRecurringSession,
   createRule,
+  cancelWorkRequest,
   decideHypothesis,
   deleteRule,
   getLocationPreferences,
   getModules,
   getOpportunities,
   getProfile,
+  getQueueStatus,
   getRules,
   getRuns,
   getSessions,
+  getWorkRequests,
   getScoringSettings,
   saveLocationPreferences,
   saveScoringSettings,
+  reprioritizeWorkRequest,
+  retryWorkRequest,
   setModuleLifecycle,
   emergencyStopSession,
   updateApplication,
@@ -31,13 +36,15 @@ import type {
   ApplicationStatus,
   CareerProfile,
   ModuleRecord,
+  QueueStatusRecord,
   ReviewOpportunity,
   RunRecord,
   SessionRecord,
   ScoringRule,
+  WorkRequestRecord,
 } from "./types";
 
-type Tab = "modules" | "review" | "sessions" | "rules" | "profile" | "preferences";
+type Tab = "modules" | "review" | "sessions" | "queue" | "rules" | "profile" | "preferences";
 type SortKey = "priority" | "response" | "fit" | "freshness";
 
 const ACTIVE_RUN_STATUSES = new Set(["queued", "scheduled", "running", "cancelling"]);
@@ -47,6 +54,8 @@ export default function App() {
   const [opportunities, setOpportunities] = useState<ReviewOpportunity[]>([]);
   const [runs, setRuns] = useState<RunRecord[]>([]);
   const [sessions, setSessions] = useState<SessionRecord[]>([]);
+  const [workRequests, setWorkRequests] = useState<WorkRequestRecord[]>([]);
+  const [queueStatus, setQueueStatus] = useState<QueueStatusRecord | null>(null);
   const [modules, setModules] = useState<ModuleRecord[]>([]);
   const [rules, setRules] = useState<ScoringRule[]>([]);
   const [profile, setProfile] = useState<CareerProfile | null>(null);
@@ -65,7 +74,16 @@ export default function App() {
   const refresh = useCallback(async () => {
     try {
       setError(null);
-      const [nextOpportunities, nextRuns, nextRules, nextProfile, nextModules, nextSessions] =
+      const [
+        nextOpportunities,
+        nextRuns,
+        nextRules,
+        nextProfile,
+        nextModules,
+        nextSessions,
+        nextWorkRequests,
+        nextQueueStatus,
+      ] =
         await Promise.all([
           getOpportunities(sort, includeDismissed),
           getRuns(),
@@ -73,6 +91,8 @@ export default function App() {
           getProfile(),
           getModules(),
           getSessions(),
+          getWorkRequests(),
+          getQueueStatus(),
         ]);
       setOpportunities(nextOpportunities);
       setRuns(nextRuns);
@@ -80,6 +100,8 @@ export default function App() {
       setProfile(nextProfile);
       setModules(nextModules);
       setSessions(nextSessions);
+      setWorkRequests(nextWorkRequests);
+      setQueueStatus(nextQueueStatus);
       const [nextSettings, nextLocation] = await Promise.all([
         getScoringSettings(),
         getLocationPreferences(),
@@ -94,11 +116,19 @@ export default function App() {
   useEffect(() => {
     void refresh();
     const timer = window.setInterval(() => {
-      void Promise.all([getRuns(), getModules(), getSessions()])
-        .then(([nextRuns, nextModules, nextSessions]) => {
+      void Promise.all([
+        getRuns(),
+        getModules(),
+        getSessions(),
+        getWorkRequests(),
+        getQueueStatus(),
+      ])
+        .then(([nextRuns, nextModules, nextSessions, nextWorkRequests, nextQueueStatus]) => {
           setRuns(nextRuns);
           setModules(nextModules);
           setSessions(nextSessions);
+          setWorkRequests(nextWorkRequests);
+          setQueueStatus(nextQueueStatus);
         })
         .catch(() => undefined);
     }, 5000);
@@ -178,7 +208,7 @@ export default function App() {
       </header>
 
       <nav className="tabs" aria-label="Primary">
-        {(["modules", "review", "sessions", "rules", "profile", "preferences"] as Tab[]).map(
+        {(["modules", "review", "sessions", "queue", "rules", "profile", "preferences"] as Tab[]).map(
           (item) => (
             <button
               key={item}
@@ -232,6 +262,14 @@ export default function App() {
             sessions={sessions}
             runs={runs}
             modules={modules}
+            onRefresh={refresh}
+            onError={setError}
+          />
+        ) : null}
+        {tab === "queue" ? (
+          <QueuePanel
+            requests={workRequests}
+            status={queueStatus}
             onRefresh={refresh}
             onError={setError}
           />
@@ -732,6 +770,152 @@ function SessionsPanel({
   );
 }
 
+function QueuePanel({
+  requests,
+  status,
+  onRefresh,
+  onError,
+}: {
+  requests: WorkRequestRecord[];
+  status: QueueStatusRecord | null;
+  onRefresh: () => Promise<void>;
+  onError: (message: string) => void;
+}) {
+  return (
+    <section aria-labelledby="queue-heading">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">Durable delivery and backpressure</p>
+          <h2 id="queue-heading">Work queue</h2>
+        </div>
+      </div>
+      <div className="queue-summary panel">
+        <QueueMetric label="Queued" value={status?.queued ?? 0} />
+        <QueueMetric label="In progress" value={status?.claimed ?? 0} />
+        <QueueMetric
+          label="Awaiting acknowledgement"
+          value={status?.awaiting_acknowledgement ?? 0}
+        />
+        <QueueMetric
+          label="Pressure"
+          value={`${Math.round((status?.pressure ?? 0) * 100)}%`}
+        />
+        <QueueMetric
+          label="Estimated clear"
+          value={formatDuration(status?.estimated_queue_clear_seconds ?? 0)}
+        />
+      </div>
+      <div className="panel queue-list">
+        {requests.length === 0 ? (
+          <p className="muted">No durable work requests have been submitted.</p>
+        ) : (
+          requests.map((request) => (
+            <QueueRequestRow
+              key={request.id}
+              request={request}
+              onRefresh={onRefresh}
+              onError={onError}
+            />
+          ))
+        )}
+      </div>
+    </section>
+  );
+}
+
+function QueueMetric({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div>
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function QueueRequestRow({
+  request,
+  onRefresh,
+  onError,
+}: {
+  request: WorkRequestRecord;
+  onRefresh: () => Promise<void>;
+  onError: (message: string) => void;
+}) {
+  const [priority, setPriority] = useState(request.task_priority);
+
+  async function act(operation: () => Promise<unknown>) {
+    try {
+      await operation();
+      await onRefresh();
+    } catch (reason) {
+      onError(reason instanceof Error ? reason.message : String(reason));
+    }
+  }
+
+  return (
+    <details className="queue-item">
+      <summary>
+        <span>
+          <strong>{titleCase(request.status)}</strong>
+          <small>{request.task_id}</small>
+        </span>
+        <span>
+          {titleCase(request.work_class)} · priority {request.task_priority}
+        </span>
+      </summary>
+      <dl className="queue-facts">
+        <div><dt>Module</dt><dd>{request.module_id}</dd></div>
+        <div><dt>Attempts</dt><dd>{request.attempt_count} / {request.max_retries + 1}</dd></div>
+        <div><dt>Created</dt><dd>{new Date(request.created_at).toLocaleString()}</dd></div>
+        <div><dt>Idempotency</dt><dd>{request.idempotency_key}</dd></div>
+      </dl>
+      <div className="queue-actions">
+        {request.status === "queued" ? (
+          <>
+            <label>
+              Task priority
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={priority}
+                onChange={(event) => setPriority(Number(event.target.value))}
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => void act(() => reprioritizeWorkRequest(request.id, priority))}
+            >
+              Update priority
+            </button>
+            <button
+              className="danger"
+              type="button"
+              onClick={() => void act(() => cancelWorkRequest(request.id))}
+            >
+              Cancel
+            </button>
+          </>
+        ) : null}
+        {["failed", "cancelled"].includes(request.status) ? (
+          <button type="button" onClick={() => void act(() => retryWorkRequest(request.id))}>
+            Retry
+          </button>
+        ) : null}
+      </div>
+      <details>
+        <summary>Request contract</summary>
+        <pre>{JSON.stringify({
+          payload: request.payload,
+          provenance: request.provenance,
+          output_contract: request.output_contract,
+          requirements: request.requirements,
+        }, null, 2)}</pre>
+      </details>
+    </details>
+  );
+}
+
 function RulesPanel({
   rules,
   onRefresh,
@@ -1039,6 +1223,14 @@ function remaining(deadline: string | null) {
     return `${seconds}s remaining`;
   }
   return `${Math.floor(seconds / 60)}m remaining`;
+}
+
+function formatDuration(seconds: number) {
+  if (seconds < 60) {
+    return `${Math.round(seconds)}s`;
+  }
+  const minutes = Math.round(seconds / 60);
+  return minutes < 60 ? `${minutes}m` : `${Math.round(minutes / 60)}h`;
 }
 
 function titleCase(value: string) {

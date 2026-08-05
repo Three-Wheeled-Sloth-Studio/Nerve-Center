@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 from nerve_center.domain.module_runtime import ModuleRuntimeStatus
 from nerve_center.domain.task import TaskResult, TaskStatus
+from nerve_center.domain.work_queue import WorkClass
 from nerve_center.runtime.supervisor import (
     ModuleRuntimeAuthorizationError,
     ModuleRuntimeConflictError,
@@ -43,6 +44,18 @@ class CompletionRequest(BaseModel):
     status: TaskStatus
     summary: str = Field(min_length=1, max_length=2000)
     metrics: dict[str, int | float | str | bool] = Field(default_factory=dict)
+
+
+class WorkSubmissionRequest(BaseModel):
+    task_id: str = Field(min_length=1, max_length=100)
+    work_class: WorkClass
+    payload: dict[str, Any]
+    provenance: dict[str, Any] = Field(default_factory=dict)
+    output_contract: dict[str, Any] = Field(default_factory=dict)
+    requirements: dict[str, Any] = Field(default_factory=dict)
+    idempotency_key: str = Field(min_length=1, max_length=255)
+    task_priority: int = Field(default=50, ge=0, le=100)
+    max_retries: int = Field(default=2, ge=0, le=20)
 
 
 def register_runtime_routes(application: FastAPI, supervisor: ModuleSupervisor) -> None:
@@ -142,6 +155,43 @@ def register_runtime_routes(application: FastAPI, supervisor: ModuleSupervisor) 
                 run_id,
                 request.operation,
                 request.payload,
+            )
+        except Exception as error:
+            raise translate(error) from error
+
+    @router.post("/runs/{run_id}/work", status_code=201)
+    def submit_work(
+        module_id: str,
+        run_id: str,
+        request: WorkSubmissionRequest,
+        authorization: str = Header(default=""),
+    ) -> dict[str, Any]:
+        try:
+            return supervisor.submit_work(
+                module_id,
+                token(authorization),
+                run_id,
+                request.model_dump(),
+            )
+        except Exception as error:
+            raise translate(error) from error
+
+    @router.get("/results")
+    def results(module_id: str, authorization: str = Header(default="")) -> Any:
+        try:
+            return supervisor.deliver_results(module_id, token(authorization))
+        except Exception as error:
+            raise translate(error) from error
+
+    @router.post("/results/{result_id}/acknowledge")
+    def acknowledge_result(
+        module_id: str,
+        result_id: str,
+        authorization: str = Header(default=""),
+    ) -> dict[str, Any]:
+        try:
+            return supervisor.acknowledge_result(
+                module_id, token(authorization), result_id
             )
         except Exception as error:
             raise translate(error) from error

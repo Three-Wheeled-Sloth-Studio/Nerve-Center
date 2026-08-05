@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -83,6 +83,72 @@ class WorkSessionModel(Base):
     resource_policy: Mapped[dict[str, int]] = mapped_column(JSON, default=dict)
     emergency_stop: Mapped[bool] = mapped_column(Boolean, default=False)
     result_summary: Mapped[str | None] = mapped_column(Text)
+
+
+class WorkRequestModel(Base):
+    __tablename__ = "core_work_requests"
+    __table_args__ = (
+        UniqueConstraint("module_id", "idempotency_key", name="uq_work_request_idempotency"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    module_id: Mapped[str] = mapped_column(String(100), index=True)
+    run_id: Mapped[str] = mapped_column(ForeignKey("runs.id"), index=True)
+    session_id: Mapped[str | None] = mapped_column(
+        ForeignKey("core_sessions.id"), nullable=True, index=True
+    )
+    task_id: Mapped[str] = mapped_column(String(100), index=True)
+    work_class: Mapped[str] = mapped_column(String(32), index=True)
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+    provenance: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    output_contract: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    requirements: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    idempotency_key: Mapped[str] = mapped_column(String(255))
+    module_priority: Mapped[int] = mapped_column(Integer)
+    task_priority: Mapped[int] = mapped_column(Integer)
+    max_retries: Mapped[int] = mapped_column(Integer)
+    attempt_count: Mapped[int] = mapped_column(Integer, default=0)
+    available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    error_code: Mapped[str | None] = mapped_column(String(100))
+
+
+class WorkAttemptModel(Base):
+    __tablename__ = "core_work_attempts"
+    __table_args__ = (
+        UniqueConstraint("request_id", "number", name="uq_work_attempt_number"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    request_id: Mapped[str] = mapped_column(
+        ForeignKey("core_work_requests.id"), index=True
+    )
+    number: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    worker_id: Mapped[str] = mapped_column(String(100), index=True)
+    claimed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    error_code: Mapped[str | None] = mapped_column(String(100))
+    detail: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+
+
+class WorkResultModel(Base):
+    __tablename__ = "core_work_results"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    request_id: Mapped[str] = mapped_column(
+        ForeignKey("core_work_requests.id"), unique=True, index=True
+    )
+    attempt_id: Mapped[str] = mapped_column(ForeignKey("core_work_attempts.id"), index=True)
+    module_id: Mapped[str] = mapped_column(String(100), index=True)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    acknowledged_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    delivery_count: Mapped[int] = mapped_column(Integer, default=0)
+    last_delivered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class SourceDocumentModel(Base):

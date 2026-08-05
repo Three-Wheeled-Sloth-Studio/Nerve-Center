@@ -62,6 +62,27 @@ class ModuleRuntimeClient:
             ).json(),
         )
 
+    async def submit_work(
+        self, run_id: str, request: Mapping[str, Any]
+    ) -> dict[str, Any]:
+        return cast(
+            dict[str, Any],
+            (
+                await self._request(
+                    "POST", f"/runs/{run_id}/work", json=dict(request)
+                )
+            ).json(),
+        )
+
+    async def results(self) -> list[dict[str, Any]]:
+        return cast(
+            list[dict[str, Any]],
+            (await self._request("GET", "/results")).json(),
+        )
+
+    async def acknowledge_result(self, result_id: str) -> None:
+        await self._request("POST", f"/results/{result_id}/acknowledge")
+
     async def complete(
         self,
         run_id: str,

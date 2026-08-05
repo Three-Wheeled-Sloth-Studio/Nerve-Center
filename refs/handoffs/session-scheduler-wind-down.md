@@ -1,9 +1,10 @@
-# Session Scheduler and Wind-Down Handoff
+# Session Scheduler and Wind-Down Handoff (Archived)
 
 ## Accepted baseline
 
 - Branch: `dev`
 - Version: `0.9.0`
+- Superseded by: `refs/handoffs/durable-shared-work-queue.md`
 - Product authority: `refs/planning/product-requirements-document.md`
 - Roadmap authority: `refs/planning/mvp-roadmap.md`
 - Module contract: `refs/planning/module-package-contract.md`

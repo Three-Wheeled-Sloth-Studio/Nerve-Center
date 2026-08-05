@@ -113,4 +113,4 @@ def test_scoring_state_and_history_persist_append_only(tmp_path: Path) -> None:
 
     assert [item.id for item in history.list(opening.id)] == ["score-2", "score-1"]
     assert ScoringRuleRepository(database).list()[0].id == rule.id
-    assert SCHEMA_VERSION == 8
+    assert SCHEMA_VERSION == 9

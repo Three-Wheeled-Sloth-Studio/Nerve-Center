@@ -107,3 +107,55 @@ def test_recurring_session_persists_concrete_next_window(tmp_path: Path) -> None
     assert created.json()["status"] == "scheduled"
     assert created.json()["starts_at"] < created.json()["ends_at"]
     assert created.json()["recurrence"]["timezone"] == "America/New_York"
+
+
+def test_durable_work_queue_api_lifecycle(tmp_path: Path) -> None:
+    app = create_app(Settings(data_dir=tmp_path))
+
+    with TestClient(app) as client:
+        run = client.post(
+            "/api/v1/runs",
+            json={"task_id": "job_scout.discovery", "duration_seconds": 60},
+        ).json()
+        payload = {
+            "module_id": "job_scout",
+            "run_id": run["id"],
+            "task_id": "job_scout.evaluate_fit",
+            "work_class": "llm",
+            "payload": {"job_id": "job-1"},
+            "output_contract": {"type": "object"},
+            "idempotency_key": "job-1-fit-v1",
+            "module_priority": 100,
+            "task_priority": 80,
+        }
+        created = client.post("/api/v1/work-requests", json=payload)
+        duplicate = client.post("/api/v1/work-requests", json=payload)
+        queue_status = client.get(
+            "/api/v1/work-requests/status", params={"module_id": "job_scout"}
+        )
+        attempt = client.post(
+            "/api/v1/work-requests/claim",
+            json={"worker_id": "provider-1", "work_classes": ["llm"]},
+        )
+        completed = client.post(
+            f"/api/v1/work-attempts/{attempt.json()['id']}/complete",
+            json={"payload": {"fit": "strong"}},
+        )
+        attempts = client.get(
+            f"/api/v1/work-requests/{created.json()['id']}/attempts"
+        )
+
+        queue = app.state.work_queue
+        first_delivery = queue.deliver_results("job_scout")
+        second_delivery = queue.deliver_results("job_scout")
+        queue.acknowledge(completed.json()["id"], "job_scout")
+
+    assert created.status_code == 201
+    assert duplicate.json()["id"] == created.json()["id"]
+    assert queue_status.json()["queued"] == 1
+    assert attempt.json()["number"] == 1
+    assert completed.json()["payload"] == {"fit": "strong"}
+    assert len(attempts.json()) == 1
+    assert first_delivery[0].id == second_delivery[0].id
+    assert second_delivery[0].delivery_count == 2
+    assert queue.get(created.json()["id"]).status.value == "acknowledged"

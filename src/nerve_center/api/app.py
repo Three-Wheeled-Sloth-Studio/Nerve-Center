@@ -14,11 +14,20 @@ from nerve_center import __version__
 from nerve_center.api.schemas import (
     ModuleLifecycleRequest,
     ModuleResponse,
+    QueueStatusResponse,
     RunCreateRequest,
     RunEventResponse,
     RunResponse,
     SessionCreateRequest,
     SessionResponse,
+    WorkAttemptResponse,
+    WorkClaimRequest,
+    WorkCompleteRequest,
+    WorkFailRequest,
+    WorkPriorityRequest,
+    WorkRequestCreateRequest,
+    WorkRequestResponse,
+    WorkResultResponse,
 )
 from nerve_center.config import Settings
 from nerve_center.domain.run import (
@@ -26,10 +35,18 @@ from nerve_center.domain.run import (
     RunNotFoundError,
     RunNotReadyError,
 )
+from nerve_center.domain.work_queue import (
+    QueueLimitExceededError,
+    WorkAttemptNotFoundError,
+    WorkQueueConflictError,
+    WorkRequestNotFoundError,
+    WorkRequestStatus,
+)
 from nerve_center.persistence.database import Database
 from nerve_center.persistence.modules import ModuleNotFoundError, ModuleRepository
 from nerve_center.persistence.runs import RunRepository
 from nerve_center.persistence.sessions import SessionNotFoundError, SessionRepository
+from nerve_center.persistence.work_queue import WorkQueueRepository
 from nerve_center.plugins.job_scout.bootstrap import install_job_scout
 from nerve_center.plugins.synthetic import SyntheticTaskPlugin
 from nerve_center.providers.base import StructuredProvider
@@ -40,6 +57,7 @@ from nerve_center.scheduler.registry import TaskRegistry
 from nerve_center.scheduler.runner import RunnerService
 from nerve_center.scheduler.service import SchedulerService
 from nerve_center.scheduler.sessions import WorkSessionService
+from nerve_center.scheduler.work_queue import WorkQueueService
 
 LOCAL_DESKTOP_ORIGINS = [
     "http://127.0.0.1:1420",
@@ -59,6 +77,7 @@ def create_app(
     repository = RunRepository(database)
     module_repository = ModuleRepository(database)
     session_repository = SessionRepository(database)
+    work_queue = WorkQueueService(WorkQueueRepository(database))
     registry = TaskRegistry()
     registry.register(SyntheticTaskPlugin())
 
@@ -67,6 +86,7 @@ def create_app(
         database.initialize()
         module_repository.synchronize(registry.list_modules())
         runner.recover_interrupted()
+        work_queue.recover_interrupted()
         work_sessions.recover()
         await scheduler.start()
         yield
@@ -121,6 +141,7 @@ def create_app(
         module_supervisor,
     )
     module_supervisor.set_session_control_resolver(work_sessions.control)
+    module_supervisor.set_work_queue(work_queue)
     scheduler = SchedulerService(
         repository,
         runner,
@@ -131,7 +152,17 @@ def create_app(
     application.state.scheduler = scheduler
     application.state.module_supervisor = module_supervisor
     application.state.work_sessions = work_sessions
+    application.state.work_queue = work_queue
     register_runtime_routes(application, module_supervisor)
+
+    def queue_error(error: Exception) -> HTTPException:
+        if isinstance(error, (WorkRequestNotFoundError, WorkAttemptNotFoundError)):
+            return HTTPException(status_code=404, detail=str(error))
+        if isinstance(error, QueueLimitExceededError):
+            return HTTPException(status_code=429, detail=str(error))
+        if isinstance(error, WorkQueueConflictError):
+            return HTTPException(status_code=409, detail=str(error))
+        return HTTPException(status_code=422, detail=str(error))
 
     @application.get("/health")
     def health() -> dict[str, str]:
@@ -195,6 +226,110 @@ def create_app(
             )
         except SessionNotFoundError as error:
             raise HTTPException(status_code=404, detail=str(error)) from error
+
+    @application.post(
+        "/api/v1/work-requests",
+        status_code=status.HTTP_201_CREATED,
+    )
+    def submit_work_request(request: WorkRequestCreateRequest) -> WorkRequestResponse:
+        try:
+            return WorkRequestResponse.from_snapshot(work_queue.submit(request.to_domain()))
+        except Exception as error:
+            raise queue_error(error) from error
+
+    @application.get("/api/v1/work-requests")
+    def list_work_requests(
+        module_id: str | None = None,
+        request_status: WorkRequestStatus | None = None,
+        limit: Annotated[int, Query(ge=1, le=1000)] = 200,
+    ) -> list[WorkRequestResponse]:
+        return [
+            WorkRequestResponse.from_snapshot(item)
+            for item in work_queue.list_requests(
+                module_id=module_id, status=request_status, limit=limit
+            )
+        ]
+
+    @application.get("/api/v1/work-requests/status")
+    def work_queue_status(module_id: str | None = None) -> QueueStatusResponse:
+        return QueueStatusResponse.from_snapshot(work_queue.status(module_id))
+
+    @application.get("/api/v1/work-requests/{request_id}")
+    def get_work_request(request_id: str) -> WorkRequestResponse:
+        try:
+            return WorkRequestResponse.from_snapshot(work_queue.get(request_id))
+        except Exception as error:
+            raise queue_error(error) from error
+
+    @application.get("/api/v1/work-requests/{request_id}/attempts")
+    def get_work_attempts(request_id: str) -> list[WorkAttemptResponse]:
+        try:
+            return [
+                WorkAttemptResponse.from_snapshot(item)
+                for item in work_queue.attempts(request_id)
+            ]
+        except Exception as error:
+            raise queue_error(error) from error
+
+    @application.post("/api/v1/work-requests/claim")
+    def claim_work(request: WorkClaimRequest) -> WorkAttemptResponse | None:
+        attempt = work_queue.claim_next(
+            request.worker_id,
+            tuple(request.work_classes) if request.work_classes else None,
+        )
+        return WorkAttemptResponse.from_snapshot(attempt) if attempt else None
+
+    @application.post("/api/v1/work-attempts/{attempt_id}/complete")
+    def complete_work_attempt(
+        attempt_id: str, request: WorkCompleteRequest
+    ) -> WorkResultResponse:
+        try:
+            return WorkResultResponse.from_snapshot(
+                work_queue.complete(attempt_id, request.payload)
+            )
+        except Exception as error:
+            raise queue_error(error) from error
+
+    @application.post("/api/v1/work-attempts/{attempt_id}/fail")
+    def fail_work_attempt(
+        attempt_id: str, request: WorkFailRequest
+    ) -> WorkRequestResponse:
+        try:
+            return WorkRequestResponse.from_snapshot(
+                work_queue.fail(
+                    attempt_id,
+                    request.error_code,
+                    detail=request.detail,
+                    retry_delay_seconds=request.retry_delay_seconds,
+                )
+            )
+        except Exception as error:
+            raise queue_error(error) from error
+
+    @application.post("/api/v1/work-requests/{request_id}/cancel")
+    def cancel_work_request(request_id: str) -> WorkRequestResponse:
+        try:
+            return WorkRequestResponse.from_snapshot(work_queue.cancel(request_id))
+        except Exception as error:
+            raise queue_error(error) from error
+
+    @application.post("/api/v1/work-requests/{request_id}/retry")
+    def retry_work_request(request_id: str) -> WorkRequestResponse:
+        try:
+            return WorkRequestResponse.from_snapshot(work_queue.retry(request_id))
+        except Exception as error:
+            raise queue_error(error) from error
+
+    @application.patch("/api/v1/work-requests/{request_id}/priority")
+    def reprioritize_work_request(
+        request_id: str, request: WorkPriorityRequest
+    ) -> WorkRequestResponse:
+        try:
+            return WorkRequestResponse.from_snapshot(
+                work_queue.reprioritize(request_id, request.task_priority)
+            )
+        except Exception as error:
+            raise queue_error(error) from error
 
     @application.get("/api/v1/modules")
     def list_modules() -> list[ModuleResponse]:

@@ -14,6 +14,15 @@ from nerve_center.domain.module_runtime import ModuleRuntimeReport
 from nerve_center.domain.run import RunEventSnapshot, RunSnapshot, RunStatus
 from nerve_center.domain.run_window import DurationRunWindow, FixedRunWindow
 from nerve_center.domain.session import RecurrenceRule, WorkSessionSnapshot
+from nerve_center.domain.work_queue import (
+    QueueStatusSnapshot,
+    WorkAttemptSnapshot,
+    WorkClass,
+    WorkRequestSnapshot,
+    WorkRequestSpec,
+    WorkRequestStatus,
+    WorkResultSnapshot,
+)
 from nerve_center.profile.models import ClaimCategory, ClaimDecision, HypothesisDecision
 
 
@@ -211,6 +220,121 @@ class SessionResponse(BaseModel):
             emergency_stop=snapshot.emergency_stop,
             result_summary=snapshot.result_summary,
         )
+
+
+class WorkRequestCreateRequest(BaseModel):
+    module_id: str = Field(min_length=1, max_length=100)
+    run_id: str = Field(min_length=1, max_length=100)
+    session_id: str | None = Field(default=None, max_length=100)
+    task_id: str = Field(min_length=1, max_length=100)
+    work_class: WorkClass
+    payload: dict[str, Any]
+    provenance: dict[str, Any] = Field(default_factory=dict)
+    output_contract: dict[str, Any] = Field(default_factory=dict)
+    requirements: dict[str, Any] = Field(default_factory=dict)
+    idempotency_key: str = Field(min_length=1, max_length=255)
+    module_priority: int = Field(default=10, ge=0, le=100)
+    task_priority: int = Field(default=50, ge=0, le=100)
+    max_retries: int = Field(default=2, ge=0, le=20)
+
+    def to_domain(self) -> WorkRequestSpec:
+        return WorkRequestSpec(**self.model_dump())
+
+
+class WorkRequestResponse(BaseModel):
+    id: str
+    module_id: str
+    run_id: str
+    session_id: str | None
+    task_id: str
+    work_class: WorkClass
+    status: WorkRequestStatus
+    payload: dict[str, Any]
+    provenance: dict[str, Any]
+    output_contract: dict[str, Any]
+    requirements: dict[str, Any]
+    idempotency_key: str
+    module_priority: int
+    task_priority: int
+    max_retries: int
+    attempt_count: int
+    available_at: datetime
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None
+    error_code: str | None
+
+    @classmethod
+    def from_snapshot(cls, snapshot: WorkRequestSnapshot) -> WorkRequestResponse:
+        return cls(**asdict(snapshot))
+
+
+class WorkAttemptResponse(BaseModel):
+    id: str
+    request_id: str
+    number: int
+    status: str
+    worker_id: str
+    claimed_at: datetime
+    completed_at: datetime | None
+    error_code: str | None
+    detail: dict[str, Any]
+
+    @classmethod
+    def from_snapshot(cls, snapshot: WorkAttemptSnapshot) -> WorkAttemptResponse:
+        return cls(**asdict(snapshot))
+
+
+class WorkResultResponse(BaseModel):
+    id: str
+    request_id: str
+    attempt_id: str
+    module_id: str
+    payload: dict[str, Any]
+    created_at: datetime
+    acknowledged_at: datetime | None
+    delivery_count: int
+    last_delivered_at: datetime | None
+
+    @classmethod
+    def from_snapshot(cls, snapshot: WorkResultSnapshot) -> WorkResultResponse:
+        return cls(**asdict(snapshot))
+
+
+class QueueStatusResponse(BaseModel):
+    module_id: str | None
+    queued: int
+    claimed: int
+    awaiting_acknowledgement: int
+    global_queued: int
+    soft_limit: int
+    hard_limit: int
+    pressure: float
+    estimated_next_request_wait_seconds: float
+    estimated_queue_clear_seconds: float
+
+    @classmethod
+    def from_snapshot(cls, snapshot: QueueStatusSnapshot) -> QueueStatusResponse:
+        return cls(**asdict(snapshot))
+
+
+class WorkClaimRequest(BaseModel):
+    worker_id: str = Field(min_length=1, max_length=100)
+    work_classes: list[WorkClass] | None = None
+
+
+class WorkCompleteRequest(BaseModel):
+    payload: dict[str, Any]
+
+
+class WorkFailRequest(BaseModel):
+    error_code: str = Field(min_length=1, max_length=100)
+    detail: dict[str, Any] = Field(default_factory=dict)
+    retry_delay_seconds: float = Field(default=0, ge=0, le=86400)
+
+
+class WorkPriorityRequest(BaseModel):
+    task_priority: int = Field(ge=0, le=100)
 
 
 class DocumentRegisterRequest(BaseModel):

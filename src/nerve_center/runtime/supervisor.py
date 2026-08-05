@@ -8,7 +8,7 @@ import secrets
 import subprocess
 import sys
 from collections.abc import Awaitable, Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from typing import Any, Protocol
 
@@ -21,10 +21,27 @@ from nerve_center.domain.module_runtime import (
     ModuleRuntimeStatus,
 )
 from nerve_center.domain.task import TaskContext, TaskResult, TaskStatus
+from nerve_center.domain.work_queue import (
+    QueueStatusSnapshot,
+    WorkClass,
+    WorkRequestSnapshot,
+    WorkRequestSpec,
+    WorkResultSnapshot,
+)
 
 
 class ModuleOperationBridge(Protocol):
     async def invoke(self, operation: str, payload: Mapping[str, Any]) -> dict[str, Any]: ...
+
+
+class ModuleWorkQueue(Protocol):
+    def submit(self, spec: WorkRequestSpec) -> WorkRequestSnapshot: ...
+
+    def status(self, module_id: str | None = None) -> QueueStatusSnapshot: ...
+
+    def deliver_results(self, module_id: str) -> list[WorkResultSnapshot]: ...
+
+    def acknowledge(self, result_id: str, module_id: str) -> WorkResultSnapshot: ...
 
 
 @dataclass(slots=True)
@@ -68,6 +85,7 @@ class ModuleSupervisor:
         self._process_factory = process_factory or asyncio.create_subprocess_exec
         self._sessions: dict[str, _ModuleSession] = {}
         self._session_control = session_control
+        self._work_queue: ModuleWorkQueue | None = None
 
     def register(self, manifest: ModuleManifest, bridge: ModuleOperationBridge) -> None:
         if manifest.module_id in self._sessions:
@@ -88,6 +106,9 @@ class ModuleSupervisor:
     ) -> None:
         self._session_control = resolver
 
+    def set_work_queue(self, work_queue: ModuleWorkQueue) -> None:
+        self._work_queue = work_queue
+
     def report(self, module_id: str) -> ModuleRuntimeReport:
         session = self._session(module_id)
         report = session.report
@@ -103,6 +124,19 @@ class ModuleSupervisor:
                 ModuleRuntimeStatus.DEGRADED,
                 "Module heartbeat is overdue",
                 reason="heartbeat timeout",
+            )
+        if self._work_queue is not None:
+            queue = self._work_queue.status(module_id)
+            session.report = self._updated_report(
+                session,
+                session.report.status,
+                session.report.activity,
+                pending_llm_requests=queue.queued + queue.claimed,
+                estimated_next_request_wait_seconds=(
+                    queue.estimated_next_request_wait_seconds
+                ),
+                estimated_queue_clear_seconds=queue.estimated_queue_clear_seconds,
+                queue_pressure=queue.pressure,
             )
         return session.report
 
@@ -133,7 +167,7 @@ class ModuleSupervisor:
                 task_id=task_id,
                 deadline=context.deadline,
                 priority=priority,
-                queue_limits={"soft": 25, "hard": 100},
+                queue_limits=self._queue_limits(module_id),
                 resource_policy={
                     "max_requests": context.resources.budget.max_requests,
                     "max_llm_calls": context.resources.budget.max_llm_calls,
@@ -228,6 +262,50 @@ class ModuleSupervisor:
         session = self._session(module_id)
         self._pending(session, run_id)
         return await session.bridge.invoke(operation, payload)
+
+    def submit_work(
+        self,
+        module_id: str,
+        token: str,
+        run_id: str,
+        request: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        self.authorize(module_id, token)
+        pending = self._pending(self._session(module_id), run_id)
+        if self._work_queue is None:
+            raise ModuleRuntimeConflictError("durable work queue is unavailable")
+        snapshot = self._work_queue.submit(
+            WorkRequestSpec(
+                module_id=module_id,
+                run_id=run_id,
+                session_id=pending.assignment.session_id,
+                task_id=str(request["task_id"]),
+                work_class=WorkClass(request["work_class"]),
+                payload=dict(request["payload"]),
+                provenance=dict(request.get("provenance", {})),
+                output_contract=dict(request.get("output_contract", {})),
+                requirements=dict(request.get("requirements", {})),
+                idempotency_key=str(request["idempotency_key"]),
+                module_priority=pending.assignment.priority,
+                task_priority=int(request.get("task_priority", 50)),
+                max_retries=int(request.get("max_retries", 2)),
+            )
+        )
+        return asdict(snapshot)
+
+    def deliver_results(self, module_id: str, token: str) -> list[dict[str, Any]]:
+        self.authorize(module_id, token)
+        if self._work_queue is None:
+            raise ModuleRuntimeConflictError("durable work queue is unavailable")
+        return [asdict(item) for item in self._work_queue.deliver_results(module_id)]
+
+    def acknowledge_result(
+        self, module_id: str, token: str, result_id: str
+    ) -> dict[str, Any]:
+        self.authorize(module_id, token)
+        if self._work_queue is None:
+            raise ModuleRuntimeConflictError("durable work queue is unavailable")
+        return asdict(self._work_queue.acknowledge(result_id, module_id))
 
     def complete(
         self,
@@ -410,6 +488,12 @@ class ModuleSupervisor:
                 "accept_new_llm_work": True,
             }
         return self._session_control(session_id)
+
+    def _queue_limits(self, module_id: str) -> dict[str, int]:
+        if self._work_queue is None:
+            return {"soft": 25, "hard": 100}
+        status = self._work_queue.status(module_id)
+        return {"soft": status.soft_limit, "hard": status.hard_limit}
 
     @staticmethod
     def _updated_report(

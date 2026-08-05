@@ -5,9 +5,11 @@ import type {
   ModuleLifecycleState,
   ModuleRecord,
   ReviewOpportunity,
+  QueueStatusRecord,
   RunRecord,
   SessionRecord,
   ScoringRule,
+  WorkRequestRecord,
 } from "./types";
 
 const API_BASE =
@@ -95,6 +97,32 @@ export function createRecurringSession(input: {
 
 export function emergencyStopSession(sessionId: string): Promise<SessionRecord> {
   return request(`/api/v1/sessions/${sessionId}/emergency-stop`, { method: "POST" });
+}
+
+export function getWorkRequests(): Promise<WorkRequestRecord[]> {
+  return request("/api/v1/work-requests?limit=200");
+}
+
+export function getQueueStatus(): Promise<QueueStatusRecord> {
+  return request("/api/v1/work-requests/status");
+}
+
+export function cancelWorkRequest(requestId: string): Promise<WorkRequestRecord> {
+  return request(`/api/v1/work-requests/${requestId}/cancel`, { method: "POST" });
+}
+
+export function retryWorkRequest(requestId: string): Promise<WorkRequestRecord> {
+  return request(`/api/v1/work-requests/${requestId}/retry`, { method: "POST" });
+}
+
+export function reprioritizeWorkRequest(
+  requestId: string,
+  taskPriority: number,
+): Promise<WorkRequestRecord> {
+  return request(`/api/v1/work-requests/${requestId}/priority`, {
+    method: "PATCH",
+    body: JSON.stringify({ task_priority: taskPriority }),
+  });
 }
 
 export function getModules(): Promise<ModuleRecord[]> {

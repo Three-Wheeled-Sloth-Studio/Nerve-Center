@@ -120,3 +120,19 @@ surface a failed runtime state. Overdue heartbeats surface a degraded state.
 Manager work sessions invoke only `session_entry_task_id`. Additional declared
 tasks remain available for explicit workflows and future durable queue
 composition; manifest tuple ordering is never used to infer session behavior.
+
+## Durable work delivery
+
+As of `0.10.0`, managed workers submit typed work through their authenticated
+runtime route. The manager derives module, run, session, and normalized module
+priority from the active assignment; a worker cannot submit those authority
+fields itself. Requests carry a work class, stable task identity, payload,
+provenance, output contract, requirements, local task priority, retry policy,
+and module-scoped idempotency key.
+
+The manager persists a request before acknowledging submission. Every claim
+creates a durable attempt. Results remain durable and are delivered at least
+once until the owning module acknowledges them. Claimed work is requeued after
+manager restart with the interrupted attempt retained. Modules must tolerate
+duplicate result delivery and use idempotency keys where repeated execution
+would be harmful. Shared SQLite remains manager-only.

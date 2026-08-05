@@ -410,6 +410,66 @@ button.danger {
   color: #fee2e2;
 }
 
+.queue-summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.queue-summary > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.queue-summary span,
+.queue-facts dt,
+.queue-item small {
+  color: #94a3b8;
+}
+
+.queue-summary strong {
+  font-size: 1.25rem;
+}
+
+.queue-item summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.queue-item summary > span:first-child {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.queue-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.queue-facts dd {
+  margin: 0.2rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.queue-actions {
+  display: flex;
+  align-items: end;
+  gap: 0.6rem;
+}
+
+.queue-actions label {
+  max-width: 9rem;
+}
+
+.queue-item pre {
+  max-height: 20rem;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
 .run-row,
 .rule-row {
   align-items: flex-start;
@@ -490,5 +550,10 @@ footer {
 
   .score-strip {
     grid-template-columns: repeat(4, 1fr);
+  }
+
+  .queue-summary,
+  .queue-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
