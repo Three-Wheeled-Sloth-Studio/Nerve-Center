@@ -30,9 +30,9 @@ def test_job_scout_workspace_uploads_resume_preserves_values_and_filters_keyword
 ) -> None:
     application = _application(tmp_path)
     resume = (
-        "Paragraph across product analytics and product strategy.\r\n"
-        "Led product platform delivery and product roadmap planning.\r\n"
-    ).encode()
+        b"Paragraph across product analytics and product strategy.\r\n"
+        b"Led product platform delivery and product roadmap planning.\r\n"
+    )
     configuration = JobScoutConfiguration(
         target_titles=["Principal Product Manager"],
         locations=["Raleigh, NC"],
