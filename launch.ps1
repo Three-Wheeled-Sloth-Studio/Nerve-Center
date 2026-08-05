@@ -23,6 +23,66 @@ function Require-Command {
     }
 }
 
+function Get-NerveCenterHealth {
+    try {
+        return Invoke-RestMethod -Uri "http://127.0.0.1:8765/health" -TimeoutSec 1
+    }
+    catch {
+        return $null
+    }
+}
+
+function Test-JobScoutWorkspace {
+    try {
+        Invoke-RestMethod -Uri "http://127.0.0.1:8765/api/v1/modules/job_scout/workspace" -TimeoutSec 2 | Out-Null
+        return $true
+    }
+    catch {
+        return $false
+    }
+}
+
+function Stop-StaleNerveCenterApi {
+    param(
+        [Parameter(Mandatory)]
+        [string]$ExpectedVersion
+    )
+
+    $health = Get-NerveCenterHealth
+    if ($null -eq $health -or [string]$health.status -ne "ok") {
+        return
+    }
+
+    $runningVersion = [string]$health.version
+    $workspaceAvailable = Test-JobScoutWorkspace
+    if ($runningVersion -eq $ExpectedVersion -and $workspaceAvailable) {
+        return
+    }
+
+    $reason = if ($runningVersion -ne $ExpectedVersion) {
+        "version $runningVersion is running; this checkout requires $ExpectedVersion"
+    }
+    else {
+        "the running API does not expose the current Job Scout workspace contract"
+    }
+    Write-Host "Stopping stale Nerve Center API: $reason." -ForegroundColor Yellow
+
+    $listener = Get-NetTCPConnection -LocalPort 8765 -State Listen -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if ($null -eq $listener -or $null -eq $listener.OwningProcess) {
+        throw "A stale Nerve Center API is responding on port 8765, but its process could not be identified. Quit Nerve Center from the system tray, then run launch.bat again."
+    }
+
+    Stop-Process -Id $listener.OwningProcess -Force -ErrorAction Stop
+    for ($attempt = 0; $attempt -lt 40; $attempt++) {
+        Start-Sleep -Milliseconds 100
+        if ($null -eq (Get-NerveCenterHealth)) {
+            return
+        }
+    }
+    throw "The stale Nerve Center API did not release port 8765. Quit it from the system tray, then run launch.bat again."
+}
+
 Write-Host "Nerve Center source launcher" -ForegroundColor Cyan
 Write-Host "Repository: $repoRoot"
 
@@ -74,6 +134,8 @@ if ($LASTEXITCODE -ne 0) {
 $checkoutVersion = Select-String -Path (Join-Path $repoRoot "pyproject.toml") -Pattern '^version\s*=\s*"([^"]+)"' |
     Select-Object -First 1 |
     ForEach-Object { $_.Matches[0].Groups[1].Value }
+Stop-StaleNerveCenterApi -ExpectedVersion $checkoutVersion
+
 $installedVersion = & $venvPython -c "import importlib.metadata; print(importlib.metadata.version('nerve-center'))" 2>$null
 $packageNeedsInstall = $LASTEXITCODE -ne 0 -or $installedVersion -ne $checkoutVersion
 
