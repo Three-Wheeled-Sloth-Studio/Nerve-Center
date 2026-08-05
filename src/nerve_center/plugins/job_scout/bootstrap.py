@@ -15,6 +15,9 @@ from nerve_center.persistence.discovery import (
     DiscoverySourceRepository,
     JobOpeningRepository,
 )
+from nerve_center.plugins.job_scout.configuration import (
+    register_job_scout_configuration_routes,
+)
 from nerve_center.plugins.job_scout.manifest import job_scout_manifest
 from nerve_center.plugins.job_scout.runtime import JobScoutOperationBridge
 from nerve_center.profile.api import register_profile_routes
@@ -46,6 +49,16 @@ def install_job_scout(
     register_discovery_routes(application, database, settings, discovery_service)
     register_scoring_routes(application, database, settings, provider)
     register_application_routes(application, database)
+    register_job_scout_configuration_routes(
+        application,
+        database,
+        settings,
+        provider,
+        discovery_service,
+        company_repository,
+        source_repository,
+        job_repository,
+    )
     return JobScoutModulePackage(
         manifest=job_scout_manifest(),
         operation_bridge=JobScoutOperationBridge(discovery_service, source_repository),

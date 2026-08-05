@@ -19,13 +19,16 @@ def job_scout_manifest() -> ModuleManifest:
         manifest_version=MODULE_MANIFEST_VERSION,
         module_id="job_scout",
         display_name="Job Scout",
-        description="Discovers, evaluates, and tracks public job opportunities.",
+        description=(
+            "Loads career evidence, discovers search terms, scans public sources, "
+            "and tracks opportunities."
+        ),
         version=__version__,
         compatibility=ModuleCompatibility(
             module_api_version=MODULE_API_VERSION,
             minimum_core_version=__version__,
             maximum_tested_core_version=__version__,
-            data_schema_version=1,
+            data_schema_version=2,
         ),
         launch=ModuleLaunchDefinition(
             runtime="managed_python",
@@ -47,7 +50,9 @@ def job_scout_manifest() -> ModuleManifest:
             ModulePermission(
                 kind=ModulePermissionKind.ASSIGNED_STORAGE_WRITE,
                 scopes=("job_scout",),
-                rationale="Persist module-owned records and generated local artifacts.",
+                rationale=(
+                    "Persist module-owned configuration, records, and generated local artifacts."
+                ),
             ),
         ),
         task_types=(
@@ -58,18 +63,58 @@ def job_scout_manifest() -> ModuleManifest:
             ),
         ),
         ui_contributions=(
-            ModuleUiContribution(slot="module_dashboard", renderer_key="job_scout.review"),
-            ModuleUiContribution(slot="module_configuration", renderer_key="job_scout.settings"),
-            ModuleUiContribution(slot="module_records", renderer_key="job_scout.applications"),
+            ModuleUiContribution(slot="module_panel", renderer_key="job_scout"),
         ),
         configuration_schema={
             "type": "object",
             "properties": {
+                "resume_document_id": {"type": ["string", "null"]},
+                "resume_file_name": {"type": ["string", "null"]},
+                "target_titles": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "uniqueItems": True,
+                },
+                "locations": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "uniqueItems": True,
+                },
+                "remote_preference": {
+                    "type": "string",
+                    "enum": ["any", "remote", "hybrid", "on_site"],
+                },
+                "source_urls": {
+                    "type": "array",
+                    "items": {"type": "string", "format": "uri"},
+                    "uniqueItems": True,
+                },
                 "source_ids": {
                     "type": "array",
                     "items": {"type": "string"},
                     "uniqueItems": True,
-                }
+                },
+                "allowed_domains": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "uniqueItems": True,
+                },
+                "disallowed_domains": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "uniqueItems": True,
+                },
+                "keywords": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "uniqueItems": True,
+                },
+                "broad_search_enabled": {"type": "boolean"},
+                "scan_interval_minutes": {
+                    "type": "integer",
+                    "minimum": 5,
+                    "maximum": 10080,
+                },
             },
             "additionalProperties": False,
         },
