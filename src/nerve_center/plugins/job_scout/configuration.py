@@ -44,9 +44,11 @@ from nerve_center.plugins.job_scout.settings import (
     JobScoutConfiguration,
     JobScoutConfigurationStore,
     JobScoutKeywordSummary,
+    JobScoutSuggestionSummary,
     ResumeLoadRequest,
     clean_list,
     discover_keywords,
+    discover_suggestions,
 )
 from nerve_center.profile.documents import DocumentImportError, import_source_document
 from nerve_center.profile.models import CanonicalCareerProfile, SourceDocument
@@ -86,6 +88,7 @@ class JobScoutWorkspace(BaseModel):
     documents: list[SourceDocument]
     profile: CanonicalCareerProfile
     keywords: JobScoutKeywordSummary
+    suggestions: JobScoutSuggestionSummary
     sources: list[DiscoverySource]
     opening_count: int
 
@@ -114,11 +117,15 @@ class JobScoutCoordinator:
 
     def workspace(self) -> JobScoutWorkspace:
         configuration = self.store.load()
+        document = self._resume_document(configuration)
         return JobScoutWorkspace(
             configuration=configuration,
             documents=self.documents.list(),
             profile=self.profiles.get_profile(),
-            keywords=self._discover_keywords(configuration),
+            keywords=self._discover_keywords(configuration, document=document),
+            suggestions=discover_suggestions(
+                configuration, self.profiles.get_profile(), document
+            ),
             sources=self._configured_sources(configuration),
             opening_count=len(self.jobs.list()),
         )
@@ -208,6 +215,7 @@ class JobScoutCoordinator:
                     if result.classification not in {
                         UrlClassification.GREENHOUSE,
                         UrlClassification.LEVER,
+                        UrlClassification.MAJOR_JOB_BOARD,
                         UrlClassification.COMPANY_CAREER,
                     }:
                         continue
@@ -269,16 +277,23 @@ class JobScoutCoordinator:
         *,
         document: SourceDocument | None = None,
     ) -> JobScoutKeywordSummary:
-        if document is None and configuration.resume_document_id:
-            try:
-                document = self.documents.get(configuration.resume_document_id)
-            except KeyError:
-                document = None
+        if document is None:
+            document = self._resume_document(configuration)
         return discover_keywords(
             configuration,
             self.profiles.get_profile(),
             document,
         )
+
+    def _resume_document(
+        self, configuration: JobScoutConfiguration
+    ) -> SourceDocument | None:
+        if not configuration.resume_document_id:
+            return None
+        try:
+            return self.documents.get(configuration.resume_document_id)
+        except KeyError:
+            return None
 
     def _configured_sources(
         self,

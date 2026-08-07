@@ -1,4 +1,15 @@
-import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import {
+  FileText,
+  FolderOpen,
+  ListFilter,
+  MapPin,
+  Plus,
+  ScanSearch,
+  Settings2,
+  Tags,
+  X,
+} from "lucide-react";
 
 import {
   createRule,
@@ -28,6 +39,7 @@ type DraftField =
   | "target_titles"
   | "locations"
   | "source_urls"
+  | "public_job_boards"
   | "allowed_domains"
   | "disallowed_domains"
   | "manual_keywords";
@@ -40,6 +52,7 @@ function draftsFrom(configuration: JobScoutConfiguration): ConfigurationDrafts {
     target_titles: formatMultivalueText(configuration.target_titles),
     locations: formatMultivalueText(configuration.locations),
     source_urls: formatMultivalueText(configuration.source_urls),
+    public_job_boards: formatMultivalueText(configuration.public_job_boards),
     allowed_domains: formatMultivalueText(configuration.allowed_domains),
     disallowed_domains: formatMultivalueText(configuration.disallowed_domains),
     manual_keywords: formatMultivalueText(configuration.manual_keywords),
@@ -116,6 +129,7 @@ function JobScoutSetup({ workspace, scanSummary, busy, onBusy, onScanSummary, on
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedResume, setSelectedResume] = useState<File | null>(null);
+  const [activeDialog, setActiveDialog] = useState<"resume" | "search" | "keywords" | "scan" | null>(null);
   const [configuration, setConfiguration] = useState<JobScoutConfiguration>(workspace.configuration);
   const [drafts, setDrafts] = useState<ConfigurationDrafts>(() => draftsFrom(workspace.configuration));
 
@@ -133,14 +147,21 @@ function JobScoutSetup({ workspace, scanSummary, busy, onBusy, onScanSummary, on
       target_titles: parseMultivalueText(drafts.target_titles),
       locations: parseMultivalueText(drafts.locations),
       source_urls: parseMultivalueText(drafts.source_urls),
+      public_job_boards: parseMultivalueText(drafts.public_job_boards),
       allowed_domains: parseMultivalueText(drafts.allowed_domains),
       disallowed_domains: parseMultivalueText(drafts.disallowed_domains),
       manual_keywords: parseMultivalueText(drafts.manual_keywords),
     };
   }
-  async function perform(operation: () => Promise<unknown>) {
+  async function perform(operation: () => Promise<unknown>): Promise<boolean> {
     onBusy(true);
-    try { await operation(); await onRefresh(); } catch (reason) { onError(messageOf(reason)); } finally { onBusy(false); }
+    try { await operation(); await onRefresh(); return true; } catch (reason) { onError(messageOf(reason)); return false; } finally { onBusy(false); }
+  }
+  function addSuggestion(field: "target_titles" | "locations", value: string) {
+    const values = parseMultivalueText(drafts[field]);
+    if (!values.some((item) => item.toLocaleLowerCase() === value.toLocaleLowerCase())) {
+      updateDraft(field, formatMultivalueText([...values, value]));
+    }
   }
   function chooseResume(file: File | null) {
     if (file && file.size > MAX_RESUME_BYTES) {
@@ -161,75 +182,89 @@ function JobScoutSetup({ workspace, scanSummary, busy, onBusy, onScanSummary, on
   const sourceUrls = parseMultivalueText(drafts.source_urls);
 
   return (
-    <div className="setup-grid">
-      <section className="panel setup-card">
-        <p className="eyebrow">1 · Career evidence</p>
-        <h3>Load a resume</h3>
-        <p className="muted">PDF, DOCX, Markdown, and text are imported into local durable storage. Model analysis is optional; keyword discovery also has a deterministic fallback.</p>
+    <div className="setup-compact">
+      <div className="setup-toolbar" aria-label="Job Scout setup">
+        <button type="button" className="setup-pill" title="Resume and career evidence" onClick={() => setActiveDialog("resume")}>
+          <FileText aria-hidden="true" /><span><strong>Resume</strong><small>{workspace.configuration.resume_file_name ?? "Not loaded"}</small></span>
+        </button>
+        <button type="button" className="setup-pill" title="Search intent and sources" onClick={() => setActiveDialog("search")}>
+          <Settings2 aria-hidden="true" /><span><strong>Search</strong><small>{configuration.target_titles.length} titles · {configuration.locations.length} locations</small></span>
+        </button>
+        <button type="button" className="setup-pill" title="Relevant search terms" onClick={() => setActiveDialog("keywords")}>
+          <Tags aria-hidden="true" /><span><strong>Terms</strong><small>{workspace.keywords.keywords.length} selected</small></span>
+        </button>
+        <button type="button" className="setup-pill setup-pill-primary" title="Scan public job sources" onClick={() => setActiveDialog("scan")}>
+          <ScanSearch aria-hidden="true" /><span><strong>Scan</strong><small>{workspace.sources.length} sources</small></span>
+        </button>
+      </div>
+
+      <SetupDialog open={activeDialog === "resume"} title="Resume" icon={<FileText />} onClose={() => setActiveDialog(null)}>
+        <p className="muted">PDF, DOCX, Markdown, and text are imported into local durable storage.</p>
+        <p className="setup-current"><strong>Current</strong><span>{workspace.configuration.resume_file_name ?? "No resume loaded"}</span></p>
         <label htmlFor="resume-file-name">Resume file</label>
         <div className="file-picker">
           <input id="resume-file-name" readOnly value={selectedResume?.name ?? ""} placeholder="No file selected" />
-          <button type="button" className="file-picker-button" aria-label="Browse for a resume file" title="Browse for a resume file" disabled={busy} onClick={() => fileInputRef.current?.click()}>
-            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 6.75A1.75 1.75 0 0 1 4.75 5h4.19c.46 0 .9.18 1.23.51l1.32 1.32c.14.14.33.22.53.22h7.23A1.75 1.75 0 0 1 21 8.8v8.45A1.75 1.75 0 0 1 19.25 19H4.75A1.75 1.75 0 0 1 3 17.25V6.75Zm1.5.05v10.45c0 .14.11.25.25.25h14.5c.14 0 .25-.11.25-.25V8.8a.25.25 0 0 0-.25-.25h-7.23c-.6 0-1.17-.24-1.59-.66L9.1 6.56a.25.25 0 0 0-.17-.06H4.75a.25.25 0 0 0-.25.25v.05Z" /></svg>
-          </button>
+          <button type="button" className="icon-button" aria-label="Browse for a resume file" title="Browse for a resume file" disabled={busy} onClick={() => fileInputRef.current?.click()}><FolderOpen aria-hidden="true" /></button>
           <input ref={fileInputRef} className="visually-hidden" type="file" accept=".pdf,.docx,.md,.markdown,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,text/plain" onChange={(event) => chooseResume(event.target.files?.[0] ?? null)} />
         </div>
-        <button type="button" className="primary" disabled={busy || !selectedResume} onClick={() => void perform(uploadResume)}>Load resume</button>
-        <p className="setup-result">Current: {workspace.configuration.resume_file_name ?? "No resume loaded"}</p>
-      </section>
+        <div className="dialog-actions"><button type="button" onClick={() => setActiveDialog(null)}>Cancel</button><button type="button" className="primary" disabled={busy || !selectedResume} onClick={() => void perform(uploadResume).then((saved) => saved && setActiveDialog(null))}>Load resume</button></div>
+      </SetupDialog>
 
-      <section className="panel setup-card">
-        <p className="eyebrow">2 · Search intent</p>
-        <h3>Basic configuration</h3>
-        <label>Target titles<textarea value={drafts.target_titles} onChange={(event) => updateDraft("target_titles", event.target.value)} placeholder={"Director of Product\nPrincipal Product Manager"} /><small>One title per line.</small></label>
-        <label>Locations<textarea value={drafts.locations} onChange={(event) => updateDraft("locations", event.target.value)} placeholder={"Remote\nRaleigh, NC"} /><small>One location per line; commas remain part of the location.</small></label>
+      <SetupDialog open={activeDialog === "search"} title="Search setup" icon={<ListFilter />} size="wide" onClose={() => setActiveDialog(null)}>
+        <div className="dialog-grid">
+          <div>
+            <label>Target titles<textarea value={drafts.target_titles} onChange={(event) => updateDraft("target_titles", event.target.value)} placeholder={"Director of Product\nPrincipal Product Manager"} /><small>One title per line.</small></label>
+            <SuggestionList icon={<Plus />} label="Suggested from resume" values={workspace.suggestions.target_titles} onAdd={(value) => addSuggestion("target_titles", value)} />
+          </div>
+          <div>
+            <label>Locations<textarea value={drafts.locations} onChange={(event) => updateDraft("locations", event.target.value)} placeholder={"Remote\nRaleigh, NC"} /><small>One location per line; commas remain part of the location.</small></label>
+            <SuggestionList icon={<MapPin />} label="Suggested from resume" values={workspace.suggestions.locations} onAdd={(value) => addSuggestion("locations", value)} />
+          </div>
+        </div>
         <label>Work arrangement<select value={configuration.remote_preference} onChange={(event) => setConfiguration({ ...configuration, remote_preference: event.target.value as JobScoutConfiguration["remote_preference"] })}><option value="any">Any</option><option value="remote">Remote</option><option value="hybrid">Hybrid</option><option value="on_site">On site</option></select></label>
-        <label>Public career or ATS URLs<textarea value={drafts.source_urls} onChange={(event) => updateDraft("source_urls", event.target.value)} placeholder={"https://boards.greenhouse.io/company\nhttps://jobs.lever.co/company"} /><small>One URL per line.</small></label>
-        <label className="checkbox"><input type="checkbox" checked={configuration.broad_search_enabled} onChange={(event) => setConfiguration({ ...configuration, broad_search_enabled: event.target.checked })} />Use public browser search to discover additional direct sources</label>
-        <details><summary>Source policy and timing</summary><label>Allowed domains<textarea value={drafts.allowed_domains} onChange={(event) => updateDraft("allowed_domains", event.target.value)} placeholder="Leave empty to allow any public source" /><small>One domain per line.</small></label><label>Disallowed domains<textarea value={drafts.disallowed_domains} onChange={(event) => updateDraft("disallowed_domains", event.target.value)} /><small>One domain per line.</small></label><label>Scheduled rescan interval, minutes<input type="number" min={5} max={10080} value={configuration.scan_interval_minutes} onChange={(event) => setConfiguration({ ...configuration, scan_interval_minutes: Number(event.target.value) })} /></label></details>
-        <button type="button" className="primary" disabled={busy} onClick={() => {
-          const next = materializeConfiguration();
-          setConfiguration(next);
-          void perform(() => saveJobScoutConfiguration(next));
-        }}>Save configuration</button>
-      </section>
+        <label>Direct career or ATS URLs<textarea value={drafts.source_urls} onChange={(event) => updateDraft("source_urls", event.target.value)} placeholder={"https://boards.greenhouse.io/company\nhttps://jobs.lever.co/company"} /><small>Known employer pages, one URL per line.</small></label>
+        <label>Public job boards<textarea value={drafts.public_job_boards} onChange={(event) => updateDraft("public_job_boards", event.target.value)} /><small>Prepopulated board domains scope public browser discovery.</small></label>
+        <label className="checkbox"><input type="checkbox" checked={configuration.broad_search_enabled} onChange={(event) => setConfiguration({ ...configuration, broad_search_enabled: event.target.checked })} />Use unauthenticated public browser discovery</label>
+        <details><summary>Source policy and timing</summary><label>Allowed domains<textarea value={drafts.allowed_domains} onChange={(event) => updateDraft("allowed_domains", event.target.value)} placeholder="Leave empty to allow any public source" /></label><label>Disallowed domains<textarea value={drafts.disallowed_domains} onChange={(event) => updateDraft("disallowed_domains", event.target.value)} /></label><label>Scheduled rescan interval, minutes<input type="number" min={5} max={10080} value={configuration.scan_interval_minutes} onChange={(event) => setConfiguration({ ...configuration, scan_interval_minutes: Number(event.target.value) })} /></label></details>
+        <div className="dialog-actions"><button type="button" onClick={() => setActiveDialog(null)}>Cancel</button><button type="button" className="primary" disabled={busy} onClick={() => { const next = materializeConfiguration(); setConfiguration(next); void perform(() => saveJobScoutConfiguration(next)).then((saved) => saved && setActiveDialog(null)); }}>Save</button></div>
+      </SetupDialog>
 
-      <section className="panel setup-card">
-        <p className="eyebrow">3 · Keywords</p>
-        <h3>Relevant terms</h3>
+      <SetupDialog open={activeDialog === "keywords"} title="Relevant terms" icon={<Tags />} size="wide" onClose={() => setActiveDialog(null)}>
         <div className="keyword-cloud">{workspace.keywords.keywords.length ? workspace.keywords.keywords.map((keyword) => <span key={keyword}>{keyword}</span>) : <p className="muted">Load a resume or add target titles to discover terms.</p>}</div>
         <label>Manual additions<textarea value={drafts.manual_keywords} onChange={(event) => updateDraft("manual_keywords", event.target.value)} /><small>One meaningful term or phrase per line.</small></label>
-        <button type="button" disabled={busy} onClick={() => {
-          const next = materializeConfiguration();
-          setConfiguration(next);
-          void perform(async () => {
-            await saveJobScoutConfiguration(next);
-            return discoverJobScoutKeywords();
-          });
-        }}>Rediscover keywords</button>
         {workspace.keywords.search_queries.length ? <details><summary>Search queries</summary><ul>{workspace.keywords.search_queries.map((query) => <li key={query}>{query}</li>)}</ul></details> : null}
-      </section>
+        <div className="dialog-actions"><button type="button" onClick={() => setActiveDialog(null)}>Close</button><button type="button" className="primary" disabled={busy} onClick={() => { const next = materializeConfiguration(); setConfiguration(next); void perform(async () => { await saveJobScoutConfiguration(next); return discoverJobScoutKeywords(); }); }}>Rediscover</button></div>
+      </SetupDialog>
 
-      <section className="panel setup-card scan-card">
-        <p className="eyebrow">4 · Scan</p>
-        <h3>Run the basic scanner</h3>
-        <p className="muted">Scans configured Greenhouse, Lever, and structured career pages now. Public browser discovery is used only when enabled.</p>
-        <button type="button" className="primary" disabled={busy || (sourceUrls.length === 0 && workspace.sources.length === 0 && !configuration.broad_search_enabled)} onClick={() => {
-          const next = materializeConfiguration();
-          setConfiguration(next);
-          onBusy(true); onScanSummary(null);
-          void saveJobScoutConfiguration(next)
-            .then(() => scanJobScout(next.broad_search_enabled))
-            .then(onScanSummary)
-            .then(onRefresh)
-            .catch((reason: unknown) => onError(messageOf(reason)))
-            .finally(() => onBusy(false));
-        }}>{busy ? "Working…" : "Scan now"}</button>
+      <SetupDialog open={activeDialog === "scan"} title="Scan public sources" icon={<ScanSearch />} onClose={() => setActiveDialog(null)}>
+        <p className="muted">Scans configured direct sources. When public discovery is enabled, it also searches the configured public boards and registers supported result pages.</p>
         {scanSummary ? <div className="scan-summary"><strong>{scanSummary.openings_found} openings found</strong><span>{scanSummary.sources_scanned} sources scanned</span><span>{scanSummary.sources_registered} sources added</span>{scanSummary.warnings.map((warning) => <small key={warning}>{warning}</small>)}</div> : null}
-        {workspace.sources.length ? <ul className="source-list">{workspace.sources.map((source) => <li key={source.id}><span>{source.name}</span><small>{titleCase(source.kind)} · {titleCase(source.health)}</small></li>)}</ul> : null}
-      </section>
+        {workspace.sources.length ? <ul className="source-list">{workspace.sources.map((source) => <li key={source.id}><span>{source.name}</span><small>{titleCase(source.kind)} · {titleCase(source.health)}</small></li>)}</ul> : <p className="muted">No registered sources yet.</p>}
+        <div className="dialog-actions"><button type="button" onClick={() => setActiveDialog(null)}>Close</button><button type="button" className="primary" disabled={busy || (sourceUrls.length === 0 && workspace.sources.length === 0 && !configuration.broad_search_enabled)} onClick={() => { const next = materializeConfiguration(); setConfiguration(next); onBusy(true); onScanSummary(null); void saveJobScoutConfiguration(next).then(() => scanJobScout(next.broad_search_enabled)).then(onScanSummary).then(onRefresh).catch((reason: unknown) => onError(messageOf(reason))).finally(() => onBusy(false)); }}>{busy ? "Working…" : "Scan now"}</button></div>
+      </SetupDialog>
     </div>
   );
+}
+
+function SetupDialog({ open, title, icon, size, onClose, children }: { open: boolean; title: string; icon: ReactNode; size?: "wide"; onClose: () => void; children: ReactNode }) {
+  const ref = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = ref.current;
+    if (!dialog) return;
+    if (open && !dialog.open) dialog.showModal();
+    if (!open && dialog.open) dialog.close();
+  }, [open]);
+  return <dialog ref={ref} className={`setup-dialog${size === "wide" ? " setup-dialog-wide" : ""}`} onCancel={(event) => { event.preventDefault(); onClose(); }} onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+    <div className="dialog-surface">
+      <header><span className="dialog-title-icon">{icon}</span><h3>{title}</h3><button type="button" className="icon-button" aria-label={`Close ${title}`} title={`Close ${title}`} onClick={onClose}><X aria-hidden="true" /></button></header>
+      <div className="dialog-body">{children}</div>
+    </div>
+  </dialog>;
+}
+
+function SuggestionList({ icon, label, values, onAdd }: { icon: ReactNode; label: string; values: string[]; onAdd: (value: string) => void }) {
+  if (!values.length) return null;
+  return <div className="suggestion-list"><small>{label}</small><div>{values.map((value) => <button type="button" key={value} title={`Add ${value}`} onClick={() => onAdd(value)}>{icon}<span>{value}</span></button>)}</div></div>;
 }
 
 function ReviewPanel({ items, sort, includeDismissed, busy, onBusy, onSort, onIncludeDismissed, onRefresh, onError }: {

@@ -136,6 +136,12 @@ def test_google_result_normalization_rejects_internal_links() -> None:
     assert classify_discovered_url("https://www.linkedin.com/jobs/view/1") is (
         UrlClassification.LINKEDIN
     )
+    assert classify_discovered_url("https://builtin.com/job/product-manager") is (
+        UrlClassification.MAJOR_JOB_BOARD
+    )
+    assert classify_discovered_url("https://wellfound.com/jobs/123") is (
+        UrlClassification.MAJOR_JOB_BOARD
+    )
 
 
 def test_cached_browser_challenge_prevents_repeated_headless_attempts(

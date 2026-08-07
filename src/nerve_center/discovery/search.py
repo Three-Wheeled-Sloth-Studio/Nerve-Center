@@ -191,6 +191,8 @@ def classify_discovered_url(value: str) -> UrlClassification:
             "ziprecruiter.com",
             "monster.com",
             "careerbuilder.com",
+            "builtin.com",
+            "wellfound.com",
         )
     ):
         return UrlClassification.MAJOR_JOB_BOARD

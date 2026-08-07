@@ -28,7 +28,7 @@ def job_scout_manifest() -> ModuleManifest:
             module_api_version=MODULE_API_VERSION,
             minimum_core_version=__version__,
             maximum_tested_core_version=__version__,
-            data_schema_version=3,
+            data_schema_version=4,
         ),
         launch=ModuleLaunchDefinition(
             runtime="managed_python",
@@ -87,6 +87,11 @@ def job_scout_manifest() -> ModuleManifest:
                 "source_urls": {
                     "type": "array",
                     "items": {"type": "string", "format": "uri"},
+                    "uniqueItems": True,
+                },
+                "public_job_boards": {
+                    "type": "array",
+                    "items": {"type": "string"},
                     "uniqueItems": True,
                 },
                 "source_ids": {

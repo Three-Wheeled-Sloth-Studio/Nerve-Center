@@ -30,8 +30,10 @@ def test_job_scout_workspace_uploads_resume_preserves_values_and_filters_keyword
 ) -> None:
     application = _application(tmp_path)
     resume = (
+        b"Senior Product Manager | Durham, NC\r\n"
         b"Paragraph across product analytics and product strategy.\r\n"
-        b"Led product platform delivery and product roadmap planning.\r\n"
+        b"Led product analytics and product strategy for data analytics delivery.\r\n"
+        b"Built product platform delivery and product roadmap planning.\r\n"
     )
     configuration = JobScoutConfiguration(
         target_titles=["Principal Product Manager"],
@@ -66,10 +68,25 @@ def test_job_scout_workspace_uploads_resume_preserves_values_and_filters_keyword
         assert "product operations" in workspace["keywords"]["keywords"]
         assert "product analytics" in workspace["keywords"]["keywords"]
         assert "product strategy" in workspace["keywords"]["keywords"]
-        assert "product" in workspace["keywords"]["keywords"]
+        assert "product" not in workspace["keywords"]["keywords"]
+        assert "data" not in workspace["keywords"]["keywords"]
+        assert "analytics" not in workspace["keywords"]["keywords"]
+        assert "for" not in workspace["keywords"]["keywords"]
         assert "paragraph" not in workspace["keywords"]["keywords"]
         assert "across" not in workspace["keywords"]["keywords"]
         assert workspace["keywords"]["search_queries"]
+        assert workspace["suggestions"]["target_titles"] == ["Senior Product Manager"]
+        assert workspace["suggestions"]["locations"] == ["Durham, NC"]
+        assert workspace["configuration"]["public_job_boards"] == [
+            "indeed.com",
+            "builtin.com",
+            "wellfound.com",
+            "ziprecruiter.com",
+        ]
+        assert any(
+            query.startswith("site:indeed.com")
+            for query in workspace["keywords"]["search_queries"]
+        )
 
         stored_path = Path(workspace["documents"][0]["source_path"])
         assert stored_path.name == "Joe Wheeler Resume.txt"
@@ -103,6 +120,7 @@ def test_legacy_generated_keywords_are_not_migrated_as_manual_input(tmp_path: Pa
                 "locations": [],
                 "remote_preference": "any",
                 "source_urls": [],
+                "public_job_boards": [],
                 "source_ids": [],
                 "allowed_domains": [],
                 "disallowed_domains": [],

@@ -12,6 +12,10 @@ Issue #14 covers the first interactive QA pass on the Job Scout setup workspace.
 - Multi-value fields did not consistently define Windows CRLF behavior.
 - Relevant Terms promoted generic resume prose and document locator words instead of meaningful search concepts.
 - Generated keywords were persisted in the same field as manual additions, destroying provenance and carrying noise forward.
+- A second real-resume QA pass still emitted broad standalone words, all-caps section headings, contact fragments, and weak action phrases.
+- Titles and locations found in the resume were not offered as setup suggestions.
+- Public board discovery started empty and direct-source configuration did not distinguish employer feeds from broad board search.
+- Four persistent setup cards displaced the opportunity workspace even after one-time setup was complete.
 
 ## Implemented behavior
 
@@ -24,17 +28,23 @@ Issue #14 covers the first interactive QA pass on the Job Scout setup workspace.
 - Manual keyword additions now use `manual_keywords`; the legacy mixed-provenance `keywords` field is accepted only for migration and is discarded on the next configuration write.
 - Deterministic keyword discovery prioritizes configured titles, profile labels/headlines, manual phrases, repeated evidence terms, technical identifiers, and meaningful two- or three-word phrases.
 - Generic terms such as `paragraph` and `across` are filtered, and raw segment locators are no longer analyzed as resume content.
+- Standalone deterministic terms are now limited to technical identifiers. Generic concepts remain eligible inside repeated meaningful phrases but are not emitted alone.
+- Phrase ranking rejects weak action-fragment leads, low-signal product/capability combinations, contact tokens, and case-insensitive duplicates.
+- Resume and accepted-profile evidence produce non-destructive target-title and location suggestions. Users explicitly add and save suggestions; inferred intent is never silently committed.
+- Public board domains default to Indeed, Built In, Wellfound, and ZipRecruiter. They scope unauthenticated broad-search queries separately from configured employer/ATS URLs, and supported public result pages can be registered for structured scanning.
+- Resume, search setup, terms, and scanning now appear as a compact icon-first action row. Each action opens a focused native modal with Escape, backdrop, and explicit close behavior; Opportunities remains the primary workspace.
 
 ## Versioning
 
-- Application version: `0.12.1`
-- Job Scout module data schema: `3`
+- Application version: `0.12.2`
+- Job Scout module data schema: `4`
 - Core SQLite schema: unchanged
 
 ## Regression coverage
 
 - Desktop build executes `desktop/scripts/test-multivalue.mjs` against the actual TypeScript parser and verifies CRLF, LF, lone CR, spaces, commas, trimming, and deduplication.
 - Python integration tests exercise the browser-upload endpoint, durable storage, original file-name retention, configuration round-tripping, meaningful keyword extraction, generic-term rejection, and legacy keyword cleanup.
+- The exact locally loaded resume was evaluated without copying its contents into the repository. The revised list retained title intent, repeated domain phrases, and technical identifiers while removing the reported broad standalone words and malformed contact-derived terms.
 
 ## Manual QA path
 
@@ -46,3 +56,7 @@ Issue #14 covers the first interactive QA pass on the Job Scout setup workspace.
 6. Paste the same values using Windows CRLF line endings and repeat the save.
 7. Rediscover terms and confirm generic document words such as `paragraph` and `across` are absent.
 8. Add a manual phrase, rediscover, and confirm it remains present without generated terms appearing in Manual additions.
+9. Confirm the persistent setup area is a single compact four-action row and Opportunities remains visible without scrolling past configuration cards.
+10. Open each setup action, then verify backdrop click, Escape, and the close icon dismiss it predictably.
+11. Open Search, add any useful suggested title/location chips, save, and confirm they round-trip as explicit configuration.
+12. Confirm Public job boards is prepopulated independently from Direct career or ATS URLs.

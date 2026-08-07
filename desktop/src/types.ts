@@ -240,6 +240,7 @@ export interface JobScoutConfiguration {
   locations: string[];
   remote_preference: "any" | "remote" | "hybrid" | "on_site";
   source_urls: string[];
+  public_job_boards: string[];
   source_ids: string[];
   allowed_domains: string[];
   disallowed_domains: string[];
@@ -254,11 +255,17 @@ export interface JobScoutKeywordSummary {
   evidence_terms: number;
 }
 
+export interface JobScoutSuggestionSummary {
+  target_titles: string[];
+  locations: string[];
+}
+
 export interface JobScoutWorkspace {
   configuration: JobScoutConfiguration;
   documents: SourceDocument[];
   profile: CareerProfile;
   keywords: JobScoutKeywordSummary;
+  suggestions: JobScoutSuggestionSummary;
   sources: DiscoverySource[];
   opening_count: number;
 }
