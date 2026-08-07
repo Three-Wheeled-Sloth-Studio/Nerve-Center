@@ -142,12 +142,14 @@ function JobScoutSetup({ workspace, scanSummary, busy, onBusy, onScanSummary, on
     setDrafts((current) => ({ ...current, [field]: value }));
   }
   function materializeConfiguration(): JobScoutConfiguration {
+    const publicJobBoards = parseMultivalueText(drafts.public_job_boards);
     return {
       ...configuration,
       target_titles: parseMultivalueText(drafts.target_titles),
       locations: parseMultivalueText(drafts.locations),
       source_urls: parseMultivalueText(drafts.source_urls),
-      public_job_boards: parseMultivalueText(drafts.public_job_boards),
+      public_job_boards: publicJobBoards,
+      broad_search_enabled: publicJobBoards.length > 0,
       allowed_domains: parseMultivalueText(drafts.allowed_domains),
       disallowed_domains: parseMultivalueText(drafts.disallowed_domains),
       manual_keywords: parseMultivalueText(drafts.manual_keywords),
@@ -223,8 +225,7 @@ function JobScoutSetup({ workspace, scanSummary, busy, onBusy, onScanSummary, on
         </div>
         <label>Work arrangement<select value={configuration.remote_preference} onChange={(event) => setConfiguration({ ...configuration, remote_preference: event.target.value as JobScoutConfiguration["remote_preference"] })}><option value="any">Any</option><option value="remote">Remote</option><option value="hybrid">Hybrid</option><option value="on_site">On site</option></select></label>
         <label>Direct career or ATS URLs<textarea value={drafts.source_urls} onChange={(event) => updateDraft("source_urls", event.target.value)} placeholder={"https://boards.greenhouse.io/company\nhttps://jobs.lever.co/company"} /><small>Known employer pages, one URL per line.</small></label>
-        <label>Public job boards<textarea value={drafts.public_job_boards} onChange={(event) => updateDraft("public_job_boards", event.target.value)} /><small>Prepopulated board domains scope public browser discovery.</small></label>
-        <label className="checkbox"><input type="checkbox" checked={configuration.broad_search_enabled} onChange={(event) => setConfiguration({ ...configuration, broad_search_enabled: event.target.checked })} />Use unauthenticated public browser discovery</label>
+        <label>Public job boards<textarea value={drafts.public_job_boards} onChange={(event) => updateDraft("public_job_boards", event.target.value)} /><small>These domains are searched through an unauthenticated public provider. Remove all entries to disable public discovery.</small></label>
         <details><summary>Source policy and timing</summary><label>Allowed domains<textarea value={drafts.allowed_domains} onChange={(event) => updateDraft("allowed_domains", event.target.value)} placeholder="Leave empty to allow any public source" /></label><label>Disallowed domains<textarea value={drafts.disallowed_domains} onChange={(event) => updateDraft("disallowed_domains", event.target.value)} /></label><label>Scheduled rescan interval, minutes<input type="number" min={5} max={10080} value={configuration.scan_interval_minutes} onChange={(event) => setConfiguration({ ...configuration, scan_interval_minutes: Number(event.target.value) })} /></label></details>
         <div className="dialog-actions"><button type="button" onClick={() => setActiveDialog(null)}>Cancel</button><button type="button" className="primary" disabled={busy} onClick={() => { const next = materializeConfiguration(); setConfiguration(next); void perform(() => saveJobScoutConfiguration(next)).then((saved) => saved && setActiveDialog(null)); }}>Save</button></div>
       </SetupDialog>
@@ -238,9 +239,9 @@ function JobScoutSetup({ workspace, scanSummary, busy, onBusy, onScanSummary, on
 
       <SetupDialog open={activeDialog === "scan"} title="Scan public sources" icon={<ScanSearch />} onClose={() => setActiveDialog(null)}>
         <p className="muted">Scans configured direct sources. When public discovery is enabled, it also searches the configured public boards and registers supported result pages.</p>
-        {scanSummary ? <div className="scan-summary"><strong>{scanSummary.openings_found} openings found</strong><span>{scanSummary.sources_scanned} sources scanned</span><span>{scanSummary.sources_registered} sources added</span>{scanSummary.warnings.map((warning) => <small key={warning}>{warning}</small>)}</div> : null}
+        {scanSummary ? <div className="scan-summary"><strong>{scanSummary.openings_found} openings found</strong><span>{scanSummary.queries_run.length} public searches run</span><span>{scanSummary.search_results_seen} results reviewed</span><span>{scanSummary.sources_scanned} sources scanned</span><span>{scanSummary.sources_registered} sources added</span>{scanSummary.warnings.map((warning) => <small key={warning}>{warning}</small>)}</div> : null}
         {workspace.sources.length ? <ul className="source-list">{workspace.sources.map((source) => <li key={source.id}><span>{source.name}</span><small>{titleCase(source.kind)} · {titleCase(source.health)}</small></li>)}</ul> : <p className="muted">No registered sources yet.</p>}
-        <div className="dialog-actions"><button type="button" onClick={() => setActiveDialog(null)}>Close</button><button type="button" className="primary" disabled={busy || (sourceUrls.length === 0 && workspace.sources.length === 0 && !configuration.broad_search_enabled)} onClick={() => { const next = materializeConfiguration(); setConfiguration(next); onBusy(true); onScanSummary(null); void saveJobScoutConfiguration(next).then(() => scanJobScout(next.broad_search_enabled)).then(onScanSummary).then(onRefresh).catch((reason: unknown) => onError(messageOf(reason))).finally(() => onBusy(false)); }}>{busy ? "Working…" : "Scan now"}</button></div>
+        <div className="dialog-actions"><button type="button" onClick={() => setActiveDialog(null)}>Close</button><button type="button" className="primary" disabled={busy || (sourceUrls.length === 0 && workspace.sources.length === 0 && parseMultivalueText(drafts.public_job_boards).length === 0)} onClick={() => { const next = materializeConfiguration(); setConfiguration(next); onBusy(true); onScanSummary(null); void saveJobScoutConfiguration(next).then(() => scanJobScout(next.public_job_boards.length > 0)).then(onScanSummary).then(onRefresh).catch((reason: unknown) => onError(messageOf(reason))).finally(() => onBusy(false)); }}>{busy ? "Working…" : "Scan now"}</button></div>
       </SetupDialog>
     </div>
   );

@@ -83,10 +83,15 @@ def test_job_scout_workspace_uploads_resume_preserves_values_and_filters_keyword
             "wellfound.com",
             "ziprecruiter.com",
         ]
-        assert any(
-            query.startswith("site:indeed.com")
-            for query in workspace["keywords"]["search_queries"]
-        )
+        assert workspace["configuration"]["broad_search_enabled"] is True
+        first_scan_queries = workspace["keywords"]["search_queries"][:5]
+        assert [query.split()[0] for query in first_scan_queries[:4]] == [
+            "site:indeed.com",
+            "site:builtin.com",
+            "site:wellfound.com",
+            "site:ziprecruiter.com",
+        ]
+        assert first_scan_queries[4].startswith('"Principal Product Manager"')
 
         stored_path = Path(workspace["documents"][0]["source_path"])
         assert stored_path.name == "Joe Wheeler Resume.txt"

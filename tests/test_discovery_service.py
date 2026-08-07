@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 from nerve_center.config import Settings
-from nerve_center.discovery.fetching import HttpFetcher
+from nerve_center.discovery.fetching import FetchResponse, HttpFetcher
 from nerve_center.discovery.models import (
     AcquisitionClass,
     Company,
@@ -16,10 +16,12 @@ from nerve_center.discovery.models import (
 from nerve_center.discovery.plugin import JobDiscoveryTaskPlugin
 from nerve_center.discovery.search import (
     PlaywrightSearchAdapter,
+    PublicWebSearchAdapter,
     SearchChallengeError,
     UrlClassification,
     classify_discovered_url,
     normalize_google_result_url,
+    normalize_public_search_result_url,
 )
 from nerve_center.discovery.service import DiscoveryService
 from nerve_center.domain.budget import ResourceBudget, ResourceBudgetTracker
@@ -141,6 +143,44 @@ def test_google_result_normalization_rejects_internal_links() -> None:
     )
     assert classify_discovered_url("https://wellfound.com/jobs/123") is (
         UrlClassification.MAJOR_JOB_BOARD
+    )
+
+
+def test_public_search_discovers_supported_result_pages(tmp_path: Path) -> None:
+    database = Database(Settings(data_dir=tmp_path / "runtime"))
+    database.initialize()
+    cache = SearchCacheRepository(database)
+
+    class FakeFetcher:
+        async def get(self, url: str, **kwargs: object) -> FetchResponse:
+            assert url == "https://builtin.com/jobs"
+            assert kwargs["params"] == {"search": "product director"}
+            return FetchResponse(
+                url=url,
+                status_code=200,
+                text="""
+                    <a href="/job/director-product/8120141">
+                      <div>Director of Product</div>
+                    </a>
+                    <a href="https://builtin.com/jobs/categories/product">Product jobs</a>
+                    <a href="https://acme.example/careers/product-director">Acme role</a>
+                """,
+                headers={},
+                challenged=False,
+                throttled=False,
+            )
+
+    adapter = PublicWebSearchAdapter(cache, fetcher=FakeFetcher(), max_results=10)  # type: ignore[arg-type]
+    results = asyncio.run(adapter.search("site:builtin.com product director"))
+
+    assert [item.url for item in results] == ["https://builtin.com/job/director-product/8120141"]
+    assert results[0].classification is UrlClassification.MAJOR_JOB_BOARD
+    assert normalize_public_search_result_url("https://search.brave.com/help") is None
+    assert (
+        normalize_public_search_result_url(
+            "//duckduckgo.com/l/?uddg=https%3A%2F%2Fbuiltin.com%2Fjob%2F123"
+        )
+        == "https://builtin.com/job/123"
     )
 
 

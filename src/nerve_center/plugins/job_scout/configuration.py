@@ -27,7 +27,7 @@ from nerve_center.discovery.normalization import (
     stable_source_id,
 )
 from nerve_center.discovery.search import (
-    PlaywrightSearchAdapter,
+    PublicWebSearchAdapter,
     SearchChallengeError,
     UrlClassification,
 )
@@ -184,7 +184,7 @@ class JobScoutCoordinator:
         configuration = self.save_configuration(self.store.load())
         keyword_summary = self._discover_keywords(configuration)
         discover_sources = (
-            configuration.broad_search_enabled
+            bool(configuration.public_job_boards)
             if request.discover_sources is None
             else request.discover_sources
         )
@@ -195,10 +195,8 @@ class JobScoutCoordinator:
         registered_ids = list(configuration.source_ids)
 
         if queries:
-            adapter = PlaywrightSearchAdapter(
+            adapter = PublicWebSearchAdapter(
                 self.search_cache,
-                Path(self.settings.data_dir) / "browser-profiles" / "job-scout",
-                headless=request.headless,
                 max_results=request.max_results_per_query,
             )
             for query in queries:
@@ -206,10 +204,10 @@ class JobScoutCoordinator:
                     results = await adapter.search(query)
                 except SearchChallengeError as error:
                     warnings.append(str(error))
-                    break
+                    continue
                 except RuntimeError as error:
                     warnings.append(str(error))
-                    break
+                    continue
                 results_seen += len(results)
                 for result in results:
                     if result.classification not in {

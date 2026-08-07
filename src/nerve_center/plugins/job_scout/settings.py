@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from collections import Counter
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from nerve_center.config import Settings
 from nerve_center.profile.models import CanonicalCareerProfile, ClaimDecision, SourceDocument
@@ -183,7 +183,7 @@ class JobScoutConfiguration(BaseModel):
     # versions mixed generated terms into this field, so it is intentionally
     # ignored and omitted when the configuration is written again.
     keywords: list[str] = Field(default_factory=list, max_length=100, exclude=True)
-    broad_search_enabled: bool = False
+    broad_search_enabled: bool = True
     scan_interval_minutes: int = Field(default=1440, ge=5, le=10080)
 
     @field_validator(
@@ -201,6 +201,11 @@ class JobScoutConfiguration(BaseModel):
     @classmethod
     def normalize_lists(cls, values: list[str]) -> list[str]:
         return clean_list(values)
+
+    @model_validator(mode="after")
+    def align_public_discovery_state(self) -> JobScoutConfiguration:
+        self.broad_search_enabled = bool(self.public_job_boards)
+        return self
 
 
 class ResumeLoadRequest(BaseModel):
@@ -453,12 +458,14 @@ def build_search_queries(
         for location in locations[:3]:
             location_part = f" {location}" if location else ""
             base_queries.append(f'"{anchor}"{location_part}{remote} jobs careers'.strip())
-    queries = base_queries[:8]
+    domains: list[str] = []
     for board in configuration.public_job_boards:
         domain = board.casefold().removeprefix("https://").removeprefix("http://")
         domain = domain.split("/", 1)[0].removeprefix("www.")
-        if not domain:
-            continue
-        for query in base_queries[:3]:
-            queries.append(f"site:{domain} {query}")
+        if domain:
+            domains.append(domain)
+    queries: list[str] = []
+    for query in base_queries[:8]:
+        queries.extend(f"site:{domain} {query}" for domain in domains)
+        queries.append(query)
     return clean_list(queries)[:20]

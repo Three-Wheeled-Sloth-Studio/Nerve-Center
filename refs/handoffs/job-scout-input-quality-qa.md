@@ -32,12 +32,13 @@ Issue #14 covers the first interactive QA pass on the Job Scout setup workspace.
 - Phrase ranking rejects weak action-fragment leads, low-signal product/capability combinations, contact tokens, and case-insensitive duplicates.
 - Resume and accepted-profile evidence produce non-destructive target-title and location suggestions. Users explicitly add and save suggestions; inferred intent is never silently committed.
 - Public board domains default to Indeed, Built In, Wellfound, and ZipRecruiter. They scope unauthenticated broad-search queries separately from configured employer/ATS URLs, and supported public result pages can be registered for structured scanning.
+- A nonempty Public job boards list now enables discovery directly; there is no second hidden opt-in. The first bounded scan batch interleaves general and board-scoped searches, uses cached public HTML search without optional browser automation, and reports searches, results, registered sources, source scans, and warnings separately.
 - Resume, search setup, terms, and scanning now appear as a compact icon-first action row. Each action opens a focused native modal with Escape, backdrop, and explicit close behavior; Opportunities remains the primary workspace.
 
 ## Versioning
 
-- Application version: `0.12.2`
-- Job Scout module data schema: `4`
+- Application version: `0.12.3`
+- Job Scout module data schema: `5`
 - Core SQLite schema: unchanged
 
 ## Regression coverage
@@ -45,6 +46,7 @@ Issue #14 covers the first interactive QA pass on the Job Scout setup workspace.
 - Desktop build executes `desktop/scripts/test-multivalue.mjs` against the actual TypeScript parser and verifies CRLF, LF, lone CR, spaces, commas, trimming, and deduplication.
 - Python integration tests exercise the browser-upload endpoint, durable storage, original file-name retention, configuration round-tripping, meaningful keyword extraction, generic-term rejection, and legacy keyword cleanup.
 - The exact locally loaded resume was evaluated without copying its contents into the repository. The revised list retained title intent, repeated domain phrases, and technical identifiers while removing the reported broad standalone words and malformed contact-derived terms.
+- A live bounded `0.12.3` scan ran two searches against the saved local configuration. A challenged provider was isolated to a warning while Built In native discovery returned five result pages; all five JSON-LD source scans succeeded and persisted five openings.
 
 ## Manual QA path
 

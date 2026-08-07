@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, status
@@ -26,7 +25,7 @@ from nerve_center.discovery.normalization import (
     stable_source_id,
 )
 from nerve_center.discovery.search import (
-    PlaywrightSearchAdapter,
+    PublicWebSearchAdapter,
     SearchChallengeError,
     SearchResult,
     UrlClassification,
@@ -159,10 +158,8 @@ def register_discovery_routes(
 
     @application.post("/api/v1/discovery/search")
     async def browser_search(request: BrowserSearchRequest) -> list[SearchResult]:
-        adapter = PlaywrightSearchAdapter(
+        adapter = PublicWebSearchAdapter(
             search_cache,
-            Path(settings.data_dir) / "browser-profiles" / "search",
-            headless=request.headless,
             max_results=request.max_results,
         )
         try:
