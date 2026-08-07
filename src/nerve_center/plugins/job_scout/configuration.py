@@ -71,6 +71,7 @@ class JobScoutScanRequest(BaseModel):
     headless: bool = True
     max_queries: int = Field(default=5, ge=0, le=20)
     max_results_per_query: int = Field(default=20, ge=1, le=50)
+    due_only: bool = False
 
 
 class JobScoutScanSummary(BaseModel):
@@ -123,9 +124,7 @@ class JobScoutCoordinator:
             documents=self.documents.list(),
             profile=self.profiles.get_profile(),
             keywords=self._discover_keywords(configuration, document=document),
-            suggestions=discover_suggestions(
-                configuration, self.profiles.get_profile(), document
-            ),
+            suggestions=discover_suggestions(configuration, self.profiles.get_profile(), document),
             sources=self._configured_sources(configuration),
             opening_count=len(self.jobs.list()),
         )
@@ -233,7 +232,11 @@ class JobScoutCoordinator:
         )
         scans: list[JobScoutSourceScan] = []
         openings_found = 0
-        for source in self._configured_sources(configuration):
+        configured_sources = self._configured_sources(configuration)
+        due_ids = {source.id for source in self.sources.list_due()} if request.due_only else None
+        for source in configured_sources:
+            if due_ids is not None and source.id not in due_ids:
+                continue
             try:
                 result = await self.discovery.scan_source(source.id)
                 openings_found += len(result.openings)
@@ -283,9 +286,7 @@ class JobScoutCoordinator:
             document,
         )
 
-    def _resume_document(
-        self, configuration: JobScoutConfiguration
-    ) -> SourceDocument | None:
+    def _resume_document(self, configuration: JobScoutConfiguration) -> SourceDocument | None:
         if not configuration.resume_document_id:
             return None
         try:
@@ -314,14 +315,12 @@ class JobScoutCoordinator:
         if not domain:
             raise ValueError(f"Invalid source URL: {source_url}")
         disallowed = tuple(
-            item.casefold().removeprefix("www.")
-            for item in configuration.disallowed_domains
+            item.casefold().removeprefix("www.") for item in configuration.disallowed_domains
         )
         if any(domain == item or domain.endswith(f".{item}") for item in disallowed):
             raise ValueError(f"Source domain is disallowed: {domain}")
         allowed = tuple(
-            item.casefold().removeprefix("www.")
-            for item in configuration.allowed_domains
+            item.casefold().removeprefix("www.") for item in configuration.allowed_domains
         )
         if allowed and not any(domain == item or domain.endswith(f".{item}") for item in allowed):
             raise ValueError(f"Source domain is outside the allow list: {domain}")

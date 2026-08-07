@@ -1,5 +1,10 @@
 import { type FormEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Bookmark,
+  BriefcaseBusiness,
+  ClipboardCheck,
+  Clock3,
+  ExternalLink,
   FileText,
   FolderOpen,
   ListFilter,
@@ -226,7 +231,7 @@ function JobScoutSetup({ workspace, scanSummary, busy, onBusy, onScanSummary, on
         <label>Work arrangement<select value={configuration.remote_preference} onChange={(event) => setConfiguration({ ...configuration, remote_preference: event.target.value as JobScoutConfiguration["remote_preference"] })}><option value="any">Any</option><option value="remote">Remote</option><option value="hybrid">Hybrid</option><option value="on_site">On site</option></select></label>
         <label>Direct career or ATS URLs<textarea value={drafts.source_urls} onChange={(event) => updateDraft("source_urls", event.target.value)} placeholder={"https://boards.greenhouse.io/company\nhttps://jobs.lever.co/company"} /><small>Known employer pages, one URL per line.</small></label>
         <label>Public job boards<textarea value={drafts.public_job_boards} onChange={(event) => updateDraft("public_job_boards", event.target.value)} /><small>These domains are searched through an unauthenticated public provider. Remove all entries to disable public discovery.</small></label>
-        <details><summary>Source policy and timing</summary><label>Allowed domains<textarea value={drafts.allowed_domains} onChange={(event) => updateDraft("allowed_domains", event.target.value)} placeholder="Leave empty to allow any public source" /></label><label>Disallowed domains<textarea value={drafts.disallowed_domains} onChange={(event) => updateDraft("disallowed_domains", event.target.value)} /></label><label>Scheduled rescan interval, minutes<input type="number" min={5} max={10080} value={configuration.scan_interval_minutes} onChange={(event) => setConfiguration({ ...configuration, scan_interval_minutes: Number(event.target.value) })} /></label></details>
+        <details><summary>Source policy and timing</summary><label>Allowed domains<textarea value={drafts.allowed_domains} onChange={(event) => updateDraft("allowed_domains", event.target.value)} placeholder="Leave empty to allow any public source" /></label><label>Disallowed domains<textarea value={drafts.disallowed_domains} onChange={(event) => updateDraft("disallowed_domains", event.target.value)} /></label><label>Source rescan interval, minutes<input type="number" min={5} max={10080} value={configuration.scan_interval_minutes} onChange={(event) => setConfiguration({ ...configuration, scan_interval_minutes: Number(event.target.value) })} /><small>Automatic scans run inside recurring work sessions configured in Schedule.</small></label></details>
         <div className="dialog-actions"><button type="button" onClick={() => setActiveDialog(null)}>Cancel</button><button type="button" className="primary" disabled={busy} onClick={() => { const next = materializeConfiguration(); setConfiguration(next); void perform(() => saveJobScoutConfiguration(next)).then((saved) => saved && setActiveDialog(null)); }}>Save</button></div>
       </SetupDialog>
 
@@ -282,7 +287,7 @@ function ReviewPanel({ items, sort, includeDismissed, busy, onBusy, onSort, onIn
   const [query, setQuery] = useState("");
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    return needle ? items.filter((item) => `${item.opening.title} ${item.company.canonical_name} ${item.opening.location_text ?? ""}`.toLowerCase().includes(needle)) : items;
+    return needle ? items.filter((item) => `${item.opening.title} ${item.opening.company_name} ${item.opening.location_text ?? ""}`.toLowerCase().includes(needle)) : items;
   }, [items, query]);
   async function change(item: ReviewOpportunity, status: ApplicationStatus) {
     onBusy(true);
@@ -295,11 +300,18 @@ function ReviewPanel({ items, sort, includeDismissed, busy, onBusy, onSort, onIn
       <label className="checkbox"><input type="checkbox" checked={includeDismissed} onChange={(event) => onIncludeDismissed(event.target.checked)} />Show dismissed</label>
     </div>
     <div className="opportunity-list">{filtered.length === 0 ? <div className="empty-state">No opportunities match this view.</div> : filtered.map((item) => <article className="opportunity-card" key={item.opening.id}>
-      <div className="opportunity-summary"><div className="priority-badge"><strong>{score(item.score?.priority)}</strong><span>priority</span></div><div className="opportunity-title"><h3>{item.opening.title}</h3><p>{item.company.canonical_name} · {item.opening.location_text ?? "Location unclear"}</p><p className="next-action">Next: {item.next_action}</p></div><div className="score-strip"><Metric label="Fit" value={item.score?.fit} /><Metric label="Response" value={item.score?.response_likelihood} /><Metric label="Value" value={item.score?.opportunity_value} /></div></div>
-      <div className="actions"><button disabled={busy} onClick={() => void change(item, "saved")}>Save</button><button className="primary" disabled={busy} onClick={() => void change(item, "planned_to_apply")}>Plan to apply</button><button disabled={busy} onClick={() => void change(item, "dismissed")}>Dismiss</button><a href={item.opening.apply_url ?? item.opening.canonical_url} target="_blank">Original listing</a></div>
+      <div className="opportunity-summary"><div className="priority-badge"><strong>{score(item.score?.priority)}</strong><span>priority</span></div><div className="opportunity-title"><h3>{item.opening.title}</h3><p><strong>{item.opening.company_name}</strong> · {item.opening.location_text ?? "Location unclear"}</p><div className="opportunity-meta"><span><BriefcaseBusiness aria-hidden="true" />{titleCase(item.opening.work_arrangement)}</span><span><Clock3 aria-hidden="true" />{freshness(item.opening.posted_at ?? item.opening.discovered_at)}</span><span>{item.score ? `${Math.round(item.score.confidence)}% confidence` : "Unscored"}</span></div></div><div className="score-strip"><Metric label="Fit" value={item.score?.fit} /><Metric label="Response" value={item.score?.response_likelihood} /><Metric label="Value" value={item.score?.opportunity_value} /></div><div className="opportunity-actions"><button className="icon-button" disabled={busy} title="Save" aria-label="Save" onClick={() => void change(item, "saved")}><Bookmark aria-hidden="true" /></button><button className="icon-button primary" disabled={busy} title="Plan to apply" aria-label="Plan to apply" onClick={() => void change(item, "planned_to_apply")}><ClipboardCheck aria-hidden="true" /></button><button className="icon-button" disabled={busy} title="Dismiss" aria-label="Dismiss" onClick={() => void change(item, "dismissed")}><X aria-hidden="true" /></button><a className="icon-button" href={item.opening.apply_url ?? item.opening.canonical_url} target="_blank" title="Open original listing" aria-label="Open original listing"><ExternalLink aria-hidden="true" /></a></div></div>
+
       <details><summary>Evidence and description</summary><p>{item.opening.description}</p></details>
     </article>)}</div>
   </div>;
+}
+
+function freshness(value: string): string {
+  const days = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 86_400_000));
+  if (days === 0) return "Today";
+  if (days === 1) return "1 day old";
+  return `${days} days old`;
 }
 
 function RulesPanel({ rules, onRefresh, onError }: { rules: ScoringRule[]; onRefresh: () => Promise<void>; onError: (message: string) => void }) {

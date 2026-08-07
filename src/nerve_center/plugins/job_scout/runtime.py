@@ -8,6 +8,10 @@ from typing import Any
 from nerve_center.discovery.models import DiscoverySource
 from nerve_center.discovery.service import DiscoveryService
 from nerve_center.persistence.discovery import DiscoverySourceRepository
+from nerve_center.plugins.job_scout.configuration import (
+    JobScoutCoordinator,
+    JobScoutScanRequest,
+)
 
 
 class JobScoutOperationBridge:
@@ -15,11 +19,23 @@ class JobScoutOperationBridge:
         self,
         service: DiscoveryService,
         sources: DiscoverySourceRepository,
+        coordinator: JobScoutCoordinator,
     ) -> None:
         self.service = service
         self.sources = sources
+        self.coordinator = coordinator
 
     async def invoke(self, operation: str, payload: Mapping[str, Any]) -> dict[str, Any]:
+        if operation == "scheduled_scan":
+            result = await self.coordinator.scan(JobScoutScanRequest(due_only=True))
+            return {
+                "sources_scanned": result.sources_scanned,
+                "sources_completed": result.sources_scanned,
+                "openings_found": result.openings_found,
+                "warning_count": len(result.warnings),
+                "request_count": len(result.queries_run)
+                + sum(scan.requests_made for scan in result.scans),
+            }
         if operation == "list_due_sources":
             due_sources: list[DiscoverySource] = list(self.sources.list_due())
             return {"source_ids": [item.id for item in due_sources]}

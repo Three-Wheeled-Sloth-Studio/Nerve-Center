@@ -48,9 +48,8 @@ def install_job_scout(
     )
     register_profile_routes(application, database, settings, provider)
     register_discovery_routes(application, database, settings, discovery_service)
-    register_scoring_routes(application, database, settings, provider)
-    register_application_routes(application, database)
-    register_job_scout_configuration_routes(
+    scoring_service = register_scoring_routes(application, database, settings, provider)
+    coordinator = register_job_scout_configuration_routes(
         application,
         database,
         settings,
@@ -60,8 +59,14 @@ def install_job_scout(
         source_repository,
         job_repository,
     )
+    register_application_routes(
+        application,
+        database,
+        scoring_service=scoring_service,
+        configuration_store=coordinator.store,
+    )
     register_job_scout_upload_route(application, settings)
     return JobScoutModulePackage(
         manifest=job_scout_manifest(),
-        operation_bridge=JobScoutOperationBridge(discovery_service, source_repository),
+        operation_bridge=JobScoutOperationBridge(discovery_service, source_repository, coordinator),
     )

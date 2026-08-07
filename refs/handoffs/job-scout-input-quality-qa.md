@@ -48,6 +48,18 @@ Issue #14 covers the first interactive QA pass on the Job Scout setup workspace.
 - The exact locally loaded resume was evaluated without copying its contents into the repository. The revised list retained title intent, repeated domain phrases, and technical identifiers while removing the reported broad standalone words and malformed contact-derived terms.
 - A live bounded `0.12.3` scan ran two searches against the saved local configuration. A challenged provider was isolated to a warning while Built In native discovery returned five result pages; all five JSON-LD source scans succeeded and persisted five openings.
 
+## 0.12.4 operational QA follow-up
+
+QA found that manual scans worked while scheduled runs could report zero sources, public boards returned known on-site roles outside configured locations, provider throttling ended a scan, scores remained blank, and opportunity cards were oversized and omitted basic decision data.
+
+The `0.12.4` correction makes scheduled Job Scout assignments perform broad discovery before scanning newly registered or due sources. Source cadence still controls repeat fetches. Same-domain HTTP requests are serialized and paced, public search applies a longer delay, and a challenge or HTTP 429 puts the adapter into cooldown for the remainder of the scan while allowing a partial result.
+
+The review contract now excludes known hybrid/on-site openings outside configured city areas. Remote and unknown arrangements remain visible so incomplete source data does not silently discard a potentially valid role. Missing model-backed fit analyses receive a deterministic, explicitly low-confidence provisional score based on configured search intent; users can still run evidence-backed fit analysis later.
+
+Opportunity review now uses the posting's employer name, compact icon actions, work arrangement, listing age, confidence, and fit/response/value metrics in a dense row. Scheduled scans remain subject to Nerve Center's wall-clock authorization: configure a recurring work session in Schedule. The source rescan interval controls source eligibility inside those authorized sessions; it does not independently grant background execution.
+
+Verification: full Python suite, Ruff, desktop TypeScript/Vite production build, and Rust `cargo check` pass locally.
+
 ## Manual QA path
 
 1. Open Job Scout and choose the folder icon beside Resume file.

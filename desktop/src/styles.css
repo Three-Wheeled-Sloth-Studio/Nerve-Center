@@ -248,26 +248,29 @@ label.checkbox input {
 }
 
 .opportunity-card {
-  padding: 1rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: 0.5rem;
 }
 
 .opportunity-summary {
   display: grid;
-  grid-template-columns: 5rem minmax(20rem, 1fr) minmax(23rem, auto);
+  grid-template-columns: 3.7rem minmax(16rem, 1fr) minmax(14rem, auto) auto;
+  gap: 0.7rem;
+  align-items: center;
 }
 
 .priority-badge {
   display: grid;
   place-items: center;
-  width: 4.3rem;
-  height: 4.3rem;
+  width: 3.4rem;
+  height: 3.4rem;
   border: 1px solid #1d4ed8;
-  border-radius: 1rem;
+  border-radius: 0.45rem;
   background: rgba(37, 99, 235, 0.13);
 }
 
 .priority-badge strong {
-  font-size: 1.65rem;
+  font-size: 1.2rem;
 }
 
 .priority-badge span,
@@ -284,13 +287,18 @@ label.checkbox input {
   color: #94a3b8;
 }
 
+.opportunity-title h3 { margin: 0; font-size: 1rem; }
+.opportunity-meta { display: flex; gap: 0.65rem; margin-top: 0.35rem; color: #94a3b8; font-size: 0.76rem; }
+.opportunity-meta span { display: inline-flex; align-items: center; gap: 0.25rem; }
+.opportunity-meta svg { width: 0.85rem; height: 0.85rem; }
+
 .opportunity-title .next-action {
   color: #bfdbfe;
 }
 
 .score-strip {
   display: grid;
-  grid-template-columns: repeat(4, minmax(4.5rem, 1fr));
+  grid-template-columns: repeat(3, minmax(3.8rem, 1fr));
   gap: 0.45rem;
 }
 
@@ -302,8 +310,11 @@ label.checkbox input {
 }
 
 .score-strip strong {
-  font-size: 1.2rem;
+  font-size: 1rem;
 }
+
+.opportunity-actions { display: flex; gap: 0.3rem; }
+.opportunity-actions .icon-button { width: 2rem; height: 2rem; padding: 0.4rem; }
 
 .actions {
   justify-content: flex-start;
@@ -549,7 +560,7 @@ footer {
   }
 
   .score-strip {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 
   .queue-summary,

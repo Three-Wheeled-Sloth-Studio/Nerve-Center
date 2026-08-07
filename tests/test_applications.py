@@ -4,7 +4,10 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from nerve_center.applications.api import register_application_routes
+from nerve_center.applications.api import (
+    _matches_review_geography,
+    register_application_routes,
+)
 from nerve_center.applications.models import ApplicationStatus, ApplicationUpdate
 from nerve_center.config import Settings
 from nerve_center.discovery.models import (
@@ -14,6 +17,7 @@ from nerve_center.discovery.models import (
     JobProvenance,
     NormalizedJobOpening,
     SourceKind,
+    WorkArrangement,
 )
 from nerve_center.persistence.applications import ApplicationRepository
 from nerve_center.persistence.database import SCHEMA_VERSION, Database
@@ -134,3 +138,42 @@ def test_review_api_tracks_reversible_pursuit_state(tmp_path: Path) -> None:
     assert hidden.json() == []
     assert restored.json()["status"] == "saved"
     assert visible.json()[0]["next_action"].startswith("Review details")
+
+
+def test_review_geography_keeps_remote_and_filters_known_out_of_area_roles(
+    tmp_path: Path,
+) -> None:
+    opening = _seed(_database(tmp_path))
+    locations = ["Greensboro, NC", "Raleigh, NC", "Triad, NC"]
+
+    assert _matches_review_geography(
+        opening.model_copy(update={"work_arrangement": WorkArrangement.ON_SITE}),
+        locations,
+    )
+    assert not _matches_review_geography(
+        opening.model_copy(
+            update={
+                "location_text": "McLean, VA; Richmond, VA; USA",
+                "work_arrangement": WorkArrangement.UNKNOWN,
+            }
+        ),
+        locations,
+    )
+    assert not _matches_review_geography(
+        opening.model_copy(
+            update={
+                "location_text": "Minneapolis, MN",
+                "work_arrangement": WorkArrangement.HYBRID,
+            }
+        ),
+        locations,
+    )
+    assert _matches_review_geography(
+        opening.model_copy(
+            update={
+                "location_text": "United States",
+                "work_arrangement": WorkArrangement.REMOTE,
+            }
+        ),
+        locations,
+    )

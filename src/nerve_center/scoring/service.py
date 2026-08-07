@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import re
+from uuid import uuid4
+
 from nerve_center.discovery.models import NormalizedJobOpening
 from nerve_center.persistence.discovery import JobOpeningRepository
 from nerve_center.persistence.profile import CareerProfileRepository
@@ -80,9 +83,44 @@ class ScoringService:
         )
         return self.scores.append(result)
 
+    def ensure_provisional_score(self, job_id: str, *, intent_terms: list[str]) -> OpportunityScore:
+        existing = self.scores.list(job_id)
+        if existing:
+            return existing[0]
+        opening = _get_job(self.jobs, job_id)
+        profile = self.profiles.get_profile()
+        haystack = _tokens(f"{opening.title} {opening.description}")
+        intent = _tokens(" ".join(intent_terms))
+        overlap = len(haystack & intent) / max(1, len(intent))
+        title_overlap = len(_tokens(opening.title) & intent) / max(1, len(intent))
+        baseline = min(85.0, 42.0 + overlap * 55.0)
+        analysis = JobFitAnalysis(
+            id=str(uuid4()),
+            job_id=job_id,
+            profile_version=profile.version,
+            contract_version="job-fit-provisional-v1",
+            model="deterministic-provisional",
+            seniority_score=min(90.0, 48.0 + title_overlap * 70.0),
+            domain_score=baseline,
+            leadership_score=baseline,
+            methods_score=baseline,
+            outcomes_score=baseline,
+            confidence=0.35,
+            review_notes=[
+                "Provisional score from configured search intent; run fit analysis for "
+                "evidence-backed scoring."
+            ],
+        )
+        self.fit_analyses.save(analysis)
+        return self.score(job_id, fit_analysis_id=analysis.id)
+
 
 def _get_job(repository: JobOpeningRepository, job_id: str) -> NormalizedJobOpening:
     for opening in repository.list(active_only=False):
         if opening.id == job_id:
             return opening
     raise KeyError(f"unknown job opening: {job_id}")
+
+
+def _tokens(value: str) -> set[str]:
+    return {token for token in re.findall(r"[a-z0-9]+", value.casefold()) if len(token) > 2}

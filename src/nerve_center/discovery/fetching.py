@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from urllib.parse import urlsplit
@@ -31,17 +32,27 @@ class FetchResponse:
 
 
 class DomainRequestGate:
-    def __init__(self, max_per_domain: int = 1) -> None:
+    def __init__(self, max_per_domain: int = 1, minimum_interval_seconds: float = 1.0) -> None:
         if max_per_domain < 1:
             raise ValueError("max_per_domain must be at least 1")
         self.max_per_domain = max_per_domain
+        self.minimum_interval_seconds = max(0.0, minimum_interval_seconds)
         self._gates: dict[str, asyncio.Semaphore] = {}
+        self._last_request: dict[str, float] = {}
         self._lock = asyncio.Lock()
 
     async def for_url(self, url: str) -> asyncio.Semaphore:
         domain = (urlsplit(url).hostname or "").casefold()
         async with self._lock:
             return self._gates.setdefault(domain, asyncio.Semaphore(self.max_per_domain))
+
+    async def wait(self, url: str) -> None:
+        domain = (urlsplit(url).hostname or "").casefold()
+        elapsed = time.monotonic() - self._last_request.get(domain, 0.0)
+        delay = self.minimum_interval_seconds - elapsed
+        if delay > 0:
+            await asyncio.sleep(delay)
+        self._last_request[domain] = time.monotonic()
 
 
 class HttpFetcher:
@@ -82,6 +93,7 @@ class HttpFetcher:
         )
         try:
             async with semaphore:
+                await self.gate.wait(url)
                 response = await client.get(url, params=params, headers=request_headers)
         finally:
             if owns_client:

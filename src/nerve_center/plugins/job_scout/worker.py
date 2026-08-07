@@ -33,17 +33,33 @@ async def run_worker() -> None:
         await client.close()
 
 
-async def _execute_assignment(
-    client: ModuleRuntimeClient, assignment: dict[str, Any]
-) -> None:
+async def _execute_assignment(client: ModuleRuntimeClient, assignment: dict[str, Any]) -> None:
     run_id = str(assignment["run_id"])
     configuration = assignment.get("configuration") or {}
     checkpoint = assignment.get("checkpoint") or {}
     configured = configuration.get("source_ids")
+    if not isinstance(configured, list):
+        state = {"value": 1, "activity": "Discovering public job sources"}
+        heartbeat = asyncio.create_task(_heartbeat_while_working(client, state))
+        try:
+            result = await client.invoke(run_id, "scheduled_scan")
+        finally:
+            heartbeat.cancel()
+            await asyncio.gather(heartbeat, return_exceptions=True)
+        request_count = int(result.get("request_count", 0))
+        if request_count:
+            await client.consume(run_id, "requests", request_count)
+        warnings = int(result.get("warning_count", 0))
+        await client.complete(
+            run_id,
+            "partial" if warnings else "succeeded",
+            f"Discovered and scanned {result['sources_scanned']} sources; "
+            f"found {result['openings_found']} openings.",
+            result,
+        )
+        return
     if isinstance(configured, list):
         source_ids = [str(item) for item in configured]
-    else:
-        source_ids = (await client.invoke(run_id, "list_due_sources"))["source_ids"]
     completed = [str(item) for item in checkpoint.get("completed_source_ids", [])]
     remaining = [item for item in source_ids if item not in completed]
     openings_found = 0
@@ -119,9 +135,7 @@ async def _execute_assignment(
         await asyncio.gather(heartbeat, return_exceptions=True)
 
 
-async def _heartbeat_while_working(
-    client: ModuleRuntimeClient, state: dict[str, Any]
-) -> None:
+async def _heartbeat_while_working(client: ModuleRuntimeClient, state: dict[str, Any]) -> None:
     while True:
         await client.heartbeat(
             "working",

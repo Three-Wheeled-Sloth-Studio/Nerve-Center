@@ -200,3 +200,33 @@ def test_cached_browser_challenge_prevents_repeated_headless_attempts(
 
     with pytest.raises(SearchChallengeError, match="Cooling down"):
         asyncio.run(adapter.search("product manager"))
+
+
+def test_public_search_challenge_cools_down_remaining_queries(tmp_path: Path) -> None:
+    database = Database(Settings(data_dir=tmp_path / "runtime"))
+    database.initialize()
+    calls = 0
+
+    class ChallengedFetcher:
+        async def get(self, url: str, **kwargs: object) -> FetchResponse:
+            nonlocal calls
+            calls += 1
+            return FetchResponse(
+                url=url,
+                status_code=429,
+                text="rate limited",
+                headers={},
+                challenged=False,
+                throttled=True,
+            )
+
+    adapter = PublicWebSearchAdapter(
+        SearchCacheRepository(database),
+        fetcher=ChallengedFetcher(),  # type: ignore[arg-type]
+    )
+    with pytest.raises(SearchChallengeError):
+        asyncio.run(adapter.search("first query"))
+    with pytest.raises(SearchChallengeError):
+        asyncio.run(adapter.search("second query"))
+
+    assert calls == 1

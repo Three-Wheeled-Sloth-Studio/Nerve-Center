@@ -13,7 +13,7 @@ from urllib.parse import parse_qs, quote_plus, urlsplit
 import httpx
 from pydantic import BaseModel, ConfigDict
 
-from nerve_center.discovery.fetching import HttpFetcher
+from nerve_center.discovery.fetching import DomainRequestGate, HttpFetcher
 from nerve_center.discovery.normalization import canonicalize_url
 from nerve_center.persistence.discovery import SearchCacheRepository
 
@@ -87,10 +87,15 @@ class PublicWebSearchAdapter:
         max_results: int = 25,
     ) -> None:
         self.cache = cache
-        self.fetcher = fetcher or HttpFetcher()
+        self.fetcher = fetcher or HttpFetcher(
+            gate=DomainRequestGate(1, minimum_interval_seconds=3.0)
+        )
         self.max_results = max_results
+        self._cooldown_message: str | None = None
 
     async def search(self, query: str) -> list[SearchResult]:
+        if self._cooldown_message is not None:
+            raise SearchChallengeError(self._cooldown_message)
         builtin_query = _board_native_query(query, "builtin.com")
         provider = "builtin_html" if builtin_query is not None else self.provider
         cache_provider = f"{provider}:{self.max_results}"
@@ -123,6 +128,7 @@ class PublicWebSearchAdapter:
             raise RuntimeError("The public search provider could not be reached.") from error
         if response.challenged or response.throttled or response.status_code in {401, 403, 429}:
             message = "The public search provider requested a cooldown; try the scan again later."
+            self._cooldown_message = message
             self.cache.put(
                 cache_provider,
                 query,
