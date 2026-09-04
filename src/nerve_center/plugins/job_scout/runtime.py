@@ -33,6 +33,23 @@ class JobScoutOperationBridge:
         self.discovery_loop = discovery_loop
 
     async def invoke(self, operation: str, payload: Mapping[str, Any]) -> dict[str, Any]:
+        if operation == "discovery_readiness":
+            configuration = self.coordinator.store.load()
+            keywords = self.coordinator._discover_keywords(configuration).keywords
+            durable_market = bool(self.service.companies.list() or self.sources.list())
+            configured_seed = bool(
+                configuration.target_titles
+                or configuration.manual_keywords
+                or configuration.locations
+                or configuration.source_urls
+                or configuration.source_ids
+                or keywords
+            )
+            return {
+                "ready": configured_seed or durable_market,
+                "configured_seed": configured_seed,
+                "durable_market": durable_market,
+            }
         if operation == "prepare_discovery":
             return await self.discovery_loop.prepare(_required_string(payload, "run_id"))
         if operation == "discovery_cycle":
