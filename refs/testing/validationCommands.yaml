@@ -34,3 +34,7 @@ commands:
     command: python scripts/build_windows_backend.py && python scripts/smoke_packaged_backend.py && cd desktop && npm run tauri build -- --config src-tauri/tauri.package.conf.json --bundles nsis
     verifies: Self-contained Windows backend, packaged health smoke, and unsigned NSIS assembly.
     required: release-checkpoint
+  - id: job-scout-live-smoke
+    command: python scripts/smoke_job_scout_live.py --duration-seconds 300
+    verifies: A configured local Job Scout can run a bounded real public-source session and report discovery coverage without requiring live sites in CI.
+    required: false
