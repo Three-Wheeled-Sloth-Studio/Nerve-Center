@@ -1,0 +1,29 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: 2026-09-04
+rules:
+  - Keep entries factual, current, and concise.
+  - Preserve Nerve Center's established refs taxonomy where it already carries useful project truth.
+  - Use YAML for deterministic state and Markdown for explanatory knowledge.
+  - Treat non-reserved Markdown files as OKF concepts with YAML frontmatter.
+  - Do not hand-edit generated index.md files.
+  - Do not store secrets in refs.
+files:
+  README.md: Refs reading order, authority boundaries, and maintenance rules.
+  index.md: Generated OKF discovery surface for the refs bundle.
+  project.yaml: Project identity, thesis, stack, repository layout, and source-of-truth links.
+  agents.yaml: Agent operating instructions and required reading order.
+  okfProfile.yaml: Pinned Agent Academy OKF compatibility profile and studio-catalog contract.
+  templatePolicy.yaml: Required refs files and validation rules for this mature custom harness.
+  planning/: Existing product direction, requirements, decisions, contracts, and privacy boundaries.
+  engineering/: Existing CI and coding-agent workflow rules.
+  handoffs/: Historical implementation checkpoints plus currentHandoff.md as the active context pointer.
+  research/: Project research and source strategy.
+  testing/: Validation commands plus focused smoke and regression guidance.
+  implementation/fileMap.yaml: Navigation map from common tasks to important source files.
+  implementation/okfCompatibility.md: Nerve Center-specific authority boundary for Agent Academy and OKF.
+  operations/okfMigration.md: Migration record and future profile-upgrade guidance.
+  schemas/schemaRegistry.yaml: Machine-readable schema hints for structured refs files.
+  tools/check_case_collisions.py: Tracked-path portability guard based on git ls-files.
+  tools/generate_okf_indexes.py: Deterministic OKF index generator and stale-index checker.
+  tools/validate_refs.py: Refs schema, portability, OKF, generated-index, and path-safety validation.
