@@ -110,6 +110,24 @@ without overriding module priority. Cloud provider credentials and routing remai
 disabled; future adapters can implement the same contract without changing module
 requests.
 
+## Immediate Job Scout correction: self-improving discovery loop
+
+This reference-module correction is the immediate product priority before returning to Increment 12. The current implementation proves source acquisition and scheduled execution but still behaves too much like a bounded search pass. The accepted behavior is defined in `refs/planning/job-scout-discovery-and-learning-contract.md`.
+
+Required sequence:
+
+1. Add durable discovery-strategy identity, provenance, yield telemetry, and transparent learned weights.
+2. Make companies first-class durable discovery targets even when they currently expose zero relevant openings.
+3. Add company-first deepening that resolves career pages, ATS endpoints, feeds, sitemaps, and other public employer-owned job surfaces, then inspects the employer's broader openings.
+4. Add cheap local-market expansion from the user's configured starting location using cached public geographic reference data and useful city/metro aliases.
+5. Replace one-pass discovery with an iterative expand, converge, deepen, reflect, and re-expand loop that runs until the manager's session begins draining or marginal discovery is exhausted.
+6. Preserve an exploration floor so learned high-yield strategies do not permanently crowd out novel titles, companies, markets, or source paths.
+7. Feed user dismiss/save/apply/interview/response outcomes back into the correct discovery and ranking signals without silently converting learned negatives into hard exclusions.
+8. Surface coverage telemetry such as strategies attempted, results examined, companies discovered, career sources resolved, postings inspected, opportunities retained, strategy-weight changes, reflection hypotheses, and provider warnings.
+9. Route reflection/ideation model work only through the manager-owned provider boundary.
+
+Do not implement people enrichment in this slice. Retain clean future seams for public person references and a possible Farley File integration without turning Job Scout into a CRM.
+
 ## Increment 12: Model Lab
 
 - Add a manager-owned, toggleable Model Lab subsystem outside module priority.
