@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 
 from nerve_center.config import Settings
@@ -29,12 +30,12 @@ def _write_fixture(cache: Path) -> None:
     )
 
 
-async def test_expands_start_location_with_cached_public_geography(tmp_path: Path) -> None:
+def test_expands_start_location_with_cached_public_geography(tmp_path: Path) -> None:
     cache = tmp_path / "gazetteer"
     _write_fixture(cache)
     expander = GazetteerMarketExpander(Settings(data_dir=tmp_path / "runtime"), cache_dir=cache)
 
-    aliases = await expander.expand(["Greensboro, NC"], radius_miles=50)
+    aliases = asyncio.run(expander.expand(["Greensboro, NC"], radius_miles=50))
     labels = [item.label for item in aliases]
 
     assert labels[0] == "Greensboro, NC"
@@ -45,11 +46,11 @@ async def test_expands_start_location_with_cached_public_geography(tmp_path: Pat
     assert all(item.provenance.startswith(("configured_", "census_")) for item in aliases)
 
 
-async def test_unknown_location_remains_a_search_alias_without_network(tmp_path: Path) -> None:
+def test_unknown_location_remains_a_search_alias_without_network(tmp_path: Path) -> None:
     cache = tmp_path / "gazetteer"
     _write_fixture(cache)
     expander = GazetteerMarketExpander(Settings(data_dir=tmp_path / "runtime"), cache_dir=cache)
 
-    aliases = await expander.expand(["Not A Place, NC"])
+    aliases = asyncio.run(expander.expand(["Not A Place, NC"]))
 
     assert [item.label for item in aliases] == ["Not A Place, NC"]
