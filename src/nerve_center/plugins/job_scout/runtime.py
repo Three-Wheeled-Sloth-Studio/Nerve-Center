@@ -12,6 +12,7 @@ from nerve_center.plugins.job_scout.configuration import (
     JobScoutCoordinator,
     JobScoutScanRequest,
 )
+from nerve_center.plugins.job_scout.discovery_learning import JobScoutDiscoveryRepository
 
 
 class JobScoutOperationBridge:
@@ -20,10 +21,12 @@ class JobScoutOperationBridge:
         service: DiscoveryService,
         sources: DiscoverySourceRepository,
         coordinator: JobScoutCoordinator,
+        learning: JobScoutDiscoveryRepository,
     ) -> None:
         self.service = service
         self.sources = sources
         self.coordinator = coordinator
+        self.learning = learning
 
     async def invoke(self, operation: str, payload: Mapping[str, Any]) -> dict[str, Any]:
         if operation == "scheduled_scan":
