@@ -1,3 +1,10 @@
+---
+type: Implementation Handoff
+title: Windows Packaging and Runtime Bootstrap Handoff
+description: Accepted self-contained backend, NSIS packaging, startup supervision, React startup gate, and Windows validation checkpoint.
+status: stable
+tags: [nerve-center, handoff, windows, packaging]
+---
 # Windows Packaging and Runtime Bootstrap Handoff
 
 ## Accepted target

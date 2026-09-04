@@ -1,3 +1,10 @@
+---
+type: Implementation Handoff
+title: Orchestration Runtime Handoff
+description: Accepted durable run lifecycle, scheduling windows, restart recovery, resource budgets, and audit checkpoint.
+status: stable
+tags: [nerve-center, handoff, orchestration]
+---
 # Orchestration Runtime Handoff
 
 ## Accepted baseline

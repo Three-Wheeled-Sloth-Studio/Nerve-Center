@@ -1,3 +1,10 @@
+---
+type: Implementation Handoff
+title: Session Scheduler and Wind-Down Handoff
+description: Archived durable work-session, recurring schedule, priority normalization, admission-phase, and wind-down checkpoint.
+status: stable
+tags: [nerve-center, handoff, scheduler]
+---
 # Session Scheduler and Wind-Down Handoff (Archived)
 
 ## Accepted baseline
