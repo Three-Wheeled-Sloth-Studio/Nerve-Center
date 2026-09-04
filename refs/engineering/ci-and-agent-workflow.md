@@ -1,3 +1,10 @@
+---
+type: Engineering Workflow
+title: CI and Coding-Agent Workflow
+description: Nerve Center CI signal discipline and coding-agent operating rules.
+status: stable
+tags: [nerve-center, engineering, ci, agents]
+---
 # CI and Coding-Agent Workflow
 
 ## Purpose

@@ -1,3 +1,10 @@
+---
+type: Smoke Test
+title: Source Launcher and Ollama Smoke Test
+description: Windows source-checkout smoke for dependency bootstrap, Tauri startup, managed API lifecycle, and Ollama model discovery.
+status: stable
+tags: [nerve-center, testing, windows, ollama]
+---
 # Source Launcher and Ollama Smoke Test
 
 ## Purpose

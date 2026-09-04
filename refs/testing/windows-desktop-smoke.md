@@ -1,3 +1,10 @@
+---
+type: Smoke Test
+title: Windows Desktop Smoke Test
+description: Real-machine validation checklist for the unsigned Windows installer, packaged backend, tray lifecycle, persistence, recovery, privacy, and uninstall behavior.
+status: stable
+tags: [nerve-center, testing, windows, packaging]
+---
 # Windows Desktop Smoke Test
 
 ## Purpose

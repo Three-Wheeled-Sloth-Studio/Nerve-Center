@@ -1,3 +1,10 @@
+---
+type: Research Strategy
+title: Search and Source Strategy
+description: Acquisition classifications, connector order, broad-search approach, and soft-barrier policy for Job Scout sources.
+status: stable
+tags: [nerve-center, job-scout, research, search]
+---
 # Search and Source Strategy
 
 ## Acquisition classifications
