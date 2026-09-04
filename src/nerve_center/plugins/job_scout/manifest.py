@@ -28,7 +28,7 @@ def job_scout_manifest() -> ModuleManifest:
             module_api_version=MODULE_API_VERSION,
             minimum_core_version=__version__,
             maximum_tested_core_version=__version__,
-            data_schema_version=5,
+            data_schema_version=6,
         ),
         launch=ModuleLaunchDefinition(
             runtime="managed_python",
