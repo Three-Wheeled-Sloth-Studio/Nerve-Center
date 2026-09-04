@@ -1,3 +1,10 @@
+---
+type: Implementation Handoff
+title: Opportunity Scoring Handoff
+description: Accepted configurable opportunity-scoring, location logic, evidence constraints, history, and scoring API checkpoint.
+status: stable
+tags: [nerve-center, handoff, scoring]
+---
 # Opportunity Scoring Handoff
 
 ## Accepted baseline

@@ -1,3 +1,10 @@
+---
+type: Implementation Handoff
+title: Desktop Review and Application Tracking Handoff
+description: Accepted application tracking, review service, React client, and Tauri desktop-shell checkpoint.
+status: stable
+tags: [nerve-center, handoff, desktop, application-tracking]
+---
 # Desktop Review and Application Tracking Handoff
 
 ## Accepted target

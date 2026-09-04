@@ -1,3 +1,10 @@
+---
+type: Implementation Handoff
+title: Job Discovery Sources Handoff
+description: Accepted source registry, direct connectors, source-health, deduplication, scheduler, and broad-search checkpoint.
+status: stable
+tags: [nerve-center, handoff, job-scout, discovery]
+---
 # Job Discovery Sources Handoff
 
 ## Accepted baseline

@@ -1,3 +1,10 @@
+---
+type: QA Handoff
+title: Job Scout Input Quality QA
+description: Interactive QA findings and corrections for Job Scout setup, term quality, source discovery, and compact review UI.
+status: stable
+tags: [nerve-center, handoff, qa, job-scout]
+---
 # Job Scout input quality QA
 
 ## Scope
