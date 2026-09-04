@@ -1,3 +1,10 @@
+---
+type: Scoring Contract
+title: Job Scout Scoring Contract
+description: Explainable fit, response-likelihood, opportunity-value, confidence, priority, location, and gating rules for Job Scout.
+status: stable
+tags: [nerve-center, planning, job-scout, scoring]
+---
 # Job Scout Scoring Contract
 
 ## Purpose

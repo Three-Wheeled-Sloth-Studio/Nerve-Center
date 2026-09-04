@@ -1,3 +1,10 @@
+---
+type: Privacy Boundary
+title: Data and Privacy Boundary
+description: Public-repository, local durable-data, credential, logging, search-provider, and browser-isolation boundaries.
+status: stable
+tags: [nerve-center, planning, privacy]
+---
 # Data and Privacy Boundary
 
 ## Public source repository

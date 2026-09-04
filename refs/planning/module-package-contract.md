@@ -1,3 +1,10 @@
+---
+type: Module Contract
+title: Module Package Contract
+description: Accepted manager/module ownership, manifest, lifecycle, storage, permissions, UI contribution, process runtime, and durable-work contract.
+status: stable
+tags: [nerve-center, planning, modules, architecture]
+---
 # Module Package Contract
 
 **Status:** Accepted implementation contract

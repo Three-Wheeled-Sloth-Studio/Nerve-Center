@@ -1,3 +1,10 @@
+---
+type: Decision Register
+title: Decision Register
+description: Durable accepted, deferred, rejected, and open product and architecture decisions for Nerve Center.
+status: stable
+tags: [nerve-center, planning, decisions]
+---
 # Decision Register
 
 Status values: `accepted`, `deferred`, `rejected`, `open`.
