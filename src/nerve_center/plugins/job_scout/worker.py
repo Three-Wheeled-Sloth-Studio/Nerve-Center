@@ -46,6 +46,26 @@ async def _execute_discovery_loop(
     assignment: dict[str, Any],
 ) -> None:
     run_id = str(assignment["run_id"])
+    readiness = await client.invoke(run_id, "discovery_readiness")
+    if not bool(readiness.get("ready", False)):
+        await client.complete(
+            run_id,
+            "succeeded",
+            "Job Scout has no configured career evidence or durable market sources yet.",
+            {
+                "sources_completed": 0,
+                "strategies_attempted": 0,
+                "public_searches_executed": 0,
+                "results_examined": 0,
+                "companies_discovered": 0,
+                "career_sources_resolved": 0,
+                "postings_inspected": 0,
+                "opportunities_retained": 0,
+                "provider_warning_count": 0,
+            },
+        )
+        return
+
     checkpoint = assignment.get("checkpoint") or {}
     cycle = max(int(checkpoint.get("discovery_cycle", 0)), 0)
     await _harvest_reflection_results(client, run_id)
