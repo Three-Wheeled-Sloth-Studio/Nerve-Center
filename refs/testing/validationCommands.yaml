@@ -1,0 +1,36 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: 2026-09-04
+commands:
+  - id: tracked-path-case-collisions
+    command: python refs/tools/check_case_collisions.py
+    verifies: No distinct tracked paths collapse to the same case-folded path on Windows or default macOS filesystems.
+    required: true
+  - id: refs-indexes
+    command: python refs/tools/generate_okf_indexes.py --check
+    verifies: Committed OKF discovery indexes exactly match deterministic generated output.
+    required: true
+  - id: refs-validation
+    command: python refs/tools/validate_refs.py --mode initialized
+    verifies: Required refs files, YAML schemas, OKF concept metadata, profile consistency, generated indexes, portability, and path safety.
+    required: true
+  - id: python-lint
+    command: ruff check .
+    verifies: Python lint and import-order rules.
+    required: true
+  - id: python-tests
+    command: pytest
+    verifies: Python unit and integration behavior.
+    required: true
+  - id: desktop-web
+    command: cd desktop && npm run build
+    verifies: Multi-value regression checks, TypeScript typecheck, path-safety prebuild hook, and Vite production build.
+    required: true
+  - id: desktop-rust
+    command: cargo check --tests --message-format=short --manifest-path desktop/src-tauri/Cargo.toml
+    verifies: Tauri Rust shell and unit-test compilation.
+    required: true
+  - id: windows-package
+    command: python scripts/build_windows_backend.py && python scripts/smoke_packaged_backend.py && cd desktop && npm run tauri build -- --config src-tauri/tauri.package.conf.json --bundles nsis
+    verifies: Self-contained Windows backend, packaged health smoke, and unsigned NSIS assembly.
+    required: release-checkpoint

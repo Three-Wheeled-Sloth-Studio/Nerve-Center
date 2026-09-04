@@ -1,3 +1,10 @@
+---
+type: Implementation Handoff
+title: Durable Shared Work Queue Handoff
+description: Accepted durable work-request, attempt, result-delivery, queue-pressure, and recovery checkpoint.
+status: stable
+tags: [nerve-center, handoff, work-queue]
+---
 # Durable Shared Work Queue Handoff
 
 ## Accepted baseline

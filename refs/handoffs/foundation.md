@@ -1,3 +1,10 @@
+---
+type: Implementation Handoff
+title: Archived Foundation Handoff
+description: Original 0.1.0 foundation checkpoint for Nerve Center core runtime and project boundaries.
+status: stable
+tags: [nerve-center, handoff, foundation]
+---
 # Archived Foundation Handoff
 
 This document records the original `0.1.0` foundation and is no longer the

@@ -1,3 +1,10 @@
+---
+type: Implementation Handoff
+title: Core and Module Boundary Handoff
+description: Archived checkpoint for module contracts, inventory lifecycle, run admission, and Job Scout composition boundaries.
+status: stable
+tags: [nerve-center, handoff, modules]
+---
 # Core and Module Boundary Handoff (Archived)
 
 ## Accepted baseline

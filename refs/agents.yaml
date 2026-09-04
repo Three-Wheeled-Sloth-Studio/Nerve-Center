@@ -1,0 +1,22 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+instructions:
+  - Read refs/project.yaml before starting project work.
+  - Read refs/planning/mvp-roadmap.md and refs/planning/decision-register.md before adding or changing implementation work.
+  - Read refs/planning/product-vision-and-architecture.md and refs/planning/module-package-contract.md before changing system boundaries or module ownership.
+  - Read refs/implementation/fileMap.yaml before searching broadly.
+  - Read refs/testing/validationCommands.yaml before finalizing changes.
+  - Use refs/index.md as the OKF discovery surface, but do not substitute it for the required reading order.
+  - Keep durable decisions, handoffs, validation notes, and context-heavy project facts in refs.
+  - Preserve OKF frontmatter on every non-reserved Markdown concept under refs.
+  - Do not hand-edit generated index.md files; regenerate them with refs/tools/generate_okf_indexes.py.
+  - Never infer OKF verified status from generation, passing tests, Git history, or refs validation.
+  - Do not store secrets or machine-local credentials in refs.
+  - Preserve Nerve Center's established refs taxonomy instead of creating duplicate Agent Academy template state.
+  - Record durable product and architecture decisions in refs/planning/decision-register.md with rationale and consequences.
+  - Update refs/handoffs/currentHandoff.md when stopping with incomplete or context-heavy work.
+  - Follow refs/engineering/ci-and-agent-workflow.md for draft pull requests and CI signal discipline.
+  - Never create, rename, or retain two tracked paths that differ only by letter casing.
+  - Treat git ls-files as the authority for case-collision checks and run refs/tools/check_case_collisions.py through the normal validation path.
+  - Match import and reference casing exactly to the tracked path; use semantic suffixes rather than capitalization-only filename distinctions.
+  - Perform case-only renames through a temporary intermediate filename, then verify the Git diff and run the case-collision guard.

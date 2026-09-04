@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "test:multivalue": "node scripts/test-multivalue.mjs",
+    "prebuild": "python ../refs/tools/check_case_collisions.py",
     "build": "npm run test:multivalue && tsc --noEmit && vite build",
     "tauri": "tauri"
   },

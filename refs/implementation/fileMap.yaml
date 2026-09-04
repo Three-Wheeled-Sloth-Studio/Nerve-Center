@@ -1,0 +1,31 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: 2026-09-04
+source_roots:
+  - path: src/nerve_center
+    purpose: Python API, persistence, scheduler, orchestration, providers, scoring, and module/plugin implementation.
+  - path: desktop/src
+    purpose: React and TypeScript desktop client.
+  - path: desktop/src-tauri/src
+    purpose: Tauri Rust desktop runtime, backend supervision, tray lifecycle, and native shell behavior.
+  - path: scripts
+    purpose: Development launch and Windows backend packaging helpers.
+  - path: refs
+    purpose: Durable project memory, decisions, validation guidance, and handoffs.
+common_tasks:
+  - task: Change Job Scout behavior
+    look_in: [src/nerve_center/plugins/job_scout, desktop/src/JobScoutPanel.tsx, refs/planning]
+  - task: Change scheduler or run lifecycle
+    look_in: [src/nerve_center/scheduler, src/nerve_center/persistence, refs/handoffs]
+  - task: Change LLM provider behavior
+    look_in: [src/nerve_center/providers, refs/handoffs/provider-neutral-llm-manager.md]
+  - task: Change desktop UI
+    look_in: [desktop/src, refs/planning/product-requirements-document.md]
+  - task: Change Tauri runtime or startup supervision
+    look_in: [desktop/src-tauri/src, refs/handoffs/windows-packaging-runtime-bootstrap.md]
+  - task: Change Windows packaging
+    look_in: [scripts, desktop/src-tauri, .github/workflows/windows-package.yml, refs/testing/windows-desktop-smoke.md]
+  - task: Change CI or agent workflow
+    look_in: [.github/workflows, refs/engineering/ci-and-agent-workflow.md, refs/testing/validationCommands.yaml]
+  - task: Update project memory
+    look_in: [refs/README.md, refs/agents.yaml, refs/fileGuide.yaml, refs/okfProfile.yaml]

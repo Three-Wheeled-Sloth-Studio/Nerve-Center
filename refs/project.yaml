@@ -1,0 +1,37 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: 2026-09-04
+identity:
+  name: Nerve Center
+  repository_url: https://github.com/Three-Wheeled-Sloth-Studio/Nerve-Center
+  summary: Local-first single-user orchestration platform for scheduled desktop tasks that may use local tools and local language models.
+  current_phase: MVP hardening and Job Scout workflow expansion
+thesis:
+  core_promise: Keep scheduled, agent-assisted desktop work durable, inspectable, local-first, and user-controlled.
+audience:
+  primary_users:
+    - Single desktop user running scheduled local workflows
+stack:
+  summary: Python 3.12 FastAPI and SQLAlchemy backend, React and TypeScript client, Tauri v2 Rust desktop shell, SQLite persistence, optional Ollama and Playwright integrations.
+repository_layout:
+  source_roots:
+    - src/nerve_center
+    - desktop/src
+    - desktop/src-tauri/src
+  docs_roots:
+    - refs
+source_of_truth:
+  discovery: refs/index.md
+  okf_profile: refs/okfProfile.yaml
+  roadmap: refs/planning/mvp-roadmap.md
+  decisions: refs/planning/decision-register.md
+  architecture: refs/planning/product-vision-and-architecture.md
+  module_contract: refs/planning/module-package-contract.md
+  privacy: refs/planning/data-and-privacy-boundary.md
+  engineering_workflow: refs/engineering/ci-and-agent-workflow.md
+  implementation_map: refs/implementation/fileMap.yaml
+  handoff: refs/handoffs/currentHandoff.md
+  testing: refs/testing/validationCommands.yaml
+known_open_questions:
+  - Signing, automatic updates, release channels, and public distribution remain deferred beyond the current unsigned Windows development package.
+  - Cross-platform desktop packaging remains deferred beyond Windows.

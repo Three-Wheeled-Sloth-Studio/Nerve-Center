@@ -1,3 +1,10 @@
+---
+type: Implementation Handoff
+title: Provider-Neutral LLM Manager Handoff
+description: Accepted model-blind manager routing, Ollama adapter, empirical selection, evidence, and local provider checkpoint.
+status: stable
+tags: [nerve-center, handoff, llm, providers]
+---
 # Provider-Neutral LLM Manager Handoff
 
 ## Accepted baseline

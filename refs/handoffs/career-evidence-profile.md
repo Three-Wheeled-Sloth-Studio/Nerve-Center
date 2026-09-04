@@ -1,3 +1,10 @@
+---
+type: Implementation Handoff
+title: Career Evidence Profile Handoff
+description: Accepted provider-neutral generation, resume registration, canonical career evidence, and positioning-hypothesis checkpoint.
+status: stable
+tags: [nerve-center, handoff, career-evidence]
+---
 # Career Evidence Profile Handoff
 
 ## Accepted baseline

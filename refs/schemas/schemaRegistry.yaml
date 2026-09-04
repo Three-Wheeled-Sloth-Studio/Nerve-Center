@@ -1,0 +1,23 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: 2026-09-04
+purpose: Machine-readable schema hints for Nerve Center refs validation.
+defaults:
+  yaml_required_top_level_keys:
+    - version
+    - schema
+schemas:
+  refs/project.yaml:
+    required_top_level_keys: [version, schema, updated, identity, thesis, audience, stack, repository_layout, source_of_truth, known_open_questions]
+  refs/agents.yaml:
+    required_top_level_keys: [version, schema, instructions]
+  refs/okfProfile.yaml:
+    required_top_level_keys: [version, schema, updated, okf, bundle, agent_academy, indexes, provenance, relationships, studio_catalog]
+  refs/templatePolicy.yaml:
+    required_top_level_keys: [version, schema, updated, purpose, required_files, bootstrap_files, validation]
+  refs/fileGuide.yaml:
+    required_top_level_keys: [version, schema, updated, rules, files]
+  refs/implementation/fileMap.yaml:
+    required_top_level_keys: [version, schema, updated, source_roots, common_tasks]
+  refs/testing/validationCommands.yaml:
+    required_top_level_keys: [version, schema, updated, commands]

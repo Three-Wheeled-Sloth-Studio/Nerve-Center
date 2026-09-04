@@ -1,3 +1,10 @@
+---
+type: Implementation Handoff
+title: Module Process Runtime Handoff
+description: Archived supervised child-process runtime, assignment, telemetry, operation-bridge, and Job Scout worker checkpoint.
+status: stable
+tags: [nerve-center, handoff, modules, runtime]
+---
 # Module Process Runtime Handoff (Archived)
 
 ## Accepted baseline

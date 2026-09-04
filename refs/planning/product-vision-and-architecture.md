@@ -1,3 +1,10 @@
+---
+type: Architecture Overview
+title: Nerve Center Product Vision and Architecture
+description: Compact architectural summary of Nerve Center manager ownership, module responsibilities, external-action boundaries, and design principles.
+status: stable
+tags: [nerve-center, planning, architecture]
+---
 # Nerve Center Product Vision and Architecture
 
 > The authoritative product definition is `refs/planning/product-requirements-document.md`. This document is the compact architectural summary.

@@ -1,0 +1,42 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+updated: 2026-09-04
+purpose: Defines required files and validation rules for Nerve Center's initialized Agent Academy-compatible refs harness.
+placeholder_tokens: []
+required_files:
+  - refs/README.md
+  - refs/index.md
+  - refs/project.yaml
+  - refs/agents.yaml
+  - refs/fileGuide.yaml
+  - refs/okfProfile.yaml
+  - refs/templatePolicy.yaml
+  - refs/implementation/fileMap.yaml
+  - refs/implementation/okfCompatibility.md
+  - refs/handoffs/currentHandoff.md
+  - refs/operations/okfMigration.md
+  - refs/testing/validationCommands.yaml
+  - refs/schemas/schemaRegistry.yaml
+  - refs/tools/check_case_collisions.py
+  - refs/tools/generate_okf_indexes.py
+  - refs/tools/validate_refs.py
+bootstrap_files:
+  - refs/project.yaml
+  - refs/agents.yaml
+  - refs/implementation/fileMap.yaml
+  - refs/handoffs/currentHandoff.md
+  - refs/testing/validationCommands.yaml
+validation:
+  schema_registry: refs/schemas/schemaRegistry.yaml
+  okf_profile: refs/okfProfile.yaml
+  okf_indexes_must_match_generator: true
+  initialized_mode_disallows_placeholders_in_bootstrap_files: true
+  paths_must_be_relative: true
+  case_collision_guard: refs/tools/check_case_collisions.py
+  disallowed_secret_patterns:
+    - api_key
+    - access_token
+    - secret_key
+    - password
+    - private_key
+    - bearer

@@ -1,3 +1,10 @@
+---
+type: Product Requirements
+title: Nerve Center Product Requirements Document
+description: Authoritative product-definition baseline for Nerve Center MVP and near-roadmap architecture, boundaries, runtime contracts, UX, safety, durability, and success criteria.
+status: stable
+tags: [nerve-center, planning, product-requirements]
+---
 # Nerve Center Product Requirements Document
 
 **Status:** Approved product baseline  

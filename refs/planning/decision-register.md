@@ -1,3 +1,10 @@
+---
+type: Decision Register
+title: Decision Register
+description: Durable accepted, deferred, rejected, and open product and architecture decisions for Nerve Center.
+status: stable
+tags: [nerve-center, planning, decisions]
+---
 # Decision Register
 
 Status values: `accepted`, `deferred`, `rejected`, `open`.
@@ -43,3 +50,10 @@ Status values: `accepted`, `deferred`, `rejected`, `open`.
 | NC-037 | accepted | The repository is public; source, tests, issues, logs, and fixtures must be safe for public disclosure. |
 | NC-038 | accepted | Packaged Windows builds bundle the Python API as a self-contained local executable while source development retains an explicit Python fallback. |
 | NC-039 | accepted | The first distributable artifact is an unsigned per-user NSIS development package; signing, automatic updates, and release channels are deferred. |
+| NC-040 | accepted | Job Scout discovery is a continuous double-diamond loop: expand search hypotheses, converge on useful signal, deepen productive companies/sources, reflect on what remains unexplored, then expand again until the authorized work window drains. |
+| NC-041 | accepted | Job Scout discovery optimizes recall and useful coverage rather than any minimum job count. A small result set is acceptable only when coverage telemetry shows the market was searched broadly and deeply. |
+| NC-042 | accepted | Companies are first-class durable discovery targets. Job Scout should liberally discover plausible local employers, resolve and revisit their career surfaces, and retain them even when they currently expose zero relevant openings. |
+| NC-043 | accepted | Discovery strategies retain yield telemetry and learned weights. User feedback and pursuit outcomes may promote, deprioritize, or negatively weight titles, terms, domains, companies, locations, and source strategies, while an exploration floor prevents premature lock-in. |
+| NC-044 | accepted | A configured starting location defines a labor market to investigate. Job Scout should cheaply derive nearby cities, metro aliases, and plausible adjacent markets from cached public geographic data before spending expensive enrichment on individual opportunities. |
+| NC-045 | accepted | Discovery learning and opportunity ranking are separate but related feedback loops: one allocates future search effort, the other sorts already discovered opportunities. Feedback must preserve enough provenance to affect the correct loop. |
+| NC-046 | deferred | People enrichment may later identify likely functional leaders, recruiters, and other useful contacts from ordinary public-web sources, including search-indexed LinkedIn profiles, without authenticated LinkedIn crawling or automation. Retain bounded person/contact references and leave a clean integration path for a future Farley File product. |

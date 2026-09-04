@@ -26,6 +26,11 @@ jobs:
           cache: pip
       - name: Install
         run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+      - name: Validate refs and tracked paths
+        run: |
+          python refs/tools/check_case_collisions.py
+          python refs/tools/generate_okf_indexes.py --check
+          python refs/tools/validate_refs.py --mode initialized
       - name: Lint
         run: ruff check .
       - name: Validate packaging command
@@ -41,6 +46,9 @@ jobs:
         working-directory: desktop
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
