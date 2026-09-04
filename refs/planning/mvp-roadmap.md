@@ -1,3 +1,10 @@
+---
+type: Roadmap
+title: MVP Roadmap
+description: Dependency-ordered implementation roadmap for the Nerve Center manager, module runtime, scheduling, queues, providers, and near-roadmap platform work.
+status: stable
+tags: [nerve-center, planning, roadmap]
+---
 # MVP Roadmap
 
 > Product intent and non-negotiable boundaries are defined in `refs/planning/product-requirements-document.md`. This roadmap orders implementation; it does not redefine the product.
