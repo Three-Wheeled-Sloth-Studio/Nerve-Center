@@ -6,6 +6,7 @@ Generated OKF discovery index. Do not edit manually.
 
 * [Data and Privacy Boundary](data-and-privacy-boundary.md) - Public-repository, local durable-data, credential, logging, search-provider, and browser-isolation boundaries.
 * [Decision Register](decision-register.md) - Durable accepted, deferred, rejected, and open product and architecture decisions for Nerve Center.
+* [Job Scout Discovery and Learning Contract](job-scout-discovery-and-learning-contract.md) - Accepted Job Scout behavior for continuous job-market discovery, company-first research, strategy learning, local-market expansion, and future people enrichment.
 * [Job Scout Scoring Contract](job-scout-scoring-contract.md) - Explainable fit, response-likelihood, opportunity-value, confidence, priority, location, and gating rules for Job Scout.
 * [Module Package Contract](module-package-contract.md) - Accepted manager/module ownership, manifest, lifecycle, storage, permissions, UI contribution, process runtime, and durable-work contract.
 * [MVP Roadmap](mvp-roadmap.md) - Dependency-ordered implementation roadmap for the Nerve Center manager, module runtime, scheduling, queues, providers, and near-roadmap platform work.
