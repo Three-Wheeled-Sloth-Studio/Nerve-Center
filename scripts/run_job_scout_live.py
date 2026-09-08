@@ -256,19 +256,37 @@ def monitor_session(
     report: dict[str, Any],
 ) -> tuple[dict[str, Any], str]:
     progress = ProgressReporter()
-    session = request_json(
-        endpoint,
-        "/api/v1/sessions",
-        "POST",
-        {"duration_seconds": duration_seconds},
-    )
+    recent_sessions = request_json(endpoint, "/api/v1/sessions?limit=20")
+    session = _resumable_job_scout_session(recent_sessions)
+    resumed = session is not None
+    if session is None:
+        session = request_json(
+            endpoint,
+            "/api/v1/sessions",
+            "POST",
+            {"duration_seconds": duration_seconds},
+        )
     run_id = str((session.get("module_run_ids") or {}).get("job_scout") or "")
     if not run_id:
         raise RuntimeError("Manager session did not create a Job Scout run")
-    print_progress(f"discovery scheduled | duration={duration_seconds}s | run={run_id}")
-    report["session"] = {"id": session.get("id"), "run_id": run_id}
+    if resumed:
+        print_progress(
+            "discovery resumed"
+            f" | session={session.get('id')}"
+            f" | run={run_id}"
+            f" | ends={session.get('ends_at')}"
+        )
+    else:
+        print_progress(f"discovery scheduled | duration={duration_seconds}s | run={run_id}")
+    report["session"] = {
+        "id": session.get("id"),
+        "run_id": run_id,
+        "resumed": resumed,
+        "ends_at": session.get("ends_at"),
+    }
     write_report(report_path, report)
-    deadline = time.monotonic() + duration_seconds + 180
+    remaining_seconds = _remaining_session_seconds(session, duration_seconds)
+    deadline = time.monotonic() + remaining_seconds + 180
     final: dict[str, Any] | None = None
     while time.monotonic() < deadline:
         run = request_json(endpoint, f"/api/v1/runs/{run_id}")
@@ -309,6 +327,40 @@ def monitor_session(
             break
         time.sleep(poll_seconds)
     return final, run_id
+
+
+def _resumable_job_scout_session(
+    sessions: object,
+) -> dict[str, Any] | None:
+    if not isinstance(sessions, list):
+        return None
+    actionable = {"requested", "running", "interrupted", "draining"}
+    return next(
+        (
+            session
+            for session in sessions
+            if isinstance(session, dict)
+            and session.get("status") in actionable
+            and bool((session.get("module_run_ids") or {}).get("job_scout"))
+        ),
+        None,
+    )
+
+
+def _remaining_session_seconds(
+    session: dict[str, Any],
+    fallback_seconds: int,
+) -> float:
+    ends_at = session.get("ends_at")
+    if not isinstance(ends_at, str):
+        return float(fallback_seconds)
+    try:
+        ending = datetime.fromisoformat(ends_at.replace("Z", "+00:00"))
+    except ValueError:
+        return float(fallback_seconds)
+    if ending.tzinfo is None or ending.utcoffset() is None:
+        return float(fallback_seconds)
+    return max((ending - datetime.now().astimezone()).total_seconds(), 0.0)
 
 
 def score_candidates(
