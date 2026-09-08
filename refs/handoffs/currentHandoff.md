@@ -19,7 +19,7 @@ tags: [nerve-center, handoff]
 - Ranking engine v3 weights requirement and responsibility coverage directly, limits configured-title influence to a weak +/-3 point clue, and uses source-backed company hiring-location evidence to improve remote-role response ranking when a configured local market matches.
 - Opportunity cards open HTTP(S) listings through the Tauri opener and expose the selected application/canonical URL for copying and manual QA.
 - Employer identity resolution rejects weak social/job-board identity hints, preserves unresolved employers safely, and can disambiguate same-name unresolved companies when a stable organization hint exists.
-- `scripts/run_job_scout_live.py` is the reusable real-run discovery/scoring diagnostic. CI remains deterministic and does not require Ollama or live public sites.
+- `scripts/run_job_scout_live.py` is the reusable real-run discovery/scoring diagnostic. It emits flushed transition/count updates plus a quiet one-minute heartbeat while retaining its continuously checkpointed JSON report. CI remains deterministic and does not require Ollama or live public sites.
 - Coding-agent context/token conservation is a primary engineering concern. `scripts/agent_context.py` generates a compact reset packet from authoritative refs and git state so agents can load context progressively instead of rereading large unchanged documents.
 
 ## Active product correction

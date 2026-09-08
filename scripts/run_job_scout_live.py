@@ -16,7 +16,9 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from collections.abc import Callable
 from contextlib import suppress
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -25,6 +27,89 @@ from platformdirs import user_data_path
 from nerve_center.scoring.fit import FIT_ANALYSIS_CONTRACT_VERSION
 
 TERMINAL_STATUSES = {"succeeded", "partial", "failed", "cancelled"}
+HEARTBEAT_SECONDS = 60.0
+
+
+def print_progress(message: str) -> None:
+    timestamp = datetime.now().astimezone().strftime("%H:%M:%S")
+    print(f"[{timestamp}] {message}", flush=True)
+
+
+class ProgressReporter:
+    """Emit transitions immediately and a quiet heartbeat while state is unchanged."""
+
+    def __init__(
+        self,
+        heartbeat_seconds: float = HEARTBEAT_SECONDS,
+        *,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
+        self.heartbeat_seconds = heartbeat_seconds
+        self.clock = clock
+        self.last_signature: tuple[object, ...] | None = None
+        self.last_emitted_at = 0.0
+
+    def observe_run(self, run: dict[str, Any]) -> str | None:
+        checkpoint = dict(run.get("checkpoint") or {})
+        status = str(run.get("status") or "unknown")
+        phase = str(checkpoint.get("phase") or status)
+        cycle = int(checkpoint.get("discovery_cycle") or 0)
+        counts = _progress_counts(
+            dict(checkpoint.get("coverage") or run.get("result_metrics") or {})
+        )
+        detail = f"discovery {phase}"
+        if cycle:
+            detail += f" cycle={cycle}"
+        return self._observe(("discovery", status, phase, cycle, counts), detail, counts)
+
+    def observe_manager(
+        self,
+        session: dict[str, Any],
+        queue: dict[str, Any],
+    ) -> str | None:
+        status = str(session.get("status") or "unknown")
+        phase = str(session.get("admission_phase") or status)
+        counts = (
+            ("queued", int(queue.get("queued", 0))),
+            ("claimed", int(queue.get("claimed", 0))),
+        )
+        detail = f"manager {phase}"
+        return self._observe(("manager", status, phase, counts), detail, counts)
+
+    def _observe(
+        self,
+        signature: tuple[object, ...],
+        detail: str,
+        counts: tuple[tuple[str, int], ...],
+    ) -> str | None:
+        now = self.clock()
+        transition = signature != self.last_signature
+        if not transition and now - self.last_emitted_at < self.heartbeat_seconds:
+            return None
+        prefix = "" if transition else "heartbeat | "
+        suffix = "".join(f" | {label}={value}" for label, value in counts)
+        message = f"{prefix}{detail}{suffix}"
+        print_progress(message)
+        self.last_signature = signature
+        self.last_emitted_at = now
+        return message
+
+
+def _progress_counts(values: dict[str, Any]) -> tuple[tuple[str, int], ...]:
+    labels = (
+        ("strategies_attempted", "strategies"),
+        ("results_examined", "results"),
+        ("companies_discovered", "companies"),
+        ("career_sources_resolved", "sources"),
+        ("postings_inspected", "postings"),
+        ("opportunities_retained", "roles"),
+        ("provider_warning_count", "warnings"),
+    )
+    return tuple(
+        (label, int(values[key]))
+        for key, label in labels
+        if key in values and isinstance(values[key], (int, float))
+    )
 
 
 def request_json(
@@ -170,6 +255,7 @@ def monitor_session(
     report_path: Path,
     report: dict[str, Any],
 ) -> tuple[dict[str, Any], str]:
+    progress = ProgressReporter()
     session = request_json(
         endpoint,
         "/api/v1/sessions",
@@ -179,6 +265,7 @@ def monitor_session(
     run_id = str((session.get("module_run_ids") or {}).get("job_scout") or "")
     if not run_id:
         raise RuntimeError("Manager session did not create a Job Scout run")
+    print_progress(f"discovery scheduled | duration={duration_seconds}s | run={run_id}")
     report["session"] = {"id": session.get("id"), "run_id": run_id}
     write_report(report_path, report)
     deadline = time.monotonic() + duration_seconds + 180
@@ -192,6 +279,7 @@ def monitor_session(
             "result_metrics": run.get("result_metrics"),
         }
         write_report(report_path, report)
+        progress.observe_run(run)
         if run.get("status") in TERMINAL_STATUSES:
             final = run
             break
@@ -210,6 +298,7 @@ def monitor_session(
             "queue": queue_state,
         }
         write_report(report_path, report)
+        progress.observe_manager(session_state, queue_state)
         active_queue = int(queue_state.get("queued", 0)) + int(
             queue_state.get("claimed", 0)
         )
@@ -242,6 +331,8 @@ def score_candidates(
         )
     ][:limit]
     scored: list[dict[str, Any]] = []
+    failures = 0
+    print_progress(f"scoring started | candidates={len(selected)} | model={model}")
     for index, opportunity in enumerate(selected, start=1):
         job = dict(opportunity.get("opening") or {})
         item: dict[str, Any] = {
@@ -271,6 +362,13 @@ def score_candidates(
         scored.append(item)
         report["scoring"] = {"completed": index, "requested": len(selected), "items": scored}
         write_report(report_path, report)
+        failures = sum(entry.get("status") != "succeeded" for entry in scored)
+        print_progress(
+            f"scoring {index}/{len(selected)} | succeeded={index - failures} | failures={failures}"
+        )
+    print_progress(
+        f"scoring completed | succeeded={len(scored) - failures} | failures={failures}"
+    )
     return scored
 
 
@@ -287,6 +385,9 @@ def run(args: argparse.Namespace) -> int:
         "default_model": args.model,
     }
     write_report(report_path, report)
+    print_progress(
+        f"runner starting | duration={args.duration_seconds}s | score_limit={args.score_limit}"
+    )
     context = ManagedApi(
         args.endpoint,
         data_dir,
@@ -296,6 +397,7 @@ def run(args: argparse.Namespace) -> int:
     try:
         with context:
             health = request_json(args.endpoint, "/health")
+            print_progress(f"API ready | version={health.get('version', 'unknown')}")
             workspace = configure_workspace(
                 args.endpoint,
                 resume=args.resume,
@@ -318,6 +420,12 @@ def run(args: argparse.Namespace) -> int:
                         ),
                     },
                 }
+            )
+            print_progress(
+                "workspace ready"
+                f" | keywords={report['workspace']['keyword_count']}"
+                f" | sources={report['workspace']['source_count']}"
+                f" | claims={report['workspace']['profile_claim_count']}"
             )
             final, run_id = monitor_session(
                 args.endpoint,
@@ -354,6 +462,13 @@ def run(args: argparse.Namespace) -> int:
                 ),
                 "reflection_hypotheses": len(reflections),
             }
+            print_progress(
+                "inventory captured"
+                f" | roles={report['inventory']['jobs']}"
+                f" | companies={report['inventory']['companies']}"
+                f" | sources={report['inventory']['sources']}"
+                f" | strategies={report['inventory']['strategies']}"
+            )
             report["ranked_opportunities"] = opportunities
             report["strategies"] = strategies
             report["reflections"] = reflections
@@ -382,7 +497,7 @@ def run(args: argparse.Namespace) -> int:
             report["status"] = "completed"
             write_report(report_path, report)
             archive_report(report_path, report)
-            print(f"Live evaluation complete: {report_path}")
+            print_progress(f"live evaluation complete | report={report_path}")
             return 0 if final.get("status") in {"succeeded", "partial"} else 1
     except KeyboardInterrupt:
         session_id = (report.get("session") or {}).get("id")
@@ -394,11 +509,13 @@ def run(args: argparse.Namespace) -> int:
         report["status"] = "interrupted"
         write_report(report_path, report)
         archive_report(report_path, report)
+        print_progress(f"runner interrupted safely | report={report_path}")
         return 130
     except Exception as error:
         report.update({"status": "failed", "error": str(error)[:4000]})
         write_report(report_path, report)
         archive_report(report_path, report)
+        print_progress(f"runner failed | error={str(error)[:500]} | report={report_path}")
         raise
 
 
