@@ -6,6 +6,8 @@ _SCRIPT = runpy.run_path(
 )
 ProgressReporter = _SCRIPT["ProgressReporter"]
 _progress_counts = _SCRIPT["_progress_counts"]
+_remaining_session_seconds = _SCRIPT["_remaining_session_seconds"]
+_resumable_job_scout_session = _SCRIPT["_resumable_job_scout_session"]
 
 
 def test_progress_counts_are_ordered_and_limited_to_known_metrics() -> None:
@@ -65,3 +67,28 @@ def test_manager_queue_changes_emit_immediately() -> None:
     assert reporter.observe_manager(session, {"queued": 0, "claimed": 1}) == (
         "manager draining | queued=0 | claimed=1"
     )
+
+
+def test_resumable_session_requires_an_actionable_job_scout_run() -> None:
+    selected = _resumable_job_scout_session(
+        [
+            {"id": "failed", "status": "failed", "module_run_ids": {}},
+            {
+                "id": "active",
+                "status": "interrupted",
+                "module_run_ids": {"job_scout": "run-1"},
+            },
+            {
+                "id": "other",
+                "status": "running",
+                "module_run_ids": {"another_module": "run-2"},
+            },
+        ]
+    )
+
+    assert selected is not None
+    assert selected["id"] == "active"
+
+
+def test_remaining_session_seconds_uses_fallback_for_invalid_deadline() -> None:
+    assert _remaining_session_seconds({"ends_at": "not-a-date"}, 300) == 300.0
