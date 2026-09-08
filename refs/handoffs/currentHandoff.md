@@ -9,96 +9,53 @@ tags: [nerve-center, handoff]
 
 ## Current state
 
-- `dev` is the accepted integration branch.
-- After merging a topic branch, switch the active checkout back to `dev`, update it to the accepted
-  merge commit, and continue work there rather than remaining on the merged branch.
-- Current application version on this documentation checkpoint is `0.12.4`.
-- The latest accepted implementation checkpoint makes Job Scout scans scheduler-ready and includes the compact single-module workspace, resume/configuration cleanup, source discovery, provisional scoring, and provider-neutral manager runtime.
-- Earlier accepted checkpoints cover module contracts, durable runs, child-process supervision, work sessions, durable shared work queues, provider-neutral local LLM support, career evidence, job discovery, scoring, application tracking, Tauri desktop review, and Windows packaging/runtime bootstrap.
-- Nerve Center has adopted the Agent Academy OKF v0.2-compatible refs harness non-destructively. Existing Nerve Center planning and engineering documents remain authoritative; generated indexes are discovery surfaces only.
-- Historical checkpoint detail remains in the sibling files under `refs/handoffs/`.
+- `dev` is the accepted integration branch; return the active checkout to `dev` after merging a topic branch.
+- Application version remains `0.12.4`.
+- The manager/module boundary, durable work sessions and queue, provider-neutral LLM manager, Windows desktop/package baseline, career evidence profile, Job Scout discovery, scoring, application tracking, and self-improving discovery loop are accepted foundations.
+- Job Scout discovery now resolves aggregator-listed openings to actual hiring companies, protects employer-owned deepening from board-source crowding, persists strategy/yield learning, expands local markets, and continues the `expand -> converge -> deepen -> reflect -> expand again` loop during an authorized session.
+- Manager-owned Ollama routing can prefer `gemma3:4b` strictly. Structured-output adaptation/repair remains manager-owned; Job Scout stays model-blind.
+- Employer identity resolution rejects weak social/job-board identity hints, preserves unresolved employers safely, and can disambiguate same-name unresolved companies when a stable organization hint exists.
+- `scripts/run_job_scout_live.py` is the reusable real-run discovery/scoring diagnostic. CI remains deterministic and does not require Ollama or live public sites.
+- Coding-agent context/token conservation is a primary engineering concern. `scripts/agent_context.py` generates a compact reset packet from authoritative refs and git state so agents can load context progressively instead of rereading large unchanged documents.
 
 ## Active product correction
 
-Job Scout's current discovery behavior is materially too shallow for the intended product. The next implementation priority is not another board connector in isolation; it is the self-improving discovery loop defined in `refs/planning/job-scout-discovery-and-learning-contract.md`.
+The main Job Scout quality gap is now **ranking discrimination**, not basic discovery plumbing. Current fit analysis can still fail to connect differently worded job requirements to genuinely supporting career evidence, which causes plausible adjacent roles to collapse toward similar conservative scores.
 
-The accepted behavioral model is:
+Accepted fit semantics are responsibility- and evidence-first rather than title-driven. A listed title is a weak clue only; actual responsibilities and requirements must be compared with verified candidate experience. Domain relationship should distinguish, in descending fit value:
 
-`expand -> converge -> deepen -> reflect -> expand again`
+`direct domain match > adjacent domain > transferable experience > domain/skill mismatch`
 
-Job Scout should keep discovering while its authorized Nerve Center session remains open, explore liberally, focus more effort on strategies that produce useful signal, investigate promising companies deeply through their own career surfaces, and deliberately ideate on new search paths when marginal discovery falls.
+The scorer currently contains a model-produced `domain_score`, but there is no reusable evidence-backed domain-distance classifier/taxonomy yet. Do not treat that scalar as satisfying the accepted domain-fit contract.
 
-There is no minimum job-count acceptance criterion. Coverage, useful market intelligence, and evidence that discovery actually searched broadly and deeply are the acceptance criteria.
+## Next implementation slice
 
-The latest Job Scout live-quality slice resolves aggregator-listed openings to their actual hiring
-companies, preserves corrected company identity during persistence, prevents board listing sources
-from crowding out employer-owned deepening, and guarantees capacity for company-revisit strategies.
-The manager can prefer `gemma3:4b` exclusively when configured, adapts Pydantic schemas to Ollama's
-reliable structured-output subset, and retries one malformed same-model response with a bounded
-repair request. Fit analysis now records contract/model provenance, validates job excerpts and claim
-identifiers, caps unsupported scores, and retains a deterministic provisional fallback.
+1. Build a reusable career-claim ↔ job-requirement evidence matcher that can connect semantically equivalent or transferable experience without fabricating support.
+2. Add an explicit evidence-backed domain relationship result: direct, adjacent, transferable, or mismatch, with confidence/provenance sufficient for explanation and tests.
+3. Feed those structured results into fit scoring while keeping title influence weak and preserving required/preferred qualification evidence constraints.
+4. Refresh stale/provisional scores under the current contract and rerun the durable live diagnostic against persisted opportunities.
+5. Judge progress primarily by top-ranked opportunity quality, differentiation, and defensible evidence—not raw opening count.
+6. Add another discovery provider only if live evidence shows discovery coverage, rather than ranking quality, is the limiting factor.
 
-A bounded real run expanded the persisted market from one apparent aggregator company to dozens of
-actual hiring-company identities and resolved employer career surfaces without allowing challenged
-sources to stop the wider cycle. The remaining quality gap is ranking discrimination: current local
-model analyses often find no defensible claim matches, leaving adjacent roles tied at conservative
-scores. Continue by improving evidence matching and role relevance, refreshing current-contract
-scores, and deepening healthy employer-owned sources into direct postings.
+## Do not reopen without new evidence
 
-The follow-up hardening checkpoint makes preferred-model routing strict when fallback is disabled,
-rejects weak social/job-board `sameAs` hints as employer domains, disambiguates same-name unresolved
-employers when a stable organization hint exists, and makes the live runner consume the canonical
-fit-analysis contract version. Coding-agent context conservation is now an explicit operating rule:
-use the file map, targeted reads/searches, deterministic diagnostics, reusable tools, and durable
-handoffs instead of repeatedly rediscovering unchanged state.
+- Company-first discovery and the double-diamond discovery loop.
+- Manager-owned provider/session/queue boundaries; modules remain model-blind.
+- `gemma3:4b` as the current Job Scout default local evaluator.
+- Separate discovery-learning and opportunity-ranking feedback loops.
+- Public-source safety: no authenticated LinkedIn/job-board crawling, CAPTCHA circumvention, stealth automation, unattended applications, or outreach.
+- People enrichment remains deferred; preserve seams but do not build a CRM inside Job Scout.
 
-Fit intent is now explicit: listed titles are weak clues rather than gates. Job Scout should compare
-actual responsibilities and requirements against verified experience, and domain relationship should
-rank direct domain match above adjacent domain, transferable experience, and domain/skill mismatch.
-The current scorer includes a model-produced domain component, but the reusable evidence-backed
-domain-distance model/taxonomy is not implemented yet; treat it as part of the next ranking-quality
-slice rather than assuming current `domain_score` provides that distinction.
+## Coding-agent reset path
 
-## Immediate implementation slice
+For routine continuation, start with:
 
-Implement the smallest coherent foundation that changes Job Scout from bounded querying into a persistent discovery engine:
+```powershell
+python scripts/agent_context.py --focus "job scout requirement evidence domain fit ranking" --issue <issue-number>
+```
 
-1. Durable discovery-strategy identity and yield telemetry.
-2. Company-first discovery and durable monitoring, including plausible employers with zero current relevant openings.
-3. Cheap local-market expansion from the configured starting location using public geographic reference data and learned location aliases.
-4. Iterative expand/converge/deepen/reflect orchestration during the existing manager-owned wall-clock session.
-5. Transparent learned weighting with positive, deprioritized, and negative signals plus an exploration floor.
-6. Session coverage metrics that show strategies attempted, results examined, companies/career sites discovered, postings inspected, opportunities retained, strategy changes, reflection hypotheses, and provider warnings.
-7. Manager-routed LLM ideation only where deterministic expansion has reached diminishing returns.
-
-Do not add people enrichment yet. Preserve a clean future seam for public person/contact references and a possible Farley File integration, but do not build a CRM inside Job Scout.
-
-## Architectural constraints
-
-- Keep all Job Scout discovery semantics inside the Job Scout module boundary.
-- Do not add job-specific behavior to Nerve Center core schemas, navigation, scheduling, or provider policy.
-- Modules remain model-blind and may not call Ollama or any other provider directly.
-- Preserve the existing public-source safety boundary: no authenticated LinkedIn crawling, no CAPTCHA circumvention, no stealth browser automation, and no unattended outreach or application submission.
-- Discovery should optimize recall; opportunity scoring and user feedback provide precision.
-- User feedback must retain enough provenance to affect discovery allocation separately from opportunity ranking.
-- A source challenge or throttle should cool that path down without ending the whole discovery cycle when other safe strategies remain.
-
-## Read before implementation
-
-1. `AGENTS.md`
-2. `refs/README.md`
-3. `refs/project.yaml`
-4. `refs/handoffs/currentHandoff.md`
-5. `refs/handoffs/next-dev-prompt.md`
-6. `refs/planning/product-requirements-document.md`
-7. `refs/planning/job-scout-discovery-and-learning-contract.md`
-8. `refs/planning/job-scout-scoring-contract.md`
-9. `refs/planning/module-package-contract.md`
-10. `refs/research/search-source-strategy.md`
-11. `refs/testing/validationCommands.yaml`
+Use the generated packet, active issue, and its file-map hints first. Expand to full roadmap/decision/architecture documents only when needed. The packet is derived orientation and must never become a competing source of truth.
 
 ## Validation boundary
 
-Before promotion, run the commands in `refs/testing/validationCommands.yaml`, including generated-index checks and the tracked-path case-collision guard, plus the existing Python, React/TypeScript, Rust/Tauri, and Windows packaging gates where applicable.
-
-For discovery changes, add deterministic synthetic coverage around strategy weighting, company deepening, local-market expansion, diminishing-return/reflection transitions, provider cooldown isolation, and restart-safe persistence. Do not depend on live public sites for required CI.
+Run required commands in `refs/testing/validationCommands.yaml`. CI must remain deterministic and independent of Ollama, GPUs, live job boards, and mutable career sites. Bugs found during real Job Scout runs should gain deterministic fixtures/regressions when practical.
