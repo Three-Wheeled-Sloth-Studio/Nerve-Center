@@ -1,6 +1,6 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: 2026-09-04
+updated: 2026-09-08
 source_roots:
   - path: src/nerve_center
     purpose: Python API, persistence, scheduler, orchestration, providers, scoring, and module/plugin implementation.
@@ -9,12 +9,14 @@ source_roots:
   - path: desktop/src-tauri/src
     purpose: Tauri Rust desktop runtime, backend supervision, tray lifecycle, and native shell behavior.
   - path: scripts
-    purpose: Development launch and Windows backend packaging helpers.
+    purpose: Development launch, compact agent-context generation, live diagnostics, and Windows backend packaging helpers.
   - path: refs
     purpose: Durable project memory, decisions, validation guidance, and handoffs.
 common_tasks:
   - task: Change Job Scout behavior
     look_in: [src/nerve_center/plugins/job_scout, desktop/src/JobScoutPanel.tsx, refs/planning]
+  - task: Change Job Scout fit or scoring
+    look_in: [src/nerve_center/scoring, src/nerve_center/profile, tests/test_fit_analysis.py, refs/planning/job-scout-scoring-contract.md]
   - task: Change scheduler or run lifecycle
     look_in: [src/nerve_center/scheduler, src/nerve_center/persistence, refs/handoffs]
   - task: Change LLM provider behavior
@@ -26,6 +28,6 @@ common_tasks:
   - task: Change Windows packaging
     look_in: [scripts, desktop/src-tauri, .github/workflows/windows-package.yml, refs/testing/windows-desktop-smoke.md]
   - task: Change CI or agent workflow
-    look_in: [.github/workflows, refs/engineering/ci-and-agent-workflow.md, refs/testing/validationCommands.yaml]
+    look_in: [scripts/agent_context.py, tests/test_agent_context.py, .github/workflows, refs/engineering/ci-and-agent-workflow.md, refs/testing/validationCommands.yaml]
   - task: Update project memory
     look_in: [refs/README.md, refs/agents.yaml, refs/fileGuide.yaml, refs/okfProfile.yaml]

@@ -43,11 +43,31 @@ The coding agent should optimize its own context/token use before optimizing loc
 - Prefer targeted file ranges, symbol searches, diffs, and tests over repeatedly loading whole large files or directories.
 - Do not re-read unchanged material already established in the active work session unless new evidence makes it relevant.
 - Use deterministic tools for mechanical questions: grep/search, parsers, formatters, schema validators, targeted tests, database queries, and small diagnostic scripts should replace repeated natural-language reasoning whenever practical.
-- If a diagnostic, transformation, comparison, or validation will be performed more than once, turn it into a reusable script/helper/test rather than spending agent tokens reconstructing the procedure each time.
+- If substantially the same diagnostic, transformation, comparison, or validation is performed twice in one development arc, make it reusable before doing it a third time.
 - Batch related inspections and edits into coherent slices. Avoid one-tool-call-per-line workflows and speculative ping-pong between files.
 - Persist context-heavy findings and next steps in `refs/handoffs/currentHandoff.md` so a reset does not require rediscovering accepted state.
 - Prefer concise evidence summaries and references to durable files over pasting large unchanged source blocks into prompts or comments.
 - Do not build abstractions for genuinely one-off work solely to save tokens; create tooling where repetition or deterministic reuse is expected.
+
+### Start resets with the generated context packet
+
+For routine continuation, run:
+
+```powershell
+python scripts/agent_context.py --focus "<short task description>" --issue <issue-number>
+```
+
+The packet is intentionally small and derived from authoritative refs plus local git state. It includes branch/SHA, current handoff highlights selected for the focus, relevant accepted decisions, file-map hints, changed paths, and required validation commands. It is orientation, not a new source of truth.
+
+Use the packet to drive progressive loading:
+
+1. Read the active issue/task and the specific paths the packet identifies.
+2. Inspect diffs from the accepted integration branch before reopening unchanged source.
+3. Use symbol search or targeted line ranges before reading whole files.
+4. Expand to the complete roadmap, decision register, architecture docs, or handoff only when the task crosses those boundaries or the packet lacks necessary context.
+5. Do not re-derive an accepted decision merely because a reset occurred.
+
+The packet prints to stdout by default. `--output .agent-context.md` may be used as a local scratch artifact; that file is ignored by Git and must not be committed. `--check` validates that generation still works and remains inside the routine size budget.
 
 ### Start long work as a draft pull request
 
@@ -106,7 +126,7 @@ Before marking a pull request ready:
 
 ## Current Nerve Center validation order
 
-1. Python install, Ruff, and Pytest.
+1. Agent-context generation and Python install/lint/tests.
 2. React and TypeScript production build.
 3. Tauri Rust `cargo check`, after the first two jobs pass.
 

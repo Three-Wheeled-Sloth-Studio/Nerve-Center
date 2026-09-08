@@ -57,6 +57,9 @@ playwright-data/
 logs/
 exports/
 
+# Local agent/reset scratch context
+.agent-context.md
+
 # Local test artifacts
 .coverage
 htmlcov/
