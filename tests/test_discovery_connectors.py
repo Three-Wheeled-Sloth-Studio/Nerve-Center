@@ -246,6 +246,55 @@ def test_json_ld_does_not_treat_social_same_as_as_employer_domain() -> None:
     assert opening.company_domain != "linkedin.com"
 
 
+def test_json_ld_disambiguates_same_name_unresolved_hiring_organizations() -> None:
+    jobs = {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "JobPosting",
+                "title": "Product Director A",
+                "description": "Lead one product organization.",
+                "hiringOrganization": {
+                    "@type": "Organization",
+                    "name": "Insight",
+                    "sameAs": "https://www.linkedin.com/company/insight-a",
+                },
+            },
+            {
+                "@type": "JobPosting",
+                "title": "Product Director B",
+                "description": "Lead another product organization.",
+                "hiringOrganization": {
+                    "@type": "Organization",
+                    "name": "Insight",
+                    "sameAs": "https://www.linkedin.com/company/insight-b",
+                },
+            },
+        ],
+    }
+    page = f'<script type="application/ld+json">{json.dumps(jobs)}</script>'
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, text=page, request=request)
+
+    source = _source(SourceKind.JSON_LD, direct_employer_source=False)
+    source = source.model_copy(
+        update={
+            "base_url": "https://board.example/jobs",
+            "acquisition_class": AcquisitionClass.PUBLIC_HTML_ALLOWED,
+        }
+    )
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    result = asyncio.run(
+        JsonLdJobConnector().scan(_company(), source, HttpFetcher(client=client))
+    )
+    asyncio.run(client.aclose())
+
+    domains = {opening.company_domain for opening in result.openings}
+    assert len(domains) == 2
+    assert all(domain.endswith(".unresolved.invalid") for domain in domains)
+
+
 def test_sitemap_returns_only_likely_job_urls() -> None:
     xml = """<?xml version='1.0'?>
     <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
