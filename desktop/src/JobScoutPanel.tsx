@@ -1,9 +1,11 @@
 import { type FormEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import {
   Bookmark,
   BriefcaseBusiness,
   ClipboardCheck,
   Clock3,
+  Copy,
   ExternalLink,
   FileText,
   FolderOpen,
@@ -299,12 +301,40 @@ function ReviewPanel({ items, sort, includeDismissed, busy, onBusy, onSort, onIn
       <label>Sort<select value={sort} onChange={(event) => onSort(event.target.value as SortKey)}><option value="priority">Priority</option><option value="response">Response likelihood</option><option value="fit">Fit</option><option value="freshness">Freshness</option></select></label>
       <label className="checkbox"><input type="checkbox" checked={includeDismissed} onChange={(event) => onIncludeDismissed(event.target.checked)} />Show dismissed</label>
     </div>
-    <div className="opportunity-list">{filtered.length === 0 ? <div className="empty-state">No opportunities match this view.</div> : filtered.map((item) => <article className="opportunity-card" key={item.opening.id}>
-      <div className="opportunity-summary"><div className="priority-badge"><strong>{score(item.score?.priority)}</strong><span>priority</span></div><div className="opportunity-title"><h3>{item.opening.title}</h3><p><strong>{item.opening.company_name}</strong> · {item.opening.location_text ?? "Location unclear"}</p><div className="opportunity-meta"><span><BriefcaseBusiness aria-hidden="true" />{titleCase(item.opening.work_arrangement)}</span><span><Clock3 aria-hidden="true" />{freshness(item.opening.posted_at ?? item.opening.discovered_at)}</span><span>{item.score ? `${Math.round(item.score.confidence)}% confidence` : "Unscored"}</span></div></div><div className="score-strip"><Metric label="Fit" value={item.score?.fit} /><Metric label="Response" value={item.score?.response_likelihood} /><Metric label="Value" value={item.score?.opportunity_value} /></div><div className="opportunity-actions"><button className="icon-button" disabled={busy} title="Save" aria-label="Save" onClick={() => void change(item, "saved")}><Bookmark aria-hidden="true" /></button><button className="icon-button primary" disabled={busy} title="Plan to apply" aria-label="Plan to apply" onClick={() => void change(item, "planned_to_apply")}><ClipboardCheck aria-hidden="true" /></button><button className="icon-button" disabled={busy} title="Dismiss" aria-label="Dismiss" onClick={() => void change(item, "dismissed")}><X aria-hidden="true" /></button><a className="icon-button" href={item.opening.apply_url ?? item.opening.canonical_url} target="_blank" title="Open original listing" aria-label="Open original listing"><ExternalLink aria-hidden="true" /></a></div></div>
-
-      <details><summary>Evidence and description</summary><p>{item.opening.description}</p></details>
-    </article>)}</div>
+    <div className="opportunity-list">{filtered.length === 0 ? <div className="empty-state">No opportunities match this view.</div> : filtered.map((item) => <OpportunityCard key={item.opening.id} item={item} busy={busy} onChange={change} onError={onError} />)}</div>
   </div>;
+}
+
+function OpportunityCard({ item, busy, onChange, onError }: {
+  item: ReviewOpportunity;
+  busy: boolean;
+  onChange: (item: ReviewOpportunity, status: ApplicationStatus) => Promise<void>;
+  onError: (message: string) => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  const listingUrl = item.opening.apply_url ?? item.opening.canonical_url;
+  async function openListing() {
+    try {
+      const parsed = new URL(listingUrl);
+      if (!["http:", "https:"].includes(parsed.protocol)) throw new Error("Only HTTP job links can be opened.");
+      await openUrl(parsed.toString());
+    } catch (reason) {
+      onError(`Could not open the original listing: ${messageOf(reason)}`);
+    }
+  }
+  async function copyListing() {
+    try {
+      await navigator.clipboard.writeText(listingUrl);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch (reason) {
+      onError(`Could not copy the listing URL: ${messageOf(reason)}`);
+    }
+  }
+  return <article className="opportunity-card">
+    <div className="opportunity-summary"><div className="priority-badge"><strong>{score(item.score?.priority)}</strong><span>priority</span></div><div className="opportunity-title"><h3>{item.opening.title}</h3><p><strong>{item.opening.company_name}</strong> · {item.opening.location_text ?? "Location unclear"}</p><div className="opportunity-meta"><span><BriefcaseBusiness aria-hidden="true" />{titleCase(item.opening.work_arrangement)}</span><span><Clock3 aria-hidden="true" />{freshness(item.opening.posted_at ?? item.opening.discovered_at)}</span><span>{item.score ? `${Math.round(item.score.confidence)}% confidence` : "Unscored"}</span></div></div><div className="score-strip"><Metric label="Fit" value={item.score?.fit} /><Metric label="Response" value={item.score?.response_likelihood} /><Metric label="Value" value={item.score?.opportunity_value} /></div><div className="opportunity-actions"><button className="icon-button" disabled={busy} title="Save" aria-label="Save" onClick={() => void onChange(item, "saved")}><Bookmark aria-hidden="true" /></button><button className="icon-button primary" disabled={busy} title="Plan to apply" aria-label="Plan to apply" onClick={() => void onChange(item, "planned_to_apply")}><ClipboardCheck aria-hidden="true" /></button><button className="icon-button" disabled={busy} title="Dismiss" aria-label="Dismiss" onClick={() => void onChange(item, "dismissed")}><X aria-hidden="true" /></button><button className="icon-button" type="button" title="Open original listing" aria-label="Open original listing" onClick={() => void openListing()}><ExternalLink aria-hidden="true" /></button></div></div>
+    <details><summary>Listing details and description</summary><div className="listing-url"><code title={listingUrl}>{listingUrl}</code><button type="button" onClick={() => void copyListing()}><Copy aria-hidden="true" />{copied ? "Copied" : "Copy URL"}</button><button type="button" onClick={() => void openListing()}><ExternalLink aria-hidden="true" />Open listing</button></div><p>{item.opening.description}</p></details>
+  </article>;
 }
 
 function freshness(value: string): string {

@@ -68,6 +68,7 @@ def install_job_scout(
         settings,
         provider,
         target_titles_provider=lambda: coordinator.store.load().target_titles,
+        location_markets_provider=lambda: coordinator.store.load().locations,
     )
     discovery_loop = JobScoutDiscoveryLoop(
         settings,

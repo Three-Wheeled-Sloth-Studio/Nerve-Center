@@ -88,6 +88,7 @@ class LocationPreferences(BaseModel):
     home_label: str | None = None
     home_point: GeoPoint | None = None
     home_region: str | None = None
+    local_markets: list[str] = Field(default_factory=list)
     regional_regions: list[str] = Field(default_factory=list)
     local_max_commute_minutes: int = Field(default=90, ge=1, le=300)
     road_distance_factor: float = Field(default=1.25, ge=1, le=3)

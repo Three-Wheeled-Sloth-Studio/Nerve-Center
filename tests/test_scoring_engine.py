@@ -212,6 +212,46 @@ def test_nearby_relevant_office_improves_remote_response() -> None:
     assert with_office.response_likelihood > without_office.response_likelihood
 
 
+def test_textual_local_company_presence_improves_remote_response_with_evidence() -> None:
+    opening = _opening(
+        arrangement=WorkArrangement.REMOTE,
+        posted_at=datetime.now(UTC) - timedelta(days=1),
+    )
+    preferences = LocationPreferences(
+        local_markets=["Greensboro, NC"],
+        home_region="NC",
+    )
+    with_presence = _score(
+        opening=opening,
+        job=JobEnrichment(job_id="job-1", region="TX", location_confidence=0.9),
+        preferences=preferences,
+        company=CompanyEnrichment(
+            company_id="company-1",
+            offices=[
+                OfficeLocation(
+                    id="presence-1",
+                    label="Greensboro, NC",
+                    region="NC",
+                    evidence_url="https://example.com/jobs/nearby",
+                    confidence=0.8,
+                )
+            ],
+        ),
+    )
+    without_presence = _score(
+        opening=opening,
+        job=JobEnrichment(job_id="job-1", region="TX", location_confidence=0.9),
+        preferences=preferences,
+    )
+
+    factor = next(
+        item for item in with_presence.factors if item.code == "local_company_presence"
+    )
+    assert with_presence.location.scope is LocationScope.LOCAL
+    assert with_presence.response_likelihood > without_presence.response_likelihood
+    assert factor.evidence == ["https://example.com/jobs/nearby"]
+
+
 def test_unverified_required_license_creates_visible_gate() -> None:
     result = _score(analysis=_analysis(match=MatchLevel.NONE, gate=GateCategory.LICENSE))
 
@@ -244,4 +284,4 @@ def test_target_title_alignment_is_only_a_weak_visible_fit_clue() -> None:
     assert unrelated.priority < aligned.priority
     assert any(item.code == "target_title_alignment" for item in unrelated.factors)
     assert unrelated.calculation["target_title_alignment"] == 0.0
-    assert unrelated.calculation["scoring_engine_version"] == "job-scout-ranking-v2"
+    assert unrelated.calculation["scoring_engine_version"] == "job-scout-ranking-v3"

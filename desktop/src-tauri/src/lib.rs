@@ -142,6 +142,7 @@ fn diagnostic_log_path(runtime: State<'_, ApiRuntime>) -> Option<String> {
 
 pub fn run() {
     let app = tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
         .manage(ApiRuntime::new())
         .invoke_handler(tauri::generate_handler![
             startup_status,
