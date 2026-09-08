@@ -1,13 +1,17 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
 instructions:
-  - Read refs/project.yaml before starting project work.
-  - Read refs/planning/mvp-roadmap.md and refs/planning/decision-register.md before adding or changing implementation work.
+  - For routine continuation or reset, run scripts/agent_context.py with a short task focus before rereading large refs; treat its packet as derived orientation only, never as project truth.
+  - After the packet, read the active issue/task and only the source/ref paths it identifies as relevant; expand to broader refs when the task crosses those boundaries or the packet is insufficient.
+  - Read refs/project.yaml when project identity, phase, or source-of-truth routing matters.
+  - Read refs/planning/mvp-roadmap.md and refs/planning/decision-register.md when changing roadmap scope or when the packet identifies relevant decisions that require full context.
   - Read refs/planning/product-vision-and-architecture.md and refs/planning/module-package-contract.md before changing system boundaries or module ownership.
   - Read refs/implementation/fileMap.yaml before searching broadly.
-  - Conserve coding-agent context and tokens by targeting reads through the file map, avoiding repeated reads of unchanged large files, preferring deterministic searches/tests over repeated reasoning, and extracting repeated diagnostics or workflows into reusable scripts/tools.
+  - Conserve coding-agent context and tokens by using diff-first continuation, targeted reads/searches, avoiding repeated reads of unchanged large files, preferring deterministic searches/tests over repeated reasoning, and extracting repeated diagnostics or workflows into reusable scripts/tools.
+  - If substantially the same diagnostic, search, or transformation is performed twice in one development arc, make it reusable before doing it a third time.
+  - Treat accepted decisions as inputs unless new runtime/test evidence contradicts them; do not spend context re-deriving settled choices.
   - Read refs/testing/validationCommands.yaml before finalizing changes.
-  - Use refs/index.md as the OKF discovery surface, but do not substitute it for the required reading order.
+  - Use refs/index.md as the OKF discovery surface, but do not substitute it for authoritative refs.
   - Keep durable decisions, handoffs, validation notes, and context-heavy project facts in refs.
   - Preserve OKF frontmatter on every non-reserved Markdown concept under refs.
   - Do not hand-edit generated index.md files; regenerate them with refs/tools/generate_okf_indexes.py.
