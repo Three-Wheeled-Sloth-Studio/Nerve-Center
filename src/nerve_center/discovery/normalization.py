@@ -96,6 +96,15 @@ def stable_company_id(domain: str) -> str:
     return str(uuid5(NAMESPACE_URL, f"company|{canonical_domain(domain)}"))
 
 
+def unresolved_company_domain(name: str) -> str:
+    """Return a stable, non-routable identity for a named but unresolved employer."""
+
+    normalized = clean_text(name).casefold()
+    slug = re.sub(r"[^a-z0-9]+", "-", normalized).strip("-")[:80] or "company"
+    digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:12]
+    return f"{slug}-{digest}.unresolved.invalid"
+
+
 def stable_source_id(kind: str, base_url: str) -> str:
     return str(uuid5(NAMESPACE_URL, f"source|{kind}|{canonicalize_url(base_url)}"))
 

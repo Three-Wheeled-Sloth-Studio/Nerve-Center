@@ -37,7 +37,9 @@ Manager-launched module processes
   | Job Scout
   | future first-party modules
         |
-SQLite, module namespaces, and isolated artifact directories
+Persistence boundary
+  | local mode: SQLite, module namespaces, and isolated artifact directories
+  | hosted mode (post-MVP): PostgreSQL behind the same repository contracts
 ```
 
 The desktop shell is not the business-logic host. Core scheduling, persistence, queueing, model orchestration, module supervision, and update behavior live behind reusable local service contracts.
@@ -75,7 +77,7 @@ Authenticated read and non-public remote drafts may be supported only through ex
 - Wall clock is authoritative for run windows.
 - Structured durable state is authoritative.
 - Modules are independently packaged and supervised.
-- Local execution and local storage are the default.
+- Local execution with local SQLite storage is the default. A post-MVP hosted mode may run the same manager contracts against PostgreSQL without weakening module boundaries or silently synchronizing local data.
 - Provider and model choices remain manager concerns.
 - Reversible actions favor undo over unnecessary confirmation.
 - Human review precedes consequential external action.

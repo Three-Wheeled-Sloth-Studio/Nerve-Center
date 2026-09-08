@@ -302,6 +302,8 @@ class JobScoutDiscoveryRepository:
         *,
         limit: int = 4,
         exploration_floor: float = 0.25,
+        excluded_company_ids: set[str] | None = None,
+        excluded_source_ids: set[str] | None = None,
         now: datetime | None = None,
     ) -> list[DiscoveryStrategySnapshot]:
         if limit < 1:
@@ -318,7 +320,15 @@ class JobScoutDiscoveryRepository:
                 ).all()
             )
             models = session.scalars(select(DiscoveryStrategyModel)).all()
-            candidates = [item for item in models if item.id not in attempted]
+            blocked_companies = excluded_company_ids or set()
+            blocked_sources = excluded_source_ids or set()
+            candidates = [
+                item
+                for item in models
+                if item.id not in attempted
+                and item.dimensions.get("company_id") not in blocked_companies
+                and item.dimensions.get("source_id") not in blocked_sources
+            ]
             if not candidates:
                 return []
             count = min(limit, len(candidates))
@@ -340,6 +350,21 @@ class JobScoutDiscoveryRepository:
                 reverse=True,
             )[: count - len(exploration)]
             selected = [*exploitation, *exploration]
+            if count > 1 and not any(
+                item.dimensions.get("kind") == "company_revisit" for item in selected
+            ):
+                company_candidates = sorted(
+                    (
+                        item
+                        for item in candidates
+                        if item.dimensions.get("kind") == "company_revisit"
+                        and item.id not in {chosen.id for chosen in selected}
+                    ),
+                    key=lambda item: (_strategy_score(item, current), item.id),
+                    reverse=True,
+                )
+                if company_candidates:
+                    selected[-1] = company_candidates[0]
             return [_strategy_snapshot(item) for item in selected]
 
     def record_attempt(

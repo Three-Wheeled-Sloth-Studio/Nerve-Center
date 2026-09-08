@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 from nerve_center.applications.api import register_application_routes
 from nerve_center.config import Settings
@@ -44,6 +44,7 @@ def install_job_scout(
     source_repository = DiscoverySourceRepository(database)
     job_repository = JobOpeningRepository(database)
     learning_repository = JobScoutDiscoveryRepository(database)
+    application.state.job_scout_learning = learning_repository
     discovery_service = DiscoveryService(
         company_repository,
         source_repository,
@@ -71,6 +72,7 @@ def install_job_scout(
         job_repository,
         learning_repository,
     )
+    _register_discovery_learning_routes(application, learning_repository)
     register_application_routes(
         application,
         database,
@@ -88,3 +90,44 @@ def install_job_scout(
             discovery_loop,
         ),
     )
+
+
+def _register_discovery_learning_routes(
+    application: FastAPI,
+    learning: JobScoutDiscoveryRepository,
+) -> None:
+    @application.get("/api/v1/modules/job_scout/discovery/strategies")
+    def list_discovery_strategies() -> list[dict[str, object]]:
+        return [
+            {
+                "id": item.id,
+                "dimensions": item.dimensions,
+                "origin": item.origin,
+                "learned_weight": item.learned_weight,
+                "influence": item.influence,
+                "attempts": item.attempts,
+                "results_examined": item.results_examined,
+                "companies_discovered": item.companies_discovered,
+                "career_sources_resolved": item.career_sources_resolved,
+                "postings_inspected": item.postings_inspected,
+                "opportunities_retained": item.opportunities_retained,
+                "positive_feedback": item.positive_feedback,
+                "negative_feedback": item.negative_feedback,
+                "challenge_count": item.challenge_count,
+                "failure_count": item.failure_count,
+                "last_attempt_at": item.last_attempt_at,
+                "last_productive_at": item.last_productive_at,
+            }
+            for item in learning.list_strategies()
+        ]
+
+    @application.get("/api/v1/modules/job_scout/discovery/sessions/{run_id}")
+    def get_discovery_session(run_id: str) -> object:
+        try:
+            return learning.session(run_id)
+        except KeyError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+
+    @application.get("/api/v1/modules/job_scout/discovery/sessions/{run_id}/reflections")
+    def list_reflection_hypotheses(run_id: str) -> list[dict[str, object]]:
+        return learning.reflection_hypotheses(run_id)

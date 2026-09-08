@@ -10,6 +10,8 @@ tags: [nerve-center, handoff]
 ## Current state
 
 - `dev` is the accepted integration branch.
+- After merging a topic branch, switch the active checkout back to `dev`, update it to the accepted
+  merge commit, and continue work there rather than remaining on the merged branch.
 - Current application version on this documentation checkpoint is `0.12.4`.
 - The latest accepted implementation checkpoint makes Job Scout scans scheduler-ready and includes the compact single-module workspace, resume/configuration cleanup, source discovery, provisional scoring, and provider-neutral manager runtime.
 - Earlier accepted checkpoints cover module contracts, durable runs, child-process supervision, work sessions, durable shared work queues, provider-neutral local LLM support, career evidence, job discovery, scoring, application tracking, Tauri desktop review, and Windows packaging/runtime bootstrap.
@@ -27,6 +29,21 @@ The accepted behavioral model is:
 Job Scout should keep discovering while its authorized Nerve Center session remains open, explore liberally, focus more effort on strategies that produce useful signal, investigate promising companies deeply through their own career surfaces, and deliberately ideate on new search paths when marginal discovery falls.
 
 There is no minimum job-count acceptance criterion. Coverage, useful market intelligence, and evidence that discovery actually searched broadly and deeply are the acceptance criteria.
+
+The latest Job Scout live-quality slice resolves aggregator-listed openings to their actual hiring
+companies, preserves corrected company identity during persistence, prevents board listing sources
+from crowding out employer-owned deepening, and guarantees capacity for company-revisit strategies.
+The manager can prefer `gemma3:4b` exclusively when configured, adapts Pydantic schemas to Ollama's
+reliable structured-output subset, and retries one malformed same-model response with a bounded
+repair request. Fit analysis now records contract/model provenance, validates job excerpts and claim
+identifiers, caps unsupported scores, and retains a deterministic provisional fallback.
+
+A bounded real run expanded the persisted market from one apparent aggregator company to dozens of
+actual hiring-company identities and resolved employer career surfaces without allowing challenged
+sources to stop the wider cycle. The remaining quality gap is ranking discrimination: current local
+model analyses often find no defensible claim matches, leaving adjacent roles tied at conservative
+scores. Continue by improving evidence matching and role relevance, refreshing current-contract
+scores, and deepening healthy employer-owned sources into direct postings.
 
 ## Immediate implementation slice
 

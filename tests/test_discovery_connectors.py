@@ -164,6 +164,51 @@ def test_json_ld_extracts_nested_jobposting() -> None:
     assert opening.locations == ["US"]
 
 
+def test_json_ld_resolves_aggregator_hiring_organization_domain() -> None:
+    job_page = {
+        "@context": "https://schema.org",
+        "@type": "JobPosting",
+        "title": "Director of Product",
+        "description": "Lead the product organization.",
+        "hiringOrganization": {
+            "@type": "Organization",
+            "name": "Actual Employer",
+            "sameAs": "https://board.example/company/actual-employer",
+        },
+    }
+    company_page = {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Actual Employer",
+        "url": "https://actual.example",
+    }
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        payload = company_page if request.url.path.startswith("/company/") else job_page
+        page = f'<script type="application/ld+json">{json.dumps(payload)}</script>'
+        return httpx.Response(200, text=page, request=request)
+
+    source = _source(SourceKind.JSON_LD, direct_employer_source=False)
+    source = source.model_copy(
+        update={
+            "base_url": "https://board.example/job/42",
+            "acquisition_class": AcquisitionClass.PUBLIC_HTML_ALLOWED,
+        }
+    )
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    result = asyncio.run(
+        JsonLdJobConnector().scan(_company(), source, HttpFetcher(client=client))
+    )
+    asyncio.run(client.aclose())
+
+    opening = result.openings[0]
+    assert result.requests_made == 2
+    assert opening.company_name == "Actual Employer"
+    assert opening.company_domain == "actual.example"
+    assert opening.company_id != _company().id
+    assert opening.provenance[0].direct_employer_source is False
+
+
 def test_sitemap_returns_only_likely_job_urls() -> None:
     xml = """<?xml version='1.0'?>
     <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>

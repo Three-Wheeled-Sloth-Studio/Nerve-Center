@@ -109,6 +109,19 @@ def test_recurring_session_persists_concrete_next_window(tmp_path: Path) -> None
     assert created.json()["recurrence"]["timezone"] == "America/New_York"
 
 
+def test_overlapping_active_sessions_are_rejected(tmp_path: Path) -> None:
+    app = create_app(Settings(data_dir=tmp_path))
+
+    with TestClient(app) as client:
+        first = client.post("/api/v1/sessions", json={"duration_seconds": 60})
+        second = client.post("/api/v1/sessions", json={"duration_seconds": 60})
+        client.post(f"/api/v1/sessions/{first.json()['id']}/emergency-stop")
+
+    assert first.status_code == 201
+    assert second.status_code == 409
+    assert "overlaps active session" in second.json()["detail"]
+
+
 def test_durable_work_queue_api_lifecycle(tmp_path: Path) -> None:
     app = create_app(Settings(data_dir=tmp_path))
 

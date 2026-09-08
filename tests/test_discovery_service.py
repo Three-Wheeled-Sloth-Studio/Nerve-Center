@@ -230,3 +230,44 @@ def test_public_search_challenge_cools_down_remaining_queries(tmp_path: Path) ->
         asyncio.run(adapter.search("second query"))
 
     assert calls == 1
+
+
+def test_public_search_challenge_does_not_cool_down_another_provider(
+    tmp_path: Path,
+) -> None:
+    database = Database(Settings(data_dir=tmp_path / "runtime"))
+    database.initialize()
+    calls: list[str] = []
+
+    class PortfolioFetcher:
+        async def get(self, url: str, **kwargs: object) -> FetchResponse:
+            del kwargs
+            calls.append(url)
+            if "html.duckduckgo.com" in url:
+                return FetchResponse(
+                    url=url,
+                    status_code=429,
+                    text="rate limited",
+                    headers={},
+                    challenged=False,
+                    throttled=True,
+                )
+            return FetchResponse(
+                url=url,
+                status_code=200,
+                text='<a href="/job/product-director/42">Product Director</a>',
+                headers={},
+                challenged=False,
+                throttled=False,
+            )
+
+    adapter = PublicWebSearchAdapter(
+        SearchCacheRepository(database),
+        fetcher=PortfolioFetcher(),  # type: ignore[arg-type]
+    )
+    with pytest.raises(SearchChallengeError):
+        asyncio.run(adapter.search("product director Greensboro"))
+    results = asyncio.run(adapter.search("site:builtin.com product director"))
+
+    assert [item.title for item in results] == ["Product Director"]
+    assert calls == ["https://html.duckduckgo.com/html/", "https://builtin.com/jobs"]

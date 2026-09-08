@@ -28,6 +28,13 @@ This keeps accepted branches protected while preventing one email per diagnostic
 
 ## Coding-agent operating rules
 
+### Return to the integration branch after merge
+
+`dev` is Nerve Center's active integration and development branch. Topic branches may be used for
+reviewable pull requests, but after a topic branch is merged, switch the active working checkout to
+`dev`, update it to the accepted merge commit, and continue work from `dev`. Do not leave the primary
+workspace parked on a merged or superseded topic branch.
+
 ### Start long work as a draft pull request
 
 Use a draft pull request when work is expected to require several commits, iterative diagnostics, temporary incompatibility, or cross-stack changes. Keep it draft until the branch represents a coherent checkpoint that is worth validating and reviewing.

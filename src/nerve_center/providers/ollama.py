@@ -70,6 +70,7 @@ class OllamaProvider:
                     family=_optional_string(details.get("family")),
                     parameter_size=_optional_string(details.get("parameter_size")),
                     quantization=_optional_string(details.get("quantization_level")),
+                    size_bytes=_optional_int(item.get("size")),
                     modified_at=modified_at,
                 )
             )
@@ -94,7 +95,7 @@ class OllamaProvider:
         prompt_eval_count: int | None = None
         eval_count: int | None = None
 
-        schema = response_type.model_json_schema()
+        schema = _ollama_schema(response_type.model_json_schema())
         grounded_prompt = (
             f"{user_prompt.rstrip()}\n\n"
             "Return only data matching this JSON schema:\n"
@@ -115,31 +116,39 @@ class OllamaProvider:
             while True:
                 try:
                     response = await self._send("POST", "/api/chat", json=body)
-                    break
                 except ProviderError as error:
                     if not error.retryable or retry_count >= self.max_retries:
                         raise
                     retry_count += 1
                     await asyncio.sleep(0.2 * retry_count)
-            payload = self._json_object(response)
-            message = payload.get("message")
-            if not isinstance(message, dict) or not isinstance(message.get("content"), str):
-                raise ProviderError(
-                    self.name,
-                    "INVALID_RESPONSE",
-                    "Ollama returned a response without structured content.",
-                )
-            output_text = message["content"]
-            prompt_eval_count = _optional_int(payload.get("prompt_eval_count"))
-            eval_count = _optional_int(payload.get("eval_count"))
-            try:
-                value = response_type.model_validate_json(output_text)
-            except ValidationError as error:
-                raise ProviderError(
-                    self.name,
-                    "SCHEMA_VALIDATION_FAILED",
-                    "Ollama returned content that did not match the required schema.",
-                ) from error
+                    continue
+                payload = self._json_object(response)
+                message = payload.get("message")
+                if not isinstance(message, dict) or not isinstance(message.get("content"), str):
+                    error = ProviderError(
+                        self.name,
+                        "INVALID_RESPONSE",
+                        "Ollama returned a response without structured content.",
+                    )
+                else:
+                    output_text = message["content"]
+                    prompt_eval_count = _optional_int(payload.get("prompt_eval_count"))
+                    eval_count = _optional_int(payload.get("eval_count"))
+                    try:
+                        value = response_type.model_validate(_decode_json_output(output_text))
+                        break
+                    except (ValidationError, ValueError) as validation_error:
+                        error = ProviderError(
+                            self.name,
+                            "SCHEMA_VALIDATION_FAILED",
+                            "Ollama returned content that did not match the required schema.",
+                        )
+                        error.__cause__ = validation_error
+                if retry_count >= self.max_retries:
+                    raise error
+                retry_count += 1
+                body = _repair_body(body, output_text)
+                await asyncio.sleep(0.2 * retry_count)
             status = "succeeded"
             metadata = self._metadata(
                 request_id=request_id,
@@ -203,10 +212,11 @@ class OllamaProvider:
         error_code: str | None = None
         prompt_eval_count: int | None = None
         eval_count: int | None = None
+        compatible_schema = _ollama_schema(output_schema)
         grounded_prompt = (
             f"{user_prompt.rstrip()}\n\n"
             "Return only data matching this JSON schema:\n"
-            f"{json.dumps(output_schema, separators=(',', ':'), ensure_ascii=True)}"
+            f"{json.dumps(compatible_schema, separators=(',', ':'), ensure_ascii=True)}"
         )
         body = {
             "model": model,
@@ -215,44 +225,53 @@ class OllamaProvider:
                 {"role": "user", "content": grounded_prompt},
             ],
             "stream": False,
-            "format": output_schema,
+            "format": compatible_schema,
             "options": {"temperature": 0},
         }
         try:
             while True:
                 try:
                     response = await self._send("POST", "/api/chat", json=body)
-                    break
                 except ProviderError as error:
                     if not error.retryable or retry_count >= self.max_retries:
                         raise
                     retry_count += 1
                     await asyncio.sleep(0.2 * retry_count)
-            payload = self._json_object(response)
-            message = payload.get("message")
-            if not isinstance(message, dict) or not isinstance(message.get("content"), str):
-                raise ProviderError(
-                    self.name,
-                    "INVALID_RESPONSE",
-                    "Ollama returned a response without structured content.",
-                )
-            output_text = message["content"]
-            prompt_eval_count = _optional_int(payload.get("prompt_eval_count"))
-            eval_count = _optional_int(payload.get("eval_count"))
-            try:
-                value = json.loads(output_text)
-            except json.JSONDecodeError as error:
-                raise ProviderError(
-                    self.name,
-                    "INVALID_RESPONSE",
-                    "Ollama returned invalid structured JSON.",
-                ) from error
-            if not isinstance(value, (dict, list)):
-                raise ProviderError(
-                    self.name,
-                    "INVALID_RESPONSE",
-                    "Ollama returned a scalar instead of structured JSON.",
-                )
+                    continue
+                payload = self._json_object(response)
+                message = payload.get("message")
+                if not isinstance(message, dict) or not isinstance(message.get("content"), str):
+                    error = ProviderError(
+                        self.name,
+                        "INVALID_RESPONSE",
+                        "Ollama returned a response without structured content.",
+                    )
+                else:
+                    output_text = message["content"]
+                    prompt_eval_count = _optional_int(payload.get("prompt_eval_count"))
+                    eval_count = _optional_int(payload.get("eval_count"))
+                    try:
+                        value = _decode_json_output(output_text)
+                    except ValueError as decode_error:
+                        error = ProviderError(
+                            self.name,
+                            "INVALID_RESPONSE",
+                            "Ollama returned invalid structured JSON.",
+                        )
+                        error.__cause__ = decode_error
+                    else:
+                        if isinstance(value, (dict, list)):
+                            break
+                        error = ProviderError(
+                            self.name,
+                            "INVALID_RESPONSE",
+                            "Ollama returned a scalar instead of structured JSON.",
+                        )
+                if retry_count >= self.max_retries:
+                    raise error
+                retry_count += 1
+                body = _repair_body(body, output_text)
+                await asyncio.sleep(0.2 * retry_count)
             status = "succeeded"
             metadata = ProviderCallMetadata(
                 id=request_id,
@@ -386,6 +405,84 @@ class OllamaProvider:
             prompt_eval_count=prompt_eval_count,
             eval_count=eval_count,
         )
+
+
+def _ollama_schema(schema: dict[str, Any]) -> dict[str, Any]:
+    """Inline references and retain Ollama's reliable structured-output subset."""
+
+    definitions = schema.get("$defs", {})
+    supported = {
+        "type",
+        "properties",
+        "required",
+        "items",
+        "enum",
+        "anyOf",
+        "additionalProperties",
+    }
+
+    def simplify(value: object) -> object:
+        if isinstance(value, list):
+            return [simplify(item) for item in value]
+        if not isinstance(value, dict):
+            return value
+        reference = value.get("$ref")
+        if isinstance(reference, str) and reference.startswith("#/$defs/"):
+            resolved = definitions.get(reference.removeprefix("#/$defs/"))
+            if isinstance(resolved, dict):
+                return simplify(resolved)
+        result: dict[str, object] = {}
+        for key, item in value.items():
+            if key == "properties" and isinstance(item, dict):
+                result[key] = {name: simplify(field) for name, field in item.items()}
+            elif key in supported:
+                result[key] = simplify(item)
+        return result
+
+    result = simplify(schema)
+    return result if isinstance(result, dict) else {"type": "object"}
+
+
+def _decode_json_output(value: str) -> object:
+    """Recover one JSON value from common local-model formatting wrappers."""
+
+    text = value.strip()
+    if text.startswith("```"):
+        first_newline = text.find("\n")
+        if first_newline >= 0:
+            text = text[first_newline + 1 :]
+        if text.endswith("```"):
+            text = text[:-3].rstrip()
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        starts = [index for index in (text.find("{"), text.find("[")) if index >= 0]
+        if not starts:
+            raise ValueError("model output did not contain a JSON value") from None
+        try:
+            decoded, _end = json.JSONDecoder().raw_decode(text[min(starts) :])
+        except json.JSONDecodeError as error:
+            raise ValueError("model output contained invalid JSON") from error
+        return decoded
+
+
+def _repair_body(body: dict[str, Any], invalid_output: str) -> dict[str, Any]:
+    """Ask the same local model to repair one malformed structured response."""
+
+    messages = list(body.get("messages") or [])
+    messages.extend(
+        [
+            {"role": "assistant", "content": invalid_output[:12_000]},
+            {
+                "role": "user",
+                "content": (
+                    "The previous response was incomplete or invalid. Return one complete JSON "
+                    "value matching the required schema, with no markdown or explanation."
+                ),
+            },
+        ]
+    )
+    return {**body, "messages": messages}
 
 
 def _parse_datetime(value: object) -> datetime | None:

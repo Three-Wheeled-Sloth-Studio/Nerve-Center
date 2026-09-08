@@ -13,7 +13,12 @@ class ModuleRuntimeClient:
     def __init__(self, endpoint: str, module_id: str, token: str) -> None:
         self.base_url = f"{endpoint.rstrip('/')}/runtime/v1/modules/{module_id}"
         self.headers = {"Authorization": f"Bearer {token}"}
-        self.client = httpx.AsyncClient(timeout=60.0, headers=self.headers)
+        # Discovery operations can legitimately spend several minutes fetching and
+        # parsing a batch of public sources. The worker keeps sending heartbeats on
+        # a separate connection while this request is in flight, so a longer read
+        # window does not weaken supervisor liveness detection.
+        timeout = httpx.Timeout(connect=10.0, read=900.0, write=60.0, pool=10.0)
+        self.client = httpx.AsyncClient(timeout=timeout, headers=self.headers)
 
     async def close(self) -> None:
         await self.client.aclose()

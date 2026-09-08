@@ -17,6 +17,7 @@ from typing import Any
 
 _TERMINAL_STATUSES = {"succeeded", "partial", "failed", "cancelled"}
 _ACCEPTABLE_STATUSES = {"succeeded", "partial"}
+_TERMINAL_SESSION_STATUSES = {"completed", "cancelled", "missed", "failed"}
 
 
 def request_json(
@@ -110,6 +111,7 @@ def run_live_smoke(
 
     last_coverage: dict[str, Any] = {}
     final: dict[str, Any] | None = None
+    final_session: dict[str, Any] | None = None
     deadline = time.monotonic() + duration_seconds + 60
     while time.monotonic() < deadline:
         run = request_json(endpoint, f"/api/v1/runs/{run_id}")
@@ -121,6 +123,13 @@ def run_live_smoke(
             last_coverage = current_coverage
         if run.get("status") in _TERMINAL_STATUSES:
             final = run
+        session_state = request_json(endpoint, f"/api/v1/sessions/{session['id']}")
+        if (
+            final is not None
+            and isinstance(session_state, dict)
+            and session_state.get("status") in _TERMINAL_SESSION_STATUSES
+        ):
+            final_session = session_state
             break
         time.sleep(poll_seconds)
 
@@ -133,6 +142,7 @@ def run_live_smoke(
         "session_id": session.get("id"),
         "run_id": run_id,
         "status": final.get("status"),
+        "session_status": (final_session or {}).get("status"),
         "summary": final.get("result_summary"),
         "coverage": metrics,
     }

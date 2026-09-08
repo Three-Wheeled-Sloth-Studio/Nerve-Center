@@ -77,7 +77,7 @@ class _PublicSearchResultParser(HTMLParser):
 class PublicWebSearchAdapter:
     """Cached ordinary public-web search without browser automation."""
 
-    provider = "brave_html"
+    provider = "duckduckgo_html"
 
     def __init__(
         self,
@@ -91,13 +91,13 @@ class PublicWebSearchAdapter:
             gate=DomainRequestGate(1, minimum_interval_seconds=3.0)
         )
         self.max_results = max_results
-        self._cooldown_message: str | None = None
+        self._cooldown_messages: dict[str, str] = {}
 
     async def search(self, query: str) -> list[SearchResult]:
-        if self._cooldown_message is not None:
-            raise SearchChallengeError(self._cooldown_message)
         builtin_query = _board_native_query(query, "builtin.com")
         provider = "builtin_html" if builtin_query is not None else self.provider
+        if provider in self._cooldown_messages:
+            raise SearchChallengeError(self._cooldown_messages[provider])
         cache_provider = f"{provider}:{self.max_results}"
         cached = self.cache.get(cache_provider, query)
         if cached is not None:
@@ -111,7 +111,7 @@ class PublicWebSearchAdapter:
         search_url = (
             "https://builtin.com/jobs"
             if builtin_query is not None
-            else "https://search.brave.com/search"
+            else "https://html.duckduckgo.com/html/"
         )
         params = (
             _builtin_search_params(builtin_query)
@@ -128,7 +128,7 @@ class PublicWebSearchAdapter:
             raise RuntimeError("The public search provider could not be reached.") from error
         if response.challenged or response.throttled or response.status_code in {401, 403, 429}:
             message = "The public search provider requested a cooldown; try the scan again later."
-            self._cooldown_message = message
+            self._cooldown_messages[provider] = message
             self.cache.put(
                 cache_provider,
                 query,

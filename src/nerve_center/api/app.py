@@ -61,7 +61,7 @@ from nerve_center.scheduler.provider_worker import ProviderWorkExecutor
 from nerve_center.scheduler.registry import TaskRegistry
 from nerve_center.scheduler.runner import RunnerService
 from nerve_center.scheduler.service import SchedulerService
-from nerve_center.scheduler.sessions import WorkSessionService
+from nerve_center.scheduler.sessions import WorkSessionConflictError, WorkSessionService
 from nerve_center.scheduler.work_queue import WorkQueueService
 
 LOCAL_DESKTOP_ORIGINS = [
@@ -94,7 +94,12 @@ def create_app(
             timeout_seconds=runtime_settings.ollama_timeout_seconds,
             telemetry=ProviderCallRepository(database),
         )
-        provider_manager = ProviderManager((ollama,), evidence=model_evidence)
+        provider_manager = ProviderManager(
+            (ollama,),
+            evidence=model_evidence,
+            preferred_model=runtime_settings.ollama_default_model,
+            allow_model_fallback=runtime_settings.ollama_allow_model_fallback,
+        )
         runtime_provider = provider_manager
     elif isinstance(runtime_provider, JsonProvider):
         provider_manager = ProviderManager((runtime_provider,), evidence=model_evidence)
@@ -228,6 +233,8 @@ def create_app(
             if snapshot.status.value == "requested":
                 snapshot = await work_sessions.start(snapshot.id)
             return SessionResponse.from_snapshot(snapshot)
+        except WorkSessionConflictError as error:
+            raise HTTPException(status_code=409, detail=str(error)) from error
         except ValueError as error:
             raise HTTPException(status_code=422, detail=str(error)) from error
 
@@ -253,6 +260,8 @@ def create_app(
             return SessionResponse.from_snapshot(await work_sessions.start(session_id))
         except SessionNotFoundError as error:
             raise HTTPException(status_code=404, detail=str(error)) from error
+        except WorkSessionConflictError as error:
+            raise HTTPException(status_code=409, detail=str(error)) from error
 
     @application.post("/api/v1/sessions/{session_id}/emergency-stop")
     async def emergency_stop_session(session_id: str) -> SessionResponse:

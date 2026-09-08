@@ -182,15 +182,16 @@ def test_company_first_cycle_persists_company_source_sitemap_and_opening(
     loop, learning, companies, sources, jobs, _coordinator = _build_loop(
         tmp_path,
         search=search,
-        strategies_per_cycle=1,
+        strategies_per_cycle=2,
     )
 
     prepared = asyncio.run(loop.prepare("run-1"))
     cycle = asyncio.run(loop.cycle("run-1", 1))
 
     assert prepared["location_aliases"] == 2
-    assert cycle.strategies_attempted == 1
-    assert cycle.useful_yield >= 3
+    assert cycle.strategies_attempted == 2
+    assert cycle.useful_yield == 4
+    assert cycle.openings_found == 1
     assert len(companies.list()) == 1
     company = companies.list()[0]
     assert company.domain == "example.com"
@@ -228,6 +229,59 @@ def test_zero_opening_company_remains_durable_market_evidence(tmp_path: Path) ->
     assert len(companies.list()) == 1
     assert learning.company_evidence_count(companies.list()[0].id) >= 1
     assert cycle.coverage["companies_discovered"] == 1
+
+
+def test_public_search_strategy_bounds_result_deepening(tmp_path: Path) -> None:
+    search = _FixtureSearch(
+        [
+            SearchResult(
+                title=f"Company {index} careers",
+                url=f"https://company-{index}.example/careers",
+                classification=UrlClassification.COMPANY_CAREER,
+                domain=f"company-{index}.example",
+            )
+            for index in range(10)
+        ]
+    )
+    loop, _learning, companies, _sources, _jobs, _coordinator = _build_loop(
+        tmp_path,
+        search=search,
+        opening=False,
+        strategies_per_cycle=1,
+    )
+
+    asyncio.run(loop.prepare("run-1"))
+    cycle = asyncio.run(loop.cycle("run-1", 1))
+
+    assert cycle.coverage["results_examined"] == 6
+    assert len(companies.list()) == 6
+
+
+def test_major_board_results_are_retained_as_secondary_provenance(
+    tmp_path: Path,
+) -> None:
+    search = _FixtureSearch(
+        [
+            SearchResult(
+                title="Product Director via Built In",
+                url="https://builtin.com/job/product-director/42",
+                classification=UrlClassification.MAJOR_JOB_BOARD,
+                domain="builtin.com",
+            )
+        ]
+    )
+    loop, _learning, _companies, sources, jobs, _coordinator = _build_loop(
+        tmp_path,
+        search=search,
+        strategies_per_cycle=1,
+    )
+
+    asyncio.run(loop.prepare("run-1"))
+    cycle = asyncio.run(loop.cycle("run-1", 1))
+
+    assert cycle.openings_found == 1
+    assert len(jobs.list()) == 1
+    assert sources.list()[0].configuration["direct_employer_source"] is False
 
 
 def test_search_challenge_does_not_block_known_source_path(tmp_path: Path) -> None:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from html.parser import HTMLParser
 from typing import Any, Protocol
 from urllib.parse import urljoin
@@ -126,6 +126,7 @@ class JobScoutDiscoveryLoop:
         surface_resolver: SurfaceResolver | None = None,
         exploration_floor: float = 0.25,
         strategies_per_cycle: int = 4,
+        results_per_strategy: int = 6,
     ) -> None:
         self.settings = settings
         self.coordinator = coordinator
@@ -142,6 +143,7 @@ class JobScoutDiscoveryLoop:
         self.surface_resolver = surface_resolver or PublicCareerSurfaceResolver(discovery)
         self.exploration_floor = exploration_floor
         self.strategies_per_cycle = strategies_per_cycle
+        self.results_per_strategy = results_per_strategy
 
     async def prepare(self, run_id: str) -> dict[str, Any]:
         configuration = self.coordinator.save_configuration(self.coordinator.store.load())
@@ -194,10 +196,24 @@ class JobScoutDiscoveryLoop:
         }
 
     async def cycle(self, run_id: str, cycle: int) -> DiscoveryCycleSummary:
+        board_domains = {
+            _clean_domain(item)
+            for item in self.coordinator.store.load().public_job_boards
+        }
+        excluded_company_ids = {
+            item.id for item in self.companies.list() if item.domain in board_domains
+        }
+        excluded_source_ids = {
+            item.id
+            for item in self.sources.list()
+            if not _is_employer_source(item) or item.company_id in excluded_company_ids
+        }
         selected = self.learning.select_strategies(
             run_id,
             limit=self.strategies_per_cycle,
             exploration_floor=self.exploration_floor,
+            excluded_company_ids=excluded_company_ids,
+            excluded_source_ids=excluded_source_ids,
         )
         if not selected:
             session = self.learning.update_session(run_id, phase="reflect", cycle=cycle)
@@ -228,7 +244,21 @@ class JobScoutDiscoveryLoop:
             "opportunities_retained": 0,
         }
         for strategy in selected:
+            source_ids_before = self._career_source_ids()
+            job_ids_before = {item.id for item in self.jobs.list(active_only=False)}
             outcome, used_requests, strategy_warnings = await self._execute_strategy(strategy)
+            # Successful revisits are valuable coverage, but only newly durable
+            # sources and openings are discovery yield. Otherwise cached/repeated
+            # pages continually promote a strategy and prevent reflection.
+            outcome = replace(
+                outcome,
+                career_sources_resolved=len(
+                    self._career_source_ids() - source_ids_before
+                ),
+                opportunities_retained=len(
+                    {item.id for item in self.jobs.list(active_only=False)} - job_ids_before
+                ),
+            )
             self.learning.record_attempt(run_id, cycle, strategy.id, "deepen", outcome)
             request_count += used_requests
             useful_yield += outcome.useful_yield
@@ -445,7 +475,13 @@ class JobScoutDiscoveryLoop:
                         return
 
     def _seed_known_company_strategies(self) -> None:
+        board_domains = {
+            _clean_domain(item)
+            for item in self.coordinator.store.load().public_job_boards
+        }
         for company in self.companies.list():
+            if company.domain in board_domains:
+                continue
             self.learning.ensure_strategy(
                 {"kind": "company_revisit", "company_id": company.id},
                 origin="known_company",
@@ -453,6 +489,8 @@ class JobScoutDiscoveryLoop:
 
     def _seed_due_source_strategies(self) -> None:
         for source in self.sources.list_due():
+            if not _is_employer_source(source):
+                continue
             self.learning.ensure_strategy(
                 {"kind": "source_revisit", "source_id": source.id},
                 origin="known_source",
@@ -502,11 +540,13 @@ class JobScoutDiscoveryLoop:
         retained = 0
         request_count = 1
         configuration = self.coordinator.store.load()
-        for result in results:
+        inspected_results = results[: self.results_per_strategy]
+        for result in inspected_results:
             if result.classification not in {
                 UrlClassification.GREENHOUSE,
                 UrlClassification.LEVER,
                 UrlClassification.COMPANY_CAREER,
+                UrlClassification.MAJOR_JOB_BOARD,
             }:
                 continue
             try:
@@ -515,45 +555,68 @@ class JobScoutDiscoveryLoop:
                     result.url,
                     configuration.scan_interval_minutes,
                 )
+                if result.classification is UrlClassification.MAJOR_JOB_BOARD:
+                    source_configuration = dict(source.configuration)
+                    source_configuration["direct_employer_source"] = False
+                    source_configuration["source_role"] = "aggregator_listing"
+                    source = self.sources.upsert(
+                        source.model_copy(update={"configuration": source_configuration})
+                    )
             except ValueError as error:
                 warnings.append(str(error))
                 continue
             source = self._attribute_source(source, strategy.id)
             sources_seen.add(source.id)
-            if source.company_id is None:
-                continue
-            companies_seen.add(source.company_id)
-            self.learning.record_company_evidence(
-                source.company_id,
-                strategy.id,
-                location_alias=strategy.dimensions.get("location", ""),
-                provenance={"search_url": result.url, "search_title": result.title},
-                openings_seen=0,
-            )
+            if source.company_id is not None and _is_employer_source(source):
+                companies_seen.add(source.company_id)
+                self.learning.record_company_evidence(
+                    source.company_id,
+                    strategy.id,
+                    location_alias=strategy.dimensions.get("location", ""),
+                    provenance={
+                        "search_url": result.url,
+                        "search_title": result.title,
+                    },
+                    openings_seen=0,
+                )
             scan, requests = await self._scan_source(source)
             request_count += requests
             postings += len(scan.openings) if scan is not None else 0
             retained += len(scan.openings) if scan is not None else 0
             if scan is not None:
-                self.learning.record_company_evidence(
-                    source.company_id,
-                    strategy.id,
-                    location_alias=strategy.dimensions.get("location", ""),
-                    provenance={"source_id": source.id},
-                    openings_seen=len(scan.openings),
-                )
-            company = self.companies.get(source.company_id)
-            deepened_sources, deepened_requests, deepened_postings = await self._deepen_company(
-                company,
-                strategy.id,
-            )
-            sources_seen.update(deepened_sources)
-            request_count += deepened_requests
-            postings += deepened_postings
-            retained += deepened_postings
+                opening_company_ids = {item.company_id for item in scan.openings}
+                companies_seen.update(opening_company_ids)
+                for company_id in opening_company_ids:
+                    company = self.companies.get(company_id)
+                    company_openings = sum(
+                        item.company_id == company_id for item in scan.openings
+                    )
+                    self.learning.record_company_evidence(
+                        company_id,
+                        strategy.id,
+                        location_alias=strategy.dimensions.get("location", ""),
+                        provenance={
+                            "source_id": source.id,
+                            "search_url": result.url,
+                            "search_title": result.title,
+                        },
+                        openings_seen=company_openings,
+                    )
+                    self.learning.ensure_strategy(
+                        {"kind": "company_revisit", "company_id": company_id},
+                        origin="aggregator_hiring_organization",
+                    )
+                    if company.career_url:
+                        deepened_sources, deepened_requests, deepened_postings = (
+                            await self._deepen_company(company, strategy.id)
+                        )
+                        sources_seen.update(deepened_sources)
+                        request_count += deepened_requests
+                        postings += deepened_postings
+                        retained += deepened_postings
         return (
             StrategyOutcome(
-                results_examined=len(results),
+                results_examined=len(inspected_results),
                 companies_discovered=len(companies_seen - companies_before),
                 career_sources_resolved=len(sources_seen),
                 postings_inspected=postings,
@@ -575,6 +638,17 @@ class JobScoutDiscoveryLoop:
             return StrategyOutcome(status="failed", failed=1), 0, [str(error)]
         sources = [item for item in self.sources.list() if item.company_id == company.id]
         if not sources:
+            if company.domain.endswith(".unresolved.invalid"):
+                self.learning.ensure_strategy(
+                    {
+                        "kind": "public_search",
+                        "anchor": company.canonical_name,
+                        "source_domain": "web",
+                        "employer_archetype": "company careers",
+                    },
+                    origin="unresolved_hiring_organization",
+                )
+                return StrategyOutcome(), 0, []
             career_url = company.career_url or f"https://{company.domain}/careers"
             try:
                 source = self.coordinator._register_source_url(
@@ -624,11 +698,25 @@ class JobScoutDiscoveryLoop:
         except KeyError as error:
             return StrategyOutcome(status="failed", failed=1), 0, [str(error)]
         source = self._attribute_source(source, strategy.id)
+        companies_before = {item.id for item in self.companies.list()}
         scan, requests = await self._scan_source(source)
         if scan is None:
             return StrategyOutcome(status="failed", failed=1), requests, []
+        discovered_company_ids = {item.company_id for item in scan.openings}
+        for company_id in discovered_company_ids:
+            self.learning.record_company_evidence(
+                company_id,
+                strategy.id,
+                provenance={"source_id": source.id, "reason": "source_revisit"},
+                openings_seen=sum(item.company_id == company_id for item in scan.openings),
+            )
+            self.learning.ensure_strategy(
+                {"kind": "company_revisit", "company_id": company_id},
+                origin="source_revisit_hiring_organization",
+            )
         return (
             StrategyOutcome(
+                companies_discovered=len(discovered_company_ids - companies_before),
                 career_sources_resolved=1,
                 postings_inspected=len(scan.openings),
                 opportunities_retained=len(scan.openings),
@@ -707,6 +795,9 @@ class JobScoutDiscoveryLoop:
         )
         return self.sources.upsert(source.model_copy(update={"configuration": configuration}))
 
+    def _career_source_ids(self) -> set[str]:
+        return {item.id for item in self.sources.list() if _is_employer_source(item)}
+
 
 def _strategy_query(strategy: DiscoveryStrategySnapshot) -> str:
     anchor = strategy.dimensions.get("anchor", "").strip()
@@ -722,6 +813,12 @@ def _clean_domain(value: str) -> str:
     domain = value.casefold().strip()
     domain = domain.removeprefix("https://").removeprefix("http://")
     return domain.split("/", 1)[0].removeprefix("www.")
+
+
+def _is_employer_source(source: DiscoverySource) -> bool:
+    return bool(source.configuration.get("direct_employer_source", True)) and (
+        source.configuration.get("source_role") != "aggregator_listing"
+    )
 
 
 def _reflection_schema() -> dict[str, Any]:

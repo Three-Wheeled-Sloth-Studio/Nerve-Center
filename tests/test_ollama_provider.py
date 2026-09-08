@@ -60,6 +60,7 @@ def test_generates_schema_constrained_response_and_records_safe_metadata() -> No
         assert request.url.path == "/api/chat"
         assert payload["stream"] is False
         assert payload["format"]["type"] == "object"
+        assert set(payload["format"]["properties"]) == {"name", "score"}
         assert payload["options"]["temperature"] == 0
         return httpx.Response(
             200,
@@ -147,3 +148,64 @@ def test_generates_model_blind_json_contract() -> None:
 
     assert result.value == {"score": 88}
     assert result.metadata.model == "qwen3:8b"
+
+
+def test_model_blind_json_recovers_fenced_structured_output() -> None:
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={"message": {"content": "```json\n{\"score\":88}\n```"}},
+        )
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    provider = OllamaProvider(client=client)
+    result = asyncio.run(
+        provider.generate_json(
+            model="gemma3:4b",
+            system_prompt="system",
+            user_prompt="user",
+            output_schema={
+                "type": "object",
+                "properties": {"score": {"type": "integer"}},
+                "required": ["score"],
+            },
+            contract_version="example-v1",
+        )
+    )
+    asyncio.run(client.aclose())
+
+    assert result.value == {"score": 88}
+    assert result.metadata.model == "gemma3:4b"
+
+
+def test_model_blind_json_retries_one_invalid_structured_response() -> None:
+    calls = 0
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        payload = json.loads(_request.content)
+        assert len(payload["messages"]) == (2 if calls == 1 else 4)
+        content = "{" if calls == 1 else '{"score":88}'
+        return httpx.Response(200, json={"message": {"content": content}})
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    provider = OllamaProvider(client=client, max_retries=1)
+    result = asyncio.run(
+        provider.generate_json(
+            model="gemma3:4b",
+            system_prompt="system",
+            user_prompt="user",
+            output_schema={
+                "type": "object",
+                "properties": {"score": {"type": "integer"}},
+                "required": ["score"],
+            },
+            contract_version="example-v1",
+        )
+    )
+    asyncio.run(client.aclose())
+
+    assert calls == 2
+    assert result.value == {"score": 88}
+    assert result.metadata.retry_count == 1

@@ -23,6 +23,10 @@ from nerve_center.scheduler.registry import TaskRegistry
 from nerve_center.scheduler.runner import RunnerService
 
 
+class WorkSessionConflictError(ValueError):
+    """Raised when a second manager work session would overlap an active one."""
+
+
 class WorkSessionService:
     def __init__(
         self,
@@ -94,6 +98,27 @@ class WorkSessionService:
                 SessionStatus.MISSED,
                 "The full session window passed before launch.",
                 current,
+            )
+        conflict = next(
+            (
+                item
+                for item in self.sessions.list_actionable()
+                if item.id != snapshot.id
+                and item.status in {SessionStatus.RUNNING, SessionStatus.DRAINING}
+                and item.starts_at < snapshot.ends_at
+                and snapshot.starts_at < item.ends_at
+            ),
+            None,
+        )
+        if conflict is not None:
+            self.sessions.finish(
+                snapshot.id,
+                SessionStatus.FAILED,
+                f"Session overlaps active session {conflict.id}.",
+                now=current,
+            )
+            raise WorkSessionConflictError(
+                f"Session {snapshot.id} overlaps active session {conflict.id}."
             )
 
         run_ids = dict(snapshot.module_run_ids)

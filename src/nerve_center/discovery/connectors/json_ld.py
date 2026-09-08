@@ -17,12 +17,15 @@ from nerve_center.discovery.models import (
     ScanStatus,
 )
 from nerve_center.discovery.normalization import (
+    canonical_domain,
     canonicalize_url,
     clean_html_text,
     clean_text,
     infer_work_arrangement,
     parse_datetime,
+    stable_company_id,
     stable_opening_id,
+    unresolved_company_domain,
 )
 
 
@@ -56,6 +59,9 @@ class JsonLdJobConnector:
     kind = "json_ld"
     parser_version = "json-ld-jobposting-v1"
 
+    def __init__(self) -> None:
+        self._organization_domains: dict[str, str] = {}
+
     async def scan(
         self,
         company: Company,
@@ -86,6 +92,7 @@ class JsonLdJobConnector:
         parser.close()
         openings: list[NormalizedJobOpening] = []
         parse_errors = 0
+        requests_made = 1
         for block in parser.blocks:
             if not block:
                 continue
@@ -95,7 +102,19 @@ class JsonLdJobConnector:
                 parse_errors += 1
                 continue
             for raw in _find_job_postings(payload):
-                normalized = self._normalize(company, source, response.url, raw)
+                organization_domain, identity_requests = await self._organization_domain(
+                    raw.get("hiringOrganization"),
+                    source,
+                    fetcher,
+                )
+                requests_made += identity_requests
+                normalized = self._normalize(
+                    company,
+                    source,
+                    response.url,
+                    raw,
+                    organization_domain=organization_domain,
+                )
                 if normalized is not None:
                     openings.append(normalized)
         status = ScanStatus.SUCCEEDED
@@ -106,7 +125,7 @@ class JsonLdJobConnector:
         return ConnectorScanResult(
             status=status,
             openings=openings,
-            requests_made=1,
+            requests_made=requests_made,
             http_status=response.status_code,
             safe_detail={"invalid_json_ld_blocks": parse_errors},
         )
@@ -117,6 +136,8 @@ class JsonLdJobConnector:
         source: DiscoverySource,
         fetched_url: str,
         raw: dict[str, Any],
+        *,
+        organization_domain: str | None = None,
     ) -> NormalizedJobOpening | None:
         title = clean_text(raw.get("title"))
         canonical_url = canonicalize_url(clean_text(raw.get("url")) or fetched_url)
@@ -126,6 +147,14 @@ class JsonLdJobConnector:
         company_name = company.canonical_name
         if isinstance(organization, dict):
             company_name = clean_text(organization.get("name")) or company_name
+        direct_employer_source = bool(source.configuration.get("direct_employer_source", True))
+        company_domain = company.domain
+        if (
+            not direct_employer_source
+            and company_name.casefold() != company.canonical_name.casefold()
+        ):
+            company_domain = organization_domain or unresolved_company_domain(company_name)
+        company_id = stable_company_id(company_domain)
         locations = _locations(raw.get("jobLocation"))
         applicant_locations = _applicant_locations(raw.get("applicantLocationRequirements"))
         locations.extend(item for item in applicant_locations if item not in locations)
@@ -139,14 +168,14 @@ class JsonLdJobConnector:
             parser_version=self.parser_version,
             source_url=fetched_url,
             external_id=external_id,
-            direct_employer_source=True,
+            direct_employer_source=direct_employer_source,
             discovered_at=discovered_at,
         )
         return NormalizedJobOpening(
-            id=stable_opening_id(company.domain, canonical_url, external_id),
-            company_id=company.id,
+            id=stable_opening_id(company_domain, canonical_url, external_id),
+            company_id=company_id,
             company_name=company_name,
-            company_domain=company.domain,
+            company_domain=company_domain,
             title=title,
             description=description,
             location_text=location_text,
@@ -167,6 +196,32 @@ class JsonLdJobConnector:
             provenance=[provenance],
         )
 
+    async def _organization_domain(
+        self,
+        organization: object,
+        source: DiscoverySource,
+        fetcher: HttpFetcher,
+    ) -> tuple[str | None, int]:
+        if bool(source.configuration.get("direct_employer_source", True)):
+            return None, 0
+        reference = _organization_reference(organization)
+        if not reference:
+            return None, 0
+        source_domain = canonical_domain(source.base_url)
+        reference_domain = canonical_domain(reference)
+        if reference_domain and reference_domain != source_domain:
+            return reference_domain, 0
+        if reference in self._organization_domains:
+            return self._organization_domains[reference] or None, 0
+        try:
+            response = await fetcher.get(reference)
+        except Exception:  # The listing remains usable when optional identity lookup fails.
+            self._organization_domains[reference] = ""
+            return None, 1
+        resolved = _organization_domain_from_page(response.text, source_domain)
+        self._organization_domains[reference] = resolved or ""
+        return resolved, 1
+
 
 def _find_job_postings(value: object) -> list[dict[str, Any]]:
     result: list[dict[str, Any]] = []
@@ -181,6 +236,54 @@ def _find_job_postings(value: object) -> list[dict[str, Any]]:
         graph = value.get("@graph")
         if graph is not None:
             result.extend(_find_job_postings(graph))
+    return result
+
+
+def _organization_reference(value: object) -> str | None:
+    if not isinstance(value, dict):
+        return None
+    candidates = value.get("sameAs") or value.get("url") or value.get("@id")
+    values = candidates if isinstance(candidates, list) else [candidates]
+    for item in values:
+        text = clean_text(item)
+        if text.startswith(("https://", "http://")):
+            return canonicalize_url(text)
+    return None
+
+
+def _organization_domain_from_page(page: str, excluded_domain: str) -> str | None:
+    parser = _JsonLdParser()
+    parser.feed(page)
+    parser.close()
+    for block in parser.blocks:
+        try:
+            payload = json.loads(block)
+        except json.JSONDecodeError:
+            continue
+        for item in _find_typed_objects(payload, "organization"):
+            for key in ("url", "sameAs"):
+                values = item.get(key)
+                candidates = values if isinstance(values, list) else [values]
+                for candidate in candidates:
+                    domain = canonical_domain(clean_text(candidate))
+                    if domain and domain != excluded_domain:
+                        return domain
+    return None
+
+
+def _find_typed_objects(value: object, wanted: str) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
+    if isinstance(value, list):
+        for item in value:
+            result.extend(_find_typed_objects(item, wanted))
+    elif isinstance(value, dict):
+        raw_type = value.get("@type")
+        types = raw_type if isinstance(raw_type, list) else [raw_type]
+        if any(str(item).casefold().endswith(wanted) for item in types if item):
+            result.append(value)
+        graph = value.get("@graph")
+        if graph is not None:
+            result.extend(_find_typed_objects(graph, wanted))
     return result
 
 
