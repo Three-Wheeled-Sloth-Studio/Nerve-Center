@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import runpy
 from pathlib import Path
-from typing import Any
 
 _SCRIPT = runpy.run_path(str(Path(__file__).parents[1] / "scripts" / "agent_context.py"))
 GitContext = _SCRIPT["GitContext"]
@@ -16,57 +15,48 @@ def _write_fixture(repo: Path) -> None:
     (repo / "refs/implementation").mkdir(parents=True)
     (repo / "refs/testing").mkdir(parents=True)
     (repo / "refs/project.yaml").write_text(
-        """identity:
-  name: Nerve Center
-  current_phase: Ranking quality
-""",
+        "identity:\n"
+        "  name: Nerve Center\n"
+        "  current_phase: Ranking quality\n",
         encoding="utf-8",
     )
     (repo / "refs/planning/decision-register.md").write_text(
-        """| ID | Status | Decision |
-|---|---|---|
-| NC-001 | accepted | Nerve Center is local-first. |
-| NC-047 | accepted | Job Scout fit is responsibility- and evidence-first, with direct domain above adjacent domain and transferable experience. |
-""",
+        "| ID | Status | Decision |\n"
+        "|---|---|---|\n"
+        "| NC-001 | accepted | Nerve Center is local-first. |\n"
+        "| NC-047 | accepted | Job Scout fit is responsibility- and evidence-first, "
+        "with direct domain above adjacent domain and transferable experience. |\n",
         encoding="utf-8",
     )
     (repo / "refs/handoffs/currentHandoff.md").write_text(
-        """# Current Handoff
-
-## Active product correction
-
-The remaining ranking gap is explicit domain-distance evidence for responsibility-level fit.
-
-A completely unrelated desktop note should not outrank the fit work.
-
-## Architectural constraints
-
-- Modules remain model-blind.
-
-## Read before implementation
-
-1. A very large document that should not be copied into the packet.
-""",
+        "# Current Handoff\n\n"
+        "## Active product correction\n\n"
+        "The remaining ranking gap is explicit domain-distance evidence for "
+        "responsibility-level fit.\n\n"
+        "A completely unrelated desktop note should not outrank the fit work.\n\n"
+        "## Architectural constraints\n\n"
+        "- Modules remain model-blind.\n\n"
+        "## Read before implementation\n\n"
+        "1. A very large document that should not be copied into the packet.\n",
         encoding="utf-8",
     )
     (repo / "refs/implementation/fileMap.yaml").write_text(
-        """common_tasks:
-  - task: Change Job Scout fit or scoring
-    look_in: [src/nerve_center/scoring, src/nerve_center/profile, refs/planning/job-scout-scoring-contract.md]
-  - task: Change desktop UI
-    look_in: [desktop/src]
-""",
+        "common_tasks:\n"
+        "  - task: Change Job Scout fit or scoring\n"
+        "    look_in: [src/nerve_center/scoring, src/nerve_center/profile, "
+        "refs/planning/job-scout-scoring-contract.md]\n"
+        "  - task: Change desktop UI\n"
+        "    look_in: [desktop/src]\n",
         encoding="utf-8",
     )
     (repo / "refs/testing/validationCommands.yaml").write_text(
-        """commands:
-  - id: python-tests
-    command: pytest
-    required: true
-  - id: windows-package
-    command: package-everything
-    required: release-checkpoint
-""",
+        "commands:\n"
+        "  - id: python-tests\n"
+        "    command: pytest\n"
+        "    required: true\n"
+        "  - id: windows-package\n"
+        "    command: package-everything\n"
+        "    required: release-checkpoint\n",
         encoding="utf-8",
     )
 
