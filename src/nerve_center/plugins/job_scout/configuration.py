@@ -11,6 +11,7 @@ from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel, Field
 
 from nerve_center.config import Settings
+from nerve_center.discovery.connectors.ashby import AshbyConnector
 from nerve_center.discovery.connectors.greenhouse import GreenhouseConnector
 from nerve_center.discovery.connectors.lever import LeverConnector
 from nerve_center.discovery.models import (
@@ -353,6 +354,18 @@ class JobScoutCoordinator:
                 LeverConnector.parser_version,
                 interval,
             )
+        if domain.endswith("ashbyhq.com"):
+            board_name = _ashby_board_name(segments)
+            if board_name:
+                return self._register_ats_source(
+                    board_name,
+                    f"https://jobs.ashbyhq.com/{board_name}",
+                    SourceKind.ASHBY,
+                    AcquisitionClass.OFFICIAL_API,
+                    {"board_name": board_name},
+                    AshbyConnector.parser_version,
+                    interval,
+                )
         source = self.discovery.register_direct_career_url(canonical)
         if source.scan_interval_minutes != interval:
             source = self.sources.upsert(
@@ -404,6 +417,18 @@ def _greenhouse_token(segments: list[str]) -> str | None:
         if index + 1 < len(segments):
             return segments[index + 1]
     if segments[0] not in {"v1", "boards"}:
+        return segments[0]
+    return None
+
+
+def _ashby_board_name(segments: list[str]) -> str | None:
+    if not segments:
+        return None
+    if "job-board" in segments:
+        index = segments.index("job-board")
+        if index + 1 < len(segments):
+            return segments[index + 1]
+    if segments[0] not in {"posting-api", "job-board"}:
         return segments[0]
     return None
 

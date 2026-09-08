@@ -25,7 +25,8 @@ class Settings(BaseSettings):
     data_dir: Path = Field(default_factory=lambda: user_data_path("Nerve Center", "TWS"))
     ollama_base_url: str = "http://127.0.0.1:11434"
     ollama_timeout_seconds: float = Field(default=180.0, ge=1.0, le=3600.0)
-    ollama_default_model: str | None = None
+    ollama_default_model: str | None = "gemma3:4b"
+    ollama_schema_fallback_model: str | None = "qwen2.5:7b-instruct"
     ollama_allow_model_fallback: bool = True
 
     @property

@@ -26,7 +26,7 @@ Domain fit is a first-class part of fit and should distinguish, in descending or
 3. Transferable experience: the candidate has relevant methods, leadership, product, technical, or outcome evidence but must transfer it across a meaningfully different domain.
 4. Domain or skill mismatch: the opening depends on domain knowledge or capabilities not supported by verified evidence.
 
-Domain-distance evidence should be explainable separately from title similarity and generic skill overlap. The current implementation records an LLM-produced `domain_score`, but an explicit reusable domain-distance model/taxonomy is still an implementation gap; do not treat that hierarchy as fully implemented until the scorer can produce and validate the underlying domain relationship evidence.
+Domain-distance evidence is explainable separately from title similarity and generic skill overlap. The scorer derives a structured `direct`, `adjacent`, `transferable`, or `mismatch` relationship from a reusable deterministic taxonomy, persists the supporting claim identifiers and evidence locators, and derives the numeric domain component from that relationship. Model-produced domain scalars are advisory and do not override the evidence-backed relationship. Extend the taxonomy only with observed, testable relationships rather than inventing candidate support.
 
 ### Response likelihood, 0 to 100
 

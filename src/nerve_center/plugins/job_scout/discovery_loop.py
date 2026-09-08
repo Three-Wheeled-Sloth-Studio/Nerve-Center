@@ -102,6 +102,7 @@ class _CareerLinkParser(HTMLParser):
         if (
             "greenhouse.io" in lowered
             or "lever.co" in lowered
+            or "ashbyhq.com" in lowered
             or "sitemap" in lowered
             or (tag == "link" and "sitemap" in rel)
         ):
@@ -458,9 +459,9 @@ class JobScoutDiscoveryLoop:
         domains = clean_list([_clean_domain(item) for item in boards if _clean_domain(item)])
         paths = ["web", *domains]
         seeded = 0
-        for anchor in anchors:
-            for location in locations[:12]:
-                for source_domain in paths:
+        for location in locations[:12]:
+            for source_domain in paths:
+                for anchor in anchors:
                     self.learning.ensure_strategy(
                         {
                             "kind": "public_search",
@@ -545,6 +546,7 @@ class JobScoutDiscoveryLoop:
             if result.classification not in {
                 UrlClassification.GREENHOUSE,
                 UrlClassification.LEVER,
+                UrlClassification.ASHBY,
                 UrlClassification.COMPANY_CAREER,
                 UrlClassification.MAJOR_JOB_BOARD,
             }:
@@ -755,6 +757,14 @@ class JobScoutDiscoveryLoop:
                         url,
                         self.coordinator.store.load().scan_interval_minutes,
                     )
+                    if source.kind in {
+                        SourceKind.GREENHOUSE,
+                        SourceKind.LEVER,
+                        SourceKind.ASHBY,
+                    }:
+                        source = self.sources.upsert(
+                            source.model_copy(update={"company_id": company.id})
+                        )
                     source = self._attribute_source(source, strategy_id)
             except ValueError:
                 continue

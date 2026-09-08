@@ -96,6 +96,7 @@ def _score(
     preferences: LocationPreferences | None = None,
     settings: ScoringSettings | None = None,
     rules: list[ScoringRule] | None = None,
+    target_title_alignment: float | None = None,
 ):
     return OpportunityScorer().score(
         opening=opening or _opening(posted_at=datetime.now(UTC) - timedelta(days=1)),
@@ -106,6 +107,7 @@ def _score(
         location_preferences=preferences or LocationPreferences(home_region="NC"),
         settings=settings or ScoringSettings(),
         rules=rules or [],
+        target_title_alignment=target_title_alignment,
         now=datetime.now(UTC),
     )
 
@@ -231,3 +233,15 @@ def test_priority_uses_configured_component_weights() -> None:
 
     assert fit_heavy.base_priority == fit_heavy.fit
     assert response_heavy.base_priority == response_heavy.response_likelihood
+
+
+def test_target_title_alignment_is_only_a_weak_visible_fit_clue() -> None:
+    aligned = _score(target_title_alignment=1.0)
+    unrelated = _score(target_title_alignment=0.0)
+
+    assert aligned.fit - unrelated.fit == 6.0
+    assert unrelated.fit > 20.0
+    assert unrelated.priority < aligned.priority
+    assert any(item.code == "target_title_alignment" for item in unrelated.factors)
+    assert unrelated.calculation["target_title_alignment"] == 0.0
+    assert unrelated.calculation["scoring_engine_version"] == "job-scout-ranking-v2"

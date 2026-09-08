@@ -25,6 +25,7 @@ class SearchChallengeError(RuntimeError):
 class UrlClassification(StrEnum):
     GREENHOUSE = "greenhouse"
     LEVER = "lever"
+    ASHBY = "ashby"
     LINKEDIN = "linkedin"
     MAJOR_JOB_BOARD = "major_job_board"
     COMPANY_CAREER = "company_career"
@@ -359,6 +360,8 @@ def classify_discovered_url(value: str) -> UrlClassification:
         return UrlClassification.GREENHOUSE
     if domain.endswith("lever.co"):
         return UrlClassification.LEVER
+    if domain.endswith("ashbyhq.com"):
+        return UrlClassification.ASHBY
     if domain.endswith("linkedin.com"):
         return UrlClassification.LINKEDIN
     if any(

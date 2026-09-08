@@ -195,6 +195,32 @@ def test_manager_rejects_missing_preferred_model_when_fallback_disabled() -> Non
     assert alternate.selected_models == []
 
 
+def test_strict_schema_failure_uses_configured_fallback_then_returns_to_primary() -> None:
+    preferred = FakeJsonProvider("ollama", "gemma3:4b", {"score": "bad"})
+    schema_fallback = FakeJsonProvider(
+        "ollama", "qwen2.5:7b-instruct", {"score": 92}
+    )
+    unrelated = FakeJsonProvider("ollama", "another-model", {"score": 99})
+    manager = ProviderManager(
+        (unrelated, schema_fallback, preferred),
+        preferred_model="gemma3:4b",
+        schema_fallback_model="qwen2.5:7b-instruct",
+    )
+
+    strict_result = asyncio.run(manager.execute(model_request()))
+    general_request = model_request().model_copy(
+        update={"requirements": {"structured_output": False}}
+    )
+    general_result = asyncio.run(manager.execute(general_request))
+
+    assert strict_result.value == {"score": 92}
+    assert strict_result.metadata.model == "qwen2.5:7b-instruct"
+    assert general_result.metadata.model == "gemma3:4b"
+    assert preferred.selected_models == ["gemma3:4b", "gemma3:4b"]
+    assert schema_fallback.selected_models == ["qwen2.5:7b-instruct"]
+    assert unrelated.selected_models == []
+
+
 def test_provider_executor_completes_valid_model_blind_work(tmp_path: Path) -> None:
     queue, run_id = make_queue(tmp_path)
     request = queue.submit(_queue_spec(run_id))
@@ -289,7 +315,7 @@ def test_module_acknowledgement_records_acceptance_evidence(tmp_path: Path) -> N
     assert observed[0].acceptance_rate == 1.0
 
 
-def test_schema_failure_escalates_to_untried_model_on_queue_retry(tmp_path: Path) -> None:
+def test_schema_failure_falls_back_within_the_same_queue_attempt(tmp_path: Path) -> None:
     database = Database(Settings(data_dir=tmp_path))
     database.initialize()
     evidence = ModelEvidenceRepository(database)
@@ -305,11 +331,9 @@ def test_schema_failure_escalates_to_untried_model_on_queue_retry(tmp_path: Path
     )
 
     first = asyncio.run(executor.tick())
-    second = asyncio.run(executor.tick())
 
-    assert first is not None and first.status == WorkRequestStatus.QUEUED
-    assert second is not None
-    assert second.status == WorkRequestStatus.AWAITING_ACKNOWLEDGEMENT
+    assert first is not None
+    assert first.status == WorkRequestStatus.AWAITING_ACKNOWLEDGEMENT
     assert invalid.selected_models == ["a-model"]
     assert valid.selected_models == ["b-model"]
 

@@ -13,13 +13,14 @@ from nerve_center.applications.models import (
     ApplicationUpdate,
     ReviewOpportunity,
 )
+from nerve_center.discovery.models import NormalizedJobOpening, WorkArrangement
 from nerve_center.persistence.applications import ApplicationRepository
 from nerve_center.persistence.database import Database
 from nerve_center.persistence.discovery import CompanyRepository, JobOpeningRepository
 from nerve_center.persistence.scoring import OpportunityScoreRepository
 from nerve_center.plugins.job_scout.settings import JobScoutConfigurationStore
+from nerve_center.scoring.engine import SCORING_ENGINE_VERSION
 from nerve_center.scoring.service import ScoringService
-from nerve_center.discovery.models import NormalizedJobOpening, WorkArrangement
 
 SortKey = Literal["priority", "response", "fit", "freshness"]
 
@@ -74,11 +75,30 @@ def register_application_routes(
             if not include_dismissed and record.status is ApplicationStatus.DISMISSED:
                 continue
             history = scores.list(opening.id)
-            if not history and scoring_service and configuration:
+            latest_fit_contract = (
+                str(history[0].calculation.get("fit_contract_version") or "")
+                if history
+                else ""
+            )
+            if (
+                history
+                and scoring_service
+                and configuration
+                and history[0].calculation.get("scoring_engine_version")
+                != SCORING_ENGINE_VERSION
+            ):
+                history = [scoring_service.score(opening.id)]
+                latest_fit_contract = str(
+                    history[0].calculation.get("fit_contract_version") or ""
+                )
+            if scoring_service and configuration and (
+                not history or latest_fit_contract.startswith("job-fit-provisional-")
+            ):
                 history = [
                     scoring_service.ensure_provisional_score(
                         opening.id,
                         intent_terms=[*configuration.target_titles, *configuration.manual_keywords],
+                        target_titles=configuration.target_titles,
                     )
                 ]
             items.append(
@@ -140,7 +160,9 @@ def _sort_value(item: ReviewOpportunity, sort: SortKey) -> float:
 def _next_action(status: ApplicationStatus) -> str:
     actions = {
         ApplicationStatus.DISCOVERED: "Review the evidence and decide whether to pursue.",
-        ApplicationStatus.SAVED: "Review details or move the opportunity into the application plan.",
+        ApplicationStatus.SAVED: (
+            "Review details or move the opportunity into the application plan."
+        ),
         ApplicationStatus.DISMISSED: "Restore the opportunity if circumstances change.",
         ApplicationStatus.PLANNED_TO_APPLY: "Prepare the selected resume and submit manually.",
         ApplicationStatus.APPLYING: "Finish the application and record the submission date.",

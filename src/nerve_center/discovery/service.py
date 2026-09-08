@@ -9,6 +9,7 @@ from typing import Protocol
 import httpx
 
 from nerve_center.discovery.connectors import (
+    AshbyConnector,
     GreenhouseConnector,
     JsonLdJobConnector,
     LeverConnector,
@@ -60,6 +61,7 @@ class ConnectorRegistry:
     @classmethod
     def defaults(cls) -> ConnectorRegistry:
         registry = cls()
+        registry.register(SourceKind.ASHBY, AshbyConnector())
         registry.register(SourceKind.GREENHOUSE, GreenhouseConnector())
         registry.register(SourceKind.LEVER, LeverConnector())
         registry.register(SourceKind.JSON_LD, JsonLdJobConnector())

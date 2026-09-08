@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import re
 import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -451,6 +452,9 @@ def main() -> int:
         output.write_text(packet, encoding="utf-8")
         print(f"Wrote generated agent context: {output}")
         return 0
+    reconfigure = getattr(sys.stdout, "reconfigure", None)
+    if reconfigure is not None:
+        reconfigure(encoding="utf-8")
     print(packet, end="")
     return 0
 
