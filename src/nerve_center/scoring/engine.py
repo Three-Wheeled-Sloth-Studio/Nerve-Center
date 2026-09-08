@@ -35,7 +35,7 @@ from nerve_center.scoring.models import (
     ScoringSettings,
 )
 
-SCORING_ENGINE_VERSION = "job-scout-ranking-v2"
+SCORING_ENGINE_VERSION = "job-scout-ranking-v3"
 
 
 class OpportunityScorer:
@@ -368,6 +368,33 @@ def _response_score(
     )
     if (
         opening.work_arrangement is WorkArrangement.REMOTE
+        and location.nearest_office_id is not None
+        and location.scope in {LocationScope.LOCAL, LocationScope.REGIONAL}
+    ):
+        office = next(
+            (item for item in company.offices if item.id == location.nearest_office_id),
+            None,
+        )
+        baseline = _location_base_for_remote(LocationScope.DISTANT)
+        advantage = (location.location_score - baseline) * 0.35
+        factors.append(
+            ScoreFactor(
+                dimension=ScoreDimension.RESPONSE,
+                code="local_company_presence",
+                label="Verified nearby company presence improves remote-role response potential.",
+                kind=FactorKind.POSITIVE,
+                points=round(max(0.0, advantage), 2),
+                confidence=office.confidence if office else location.confidence,
+                evidence=[office.evidence_url] if office and office.evidence_url else [],
+                detail={
+                    "office_id": location.nearest_office_id,
+                    "office_label": office.label if office else None,
+                    "scope": location.scope.value,
+                },
+            )
+        )
+    if (
+        opening.work_arrangement is WorkArrangement.REMOTE
         and location.scope is LocationScope.DISTANT
     ):
         exceptional = (
@@ -410,6 +437,16 @@ def _response_score(
             )
         )
     return score
+
+
+def _location_base_for_remote(scope: LocationScope) -> float:
+    values = {
+        LocationScope.LOCAL: 80.0,
+        LocationScope.REGIONAL: 65.0,
+        LocationScope.DISTANT: 30.0,
+        LocationScope.UNKNOWN: 40.0,
+    }
+    return values[scope]
 
 
 def _freshness_score(

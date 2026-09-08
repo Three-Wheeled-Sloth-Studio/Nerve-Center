@@ -3,5 +3,5 @@
   "identifier": "default",
   "description": "Core desktop permissions for the Nerve Center main window.",
   "windows": ["main"],
-  "permissions": ["core:default"]
+  "permissions": ["core:default", "opener:default"]
 }

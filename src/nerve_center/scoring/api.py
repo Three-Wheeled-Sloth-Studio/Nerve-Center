@@ -64,6 +64,7 @@ def register_scoring_routes(
     settings: Settings,
     provider: StructuredProvider | None = None,
     target_titles_provider: Callable[[], list[str]] | None = None,
+    location_markets_provider: Callable[[], list[str]] | None = None,
 ) -> ScoringService:
     runtime_provider = provider or OllamaProvider(
         base_url=settings.ollama_base_url,
@@ -91,6 +92,7 @@ def register_scoring_routes(
         scores=score_repository,
         provider=runtime_provider,
         target_titles_provider=target_titles_provider,
+        location_markets_provider=location_markets_provider,
     )
     application.state.scoring_service = service
 

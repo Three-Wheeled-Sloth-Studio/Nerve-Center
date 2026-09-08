@@ -316,6 +316,33 @@ label.checkbox input {
 .opportunity-actions { display: flex; gap: 0.3rem; }
 .opportunity-actions .icon-button { width: 2rem; height: 2rem; padding: 0.4rem; }
 
+.listing-url {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.listing-url code {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+  color: #93c5fd;
+  user-select: text;
+}
+
+.listing-url button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+}
+
+.listing-url svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
 .actions {
   justify-content: flex-start;
   flex-wrap: wrap;

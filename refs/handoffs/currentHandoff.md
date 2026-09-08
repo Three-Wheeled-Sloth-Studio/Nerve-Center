@@ -16,7 +16,8 @@ tags: [nerve-center, handoff]
 - Manager-owned Ollama routing uses `gemma3:4b` as the primary general model. Strict structured-output requests validate the result and may retry once on `qwen2.5:7b-instruct`; the next general request starts on Gemma again. Job Scout stays model-blind.
 - Discovery includes direct Greenhouse, Lever, and Ashby board support, preserves the actual hiring-company identity while deepening ATS sources, and seeds all configured role families before repeating location/source combinations.
 - Fit analysis contract v6 validates model-proposed claim links through a reusable semantic evidence matcher, retains claim/evidence provenance, and derives an explicit direct/adjacent/transferable/mismatch domain assessment instead of trusting an unexplained model scalar.
-- Ranking engine v2 weights requirement and responsibility coverage directly and limits configured-title influence to a weak +/-3 point clue rather than a role-family gate.
+- Ranking engine v3 weights requirement and responsibility coverage directly, limits configured-title influence to a weak +/-3 point clue, and uses source-backed company hiring-location evidence to improve remote-role response ranking when a configured local market matches.
+- Opportunity cards open HTTP(S) listings through the Tauri opener and expose the selected application/canonical URL for copying and manual QA.
 - Employer identity resolution rejects weak social/job-board identity hints, preserves unresolved employers safely, and can disambiguate same-name unresolved companies when a stable organization hint exists.
 - `scripts/run_job_scout_live.py` is the reusable real-run discovery/scoring diagnostic. CI remains deterministic and does not require Ollama or live public sites.
 - Coding-agent context/token conservation is a primary engineering concern. `scripts/agent_context.py` generates a compact reset packet from authoritative refs and git state so agents can load context progressively instead of rereading large unchanged documents.
@@ -41,6 +42,7 @@ Continue treating titles as weak clues. Improve requirement/responsibility extra
 - A 20-role v6 sample completed 20/20 fit analyses on `gemma3:4b` with explicit domain results: 2 direct, 1 adjacent, 5 transferable, and 12 mismatch.
 - A live false-positive fixture showed bare `platform` wording linking product evidence to software-engineering and sales roles. Requiring product-specific platform language reduced both roles to zero supported qualifications and domain mismatch.
 - Reflection evidence demonstrates the strict-schema fallback lane: Gemma remains primary, while failed reflection schemas retry successfully on `qwen2.5:7b-instruct`.
+- Direct-employer listing locations now build durable company-presence evidence with source URLs; generic remote/nationwide labels and aggregator-only evidence do not establish local presence.
 
 ## Do not reopen without new evidence
 

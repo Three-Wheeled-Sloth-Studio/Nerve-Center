@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Callable
-from uuid import uuid4
+from uuid import NAMESPACE_URL, uuid4, uuid5
 
 from nerve_center.discovery.models import NormalizedJobOpening
 from nerve_center.persistence.discovery import JobOpeningRepository
@@ -21,7 +21,13 @@ from nerve_center.persistence.scoring import (
 from nerve_center.providers.base import StructuredProvider
 from nerve_center.scoring.engine import OpportunityScorer
 from nerve_center.scoring.fit import JobFitAnalyzer
-from nerve_center.scoring.models import JobFitAnalysis, OpportunityScore
+from nerve_center.scoring.models import (
+    CompanyEnrichment,
+    JobFitAnalysis,
+    LocationPreferences,
+    OfficeLocation,
+    OpportunityScore,
+)
 
 
 class ScoringService:
@@ -39,6 +45,7 @@ class ScoringService:
         scores: OpportunityScoreRepository,
         provider: StructuredProvider,
         target_titles_provider: Callable[[], list[str]] | None = None,
+        location_markets_provider: Callable[[], list[str]] | None = None,
     ) -> None:
         self.jobs = jobs
         self.profiles = profiles
@@ -50,6 +57,7 @@ class ScoringService:
         self.rules = rules
         self.scores = scores
         self.target_titles_provider = target_titles_provider
+        self.location_markets_provider = location_markets_provider
         self.fit_analyzer = JobFitAnalyzer(provider)
         self.scorer = OpportunityScorer()
 
@@ -74,13 +82,24 @@ class ScoringService:
         )
         if analysis.job_id != job_id:
             raise ValueError("fit analysis belongs to a different job")
+        stored_company_enrichment = self.company_enrichment.get(opening.company_id)
+        company_enrichment = _merge_observed_company_presence(
+            stored_company_enrichment,
+            self.jobs.list(active_only=False),
+        )
+        if company_enrichment.offices != stored_company_enrichment.offices:
+            company_enrichment = self.company_enrichment.save(company_enrichment)
+        location_preferences = _effective_location_preferences(
+            self.location_preferences.get(),
+            self.location_markets_provider() if self.location_markets_provider else [],
+        )
         result = self.scorer.score(
             opening=opening,
             profile=profile,
             fit_analysis=analysis,
-            company_enrichment=self.company_enrichment.get(opening.company_id),
+            company_enrichment=company_enrichment,
             job_enrichment=self.job_enrichment.get(job_id),
-            location_preferences=self.location_preferences.get(),
+            location_preferences=location_preferences,
             settings=self.settings.get(),
             rules=self.rules.list(enabled_only=True),
             target_title_alignment=_title_role_alignment(
@@ -89,6 +108,7 @@ class ScoringService:
             ),
         )
         return self.scores.append(result)
+
 
     def ensure_provisional_score(
         self,
@@ -155,6 +175,91 @@ class ScoringService:
         )
         self.fit_analyses.save(analysis)
         return self.score(job_id, fit_analysis_id=analysis.id)
+
+
+def _effective_location_preferences(
+    preferences: LocationPreferences,
+    configured_markets: list[str],
+) -> LocationPreferences:
+    markets = list(dict.fromkeys([*preferences.local_markets, *configured_markets]))
+    return preferences.model_copy(
+        update={
+            "local_markets": markets,
+            "home_label": preferences.home_label or (markets[0] if markets else None),
+        }
+    )
+
+
+def _merge_observed_company_presence(
+    enrichment: CompanyEnrichment,
+    openings: list[NormalizedJobOpening],
+) -> CompanyEnrichment:
+    offices = list(enrichment.offices)
+    known = {_normalize_location_label(office.label) for office in offices}
+    for opening in openings:
+        if opening.company_id != enrichment.company_id or not any(
+            item.direct_employer_source for item in opening.provenance
+        ):
+            continue
+        for label in _specific_presence_locations(opening):
+            normalized = _normalize_location_label(label)
+            if normalized in known:
+                continue
+            offices.append(
+                OfficeLocation(
+                    id=str(uuid5(NAMESPACE_URL, f"{enrichment.company_id}:{normalized}")),
+                    label=label,
+                    region=_location_region(label),
+                    evidence_url=opening.canonical_url,
+                    confidence=round(opening.parser_confidence * 0.85, 4),
+                )
+            )
+            known.add(normalized)
+    return enrichment.model_copy(update={"offices": offices})
+
+
+def _specific_presence_locations(opening: NormalizedJobOpening) -> list[str]:
+    candidates = [*opening.locations]
+    if opening.location_text:
+        candidates.append(opening.location_text)
+    results: list[str] = []
+    for candidate in candidates:
+        label = " ".join(candidate.split())
+        normalized = _normalize_location_label(label)
+        if not normalized or _is_generic_location(normalized):
+            continue
+        if normalized not in {_normalize_location_label(item) for item in results}:
+            results.append(label)
+    return results
+
+
+def _normalize_location_label(value: str) -> str:
+    return " ".join(re.findall(r"[a-z0-9]+", value.casefold()))
+
+
+def _is_generic_location(normalized: str) -> bool:
+    generic = {
+        "anywhere",
+        "global",
+        "multiple locations",
+        "nationwide",
+        "remote",
+        "remote usa",
+        "remote us",
+        "united states",
+        "us",
+        "usa",
+        "worldwide",
+    }
+    return normalized in generic
+
+
+def _location_region(label: str) -> str | None:
+    parts = [part.strip() for part in label.split(",")]
+    if len(parts) < 2:
+        return None
+    region = re.sub(r"[^A-Za-z0-9 ]", "", parts[-1]).strip()
+    return region or None
 
 
 def _get_job(repository: JobOpeningRepository, job_id: str) -> NormalizedJobOpening:
