@@ -45,6 +45,20 @@ model analyses often find no defensible claim matches, leaving adjacent roles ti
 scores. Continue by improving evidence matching and role relevance, refreshing current-contract
 scores, and deepening healthy employer-owned sources into direct postings.
 
+The follow-up hardening checkpoint makes preferred-model routing strict when fallback is disabled,
+rejects weak social/job-board `sameAs` hints as employer domains, disambiguates same-name unresolved
+employers when a stable organization hint exists, and makes the live runner consume the canonical
+fit-analysis contract version. Coding-agent context conservation is now an explicit operating rule:
+use the file map, targeted reads/searches, deterministic diagnostics, reusable tools, and durable
+handoffs instead of repeatedly rediscovering unchanged state.
+
+Fit intent is now explicit: listed titles are weak clues rather than gates. Job Scout should compare
+actual responsibilities and requirements against verified experience, and domain relationship should
+rank direct domain match above adjacent domain, transferable experience, and domain/skill mismatch.
+The current scorer includes a model-produced domain component, but the reusable evidence-backed
+domain-distance model/taxonomy is not implemented yet; treat it as part of the next ranking-quality
+slice rather than assuming current `domain_score` provides that distinction.
+
 ## Immediate implementation slice
 
 Implement the smallest coherent foundation that changes Job Scout from bounded querying into a persistent discovery engine:

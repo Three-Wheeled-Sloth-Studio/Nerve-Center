@@ -5,6 +5,7 @@ instructions:
   - Read refs/planning/mvp-roadmap.md and refs/planning/decision-register.md before adding or changing implementation work.
   - Read refs/planning/product-vision-and-architecture.md and refs/planning/module-package-contract.md before changing system boundaries or module ownership.
   - Read refs/implementation/fileMap.yaml before searching broadly.
+  - Conserve coding-agent context and tokens by targeting reads through the file map, avoiding repeated reads of unchanged large files, preferring deterministic searches/tests over repeated reasoning, and extracting repeated diagnostics or workflows into reusable scripts/tools.
   - Read refs/testing/validationCommands.yaml before finalizing changes.
   - Use refs/index.md as the OKF discovery surface, but do not substitute it for the required reading order.
   - Keep durable decisions, handoffs, validation notes, and context-heavy project facts in refs.

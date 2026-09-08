@@ -22,8 +22,9 @@ from typing import Any
 
 from platformdirs import user_data_path
 
+from nerve_center.scoring.fit import FIT_ANALYSIS_CONTRACT_VERSION
+
 TERMINAL_STATUSES = {"succeeded", "partial", "failed", "cancelled"}
-FIT_CONTRACT_VERSION = "job-fit-analysis-v4"
 
 
 def request_json(
@@ -236,7 +237,7 @@ def score_candidates(
             and (item.get("score") or {})
             .get("calculation", {})
             .get("fit_contract_version")
-            == FIT_CONTRACT_VERSION
+            == FIT_ANALYSIS_CONTRACT_VERSION
         )
     ][:limit]
     scored: list[dict[str, Any]] = []
@@ -371,7 +372,7 @@ def run(args: argparse.Namespace) -> int:
                     args.endpoint,
                     f"/api/v1/providers/evidence/{urllib.parse.quote(task_id, safe='')}",
                 )
-                for task_id in ("job_scout.discovery.reflect", FIT_CONTRACT_VERSION)
+                for task_id in ("job_scout.discovery.reflect", FIT_ANALYSIS_CONTRACT_VERSION)
             }
             report["ranked_opportunities"] = request_json(
                 args.endpoint,

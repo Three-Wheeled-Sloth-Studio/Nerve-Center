@@ -180,6 +180,21 @@ def test_manager_can_bound_execution_to_manager_owned_preferred_model() -> None:
     assert alternate.selected_models == []
 
 
+def test_manager_rejects_missing_preferred_model_when_fallback_disabled() -> None:
+    alternate = FakeJsonProvider("ollama", "alternate", {"score": 70})
+    manager = ProviderManager(
+        (alternate,),
+        preferred_model="gemma3:4b",
+        allow_model_fallback=False,
+    )
+
+    with pytest.raises(ProviderError) as caught:
+        asyncio.run(manager.execute(model_request()))
+
+    assert caught.value.code == "PREFERRED_MODEL_UNAVAILABLE"
+    assert alternate.selected_models == []
+
+
 def test_provider_executor_completes_valid_model_blind_work(tmp_path: Path) -> None:
     queue, run_id = make_queue(tmp_path)
     request = queue.submit(_queue_spec(run_id))

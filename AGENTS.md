@@ -13,6 +13,8 @@ Before changing Nerve Center, read these in order:
 
 `refs/index.md` is the generated OKF discovery surface. It is useful for navigation, but it does not replace the required reading order above.
 
+Conserve coding-agent context and tokens deliberately. Use `refs/implementation/fileMap.yaml` to target reads, avoid re-reading unchanged large files, prefer deterministic searches/tests over repeated reasoning, and turn repeated diagnostics or workflows into reusable scripts/tools. See `refs/engineering/ci-and-agent-workflow.md` for the full operating rules.
+
 Do not hand-edit generated `refs/**/index.md` files. Regenerate them with `python refs/tools/generate_okf_indexes.py`.
 
 Do not store secrets or machine-local credentials in `refs/`.

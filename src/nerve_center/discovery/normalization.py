@@ -27,6 +27,26 @@ _TRACKING_PARAMS = {
     "utm_source",
     "utm_term",
 }
+_WEAK_IDENTITY_DOMAINS = {
+    "builtin.com",
+    "careerbuilder.com",
+    "duckduckgo.com",
+    "facebook.com",
+    "glassdoor.com",
+    "indeed.com",
+    "instagram.com",
+    "linkedin.com",
+    "monster.com",
+    "reddit.com",
+    "simplyhired.com",
+    "tiktok.com",
+    "threads.net",
+    "twitter.com",
+    "wellfound.com",
+    "x.com",
+    "youtube.com",
+    "ziprecruiter.com",
+}
 _WHITESPACE = re.compile(r"\s+")
 
 
@@ -92,16 +112,30 @@ def canonical_domain(value: str) -> str:
     return hostname.removeprefix("www.")
 
 
+def is_third_party_identity_domain(value: str) -> bool:
+    """Identify weak profile/aggregator domains that should not define employer identity.
+
+    This helper is intentionally for weak identity hints such as schema.org ``sameAs``.
+    A company may legitimately operate one of these domains, so a strong organization ``url``
+    assertion is handled separately by the connector.
+    """
+
+    domain = canonical_domain(value)
+    return any(domain == item or domain.endswith(f".{item}") for item in _WEAK_IDENTITY_DOMAINS)
+
+
 def stable_company_id(domain: str) -> str:
     return str(uuid5(NAMESPACE_URL, f"company|{canonical_domain(domain)}"))
 
 
-def unresolved_company_domain(name: str) -> str:
+def unresolved_company_domain(name: str, identity_hint: str | None = None) -> str:
     """Return a stable, non-routable identity for a named but unresolved employer."""
 
     normalized = clean_text(name).casefold()
+    hint = clean_text(identity_hint).casefold() if identity_hint else ""
+    identity = f"{normalized}|{hint}" if hint else normalized
     slug = re.sub(r"[^a-z0-9]+", "-", normalized).strip("-")[:80] or "company"
-    digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:12]
+    digest = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:12]
     return f"{slug}-{digest}.unresolved.invalid"
 
 

@@ -185,8 +185,16 @@ class ProviderManager:
         candidates = await self._discover_candidates()
         if self.preferred_model and not self.allow_model_fallback:
             preferred = [item for item in candidates if item[1].id == self.preferred_model]
-            if preferred:
-                candidates = preferred
+            if not preferred:
+                raise ProviderError(
+                    "manager",
+                    "PREFERRED_MODEL_UNAVAILABLE",
+                    (
+                        f"Preferred model {self.preferred_model!r} is not available among "
+                        "discovered local models and fallback is disabled."
+                    ),
+                )
+            candidates = preferred
         evidence = {
             (item.provider, item.model): item
             for item in (

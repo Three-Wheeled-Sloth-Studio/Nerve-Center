@@ -17,6 +17,17 @@ Job Scout ranks opportunities by practical pursuit value, not keyword similarity
 
 Measures alignment between verified career evidence and the opening's required work, seniority, domain, methods, leadership scope, and outcomes. Preferred qualifications contribute less than required qualifications. Unsupported assumptions cannot count as evidence.
 
+The listed job title is a weak discovery and seniority clue, not a fit gate. Fit evaluation must look past title wording and compare the actual responsibilities and requirements in the opening with verified candidate experience. A differently titled role can be a strong match when the work, scope, and evidence align; a familiar title can be a weak match when they do not.
+
+Domain fit is a first-class part of fit and should distinguish, in descending order:
+
+1. Direct domain match: verified experience in the same material business/problem domain.
+2. Adjacent domain: materially related users, workflows, regulation, data, operating environment, or market context.
+3. Transferable experience: the candidate has relevant methods, leadership, product, technical, or outcome evidence but must transfer it across a meaningfully different domain.
+4. Domain or skill mismatch: the opening depends on domain knowledge or capabilities not supported by verified evidence.
+
+Domain-distance evidence should be explainable separately from title similarity and generic skill overlap. The current implementation records an LLM-produced `domain_score`, but an explicit reusable domain-distance model/taxonomy is still an implementation gap; do not treat that hierarchy as fully implemented until the scorer can produce and validate the underlying domain relationship evidence.
+
 ### Response likelihood, 0 to 100
 
 Estimates the chance of meaningful employer attention. Initial factors include listing freshness, direct-employer provenance, local or regional presence, work arrangement, commute time, required-qualification coverage, applicant saturation signals, hiring activity, repost patterns, and application friction.
