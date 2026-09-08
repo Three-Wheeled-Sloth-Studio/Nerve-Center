@@ -124,7 +124,10 @@ def _decisions(path: Path, focus_tokens: set[str], limit: int) -> list[tuple[str
             accepted.append((decision_id, decision.strip()))
     ranked = sorted(
         accepted,
-        key=lambda item: (_relevance(f"{item[0]} {item[1]}", focus_tokens), item[0]),
+        key=lambda item: (
+            _relevance(f"{item[0]} {item[1]}", focus_tokens),
+            item[0],
+        ),
         reverse=True,
     )
     if focus_tokens:
@@ -138,6 +141,7 @@ def _markdown_blocks(path: Path) -> list[tuple[str, str]]:
     section = "Overview"
     blocks: list[tuple[str, str]] = []
     paragraph: list[str] = []
+    in_fence = False
 
     def flush() -> None:
         if paragraph:
@@ -148,26 +152,37 @@ def _markdown_blocks(path: Path) -> list[tuple[str, str]]:
 
     for raw_line in path.read_text(encoding="utf-8").splitlines():
         line = raw_line.strip()
+        if line.startswith("```"):
+            flush()
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
         heading = _HEADING_RE.match(line)
         if heading:
             flush()
             section = heading.group(1)
             continue
-        if not line or line == "---" or line.startswith(("type:", "title:", "description:", "status:", "tags:")):
+        metadata_prefixes = (
+            "type:",
+            "title:",
+            "description:",
+            "status:",
+            "tags:",
+        )
+        if not line or line == "---" or line.startswith(metadata_prefixes):
             flush()
             continue
         if line.startswith("# "):
             flush()
             continue
-        if line.startswith(('- ', '* ')):
+        if line.startswith(("- ", "* ")):
             flush()
             blocks.append((section, line[2:].strip()))
             continue
         if re.match(r"^\d+\.\s+", line):
             flush()
             blocks.append((section, re.sub(r"^\d+\.\s+", "", line)))
-            continue
-        if line.startswith("```"):
             continue
         paragraph.append(line)
     flush()
@@ -179,11 +194,17 @@ def _handoff_snippets(
     focus_tokens: set[str],
     limit: int,
 ) -> list[tuple[str, str]]:
-    excluded_sections = {"Read before implementation", "Validation boundary"}
+    excluded_sections = {
+        "Coding-agent reset path",
+        "Read before implementation",
+        "Validation boundary",
+    }
     blocks = [item for item in _markdown_blocks(path) if item[0] not in excluded_sections]
     section_priority = {
         "Active product correction": 4,
+        "Next implementation slice": 3,
         "Immediate implementation slice": 3,
+        "Do not reopen without new evidence": 2,
         "Architectural constraints": 2,
         "Current state": 1,
     }
@@ -204,10 +225,13 @@ def _handoff_snippets(
         ]
         if matched:
             return matched[:limit]
+    preferred_sections = {
+        "Active product correction",
+        "Next implementation slice",
+        "Immediate implementation slice",
+    }
     preferred = [
-        item
-        for _index, item in ranked
-        if item[0] in {"Active product correction", "Immediate implementation slice"}
+        item for _index, item in ranked if item[0] in preferred_sections
     ]
     return preferred[:limit]
 
@@ -232,7 +256,11 @@ def _file_hints(path: Path, focus_tokens: set[str]) -> list[tuple[str, list[str]
         ranked.append((score, task, look_in))
     ranked.sort(key=lambda item: (item[0], item[1]), reverse=True)
     if focus_tokens and any(score > 0 for score, _task, _paths in ranked):
-        return [(task, paths) for score, task, paths in ranked if score > 0][:3]
+        return [
+            (task, paths)
+            for score, task, paths in ranked
+            if score > 0
+        ][:3]
     return [(task, paths) for _score, task, paths in ranked[:2]]
 
 
@@ -242,7 +270,9 @@ def _validation_commands(path: Path) -> list[tuple[str, str]]:
     for item in payload.get("commands") or []:
         if not isinstance(item, dict) or item.get("required") is not True:
             continue
-        result.append((str(item.get("id") or "validation"), str(item.get("command") or "")))
+        command_id = str(item.get("id") or "validation")
+        command = str(item.get("command") or "")
+        result.append((command_id, command))
     return result
 
 
@@ -284,13 +314,21 @@ def build_packet(
         focus_tokens,
         max_handoff_snippets,
     )
-    file_hints = _file_hints(repo_root / "refs/implementation/fileMap.yaml", focus_tokens)
-    validation = _validation_commands(repo_root / "refs/testing/validationCommands.yaml")
+    file_hints = _file_hints(
+        repo_root / "refs/implementation/fileMap.yaml",
+        focus_tokens,
+    )
+    validation = _validation_commands(
+        repo_root / "refs/testing/validationCommands.yaml"
+    )
 
     lines = [
         f"# {project_name} — Generated Agent Context",
         "",
-        "> Derived orientation only. Authoritative refs/source remain the source of truth; do not edit this packet as project state.",
+        (
+            "> Derived orientation only. Authoritative refs/source remain the source of truth; "
+            "do not edit this packet as project state."
+        ),
         "",
         "## Session",
         f"- Branch: `{git.branch}`",
@@ -321,7 +359,8 @@ def build_packet(
 
     lines.extend(["", "## File-map hints"])
     for task, paths in file_hints:
-        lines.append(f"- **{task}:** " + ", ".join(f"`{item}`" for item in paths))
+        formatted_paths = ", ".join(f"`{item}`" for item in paths)
+        lines.append(f"- **{task}:** {formatted_paths}")
 
     lines.extend(["", "## Required validation"])
     for command_id, command in validation:
@@ -331,11 +370,26 @@ def build_packet(
         [
             "",
             "## Context discipline",
-            "- Start with the paths above; use targeted search/line ranges before whole-file reads.",
-            "- Treat accepted decisions as inputs. Reopen them only when new runtime/test evidence contradicts them.",
-            "- Prefer diff-first continuation from the accepted checkpoint over reconstructing unchanged repository state.",
-            "- If substantially the same diagnostic/search/transformation is performed twice, make it reusable before doing it a third time.",
-            "- Expand to roadmap/architecture/full handoff documents only when the task crosses those boundaries or the packet is insufficient.",
+            (
+                "- Start with the paths above; use targeted search/line ranges before "
+                "whole-file reads."
+            ),
+            (
+                "- Treat accepted decisions as inputs. Reopen them only when new runtime/test "
+                "evidence contradicts them."
+            ),
+            (
+                "- Prefer diff-first continuation from the accepted checkpoint over "
+                "reconstructing unchanged repository state."
+            ),
+            (
+                "- If substantially the same diagnostic/search/transformation is performed "
+                "twice, make it reusable before doing it a third time."
+            ),
+            (
+                "- Expand to roadmap/architecture/full handoff documents only when the task "
+                "crosses those boundaries or the packet is insufficient."
+            ),
         ]
     )
     return "\n".join(lines).rstrip() + "\n"
@@ -343,10 +397,26 @@ def build_packet(
 
 def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser(description=__doc__)
-    result.add_argument("--focus", default="", help="Short task phrase used to select relevant context.")
-    result.add_argument("--issue", type=int, help="Optional issue number to display in the packet.")
-    result.add_argument("--base-ref", default="dev", help="Integration ref used for changed-path context.")
-    result.add_argument("--output", type=Path, help="Optional local scratch file; stdout is the default.")
+    result.add_argument(
+        "--focus",
+        default="",
+        help="Short task phrase used to select relevant context.",
+    )
+    result.add_argument(
+        "--issue",
+        type=int,
+        help="Optional issue number to display in the packet.",
+    )
+    result.add_argument(
+        "--base-ref",
+        default="dev",
+        help="Integration ref used for changed-path context.",
+    )
+    result.add_argument(
+        "--output",
+        type=Path,
+        help="Optional local scratch file; stdout is the default.",
+    )
     result.add_argument("--max-chars", type=int, default=DEFAULT_MAX_CHARS)
     result.add_argument(
         "--check",
