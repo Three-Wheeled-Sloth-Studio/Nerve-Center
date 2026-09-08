@@ -82,7 +82,8 @@ class ManagedApi:
         environment["NERVE_CENTER_PORT"] = str(parsed.port)
         environment["NERVE_CENTER_DATA_DIR"] = str(self.data_dir)
         environment["NERVE_CENTER_OLLAMA_DEFAULT_MODEL"] = self.default_model
-        environment["NERVE_CENTER_OLLAMA_ALLOW_MODEL_FALLBACK"] = "false"
+        environment["NERVE_CENTER_OLLAMA_SCHEMA_FALLBACK_MODEL"] = "qwen2.5:7b-instruct"
+        environment["NERVE_CENTER_OLLAMA_ALLOW_MODEL_FALLBACK"] = "true"
         flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
         self.process = subprocess.Popen(
             [sys.executable, "-c", "from nerve_center.api.app import run; run()"],

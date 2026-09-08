@@ -21,6 +21,7 @@ class AcquisitionClass(StrEnum):
 class SourceKind(StrEnum):
     GREENHOUSE = "greenhouse"
     LEVER = "lever"
+    ASHBY = "ashby"
     JSON_LD = "json_ld"
     SITEMAP = "sitemap"
     DIRECT_HTML = "direct_html"

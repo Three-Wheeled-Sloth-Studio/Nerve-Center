@@ -120,6 +120,15 @@ def test_fit_analysis_rejects_invalid_evidence_and_unknown_claims() -> None:
                 match_level=MatchLevel.UNKNOWN,
                 confidence=0.4,
             ),
+            ExtractedQualificationAssessment(
+                importance=QualificationImportance.REQUIRED,
+                requirement="Active Secret clearance",
+                job_excerpt="Active Secret clearance required.",
+                matched_claim_ids=["claim-1"],
+                match_level=MatchLevel.FULL,
+                confidence=0.9,
+                gate_category=GateCategory.CLEARANCE,
+            ),
         ],
         seniority_score=90,
         domain_score=95,
@@ -139,6 +148,13 @@ def test_fit_analysis_rejects_invalid_evidence_and_unknown_claims() -> None:
     assert analysis.qualifications[1].matched_claim_ids == []
     assert analysis.qualifications[2].match_level is MatchLevel.PARTIAL
     assert analysis.qualifications[2].matched_claim_ids == ["claim-1"]
+    assert analysis.qualifications[2].evidence_matches[0].evidence_locators == [
+        "user_override"
+    ]
+    assert analysis.qualifications[3].match_level is MatchLevel.UNKNOWN
+    assert analysis.qualifications[3].matched_claim_ids == []
+    assert analysis.domain_assessment.relationship.value == "transferable"
+    assert analysis.domain_score == 48
     assert analysis.review_notes
 
 

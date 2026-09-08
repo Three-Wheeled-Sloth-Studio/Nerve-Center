@@ -9,7 +9,11 @@ from uuid import uuid4
 
 from nerve_center.discovery.models import NormalizedJobOpening, WorkArrangement
 from nerve_center.profile.models import CanonicalCareerProfile
-from nerve_center.scoring.fit import preferred_coverage, required_coverage
+from nerve_center.scoring.fit import (
+    preferred_coverage,
+    required_coverage,
+    responsibility_coverage,
+)
 from nerve_center.scoring.location import assess_location
 from nerve_center.scoring.models import (
     CompanyEnrichment,
@@ -31,6 +35,8 @@ from nerve_center.scoring.models import (
     ScoringSettings,
 )
 
+SCORING_ENGINE_VERSION = "job-scout-ranking-v2"
+
 
 class OpportunityScorer:
     def score(
@@ -44,6 +50,7 @@ class OpportunityScorer:
         location_preferences: LocationPreferences,
         settings: ScoringSettings,
         rules: list[ScoringRule],
+        target_title_alignment: float | None = None,
         now: datetime | None = None,
     ) -> OpportunityScore:
         current = now or datetime.now(UTC)
@@ -56,6 +63,20 @@ class OpportunityScorer:
             preferences=location_preferences,
         )
         fit, required, preferred = _fit_score(fit_analysis, factors)
+        if target_title_alignment is not None:
+            adjustment = (target_title_alignment - 0.5) * 6.0
+            fit += adjustment
+            factors.append(
+                ScoreFactor(
+                    dimension=ScoreDimension.FIT,
+                    code="target_title_alignment",
+                    label="Configured target title contributes only a weak role-family clue.",
+                    kind=(FactorKind.POSITIVE if adjustment > 0 else FactorKind.NEGATIVE),
+                    points=round(adjustment, 2),
+                    confidence=1.0,
+                    detail={"alignment": target_title_alignment},
+                )
+            )
         response = _response_score(
             opening,
             company_enrichment,
@@ -221,8 +242,10 @@ class OpportunityScorer:
             factors=factors,
             location=location,
             calculation={
+                "scoring_engine_version": SCORING_ENGINE_VERSION,
                 "fit_contract_version": fit_analysis.contract_version,
                 "fit_model": fit_analysis.model,
+                "target_title_alignment": target_title_alignment,
                 "required_coverage": round(required, 4),
                 "preferred_coverage": round(preferred, 4),
                 "weights": weights,
@@ -241,8 +264,10 @@ def _fit_score(
 ) -> tuple[float, float, float]:
     required = required_coverage(analysis)
     preferred = preferred_coverage(analysis)
+    responsibilities = responsibility_coverage(analysis)
     components = {
         "required_coverage": required * 100,
+        "responsibility_coverage": responsibilities * 100,
         "preferred_coverage": preferred * 100,
         "seniority": analysis.seniority_score,
         "domain": analysis.domain_score,
@@ -251,13 +276,14 @@ def _fit_score(
         "outcomes": analysis.outcomes_score,
     }
     weights = {
-        "required_coverage": 0.45,
-        "preferred_coverage": 0.10,
-        "seniority": 0.15,
+        "required_coverage": 0.35,
+        "responsibility_coverage": 0.25,
+        "preferred_coverage": 0.05,
+        "seniority": 0.10,
         "domain": 0.10,
-        "leadership": 0.10,
+        "leadership": 0.075,
         "methods": 0.05,
-        "outcomes": 0.05,
+        "outcomes": 0.025,
     }
     score = sum(components[key] * weights[key] for key in components)
     factors.append(
@@ -269,6 +295,29 @@ def _fit_score(
             points=score,
             confidence=analysis.confidence,
             detail={"components": components, "weights": weights},
+        )
+    )
+    domain = analysis.domain_assessment
+    factors.append(
+        ScoreFactor(
+            dimension=ScoreDimension.FIT,
+            code="domain_relationship",
+            label=f"Career evidence has a {domain.relationship.value} domain relationship.",
+            kind=(
+                FactorKind.POSITIVE
+                if domain.relationship.value in {"direct", "adjacent"}
+                else FactorKind.NEGATIVE
+                if domain.relationship.value == "mismatch"
+                else FactorKind.NEUTRAL
+            ),
+            confidence=domain.confidence,
+            evidence=domain.evidence_locators,
+            detail={
+                "relationship": domain.relationship.value,
+                "job_domains": domain.job_domains,
+                "career_domains": domain.career_domains,
+                "matched_claim_ids": domain.matched_claim_ids,
+            },
         )
     )
     return score, required, preferred

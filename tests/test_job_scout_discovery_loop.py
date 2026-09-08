@@ -40,7 +40,7 @@ class _FixtureConnector:
     ) -> ConnectorScanResult:
         self.calls.append(source.id)
         openings: list[NormalizedJobOpening] = []
-        if self.opening and source.kind is SourceKind.JSON_LD:
+        if self.opening and source.kind in {SourceKind.JSON_LD, SourceKind.ASHBY}:
             openings.append(
                 NormalizedJobOpening(
                     id=f"job-{company.id}",
@@ -132,6 +132,7 @@ def _build_loop(
     registry = ConnectorRegistry()
     registry.register(SourceKind.JSON_LD, connector)
     registry.register(SourceKind.SITEMAP, connector)
+    registry.register(SourceKind.ASHBY, connector)
     discovery = DiscoveryService(companies, sources, jobs, connectors=registry)
     coordinator = JobScoutCoordinator(
         settings,
@@ -255,6 +256,60 @@ def test_public_search_strategy_bounds_result_deepening(tmp_path: Path) -> None:
 
     assert cycle.coverage["results_examined"] == 6
     assert len(companies.list()) == 6
+
+
+def test_search_seed_cap_preserves_anchor_diversity(tmp_path: Path) -> None:
+    loop, learning, _companies, _sources, _jobs, _coordinator = _build_loop(
+        tmp_path,
+        search=_FixtureSearch(),
+    )
+
+    loop._seed_search_strategies(
+        [f"Role family {index}" for index in range(20)],
+        [f"Market {index}" for index in range(12)],
+        ["board-one.example", "board-two.example"],
+    )
+
+    anchors = {
+        item.dimensions.get("anchor")
+        for item in learning.list_strategies()
+        if item.dimensions.get("kind") == "public_search"
+    }
+    assert len(anchors) == 20
+
+
+def test_company_deepening_attributes_ashby_source_to_known_employer(tmp_path: Path) -> None:
+    loop, learning, companies, sources, jobs, _coordinator = _build_loop(
+        tmp_path,
+        search=_FixtureSearch(),
+    )
+    company = companies.upsert(
+        Company(
+            id="company-1",
+            canonical_name="Known Employer",
+            domain="known.example",
+            career_url="https://known.example/careers",
+        )
+    )
+    strategy = learning.ensure_strategy(
+        {"kind": "company_revisit", "company_id": company.id},
+        origin="test",
+    )
+
+    class AshbySurface:
+        async def resolve(self, _company: Company) -> list[str]:
+            return ["https://jobs.ashbyhq.com/known-employer"]
+
+    loop.surface_resolver = AshbySurface()
+    source_ids, _requests, postings = asyncio.run(
+        loop._deepen_company(company, strategy.id)
+    )
+
+    ashby_sources = [item for item in sources.list() if item.kind is SourceKind.ASHBY]
+    assert source_ids == {ashby_sources[0].id}
+    assert ashby_sources[0].company_id == company.id
+    assert postings == 1
+    assert jobs.list()[0].company_id == company.id
 
 
 def test_major_board_results_are_retained_as_secondary_provenance(

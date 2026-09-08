@@ -3,21 +3,23 @@
 from __future__ import annotations
 
 import json
-import re
 from uuid import NAMESPACE_URL, uuid4, uuid5
 
 from nerve_center.discovery.models import NormalizedJobOpening
 from nerve_center.profile.models import CareerClaim, CanonicalCareerProfile, ClaimDecision
 from nerve_center.providers.base import StructuredProvider
+from nerve_center.scoring.evidence import CareerEvidenceMatcher
 from nerve_center.scoring.models import (
+    DomainRelationship,
     ExtractedQualificationAssessment,
     FitAnalysisResponse,
     JobFitAnalysis,
     MatchLevel,
     QualificationAssessment,
+    RequirementEvidenceMatch,
 )
 
-FIT_ANALYSIS_CONTRACT_VERSION = "job-fit-analysis-v4"
+FIT_ANALYSIS_CONTRACT_VERSION = "job-fit-analysis-v6"
 
 _SYSTEM_PROMPT = """Analyze job requirements only against supplied verified career claims.
 Do not infer credentials, employers, education completion, licenses, clearances, or outcomes.
@@ -82,6 +84,21 @@ def preferred_coverage(analysis: JobFitAnalysis) -> float:
     return sum(values[item.match_level] for item in preferred) / len(preferred)
 
 
+def responsibility_coverage(analysis: JobFitAnalysis) -> float:
+    responsibilities = [
+        item for item in analysis.qualifications if item.importance.value == "responsibility"
+    ]
+    if not responsibilities:
+        return 0.5
+    values = {
+        MatchLevel.FULL: 1.0,
+        MatchLevel.PARTIAL: 0.5,
+        MatchLevel.NONE: 0.0,
+        MatchLevel.UNKNOWN: 0.1,
+    }
+    return sum(values[item.match_level] for item in responsibilities) / len(responsibilities)
+
+
 def _build_prompt(opening: NormalizedJobOpening, claims: list[CareerClaim]) -> str:
     claim_payload = [claim.model_dump(mode="json") for claim in claims]
     return "\n".join(
@@ -110,9 +127,12 @@ def _validate_analysis(
         if claim.decision is not ClaimDecision.REJECTED
     }
     description = " ".join(opening.description.casefold().split())
+    matcher = CareerEvidenceMatcher()
     qualifications: list[QualificationAssessment] = []
     review_notes: list[str] = []
-    for index, extracted in enumerate(response.qualifications):
+    if len(response.qualifications) > 8:
+        review_notes.append("Limited model output to eight decision-relevant qualifications.")
+    for index, extracted in enumerate(response.qualifications[:8]):
         qualifications.append(
             _validated_qualification(
                 opening.id,
@@ -121,8 +141,17 @@ def _validate_analysis(
                 valid_claims,
                 description,
                 review_notes,
+                matcher.match_requirement(extracted.requirement, valid_claims.values()),
             )
         )
+    evidence_matches = [
+        match for qualification in qualifications for match in qualification.evidence_matches
+    ]
+    domain_assessment = matcher.assess_domain(
+        opening,
+        valid_claims.values(),
+        evidence_matches,
+    )
     dimension_scores = [
         response.seniority_score,
         response.domain_score,
@@ -133,6 +162,17 @@ def _validate_analysis(
     if dimension_scores and max(dimension_scores) <= 1:
         dimension_scores = [item * 100 for item in dimension_scores]
         review_notes.append("Normalized model fit dimensions from a 0-1 scale to 0-100.")
+    domain_scores = {
+        DomainRelationship.DIRECT: 90.0,
+        DomainRelationship.ADJACENT: 70.0,
+        DomainRelationship.TRANSFERABLE: 48.0,
+        DomainRelationship.MISMATCH: 18.0,
+    }
+    dimension_scores[1] = domain_scores[domain_assessment.relationship]
+    review_notes.append(
+        "Domain score derived from the evidence-backed "
+        f"{domain_assessment.relationship.value} relationship."
+    )
     supported_qualifications = sum(
         bool(item.matched_claim_ids)
         and item.match_level in {MatchLevel.FULL, MatchLevel.PARTIAL}
@@ -162,6 +202,7 @@ def _validate_analysis(
         qualifications=qualifications,
         seniority_score=dimension_scores[0],
         domain_score=dimension_scores[1],
+        domain_assessment=domain_assessment,
         leadership_score=dimension_scores[2],
         methods_score=dimension_scores[3],
         outcomes_score=dimension_scores[4],
@@ -177,11 +218,15 @@ def _validated_qualification(
     valid_claims: dict[str, CareerClaim],
     normalized_description: str,
     review_notes: list[str],
+    evidence_matches: list[RequirementEvidenceMatch],
 ) -> QualificationAssessment:
     excerpt = " ".join(extracted.job_excerpt.casefold().split())
     excerpt_valid = excerpt in normalized_description
-    claim_ids = [item for item in extracted.matched_claim_ids if item in valid_claims]
-    invalid_claim_count = len(extracted.matched_claim_ids) - len(claim_ids)
+    known_claim_ids = [item for item in extracted.matched_claim_ids if item in valid_claims]
+    supported_claim_ids = {item.claim_id for item in evidence_matches}
+    claim_ids = [item for item in known_claim_ids if item in supported_claim_ids]
+    invalid_claim_count = len(extracted.matched_claim_ids) - len(known_claim_ids)
+    unsupported_claim_count = len(known_claim_ids) - len(claim_ids)
     match_level = extracted.match_level
     confidence = extracted.confidence
     notes = extracted.notes
@@ -193,19 +238,24 @@ def _validated_qualification(
     if invalid_claim_count:
         confidence = min(confidence, 0.5)
         review_notes.append(f"Qualification {index + 1} cited unknown career claims.")
+    if unsupported_claim_count:
+        confidence = min(confidence, 0.5)
+        review_notes.append(
+            f"Qualification {index + 1} cited career claims without validated support."
+        )
     if match_level in {MatchLevel.FULL, MatchLevel.PARTIAL} and not claim_ids:
         match_level = MatchLevel.UNKNOWN
         confidence = min(confidence, 0.3)
         review_notes.append(f"Qualification {index + 1} had no valid supporting claim.")
     if excerpt_valid and not claim_ids and match_level is MatchLevel.UNKNOWN:
-        inferred = _infer_claim_matches(extracted.requirement, valid_claims)
+        inferred = [item.claim_id for item in evidence_matches]
         if inferred:
             claim_ids = inferred
             match_level = MatchLevel.PARTIAL
             confidence = min(max(confidence, 0.45), 0.6)
-            notes = "Deterministic lexical evidence linked a persisted career claim."
+            notes = "Deterministic semantic evidence linked a persisted career claim."
             review_notes.append(
-                f"Qualification {index + 1} received a conservative lexical claim match."
+                f"Qualification {index + 1} received a conservative semantic claim match."
             )
     item_id = str(uuid5(NAMESPACE_URL, f"qualification|{job_id}|{index}|{extracted.requirement}"))
     return QualificationAssessment(
@@ -218,45 +268,7 @@ def _validated_qualification(
         confidence=confidence,
         gate_category=extracted.gate_category,
         notes=notes,
+        evidence_matches=[
+            item for item in evidence_matches if item.claim_id in set(claim_ids)
+        ],
     )
-
-
-_MATCH_STOPWORDS = {
-    "and",
-    "experience",
-    "for",
-    "from",
-    "into",
-    "knowledge",
-    "of",
-    "the",
-    "to",
-    "using",
-    "with",
-    "years",
-}
-
-
-def _infer_claim_matches(
-    requirement: str,
-    claims: dict[str, CareerClaim],
-) -> list[str]:
-    required = _match_tokens(requirement)
-    if len(required) < 2:
-        return []
-    scored: list[tuple[float, str]] = []
-    for claim_id, claim in claims.items():
-        evidence = _match_tokens(f"{claim.label} {claim.statement}")
-        shared = required & evidence
-        coverage = len(shared) / len(required)
-        if len(shared) >= 2 and coverage >= 0.5:
-            scored.append((coverage, claim_id))
-    return [claim_id for _score, claim_id in sorted(scored, reverse=True)[:2]]
-
-
-def _match_tokens(value: str) -> set[str]:
-    return {
-        token
-        for token in re.findall(r"[a-z0-9]+", value.casefold())
-        if len(token) > 2 and token not in _MATCH_STOPWORDS
-    }

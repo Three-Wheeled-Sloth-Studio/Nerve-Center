@@ -52,7 +52,6 @@ def install_job_scout(
     )
     register_profile_routes(application, database, settings, provider)
     register_discovery_routes(application, database, settings, discovery_service)
-    scoring_service = register_scoring_routes(application, database, settings, provider)
     coordinator = register_job_scout_configuration_routes(
         application,
         database,
@@ -62,6 +61,13 @@ def install_job_scout(
         company_repository,
         source_repository,
         job_repository,
+    )
+    scoring_service = register_scoring_routes(
+        application,
+        database,
+        settings,
+        provider,
+        target_titles_provider=lambda: coordinator.store.load().target_titles,
     )
     discovery_loop = JobScoutDiscoveryLoop(
         settings,

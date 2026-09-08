@@ -137,6 +137,20 @@ class JobEnrichment(BaseModel):
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
+class EvidenceRelationship(StrEnum):
+    LEXICAL = "lexical"
+    EQUIVALENT = "equivalent"
+    TRANSFERABLE = "transferable"
+
+
+class RequirementEvidenceMatch(BaseModel):
+    claim_id: str
+    relationship: EvidenceRelationship
+    confidence: float = Field(ge=0, le=1)
+    shared_concepts: list[str] = Field(default_factory=list)
+    evidence_locators: list[str] = Field(default_factory=list)
+
+
 class QualificationAssessment(BaseModel):
     id: str
     importance: QualificationImportance
@@ -147,6 +161,23 @@ class QualificationAssessment(BaseModel):
     confidence: float = Field(ge=0, le=1)
     gate_category: GateCategory = GateCategory.NONE
     notes: str | None = None
+    evidence_matches: list[RequirementEvidenceMatch] = Field(default_factory=list)
+
+
+class DomainRelationship(StrEnum):
+    DIRECT = "direct"
+    ADJACENT = "adjacent"
+    TRANSFERABLE = "transferable"
+    MISMATCH = "mismatch"
+
+
+class DomainAssessment(BaseModel):
+    relationship: DomainRelationship = DomainRelationship.MISMATCH
+    confidence: float = Field(default=0, ge=0, le=1)
+    job_domains: list[str] = Field(default_factory=list)
+    career_domains: list[str] = Field(default_factory=list)
+    matched_claim_ids: list[str] = Field(default_factory=list)
+    evidence_locators: list[str] = Field(default_factory=list)
 
 
 class JobFitAnalysis(BaseModel):
@@ -159,6 +190,7 @@ class JobFitAnalysis(BaseModel):
     qualifications: list[QualificationAssessment] = Field(default_factory=list)
     seniority_score: float = Field(default=50, ge=0, le=100)
     domain_score: float = Field(default=50, ge=0, le=100)
+    domain_assessment: DomainAssessment = Field(default_factory=DomainAssessment)
     leadership_score: float = Field(default=50, ge=0, le=100)
     methods_score: float = Field(default=50, ge=0, le=100)
     outcomes_score: float = Field(default=50, ge=0, le=100)

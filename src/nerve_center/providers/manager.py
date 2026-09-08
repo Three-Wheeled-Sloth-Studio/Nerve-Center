@@ -6,6 +6,8 @@ import re
 from time import perf_counter
 from typing import TypeVar
 
+from jsonschema import SchemaError, validate
+from jsonschema import ValidationError as JsonSchemaValidationError
 from pydantic import BaseModel, ValidationError
 
 from nerve_center.persistence.providers import ModelEvidenceRepository, TaskModelEvidence
@@ -28,6 +30,7 @@ class ProviderManager:
         *,
         evidence: ModelEvidenceRepository | None = None,
         preferred_model: str | None = None,
+        schema_fallback_model: str | None = None,
         allow_model_fallback: bool = True,
     ) -> None:
         if not providers:
@@ -35,6 +38,9 @@ class ProviderManager:
         self.providers = providers
         self.evidence = evidence
         self.preferred_model = preferred_model.strip() if preferred_model else None
+        self.schema_fallback_model = (
+            schema_fallback_model.strip() if schema_fallback_model else None
+        )
         self.allow_model_fallback = allow_model_fallback
         self._loaded_model: tuple[str, str] | None = None
 
@@ -51,6 +57,7 @@ class ProviderManager:
         candidates = await self._ranked_candidates(request)
         last_error: ProviderError | None = None
         allow_fallback = request.requirements.get("fallback_policy", "alternate_model") != "none"
+        strict_schema = bool(request.requirements.get("structured_output", request.output_schema))
         for index, (provider, model) in enumerate(candidates):
             started = perf_counter()
             try:
@@ -63,22 +70,32 @@ class ProviderManager:
                 )
             except ProviderError as error:
                 last_error = error
-                if self.evidence is not None:
-                    self.evidence.record_outcome(
-                        task_id=request.task_id,
-                        provider=provider.name,
-                        model=model.id,
-                        status="failed",
-                        duration_ms=error.duration_ms
-                        or round((perf_counter() - started) * 1000),
-                        retry_count=error.retry_count,
-                        provider_call_id=error.call_id,
-                        work_request_id=request.request_id,
-                        error_code=error.code,
-                    )
+                self._record_failure(request, provider.name, model.id, started, error)
                 if not allow_fallback or index == len(candidates) - 1:
                     raise
                 continue
+            if strict_schema:
+                try:
+                    validate(result.value, request.output_schema)
+                except (SchemaError, JsonSchemaValidationError) as validation_error:
+                    last_error = ProviderError(
+                        result.metadata.provider,
+                        "SCHEMA_VALIDATION_FAILED",
+                        "The selected model returned data outside the required contract.",
+                    )
+                    last_error.call_id = result.metadata.id
+                    last_error.duration_ms = result.metadata.duration_ms
+                    self._record_failure(
+                        request,
+                        result.metadata.provider,
+                        result.metadata.model,
+                        started,
+                        last_error,
+                        schema_valid=False,
+                    )
+                    if not allow_fallback or index == len(candidates) - 1:
+                        raise last_error from validation_error
+                    continue
             self._loaded_model = (provider.name, model.id)
             if self.evidence is not None:
                 self.evidence.record_outcome(
@@ -95,6 +112,31 @@ class ProviderManager:
         if last_error is not None:
             raise last_error
         raise ProviderError("manager", "NO_COMPATIBLE_MODEL", "No compatible model is installed.")
+
+    def _record_failure(
+        self,
+        request: ModelBlindRequest,
+        provider: str,
+        model: str,
+        started: float,
+        error: ProviderError,
+        *,
+        schema_valid: bool | None = None,
+    ) -> None:
+        if self.evidence is None:
+            return
+        self.evidence.record_outcome(
+            task_id=request.task_id,
+            provider=provider,
+            model=model,
+            status="failed",
+            duration_ms=error.duration_ms or round((perf_counter() - started) * 1000),
+            retry_count=error.retry_count,
+            provider_call_id=error.call_id,
+            work_request_id=request.request_id,
+            schema_valid=schema_valid,
+            error_code=error.code,
+        )
 
     async def generate_structured(
         self,
@@ -195,6 +237,15 @@ class ProviderManager:
                     ),
                 )
             candidates = preferred
+        strict_schema = bool(request.requirements.get("structured_output", request.output_schema))
+        if strict_schema and self.allow_model_fallback and self.preferred_model:
+            configured_lane = [
+                item
+                for item in candidates
+                if item[1].id in {self.preferred_model, self.schema_fallback_model}
+            ]
+            if any(item[1].id == self.preferred_model for item in configured_lane):
+                candidates = configured_lane
         evidence = {
             (item.provider, item.model): item
             for item in (
@@ -206,6 +257,11 @@ class ProviderManager:
         return sorted(
             candidates,
             key=lambda item: (
+                0
+                if item[1].id == self.preferred_model
+                else 1
+                if strict_schema and item[1].id == self.schema_fallback_model
+                else 2,
                 -self._suitability(
                     item[0].name,
                     item[1],
@@ -213,7 +269,6 @@ class ProviderManager:
                     task_id=request.task_id,
                     requirements=request.requirements,
                 ),
-                0 if item[1].id == self.preferred_model else 1,
                 item[0].name,
                 item[1].id.casefold(),
             ),

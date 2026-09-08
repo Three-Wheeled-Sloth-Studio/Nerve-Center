@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException, Response, status
@@ -62,6 +63,7 @@ def register_scoring_routes(
     database: Database,
     settings: Settings,
     provider: StructuredProvider | None = None,
+    target_titles_provider: Callable[[], list[str]] | None = None,
 ) -> ScoringService:
     runtime_provider = provider or OllamaProvider(
         base_url=settings.ollama_base_url,
@@ -88,6 +90,7 @@ def register_scoring_routes(
         rules=rule_repository,
         scores=score_repository,
         provider=runtime_provider,
+        target_titles_provider=target_titles_provider,
     )
     application.state.scoring_service = service
 

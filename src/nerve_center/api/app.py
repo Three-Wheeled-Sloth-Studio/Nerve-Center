@@ -98,6 +98,7 @@ def create_app(
             (ollama,),
             evidence=model_evidence,
             preferred_model=runtime_settings.ollama_default_model,
+            schema_fallback_model=runtime_settings.ollama_schema_fallback_model,
             allow_model_fallback=runtime_settings.ollama_allow_model_fallback,
         )
         runtime_provider = provider_manager

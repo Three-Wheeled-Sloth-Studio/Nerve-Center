@@ -122,6 +122,7 @@ def _model_request(request: WorkRequestSnapshot) -> ModelBlindRequest:
     if not request.output_contract:
         raise ValueError("output_contract is required")
     requirements: dict[str, Any] = dict(request.requirements)
+    requirements.setdefault("structured_output", True)
     return ModelBlindRequest(
         task_id=request.task_id,
         request_id=request.id,

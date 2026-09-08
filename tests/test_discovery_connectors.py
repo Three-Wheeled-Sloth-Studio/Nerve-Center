@@ -3,6 +3,7 @@ import json
 
 import httpx
 
+from nerve_center.discovery.connectors.ashby import AshbyConnector
 from nerve_center.discovery.connectors.greenhouse import GreenhouseConnector
 from nerve_center.discovery.connectors.json_ld import JsonLdJobConnector
 from nerve_center.discovery.connectors.lever import LeverConnector
@@ -121,6 +122,60 @@ def test_lever_paginates_and_normalizes() -> None:
     assert result.requests_made == 2
     assert result.openings[0].work_arrangement is WorkArrangement.REMOTE
     assert result.openings[0].team == "Product"
+
+
+def test_ashby_public_postings_normalize_listed_roles() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path.endswith("/example")
+        assert request.url.params["includeCompensation"] == "true"
+        return httpx.Response(
+            200,
+            json={
+                "apiVersion": "1",
+                "jobs": [
+                    {
+                        "title": "Director of Product",
+                        "location": "Remote, US",
+                        "secondaryLocations": [{"location": "Raleigh, NC"}],
+                        "department": "Product",
+                        "team": "Platform",
+                        "isRemote": True,
+                        "workplaceType": "Remote",
+                        "descriptionPlain": "Lead a product organization.",
+                        "publishedAt": "2026-09-01T12:00:00Z",
+                        "employmentType": "FullTime",
+                        "jobUrl": "https://jobs.ashbyhq.com/example/job-1",
+                        "applyUrl": "https://jobs.ashbyhq.com/example/job-1/application",
+                        "isListed": True,
+                    },
+                    {
+                        "title": "Unlisted role",
+                        "jobUrl": "https://jobs.ashbyhq.com/example/job-2",
+                        "isListed": False,
+                    },
+                ],
+            },
+            request=request,
+        )
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    result = asyncio.run(
+        AshbyConnector().scan(
+            _company(),
+            _source(SourceKind.ASHBY, board_name="example"),
+            HttpFetcher(client=client),
+        )
+    )
+    asyncio.run(client.aclose())
+
+    assert len(result.openings) == 1
+    opening = result.openings[0]
+    assert opening.title == "Director of Product"
+    assert opening.locations == ["Remote, US", "Raleigh, NC"]
+    assert opening.work_arrangement is WorkArrangement.REMOTE
+    assert opening.department == "Product"
+    assert opening.team == "Platform"
+    assert opening.provenance[0].direct_employer_source is True
 
 
 def test_json_ld_extracts_nested_jobposting() -> None:
