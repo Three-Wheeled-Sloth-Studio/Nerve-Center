@@ -37,7 +37,7 @@ Status values: `accepted`, `deferred`, `rejected`, `open`.
 | NC-024 | rejected | Cloud synchronization. |
 | NC-025 | rejected | Mobile access. |
 | NC-026 | rejected | Multi-user support. |
-| NC-027 | rejected | Hosted deployment. |
+| NC-027 | accepted | The long-term runtime is dual-track: local execution with local SQLite storage remains the default, while an optional hosted execution mode uses PostgreSQL. Hosted tenancy, authentication, deployment, and migration details remain outside the MVP. |
 | NC-028 | deferred | Remote LLM providers. |
 | NC-029 | deferred | Resume-copy generation. |
 | NC-030 | deferred | Cover-letter generation. |

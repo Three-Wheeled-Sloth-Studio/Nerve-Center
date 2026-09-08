@@ -124,3 +124,47 @@ def test_search_cache_expires(tmp_path: Path) -> None:
 
     assert cache.get("browser", "query", now=now) == {"urls": []}
     assert cache.get("browser", "query", now=now + timedelta(seconds=2)) is None
+
+
+def test_company_lookup_by_domain_preserves_resolved_identity(tmp_path: Path) -> None:
+    companies = CompanyRepository(_database(tmp_path))
+    companies.upsert(_company())
+
+    found = companies.find_by_domain("example.com")
+
+    assert found is not None
+    assert found.canonical_name == "Example Co"
+
+
+def test_existing_aggregator_opening_is_reassigned_to_resolved_company(
+    tmp_path: Path,
+) -> None:
+    database = _database(tmp_path)
+    companies = CompanyRepository(database)
+    sources = DiscoverySourceRepository(database)
+    jobs = JobOpeningRepository(database)
+    companies.upsert(_company())
+    companies.upsert(
+        Company(
+            id="company-2",
+            canonical_name="Actual Employer",
+            domain="actual.example",
+        )
+    )
+    sources.upsert(_source())
+    jobs.upsert(_opening("source-1", direct=False, description="Aggregator copy"))
+    corrected = _opening("source-1", direct=False, description="Resolved copy").model_copy(
+        update={
+            "id": "job-resolved-id",
+            "company_id": "company-2",
+            "company_name": "Actual Employer",
+            "company_domain": "actual.example",
+        }
+    )
+
+    persisted = jobs.upsert(corrected)
+
+    assert persisted.id == "job-1"
+    assert persisted.company_id == "company-2"
+    assert persisted.company_name == "Actual Employer"
+    assert jobs.list()[0].company_domain == "actual.example"

@@ -128,6 +128,14 @@ class DiscoveryService:
                 },
             )
         for opening in result.openings:
+            if opening.company_id != company.id:
+                self.companies.upsert(
+                    Company(
+                        id=opening.company_id,
+                        canonical_name=opening.company_name,
+                        domain=opening.company_domain,
+                    )
+                )
             self.jobs.upsert(opening)
         if source.kind is SourceKind.SITEMAP and result.discovered_urls:
             self._register_sitemap_urls(source, result.discovered_urls)
@@ -151,13 +159,15 @@ class DiscoveryService:
         if not domain:
             raise ValueError("A valid employer domain is required.")
         now = datetime.now(UTC)
+        existing = self.companies.find_by_domain(domain)
         company = self.companies.upsert(
             Company(
-                id=stable_company_id(domain),
-                canonical_name=domain,
+                id=existing.id if existing else stable_company_id(domain),
+                canonical_name=existing.canonical_name if existing else domain,
                 domain=domain,
                 career_url=url,
-                created_at=now,
+                ats_type=existing.ats_type if existing else None,
+                created_at=existing.created_at if existing else now,
                 updated_at=now,
             )
         )

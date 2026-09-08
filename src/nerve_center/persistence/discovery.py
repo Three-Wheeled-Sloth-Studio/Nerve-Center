@@ -55,6 +55,13 @@ class CompanyRepository:
                 raise KeyError(f"unknown company: {company_id}")
             return Company.model_validate(_company_values(model))
 
+    def find_by_domain(self, domain: str) -> Company | None:
+        with self.database.session() as session:
+            model = session.scalar(
+                select(CompanyModel).where(CompanyModel.domain == domain)
+            )
+            return Company.model_validate(_company_values(model)) if model else None
+
     def list(self) -> list[Company]:
         with self.database.session() as session:
             models = session.scalars(
@@ -244,6 +251,12 @@ class JobOpeningRepository:
                     )
                 )
             if model is None:
+                model = session.scalar(
+                    select(JobOpeningModel).where(
+                        JobOpeningModel.canonical_url == opening.canonical_url
+                    )
+                )
+            if model is None:
                 model = JobOpeningModel(
                     id=opening.id,
                     company_id=opening.company_id,
@@ -259,7 +272,18 @@ class JobOpeningRepository:
                 session.add(model)
             else:
                 existing = NormalizedJobOpening.model_validate(model.payload)
+                company_corrected = model.company_id != opening.company_id
                 merged = _merge_openings(existing, opening)
+                if company_corrected:
+                    merged = merged.model_copy(
+                        update={
+                            "company_id": opening.company_id,
+                            "company_name": opening.company_name,
+                            "company_domain": opening.company_domain,
+                        }
+                    )
+                    model.company_id = opening.company_id
+                    model.fingerprint = fingerprint
                 model.title = merged.title
                 model.canonical_url = merged.canonical_url
                 model.external_id = merged.external_id

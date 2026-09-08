@@ -73,6 +73,23 @@ def test_strategy_identity_weighting_and_exploration_floor_are_durable(tmp_path:
     assert saved.learned_weight == productive.learned_weight
 
 
+def test_strategy_selection_reserves_company_deepening_capacity(tmp_path: Path) -> None:
+    learning = JobScoutDiscoveryRepository(_database(tmp_path))
+    for index in range(8):
+        learning.ensure_strategy(
+            {"kind": "public_search", "anchor": f"product {index}"},
+            origin="profile",
+        )
+    company = learning.ensure_strategy(
+        {"kind": "company_revisit", "company_id": "company-1"},
+        origin="known_company",
+    )
+
+    selected = learning.select_strategies("run-1", limit=4, exploration_floor=0.25)
+
+    assert company.id in {item.id for item in selected}
+
+
 def test_company_is_retained_as_strategy_evidence_with_zero_openings(tmp_path: Path) -> None:
     database = _database(tmp_path)
     companies = CompanyRepository(database)

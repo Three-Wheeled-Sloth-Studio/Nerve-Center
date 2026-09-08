@@ -112,6 +112,14 @@ def test_fit_analysis_rejects_invalid_evidence_and_unknown_claims() -> None:
                 confidence=0.9,
                 gate_category=GateCategory.LICENSE,
             ),
+            ExtractedQualificationAssessment(
+                importance=QualificationImportance.RESPONSIBILITY,
+                requirement="lead enterprise analytics products",
+                job_excerpt="Lead enterprise analytics products.",
+                matched_claim_ids=[],
+                match_level=MatchLevel.UNKNOWN,
+                confidence=0.4,
+            ),
         ],
         seniority_score=90,
         domain_score=95,
@@ -129,4 +137,44 @@ def test_fit_analysis_rejects_invalid_evidence_and_unknown_claims() -> None:
     assert analysis.qualifications[0].matched_claim_ids == ["claim-1"]
     assert analysis.qualifications[1].match_level is MatchLevel.UNKNOWN
     assert analysis.qualifications[1].matched_claim_ids == []
+    assert analysis.qualifications[2].match_level is MatchLevel.PARTIAL
+    assert analysis.qualifications[2].matched_claim_ids == ["claim-1"]
     assert analysis.review_notes
+
+
+def test_fit_analysis_normalizes_fractional_dimension_scale() -> None:
+    opening = NormalizedJobOpening(
+        id="job-1",
+        company_id="company-1",
+        company_name="Example",
+        company_domain="example.com",
+        title="Product Director",
+        description="Lead enterprise analytics products.",
+        source_url="https://example.com/job",
+        canonical_url="https://example.com/job",
+        provenance=[
+            JobProvenance(
+                source_id="source-1",
+                connector="json_ld",
+                parser_version="v1",
+                source_url="https://example.com/job",
+            )
+        ],
+    )
+    profile = CanonicalCareerProfile(version=1)
+    response = FitAnalysisResponse(
+        qualifications=[],
+        seniority_score=0.9,
+        domain_score=0.8,
+        leadership_score=0.7,
+        methods_score=0.6,
+        outcomes_score=0.5,
+        confidence=0.8,
+    )
+
+    analysis = asyncio.run(JobFitAnalyzer(FakeProvider(response)).analyze(opening, profile))
+
+    assert analysis.seniority_score == 60
+    assert analysis.outcomes_score == 35
+    assert any("Normalized model fit dimensions" in item for item in analysis.review_notes)
+    assert any("Capped unsupported fit dimensions" in item for item in analysis.review_notes)

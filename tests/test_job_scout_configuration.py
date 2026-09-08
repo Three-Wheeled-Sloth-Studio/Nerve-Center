@@ -145,3 +145,37 @@ def test_legacy_generated_keywords_are_not_migrated_as_manual_input(tmp_path: Pa
     persisted = json.loads(store.path.read_text(encoding="utf-8"))
     assert "keywords" not in persisted
     assert persisted["manual_keywords"] == []
+
+
+def test_discovery_learning_is_inspectable_through_module_routes(tmp_path: Path) -> None:
+    application = _application(tmp_path)
+    learning = application.state.job_scout_learning
+    strategy = learning.ensure_strategy(
+        {"kind": "public_search", "anchor": "product analytics"},
+        origin="profile",
+    )
+    learning.update_session("run-1", phase="expand")
+    learning.record_reflection_hypothesis(
+        "run-1",
+        1,
+        origin="deterministic",
+        hypothesis="Try an adjacent product leadership title.",
+        dimensions={"kind": "public_search", "anchor": "product leader"},
+        strategy_id=strategy.id,
+    )
+
+    with TestClient(application) as client:
+        strategies = client.get(
+            "/api/v1/modules/job_scout/discovery/strategies"
+        ).json()
+        session = client.get(
+            "/api/v1/modules/job_scout/discovery/sessions/run-1"
+        ).json()
+        reflections = client.get(
+            "/api/v1/modules/job_scout/discovery/sessions/run-1/reflections"
+        ).json()
+
+    assert strategies[0]["dimensions"]["anchor"] == "product analytics"
+    assert strategies[0]["influence"] == "neutral"
+    assert session["coverage"]["reflection_hypotheses"] == 1
+    assert reflections[0]["strategy_id"] == strategy.id

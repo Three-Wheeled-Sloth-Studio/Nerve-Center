@@ -153,18 +153,27 @@ async def _execute_discovery_loop(
                 },
             )
             state["pending_llm"] = 1
-            state["activity"] = "Waiting briefly for manager-routed discovery reflection"
-            applied = False
-            for _ in range(6):
-                await asyncio.sleep(0.5)
+            state["activity"] = "Waiting for manager-routed discovery reflection"
+            while True:
+                control = await client.control(run_id)
+                stop_status = _stop_status(control, assignment)
+                if stop_status is not None:
+                    state["pending_llm"] = 0
+                    await _complete_from_summary(
+                        client,
+                        run_id,
+                        stop_status,
+                        reflection_queued=True,
+                    )
+                    return
+                await asyncio.sleep(1.0)
                 harvested = await _harvest_reflection_results(client, run_id)
                 if request_id in harvested:
-                    applied = harvested[request_id] > 0
                     break
             state["pending_llm"] = 0
-            if applied:
+            if harvested[request_id] > 0:
                 continue
-            await _complete_from_summary(client, run_id, "partial", reflection_queued=True)
+            await _complete_from_summary(client, run_id, "succeeded")
             return
     finally:
         heartbeat.cancel()

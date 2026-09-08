@@ -86,19 +86,35 @@ class ScoringService:
     def ensure_provisional_score(self, job_id: str, *, intent_terms: list[str]) -> OpportunityScore:
         existing = self.scores.list(job_id)
         if existing:
-            return existing[0]
+            recorded_contract = existing[0].calculation.get("fit_contract_version")
+            if recorded_contract and recorded_contract != "job-fit-provisional-v1":
+                return existing[0]
+            try:
+                latest_analysis = self.fit_analyses.latest(job_id)
+            except KeyError:
+                latest_analysis = None
+            if latest_analysis and latest_analysis.contract_version != "job-fit-provisional-v1":
+                return existing[0]
         opening = _get_job(self.jobs, job_id)
         profile = self.profiles.get_profile()
         haystack = _tokens(f"{opening.title} {opening.description}")
         intent = _tokens(" ".join(intent_terms))
+        profile_terms = _tokens(
+            " ".join(
+                f"{claim.label} {claim.statement}"
+                for claim in profile.claims
+                if claim.decision.value != "rejected"
+            )
+        )
         overlap = len(haystack & intent) / max(1, len(intent))
+        evidence_overlap = len(haystack & profile_terms) / max(1, len(profile_terms))
         title_overlap = len(_tokens(opening.title) & intent) / max(1, len(intent))
-        baseline = min(85.0, 42.0 + overlap * 55.0)
+        baseline = min(88.0, 32.0 + overlap * 30.0 + evidence_overlap * 80.0)
         analysis = JobFitAnalysis(
             id=str(uuid4()),
             job_id=job_id,
             profile_version=profile.version,
-            contract_version="job-fit-provisional-v1",
+            contract_version="job-fit-provisional-v2",
             model="deterministic-provisional",
             seniority_score=min(90.0, 48.0 + title_overlap * 70.0),
             domain_score=baseline,
@@ -107,8 +123,8 @@ class ScoringService:
             outcomes_score=baseline,
             confidence=0.35,
             review_notes=[
-                "Provisional score from configured search intent; run fit analysis for "
-                "evidence-backed scoring."
+                "Provisional score from configured search intent and persisted career-evidence "
+                "overlap; run fit analysis for requirement-level evidence."
             ],
         )
         self.fit_analyses.save(analysis)
@@ -122,5 +138,28 @@ def _get_job(repository: JobOpeningRepository, job_id: str) -> NormalizedJobOpen
     raise KeyError(f"unknown job opening: {job_id}")
 
 
+_STOPWORDS = {
+    "and",
+    "are",
+    "for",
+    "from",
+    "have",
+    "into",
+    "our",
+    "that",
+    "the",
+    "their",
+    "this",
+    "with",
+    "will",
+    "you",
+    "your",
+}
+
+
 def _tokens(value: str) -> set[str]:
-    return {token for token in re.findall(r"[a-z0-9]+", value.casefold()) if len(token) > 2}
+    return {
+        token
+        for token in re.findall(r"[a-z0-9]+", value.casefold())
+        if len(token) > 2 and token not in _STOPWORDS
+    }

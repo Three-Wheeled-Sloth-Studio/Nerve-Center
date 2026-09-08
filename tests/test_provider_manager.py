@@ -3,6 +3,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+import pytest
 from fastapi.testclient import TestClient
 
 from nerve_center.api.app import create_app
@@ -75,6 +76,15 @@ class FailingJsonProvider(FakeJsonProvider):
         raise ProviderError(self.name, "MODEL_FAILED", "The model failed.")
 
 
+class MetadataFakeProvider(FakeJsonProvider):
+    def __init__(self, model: ProviderModel, value: dict[str, Any]) -> None:
+        super().__init__("ollama", model.id, value)
+        self.metadata = model
+
+    async def list_models(self) -> list[ProviderModel]:
+        return [self.metadata]
+
+
 def make_queue(tmp_path: Path) -> tuple[WorkQueueService, str]:
     database = Database(Settings(data_dir=tmp_path))
     database.initialize()
@@ -108,6 +118,66 @@ def test_manager_selects_model_without_request_naming_one() -> None:
     assert result.value == {"score": 90}
     assert first.selected_models == ["a-model"]
     assert later.selected_models == []
+
+
+def test_manager_uses_metadata_prior_instead_of_alphabetical_cold_start() -> None:
+    tiny = MetadataFakeProvider(
+        ProviderModel(
+            id="a-tiny",
+            label="a-tiny",
+            family="gemma3",
+            parameter_size="999.89M",
+            size_bytes=815_000_000,
+        ),
+        {"score": 60},
+    )
+    balanced = MetadataFakeProvider(
+        ProviderModel(
+            id="z-instruct",
+            label="z-instruct",
+            family="qwen2",
+            parameter_size="7.6B",
+            size_bytes=4_700_000_000,
+        ),
+        {"score": 90},
+    )
+    manager = ProviderManager((tiny, balanced))
+
+    result = asyncio.run(manager.execute(model_request()))
+
+    assert result.value == {"score": 90}
+    assert balanced.selected_models == ["z-instruct"]
+    assert tiny.selected_models == []
+
+
+def test_manager_honors_manager_owned_preferred_model() -> None:
+    alternate = FakeJsonProvider("ollama", "larger-model", {"score": 70})
+    preferred = FakeJsonProvider("ollama", "gemma3:4b", {"score": 90})
+    manager = ProviderManager(
+        (alternate, preferred),
+        preferred_model="gemma3:4b",
+    )
+
+    result = asyncio.run(manager.execute(model_request()))
+
+    assert result.value == {"score": 90}
+    assert preferred.selected_models == ["gemma3:4b"]
+    assert alternate.selected_models == []
+
+
+def test_manager_can_bound_execution_to_manager_owned_preferred_model() -> None:
+    preferred = FailingJsonProvider("ollama", "gemma3:4b", {})
+    alternate = FakeJsonProvider("ollama", "alternate", {"score": 70})
+    manager = ProviderManager(
+        (preferred, alternate),
+        preferred_model="gemma3:4b",
+        allow_model_fallback=False,
+    )
+
+    with pytest.raises(ProviderError):
+        asyncio.run(manager.execute(model_request()))
+
+    assert alternate.selected_models == []
 
 
 def test_provider_executor_completes_valid_model_blind_work(tmp_path: Path) -> None:

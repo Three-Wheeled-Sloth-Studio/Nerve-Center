@@ -18,6 +18,7 @@ class ProviderModel(BaseModel):
     family: str | None = None
     parameter_size: str | None = None
     quantization: str | None = None
+    size_bytes: int | None = Field(default=None, ge=0)
     modified_at: datetime | None = None
 
 

@@ -221,6 +221,8 @@ class OpportunityScorer:
             factors=factors,
             location=location,
             calculation={
+                "fit_contract_version": fit_analysis.contract_version,
+                "fit_model": fit_analysis.model,
                 "required_coverage": round(required, 4),
                 "preferred_coverage": round(preferred, 4),
                 "weights": weights,
