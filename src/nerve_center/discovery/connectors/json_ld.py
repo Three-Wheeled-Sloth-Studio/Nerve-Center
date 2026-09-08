@@ -154,7 +154,10 @@ class JsonLdJobConnector:
             not direct_employer_source
             and company_name.casefold() != company.canonical_name.casefold()
         ):
-            company_domain = organization_domain or unresolved_company_domain(company_name)
+            company_domain = organization_domain or unresolved_company_domain(
+                company_name,
+                _organization_identity_hint(organization),
+            )
         company_id = stable_company_id(company_domain)
         locations = _locations(raw.get("jobLocation"))
         applicant_locations = _applicant_locations(raw.get("applicantLocationRequirements"))
@@ -253,6 +256,16 @@ def _organization_reference(value: object) -> tuple[str | None, bool]:
             if text.startswith(("https://", "http://")):
                 return canonicalize_url(text), key == "sameAs"
     return None, False
+
+
+def _organization_identity_hint(value: object) -> str | None:
+    if not isinstance(value, dict):
+        return None
+    identifier = _identifier(value.get("identifier"))
+    if identifier:
+        return identifier
+    reference, _weak_identity = _organization_reference(value)
+    return reference
 
 
 def _organization_domain_from_page(page: str, excluded_domain: str) -> str | None:
