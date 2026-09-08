@@ -35,6 +35,20 @@ reviewable pull requests, but after a topic branch is merged, switch the active 
 `dev`, update it to the accepted merge commit, and continue work from `dev`. Do not leave the primary
 workspace parked on a merged or superseded topic branch.
 
+### Treat coding-agent context as a constrained resource
+
+The coding agent should optimize its own context/token use before optimizing local-model inference cost. The goal is to make more implementation progress between context resets without sacrificing correctness.
+
+- Read `refs/implementation/fileMap.yaml` before broad repository search and start from the smallest likely source set.
+- Prefer targeted file ranges, symbol searches, diffs, and tests over repeatedly loading whole large files or directories.
+- Do not re-read unchanged material already established in the active work session unless new evidence makes it relevant.
+- Use deterministic tools for mechanical questions: grep/search, parsers, formatters, schema validators, targeted tests, database queries, and small diagnostic scripts should replace repeated natural-language reasoning whenever practical.
+- If a diagnostic, transformation, comparison, or validation will be performed more than once, turn it into a reusable script/helper/test rather than spending agent tokens reconstructing the procedure each time.
+- Batch related inspections and edits into coherent slices. Avoid one-tool-call-per-line workflows and speculative ping-pong between files.
+- Persist context-heavy findings and next steps in `refs/handoffs/currentHandoff.md` so a reset does not require rediscovering accepted state.
+- Prefer concise evidence summaries and references to durable files over pasting large unchanged source blocks into prompts or comments.
+- Do not build abstractions for genuinely one-off work solely to save tokens; create tooling where repetition or deterministic reuse is expected.
+
 ### Start long work as a draft pull request
 
 Use a draft pull request when work is expected to require several commits, iterative diagnostics, temporary incompatibility, or cross-stack changes. Keep it draft until the branch represents a coherent checkpoint that is worth validating and reviewing.
