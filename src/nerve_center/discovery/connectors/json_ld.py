@@ -22,6 +22,7 @@ from nerve_center.discovery.normalization import (
     clean_html_text,
     clean_text,
     infer_work_arrangement,
+    is_third_party_identity_domain,
     parse_datetime,
     stable_company_id,
     stable_opening_id,
@@ -204,12 +205,14 @@ class JsonLdJobConnector:
     ) -> tuple[str | None, int]:
         if bool(source.configuration.get("direct_employer_source", True)):
             return None, 0
-        reference = _organization_reference(organization)
+        reference, weak_identity = _organization_reference(organization)
         if not reference:
             return None, 0
         source_domain = canonical_domain(source.base_url)
         reference_domain = canonical_domain(reference)
         if reference_domain and reference_domain != source_domain:
+            if weak_identity and is_third_party_identity_domain(reference_domain):
+                return None, 0
             return reference_domain, 0
         if reference in self._organization_domains:
             return self._organization_domains[reference] or None, 0
@@ -239,16 +242,17 @@ def _find_job_postings(value: object) -> list[dict[str, Any]]:
     return result
 
 
-def _organization_reference(value: object) -> str | None:
+def _organization_reference(value: object) -> tuple[str | None, bool]:
     if not isinstance(value, dict):
-        return None
-    candidates = value.get("sameAs") or value.get("url") or value.get("@id")
-    values = candidates if isinstance(candidates, list) else [candidates]
-    for item in values:
-        text = clean_text(item)
-        if text.startswith(("https://", "http://")):
-            return canonicalize_url(text)
-    return None
+        return None, False
+    for key in ("url", "@id", "sameAs"):
+        candidates = value.get(key)
+        values = candidates if isinstance(candidates, list) else [candidates]
+        for item in values:
+            text = clean_text(item)
+            if text.startswith(("https://", "http://")):
+                return canonicalize_url(text), key == "sameAs"
+    return None, False
 
 
 def _organization_domain_from_page(page: str, excluded_domain: str) -> str | None:
@@ -266,8 +270,11 @@ def _organization_domain_from_page(page: str, excluded_domain: str) -> str | Non
                 candidates = values if isinstance(values, list) else [values]
                 for candidate in candidates:
                     domain = canonical_domain(clean_text(candidate))
-                    if domain and domain != excluded_domain:
-                        return domain
+                    if not domain or domain == excluded_domain:
+                        continue
+                    if key == "sameAs" and is_third_party_identity_domain(domain):
+                        continue
+                    return domain
     return None
 
 
