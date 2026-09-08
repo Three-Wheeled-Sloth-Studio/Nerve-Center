@@ -209,6 +209,43 @@ def test_json_ld_resolves_aggregator_hiring_organization_domain() -> None:
     assert opening.provenance[0].direct_employer_source is False
 
 
+def test_json_ld_does_not_treat_social_same_as_as_employer_domain() -> None:
+    job_page = {
+        "@context": "https://schema.org",
+        "@type": "JobPosting",
+        "title": "Director of Product",
+        "description": "Lead the product organization.",
+        "hiringOrganization": {
+            "@type": "Organization",
+            "name": "Actual Employer",
+            "sameAs": "https://www.linkedin.com/company/actual-employer",
+        },
+    }
+    page = f'<script type="application/ld+json">{json.dumps(job_page)}</script>'
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, text=page, request=request)
+
+    source = _source(SourceKind.JSON_LD, direct_employer_source=False)
+    source = source.model_copy(
+        update={
+            "base_url": "https://board.example/job/43",
+            "acquisition_class": AcquisitionClass.PUBLIC_HTML_ALLOWED,
+        }
+    )
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    result = asyncio.run(
+        JsonLdJobConnector().scan(_company(), source, HttpFetcher(client=client))
+    )
+    asyncio.run(client.aclose())
+
+    opening = result.openings[0]
+    assert result.requests_made == 1
+    assert opening.company_name == "Actual Employer"
+    assert opening.company_domain.endswith(".unresolved.invalid")
+    assert opening.company_domain != "linkedin.com"
+
+
 def test_sitemap_returns_only_likely_job_urls() -> None:
     xml = """<?xml version='1.0'?>
     <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
