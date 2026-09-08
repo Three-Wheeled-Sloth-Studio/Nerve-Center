@@ -27,6 +27,26 @@ _TRACKING_PARAMS = {
     "utm_source",
     "utm_term",
 }
+_WEAK_IDENTITY_DOMAINS = {
+    "builtin.com",
+    "careerbuilder.com",
+    "duckduckgo.com",
+    "facebook.com",
+    "glassdoor.com",
+    "indeed.com",
+    "instagram.com",
+    "linkedin.com",
+    "monster.com",
+    "reddit.com",
+    "simplyhired.com",
+    "tiktok.com",
+    "threads.net",
+    "twitter.com",
+    "wellfound.com",
+    "x.com",
+    "youtube.com",
+    "ziprecruiter.com",
+}
 _WHITESPACE = re.compile(r"\s+")
 
 
@@ -90,6 +110,18 @@ def canonicalize_url(value: str) -> str:
 def canonical_domain(value: str) -> str:
     hostname = (urlsplit(value if "://" in value else f"https://{value}").hostname or "").lower()
     return hostname.removeprefix("www.")
+
+
+def is_third_party_identity_domain(value: str) -> bool:
+    """Identify weak profile/aggregator domains that should not define employer identity.
+
+    This helper is intentionally for weak identity hints such as schema.org ``sameAs``.
+    A company may legitimately operate one of these domains, so a strong organization ``url``
+    assertion is handled separately by the connector.
+    """
+
+    domain = canonical_domain(value)
+    return any(domain == item or domain.endswith(f".{item}") for item in _WEAK_IDENTITY_DOMAINS)
 
 
 def stable_company_id(domain: str) -> str:
