@@ -31,6 +31,8 @@ jobs:
           python refs/tools/check_case_collisions.py
           python refs/tools/generate_okf_indexes.py --check
           python refs/tools/validate_refs.py --mode initialized
+      - name: Validate agent context
+        run: python scripts/agent_context.py --focus "job scout scoring domain fit" --check
       - name: Lint
         run: ruff check .
       - name: Validate packaging command
