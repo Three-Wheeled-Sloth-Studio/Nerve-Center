@@ -19,9 +19,9 @@ Where older Job Scout discovery documentation describes a bounded proof of conce
 
 Job Scout is a persistent job-market research agent, not a scheduled search form.
 
-During an authorized Nerve Center work session it should aggressively seek plausible opportunities until the session drains, available strategies are exhausted, or marginal discovery has fallen enough to justify a deliberate ideation pass. Finding a small number of jobs is not itself evidence that discovery succeeded.
+During an authorized Nerve Center work session it should aggressively seek plausible opportunities while manager admission remains open and usable resource budget remains. A discovery wave exhausting its currently eligible strategies, or one deterministic/LLM reflection producing no new strategy, is not by itself successful session completion. Those conditions trigger bounded refresh, scoring, revisit, cooldown, or another deliberate next-work decision. The run may finish early only for cancellation, budget exhaustion, an explicit bounded no-work state after refresh/backoff attempts, or another attributable terminal condition.
 
-Success is defined by useful market coverage, retained intelligence, and learning quality rather than by any minimum job count. A thin market may legitimately produce few strong opportunities; the user must still be able to see that Job Scout looked broadly and deeply before reaching that conclusion.
+Finding a small number of jobs is not itself evidence that discovery succeeded. Success is defined by useful market coverage, retained intelligence, and learning quality rather than by any minimum job count. A thin market may legitimately produce few strong opportunities; the user must still be able to see that Job Scout looked broadly and deeply before reaching that conclusion.
 
 Discovery should optimize recall. Ranking and user feedback provide precision.
 
@@ -95,7 +95,25 @@ Reflection may propose:
 - deeper paths within already productive employers;
 - strategies that were previously weak but have not been tried recently.
 
-New hypotheses enter the strategy portfolio and are tested. The loop then repeats until the manager's wall-clock session transitions to constrained or draining behavior.
+New hypotheses enter the strategy portfolio and are tested. If reflection adds no new hypothesis, Job Scout must still make an explicit next-work decision from newly persisted companies/sources, due revisits, scoring backlog, cooldown eligibility, and remaining budget. One empty reflection must not silently convert an otherwise open multi-hour work window into idle time.
+
+The loop repeats until the manager's wall-clock session transitions to draining/closed behavior, the authorized resource budget is exhausted, cancellation is requested, or Job Scout records an explicit bounded no-work terminal reason.
+
+## Work-window liveness and interleaved scoring
+
+The authorized manager window is a work budget, not a sleep-until-deadline timer. While admission remains open, Job Scout should alternate among productive discovery, persistence, bounded scoring, and re-expansion work rather than leave a terminal module run attached to a still-running session.
+
+A practical implementation may organize the session into waves or epochs. Whatever representation is used, it must preserve these semantics:
+
+1. **Attempt eligibility is bounded, not permanent for the whole session.** A strategy attempted in one wave should not be reissued immediately with identical cached inputs, but whole-run exclusion must not prevent later revisits after new companies/sources appear, cooldown expires, search dimensions change, or reflection produces materially different context.
+2. **New opportunities are persisted promptly.** Discovery output becomes durable before the next wave so later deepening and scoring can consume it.
+3. **Scoring occurs during the active window.** Newly retained promising opportunities should receive deterministic/provisional ranking promptly and bounded full fit/scoring work while the session is active. Full scoring must not be deferred solely until the manager session closes.
+4. **Scoring and discovery remain distinct feedback loops.** Ranking evidence may inform which companies, domains, or strategy families deserve more attention, but it must not collapse discovery recall into title matching or otherwise turn ranking precision into a hard discovery gate.
+5. **New durable state feeds re-expansion.** Newly discovered companies, career surfaces, source health, posting evidence, and eligible scoring outcomes should be available to the next strategy-allocation decision.
+6. **Idle behavior is explicit and paced.** If no immediate work is productive, use a bounded cooldown/backoff and record why. Do not hot-loop identical strategies, repeatedly spend LLM calls asking the same reflection question, or quietly wait for hours with an unexplained terminal Job Scout run.
+7. **Stop reasons are attributable.** Draining/closed admission, run deadline, cancellation, request budget exhaustion, LLM budget exhaustion, or a bounded no-work conclusion must be distinguishable in checkpoints and final telemetry.
+
+The live diagnostic runner should exercise these same semantics. A `--duration-seconds` value describes the authorized evaluation window; it must not delay scoring until the end of that window after discovery has already stopped.
 
 ## Durable discovery strategies
 
@@ -199,6 +217,7 @@ The user must be able to distinguish a genuinely thin result set from a shallow 
 
 A scan/session summary should report useful coverage signals, for example:
 
+- discovery waves/epochs and cycles completed;
 - discovery strategies attempted;
 - public searches executed;
 - results examined;
@@ -207,10 +226,13 @@ A scan/session summary should report useful coverage signals, for example:
 - known company sources revisited;
 - postings inspected;
 - unique opportunities retained;
+- opportunities provisionally and fully scored during the window;
 - high-priority opportunities surfaced;
 - strategies promoted or down-weighted;
-- new reflection hypotheses created;
-- source warnings, throttles, or challenges.
+- new reflection hypotheses created and empty-reflection outcomes;
+- source warnings, throttles, or challenges;
+- current/terminal next-work decision and stop reason;
+- consumed and remaining request/LLM budget where available.
 
 These are observability metrics, not minimum quotas. The system should not manufacture low-quality jobs to satisfy a count.
 
@@ -231,14 +253,14 @@ Job Scout should retain only bounded public identity/contact references needed t
 
 ## Immediate implementation priority
 
-Before adding people enrichment, the next Job Scout discovery slice should establish the loop itself:
+The durable strategy/company/deepening foundation exists. The immediate correction is to make its runtime behavior honor the full authorized work window and interleave scoring with discovery.
 
-1. introduce durable discovery-strategy identity and yield telemetry;
-2. make companies first-class durable discovery targets, including zero-current-opening employers;
-3. add cheap local-market expansion from the configured starting location;
-4. make discovery iterate through expand, converge, deepen, and reflect phases during the authorized work window;
-5. add an exploration floor and transparent strategy weighting;
-6. expose coverage metrics that prove how broadly and deeply the session searched;
-7. route any ideation LLM work through the manager-owned model boundary.
+1. keep Job Scout productive while manager admission remains open instead of completing after the first exhausted reflection;
+2. introduce bounded wave/epoch or equivalent strategy re-eligibility so new durable state can drive later work without hot-looping identical searches;
+3. persist and score newly retained opportunities during the active session;
+4. re-seed/revisit from newly discovered companies, sources, cooldowns, and bounded reflection hypotheses;
+5. preserve the exploration floor and separate discovery-learning from ranking feedback;
+6. expose wave/scoring/next-work/stop telemetry sufficient to diagnose idle time;
+7. retain manager-owned scheduling, provider routing, resource budgets, and module model-blindness.
 
-People enrichment, richer contact storage, and Farley File integration remain later work.
+Qualification-importance normalization and further ranking refinements remain important but are secondary until the continuous work-session loop is reliable. People enrichment, richer contact storage, and Farley File integration remain later work.
