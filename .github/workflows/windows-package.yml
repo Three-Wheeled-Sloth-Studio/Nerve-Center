@@ -43,6 +43,10 @@ jobs:
             throw "launch.ps1 contains PowerShell syntax errors."
           }
 
+      - name: Validate Visual C++ environment selection
+        shell: pwsh
+        run: ./scripts/test_visual_cpp_environment.ps1
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"

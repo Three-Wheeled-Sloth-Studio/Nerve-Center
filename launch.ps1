@@ -8,6 +8,7 @@ $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $desktopRoot = Join-Path $repoRoot "desktop"
 $venvRoot = Join-Path $repoRoot ".venv"
 $venvPython = Join-Path $venvRoot "Scripts\python.exe"
+. (Join-Path $repoRoot "scripts\visual_cpp_environment.ps1")
 
 function Require-Command {
     param(
@@ -125,6 +126,8 @@ Write-Host "Repository: $repoRoot"
 Require-Command -Name "node" -InstallHint "Install Node.js 22 or newer and add it to PATH."
 Require-Command -Name "npm" -InstallHint "Install npm with Node.js and add it to PATH."
 Require-Command -Name "cargo" -InstallHint "Install the stable Rust toolchain from https://rustup.rs/."
+$visualCppEnvironment = Initialize-VisualCppEnvironment
+Write-Host "Visual C++: $visualCppEnvironment"
 
 $nodeMajor = [int]((& node --version).TrimStart("v").Split(".")[0])
 if ($nodeMajor -lt 22) {
