@@ -1,7 +1,7 @@
 ---
 type: Development Prompt
 title: Next Development Prompt
-description: Ready-to-use prompt for correcting Job Scout full-session discovery liveness and active-window scoring.
+description: Ready-to-use prompt for continuing the Job Scout self-improving discovery implementation from the current Nerve Center dev baseline.
 status: stable
 tags: [nerve-center, handoff, job-scout, discovery]
 ---
