@@ -118,6 +118,8 @@ npm install
 npm run tauri dev
 ```
 
+`launch.bat` also initializes an x64 Visual C++ developer environment before invoking Tauri. It validates candidates by requiring both `excpt.h` and `msvcrt.lib`, so an incomplete newer Visual Studio installation cannot mask a complete fallback Build Tools installation. A shell that already exposes a complete toolchain is preserved. The Windows package workflow runs `scripts/test_visual_cpp_environment.ps1` to cover complete fallback selection, existing-environment preservation, and actionable failure when all candidates are incomplete.
+
 ## Validation boundary
 
 Automated validation can prove:
