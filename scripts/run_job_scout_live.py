@@ -64,7 +64,7 @@ class ProgressReporter:
         for key in ("wave", "next_work_decision", "idle_reason", "terminal_reason"):
             if checkpoint.get(key) is not None:
                 detail += f" | {key}={checkpoint[key]}"
-        return self._observe(("discovery", status, phase, cycle, counts), detail, counts)
+        return self._observe(("discovery", status, detail, cycle, counts), detail, counts)
 
     def observe_manager(
         self,

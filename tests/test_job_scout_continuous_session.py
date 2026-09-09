@@ -167,3 +167,45 @@ def test_no_work_has_paced_refresh_and_no_repeated_unchanged_reflection(tmp_path
     assert client.final[1]["terminal_reason"] == "no_work_after_three_refresh_backoffs"
     assert [item["backoff_seconds"] for item in client.checkpoints
             if item["phase"] == "backoff"] == [30, 60, 120]
+
+
+def test_last_llm_allowance_is_harvested_before_budget_stop(tmp_path, monkeypatch):
+    bridge, _, _ = setup_bridge(tmp_path, monkeypatch, empty=True)
+    client = Client(bridge)
+    work = assignment()
+    work["resource_policy"]["max_llm_calls"] = 1
+    asyncio.run(worker._execute_discovery_loop(client, work))
+    assert client.reflections == 1
+    assert client.pending == []
+    assert client.final[1]["terminal_reason"] == "llm_calls_budget_exhausted"
+    assert any(item.get("reflection_outcome") == "no_new_strategies"
+               for item in client.checkpoints)
+
+
+def test_scoring_reservation_survives_restart_and_enforces_cap(tmp_path, monkeypatch):
+    bridge, scoring, jobs = setup_bridge(tmp_path, monkeypatch)
+    config = bridge.coordinator.store.load()
+    config.full_score_limit = 1
+    bridge.coordinator.save_configuration(config)
+    client = Client(bridge, drain_after=2)
+    work = assignment()
+    work["checkpoint"] = {"scoring_attempted_ids": ["previously-reserved-job"]}
+    asyncio.run(worker._execute_discovery_loop(client, work))
+    assert jobs.list()
+    assert not any(score.calculation.get("fit_model") == "fixture"
+                   for job in jobs.list() for score in scoring.scores.list(job.id))
+    assert client.final[1]["full_scores_completed"] == 0
+
+
+def test_request_batch_exhaustion_is_explicit_and_reports_overrun(tmp_path, monkeypatch):
+    bridge, _, _ = setup_bridge(tmp_path, monkeypatch)
+    client = Client(bridge)
+    work = assignment()
+    work["resource_policy"]["max_requests"] = 1
+    asyncio.run(worker._execute_discovery_loop(client, work))
+    assert client.final[1]["terminal_reason"] == "requests_budget_exhausted"
+    assert client.checkpoints[-1]["requests_remaining"] == 0
+    assert client.checkpoints[-1]["requests_observed"] >= 1
+    assert client.checkpoints[-1]["request_batch_overrun"] == (
+        client.checkpoints[-1]["requests_observed"] - 1
+    )

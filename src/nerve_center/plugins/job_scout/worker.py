@@ -79,7 +79,7 @@ async def _execute_discovery_loop(
         )
         await client.complete(run_id, status, f"Job Scout stopped: {reason}.", metrics)
 
-    async def control_reason() -> str | None:
+    async def control_reason(*, check_budgets: bool = True) -> str | None:
         control = await client.control(run_id)
         usage = control.get("budget_usage") or {}
         policy = assignment.get("resource_policy") or {}
@@ -89,7 +89,7 @@ async def _execute_discovery_loop(
             remaining = limit - used
             saved[f"{resource}_consumed"] = used
             saved[f"{resource}_remaining"] = remaining
-            if remaining <= 0:
+            if check_budgets and remaining <= 0:
                 return f"{resource}_budget_exhausted"
         if control.get("cancel_requested") or control.get("shutdown_requested"):
             return "cancelled"
@@ -119,11 +119,16 @@ async def _execute_discovery_loop(
             )
             requests = int(result.get("request_count", 0))
             if requests:
-                # Stop explicitly if a bounded source batch used the remaining allowance.
+                # Source requests are reported at batch completion, not reserved per
+                # HTTP fetch. Preserve observed overrun explicitly; never hide it in
+                # the manager's capped reservation ledger.
                 remaining = int(saved["requests_remaining"])
+                saved["requests_observed"] = int(saved.get("requests_observed", 0)) + requests
+                saved["request_batch_overrun"] = max(0, requests - remaining)
                 await client.consume(run_id, "requests", min(requests, remaining))
                 if requests >= remaining:
                     coverage = dict(result.get("coverage") or coverage)
+                    await control_reason()
                     await finish("requests_budget_exhausted")
                     return
             coverage = dict(result.get("coverage") or coverage)
@@ -184,7 +189,9 @@ async def _execute_discovery_loop(
                 await checkpoint("reflect", pending_reflection_request_id=request_id)
                 state["pending_llm"] = 1
                 for _ in range(180):
-                    reason = await control_reason()
+                    # The final authorized call must be allowed to return its result.
+                    # Exhaustion prevents the next admission, not harvesting this one.
+                    reason = await control_reason(check_budgets=False)
                     if reason:
                         await finish(reason, "cancelled" if reason == "cancelled" else "partial")
                         return
