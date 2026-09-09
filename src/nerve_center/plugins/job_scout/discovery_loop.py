@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from datetime import UTC, datetime
 from html.parser import HTMLParser
 from typing import Any, Protocol
 from urllib.parse import urljoin
@@ -738,6 +739,16 @@ class JobScoutDiscoveryLoop:
 
     async def _scan_source(self, source: DiscoverySource) -> tuple[Any | None, int]:
         try:
+            # Different search dimensions or company deepening can resolve to the
+            # same source within one wave. Recheck durable due state here, not only
+            # when selecting source-revisit strategies.
+            current = self.sources.get(source.id)
+            due = current.next_scan_at
+            if not current.enabled or (
+                due is not None
+                and due.replace(tzinfo=UTC) > datetime.now(UTC)
+            ):
+                return None, 0
             result = await self.discovery.scan_source(source.id)
         except (KeyError, ValueError):
             return None, 0

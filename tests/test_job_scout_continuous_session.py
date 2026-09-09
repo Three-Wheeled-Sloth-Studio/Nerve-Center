@@ -127,6 +127,13 @@ def assignment():
 
 def test_two_waves_score_before_drain_despite_empty_reflection(tmp_path, monkeypatch):
     bridge, scoring, jobs = setup_bridge(tmp_path, monkeypatch)
+    resolutions = []
+
+    async def newly_available_surface(company):
+        resolutions.append(company.id)
+        return [] if len(resolutions) == 1 else ["https://jobs.ashbyhq.com/example"]
+
+    monkeypatch.setattr(bridge.discovery_loop.surface_resolver, "resolve", newly_available_surface)
     client = Client(bridge, drain_after=2)
     asyncio.run(worker._execute_discovery_loop(client, assignment()))
 
@@ -137,6 +144,9 @@ def test_two_waves_score_before_drain_despite_empty_reflection(tmp_path, monkeyp
     )
     assert client.reflections == 1
     assert client.cycles == 2
+    assert any(source.base_url == "https://api.ashbyhq.com/posting-api/job-board/example"
+               or "ashby" in source.base_url for source in bridge.sources.list())
+    assert client.final[1]["career_sources_resolved"] >= 2
     assert any(item.dimensions.get("kind") == "company_revisit" and item.attempts
                for item in bridge.learning.list_strategies())
     checkpoints = client.checkpoints
@@ -209,3 +219,18 @@ def test_request_batch_exhaustion_is_explicit_and_reports_overrun(tmp_path, monk
     assert client.checkpoints[-1]["request_batch_overrun"] == (
         client.checkpoints[-1]["requests_observed"] - 1
     )
+
+
+def test_different_strategies_cannot_rescan_a_source_before_due(tmp_path, monkeypatch):
+    bridge, _, _ = setup_bridge(tmp_path, monkeypatch)
+    loop = bridge.discovery_loop
+    source = bridge.coordinator._register_source_url("https://example.com/careers", 60)
+
+    async def scan_twice():
+        first, used = await loop._scan_source(source)
+        assert first is not None and used == 1
+        # Deliberately reuse the stale snapshot, as two selected strategies can do.
+        second, used = await loop._scan_source(source)
+        assert second is None and used == 0
+
+    asyncio.run(scan_twice())
