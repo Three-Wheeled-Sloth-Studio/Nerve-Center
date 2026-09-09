@@ -1,7 +1,7 @@
 ---
 type: Development Prompt
 title: Next Development Prompt
-description: Ready-to-use prompt for continuing the Job Scout self-improving discovery implementation from the current Nerve Center dev baseline.
+description: Ready-to-use prompt for correcting Job Scout full-session discovery liveness and active-window scoring.
 status: stable
 tags: [nerve-center, handoff, job-scout, discovery]
 ---
@@ -11,88 +11,118 @@ Continue implementation in:
 
 `https://github.com/Three-Wheeled-Sloth-Studio/Nerve-Center`
 
-Work from the latest `dev` branch. Use the repository's Agent Academy workflow and branch/PR discipline rather than committing speculative intermediate states to `dev`.
+Work from the latest `dev` branch using normal issue -> branch -> implementation -> tests -> PR -> CI -> merge discipline.
 
-The immediate tracking issue is **#18: Make Job Scout discovery iterative, company-first, and self-improving**.
+The immediate tracking issue is **#34: Keep Job Scout productive through the full work session and interleave scoring**.
 
-Read these first:
+## Bounded re-entry
 
-1. `AGENTS.md`
-2. `refs/README.md`
-3. `refs/project.yaml`
-4. `refs/handoffs/currentHandoff.md`
-5. `refs/planning/product-requirements-document.md`
-6. `refs/planning/job-scout-discovery-and-learning-contract.md`
-7. `refs/planning/job-scout-scoring-contract.md`
-8. `refs/planning/module-package-contract.md`
-9. `refs/research/search-source-strategy.md`
-10. `refs/testing/validationCommands.yaml`
-11. GitHub issue `#18`
+Do not reread repository history or all planning documents.
 
-Before changing code, summarize:
+Start with:
 
-- the current Job Scout discovery architecture and scheduler/module boundaries;
-- why the existing behavior is still too bounded/shallow relative to the accepted discovery contract;
-- the durable data additions you propose;
-- the proposed expand -> converge -> deepen -> reflect loop and its stop/drain behavior;
-- the local-market expansion approach and public geographic data source you intend to use;
-- the smallest execution sequence that produces a testable end-to-end improvement without building people enrichment yet.
+```powershell
+python scripts/agent_context.py --focus "job scout continuous session discovery scoring reflection re-expansion" --issue 34
+```
 
-## Accepted behavior
+Treat that generated packet as the initial orientation. Read issue #34 and then only the code/docs identified by the packet or by direct implementation evidence. Do not re-derive accepted architecture decisions.
 
-Job Scout is a persistent market-research agent, not a fixed query runner.
+## Reproduction and observed failure
 
-During an authorized Nerve Center work session it should repeatedly:
+A real local run was launched with:
 
-1. **Expand** across plausible title families, meaningful terms, locations, employer archetypes, companies, boards, direct career sites, and source strategies.
-2. **Converge** by allocating more effort to strategies that produce useful signal.
-3. **Deepen** useful employers and sources by resolving career pages/ATS/feed/sitemap surfaces and examining broader openings there.
-4. **Reflect** when marginal discovery falls, using deterministic evidence and occasional manager-routed LLM ideation to propose overlooked paths.
-5. **Re-expand** with those hypotheses and continue until the manager-owned wall-clock session constrains or drains the work.
+```powershell
+.\.venv\Scripts\python.exe scripts\run_job_scout_live.py `
+  --duration-seconds 28800 `
+  --score-limit 25
+```
 
-There is no minimum job-count target. Discovery should optimize recall; scoring and user feedback provide precision. The product must expose enough coverage telemetry to distinguish a genuinely thin market from a shallow search.
+It performed a few minutes of discovery, then stopped useful Job Scout work and waited for the eight-hour manager window to close. Candidates found during discovery were not fully scored during the active window, and the expected search-expansion loop did not resume.
 
-## Immediate implementation slice
+## Intended behavior
 
-Implement the smallest coherent foundation for Issue #18:
+During an authorized work window Job Scout should continuously use available time and resource budget approximately as:
 
-- durable discovery-strategy identity, provenance, attempts, yield telemetry, and learned weight;
-- company-first durable discovery, including plausible local employers with zero current relevant openings;
-- career-site/ATS/feed/sitemap deepening behind the existing public-source safety rules;
-- cheap local-market expansion from the configured starting location, preferably from cached public geographic reference data for the U.S. MVP;
-- iterative orchestration through expand, converge, deepen, and reflect phases during the existing manager-owned session;
-- transparent explore/exploit weighting with an explicit exploration floor;
-- contextual feedback so dismiss/save/apply/interview/response evidence can refine discovery allocation separately from opportunity ranking;
-- session coverage metrics for strategies attempted, results examined, companies discovered, career sources resolved, postings inspected, opportunities retained, strategy changes, reflection hypotheses, and provider warnings;
-- manager-routed LLM ideation only after deterministic discovery reaches diminishing returns.
+`search -> identify companies/roles -> persist and score -> reflect/broaden -> search again`
+
+The exact implementation may batch those responsibilities, but the observable behavior must remain productive while manager admission is open. One empty reflection or one exhausted set of currently eligible strategies is not permission to sleep until the session ends.
+
+The double-diamond product intent remains accepted:
+
+`expand -> converge -> deepen -> reflect -> re-expand`
+
+Discovery optimizes recall. Ranking/scoring provides precision. Listed title is only a weak fit clue; responsibility/requirement evidence and domain relationship remain authoritative for fit.
+
+## Confirmed code findings
+
+Do not spend a reset rediscovering these:
+
+1. `scripts/run_job_scout_live.py::monitor_session()` waits for the Job Scout run to become terminal, then waits for the manager session itself to become terminal. `score_candidates()` is called only after `monitor_session()` returns. That directly defers scoring until the end of a long manager window when discovery ends early.
+2. `src/nerve_center/plugins/job_scout/worker.py::_execute_discovery_loop()` completes the run as `succeeded` when a manager-routed reflection adds zero new strategies, even if hours remain in the run deadline.
+3. `JobScoutDiscoveryRepository.select_strategies()` excludes every strategy already attempted under the same `run_id`. Therefore simply deleting the early-success branch will create repeated empty reflection/no-work behavior rather than a healthy second wave.
+4. `WorkSessionService.start()` creates one fixed-window run per enabled module and does not replace an early-terminal Job Scout run during the same manager session.
+5. `RunnerService` gives the Job Scout fixed run the full manager-session deadline. The premature stop is therefore Job Scout/runtime semantics, not generic scheduler timeout.
+
+## Implementation objective
+
+Implement the smallest coherent correction that preserves generic manager boundaries and makes Job Scout productive for the authorized session.
+
+Expected shape:
+
+- keep the Job Scout module run alive while manager admission is open unless a real terminal condition is reached;
+- introduce bounded discovery waves/epochs or an equivalent attempt-eligibility model;
+- prevent an identical strategy from hot-looping immediately, while allowing later reuse/revisit after materially new state, cooldown, changed dimensions, new reflection evidence, or appropriate source/company revisit eligibility;
+- re-seed/refresh candidate work between waves from newly persisted companies, career sources, due sources, reflection hypotheses, and other durable market state;
+- persist new openings promptly;
+- perform deterministic/provisional scoring promptly and bounded full fit/scoring during the active session rather than only after shutdown;
+- keep Job Scout model-blind: any LLM-backed reflection or fit/scoring must continue through manager-owned provider/scoring boundaries;
+- preserve separate discovery-learning and ranking-feedback semantics;
+- expose wave/cycle, newly retained jobs, newly scored jobs, reflection outcome, next-work decision, consumed/remaining request and LLM budget where available, idle/backoff reason, and terminal reason;
+- stop on draining/closed admission, deadline, cancellation, request/LLM budget exhaustion, or a bounded explicit no-work decision after refresh/backoff attempts;
+- use paced cooldown/backoff rather than a busy loop when no immediate productive work exists.
+
+Prefer keeping the repeated-work semantics inside Job Scout rather than teaching generic Nerve Center scheduling about jobs. Change core scheduling only if a concrete generic lifecycle defect makes that necessary.
+
+## Likely code surface
+
+Start with targeted reads of:
+
+- `scripts/run_job_scout_live.py`
+- `src/nerve_center/plugins/job_scout/worker.py`
+- `src/nerve_center/plugins/job_scout/discovery_learning.py`
+- `src/nerve_center/plugins/job_scout/discovery_loop.py`
+- `src/nerve_center/plugins/job_scout/runtime.py`
+- `src/nerve_center/scheduler/sessions.py`
+- `src/nerve_center/scheduler/runner.py`
+- `src/nerve_center/scoring/service.py`
+
+Then the directly relevant tests only.
+
+## Deterministic acceptance test
+
+Add a regression that simulates a long manager session and proves, without Ollama or live web access, that:
+
+1. discovery wave 1 retains one or more opportunities;
+2. those opportunities become scored before the manager session ends;
+3. a deterministic and/or LLM reflection returning zero new strategies does not immediately mark the Job Scout run `succeeded` while admission is still open;
+4. newly persisted state, bounded re-eligibility, revisit work, or a later reflection enables another productive wave;
+5. a second discovery wave executes;
+6. identical no-yield work does not spin in a hot loop;
+7. final completion is attributable to drain/deadline/budget/cancellation or a bounded explicit no-work state;
+8. checkpoint/coverage telemetry makes the sequence and stop reason inspectable.
+
+Also add a focused live-runner regression proving that scoring is not structurally gated on manager-session termination.
 
 ## Constraints
 
-- Keep Job Scout-specific concepts inside the Job Scout module boundary.
-- Do not add job-search semantics to Nerve Center core scheduling, navigation, provider selection, or generic queue schemas.
-- Modules remain model-blind and may never call Ollama or another provider directly.
-- Preserve public-source safety: no authenticated LinkedIn crawling, no LinkedIn automation, no CAPTCHA circumvention, no stealth/fingerprint evasion, no automated outreach, and no automatic application submission.
-- A throttled or challenged provider should cool down without ending the entire discovery cycle when other safe strategies remain.
-- Do not build people enrichment yet. Preserve only a clean future seam for bounded public person/contact references and a possible Farley File integration.
-- Do not use a hard minimum number of jobs as a success condition.
-- Required CI must use deterministic synthetic fixtures; live public-site smoke may be supplemental but may not be a required gate.
-- Preserve existing accepted Windows packaging/runtime behavior and manager/module contracts.
+- No authenticated LinkedIn/job-board crawling, CAPTCHA circumvention, stealth automation, unattended applications, or automated outreach.
+- Do not add another provider as a workaround.
+- Do not tune ranking weights as a workaround.
+- Do not reopen the manager-owned provider/session/queue boundary without direct evidence.
+- Keep CI deterministic and independent of Ollama, GPUs, live job boards, and mutable career sites.
+- Qualification-importance normalization remains valid follow-up work, but fix issue #34 first.
+- Repeated diagnostics or manual inspection patterns should become reusable tools rather than consuming coding-agent tokens repeatedly.
 
-## Validation expectations
+## Validation
 
-At minimum add deterministic coverage for:
-
-- strategy persistence and weighting;
-- exploration-floor behavior;
-- company retention with zero current openings;
-- company deepening into discovered career sources;
-- local-market expansion and alias generation;
-- diminishing-return transition into reflection;
-- provider challenge/throttle isolation;
-- feedback provenance affecting the correct discovery/ranking loop;
-- restart-safe persistence and resumable session behavior;
-- coverage-summary metrics.
-
-Run the canonical validation commands from `refs/testing/validationCommands.yaml` before promotion, including refs/index validation, tracked-path case collision checks, Python tests/lint, desktop build, and Rust/Tauri checks. Run the Windows packaging gate when touched files require it.
-
-Do not proceed into people enrichment, Farley File implementation, Model Lab expansion, or unrelated UI work until the discovery-loop foundation is green and reviewable.
+Run the commands in `refs/testing/validationCommands.yaml`. After deterministic CI is green, use a shorter real local Job Scout run to demonstrate at least two productive discovery/scoring waves before attempting another overnight evaluation.
