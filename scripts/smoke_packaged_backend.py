@@ -82,8 +82,13 @@ def smoke_module_runtime(timeout: float) -> None:
             final = value
             break
         time.sleep(0.25)
-    if final is None or final.get("status") != "succeeded":
-        raise SystemExit(f"Packaged module runtime did not succeed: {final}")
+    checkpoint = final.get("checkpoint") if final is not None else None
+    if (
+        final is None or final.get("status") != "partial"
+        or not isinstance(checkpoint, dict)
+        or checkpoint.get("terminal_reason") != "no_configured_evidence_or_market"
+    ):
+        raise SystemExit(f"Packaged empty-workspace run did not stop explicitly: {final}")
     module = request_json("/api/v1/modules/job_scout")
     runtime = module.get("runtime") if isinstance(module, dict) else None
     if not isinstance(runtime, dict) or runtime.get("process_id") is None:

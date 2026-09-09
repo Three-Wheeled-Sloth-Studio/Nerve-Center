@@ -46,135 +46,188 @@ async def _execute_discovery_loop(
     assignment: dict[str, Any],
 ) -> None:
     run_id = str(assignment["run_id"])
-    readiness = await client.invoke(run_id, "discovery_readiness")
-    if not bool(readiness.get("ready", False)):
-        await client.complete(
-            run_id,
-            "succeeded",
-            "Job Scout has no configured career evidence or durable market sources yet.",
-            {
-                "sources_completed": 0,
-                "strategies_attempted": 0,
-                "public_searches_executed": 0,
-                "results_examined": 0,
-                "companies_discovered": 0,
-                "career_sources_resolved": 0,
-                "postings_inspected": 0,
-                "opportunities_retained": 0,
-                "provider_warning_count": 0,
-            },
-        )
-        return
+    saved = dict(assignment.get("checkpoint") or {})
+    cycle = int(saved.get("discovery_cycle", 0))
+    wave = int(saved.get("wave", 1))
+    attempted_ids = list(saved.get("scoring_attempted_ids", []))
+    full_scores = int(saved.get("full_scores_completed", 0))
+    provisional = int(saved.get("provisional_scores_completed", 0))
+    idle_rounds = int(saved.get("idle_rounds", 0))
+    last_reflection = saved.get("reflection_evidence")
+    coverage = dict(saved.get("coverage") or {})
+    state = {"value": 0, "activity": "Preparing discovery", "pending_llm": 0}
 
-    checkpoint = assignment.get("checkpoint") or {}
-    cycle = max(int(checkpoint.get("discovery_cycle", 0)), 0)
+    async def checkpoint(phase: str, **detail: Any) -> None:
+        saved.update(
+            discovery_cycle=cycle, wave=wave, phase=phase, coverage=coverage,
+            scoring_attempted_ids=attempted_ids,
+            full_scores_completed=full_scores,
+            provisional_scores_completed=provisional,
+            idle_rounds=idle_rounds, reflection_evidence=last_reflection,
+            next_work_decision=phase,
+        )
+        saved.update(detail)
+        state["activity"] = f"Wave {wave}: {phase}"
+        await client.checkpoint(run_id, saved)
+
+    async def finish(reason: str, status: str = "partial") -> None:
+        await checkpoint("stopped", terminal_reason=reason)
+        metrics = _completion_metrics(coverage)
+        metrics.update(
+            wave=wave, cycle=cycle, terminal_reason=reason,
+            full_scores_completed=full_scores, provisional_scores_completed=provisional,
+        )
+        await client.complete(run_id, status, f"Job Scout stopped: {reason}.", metrics)
+
+    async def control_reason(*, check_budgets: bool = True) -> str | None:
+        control = await client.control(run_id)
+        usage = control.get("budget_usage") or {}
+        policy = assignment.get("resource_policy") or {}
+        for resource in ("requests", "llm_calls"):
+            used = int(usage.get(resource, 0))
+            limit = int(policy.get(f"max_{resource}", 500 if resource == "requests" else 100))
+            remaining = limit - used
+            saved[f"{resource}_consumed"] = used
+            saved[f"{resource}_remaining"] = remaining
+            if check_budgets and remaining <= 0:
+                return f"{resource}_budget_exhausted"
+        if control.get("cancel_requested") or control.get("shutdown_requested"):
+            return "cancelled"
+        if control.get("admission_phase") in {"draining", "closed"}:
+            return "admission_" + str(control["admission_phase"])
+        if datetime.now(UTC) >= datetime.fromisoformat(str(assignment["deadline"])):
+            return "deadline"
+        return None
+
+    readiness = await client.invoke(run_id, "discovery_readiness")
+    if not readiness.get("ready"):
+        await finish("no_configured_evidence_or_market")
+        return
+    await client.invoke(run_id, "prepare_discovery", {"run_id": run_id})
     await _harvest_reflection_results(client, run_id)
-    prepared = await client.invoke(run_id, "prepare_discovery", {"run_id": run_id})
-    state = {
-        "value": int(prepared.get("strategies_available", 0)),
-        "activity": "Expanding Job Scout market strategies",
-        "pending_llm": 0,
-    }
     heartbeat = asyncio.create_task(_heartbeat_while_working(client, state))
     try:
         while True:
-            control = await client.control(run_id)
-            stop_status = _stop_status(control, assignment)
-            if stop_status is not None:
-                await _complete_from_summary(client, run_id, stop_status)
+            reason = await control_reason()
+            if reason:
+                await finish(reason, "cancelled" if reason == "cancelled" else "partial")
                 return
             cycle += 1
-            state["activity"] = f"Job Scout discovery cycle {cycle}"
-            await client.checkpoint(
-                run_id,
-                {
-                    "discovery_cycle": cycle,
-                    "phase": "expand",
-                    "pending_reflection_request_id": None,
-                },
-            )
+            await checkpoint("expand", idle_reason=None, terminal_reason=None)
             result = await client.invoke(
-                run_id,
-                "discovery_cycle",
-                {"run_id": run_id, "cycle": cycle},
+                run_id, "discovery_cycle", {"run_id": run_id, "cycle": cycle},
             )
-            request_count = int(result.get("request_count", 0))
-            if request_count:
-                await client.consume(run_id, "requests", request_count)
-            coverage = result.get("coverage") or {}
-            attempted = int(coverage.get("strategies_attempted", 0))
-            state["value"] = max(int(prepared.get("strategies_available", 0)) - attempted, 0)
-            await client.checkpoint(
-                run_id,
-                {
-                    "discovery_cycle": cycle,
-                    "phase": "reflect" if result.get("needs_reflection") else "converge",
-                    "coverage": _checkpoint_coverage(coverage),
-                    "pending_reflection_request_id": None,
-                },
+            requests = int(result.get("request_count", 0))
+            if requests:
+                # Source requests are reported at batch completion, not reserved per
+                # HTTP fetch. Preserve observed overrun explicitly; never hide it in
+                # the manager's capped reservation ledger.
+                remaining = int(saved["requests_remaining"])
+                saved["requests_observed"] = int(saved.get("requests_observed", 0)) + requests
+                saved["request_batch_overrun"] = max(0, requests - remaining)
+                await client.consume(run_id, "requests", min(requests, remaining))
+                if requests >= remaining:
+                    coverage = dict(result.get("coverage") or coverage)
+                    await control_reason()
+                    await finish("requests_budget_exhausted")
+                    return
+            coverage = dict(result.get("coverage") or coverage)
+            reason = await control_reason()
+            if reason:
+                await finish(reason, "cancelled" if reason == "cancelled" else "partial")
+                return
+            await checkpoint("score_candidates")
+            scoring = await client.invoke(
+                run_id, "scoring_candidates", {"attempted_ids": attempted_ids},
             )
+            provisional += int(scoring.get("provisional_scores_completed", 0))
+            candidates = scoring.get("candidates") or []
+            scored_this_cycle = False
+            if candidates and len(attempted_ids) < int(scoring.get("limit", 25)):
+                job_id = str(candidates[0])
+                attempted_ids.append(job_id)
+                # Persist reservation before inference so restart cannot exceed the cap.
+                await checkpoint("fit_analysis", scoring_job_id=job_id)
+                await client.consume(run_id, "llm_calls")
+                scored = await client.invoke(run_id, "score_candidate", {"job_id": job_id})
+                full_scores += bool(scored.get("completed"))
+                scored_this_cycle = True
+                await checkpoint("converge", scoring_outcome=scored)
+            else:
+                await checkpoint("converge")
+            if int(result.get("strategies_attempted", 0)) or scored_this_cycle:
+                idle_rounds = 0
             if not result.get("needs_reflection"):
                 continue
-            state["activity"] = "Reflecting on unexplored Job Scout discovery paths"
+
+            # Request new ideation only when durable yield or ranking evidence changes.
+            evidence = [
+                coverage.get(key, 0) for key in (
+                    "companies_discovered", "career_sources_resolved", "opportunities_retained",
+                )
+            ] + [full_scores]
             reflection = await client.invoke(
-                run_id,
-                "deterministic_reflection",
-                {"run_id": run_id, "cycle": cycle},
+                run_id, "deterministic_reflection", {"run_id": run_id, "cycle": cycle},
             )
-            if int(reflection.get("new_strategies", 0)) > 0:
-                continue
-            if not reflection.get("llm_recommended"):
-                await _complete_from_summary(client, run_id, "succeeded")
-                return
-            control = await client.control(run_id)
-            if not bool(control.get("accept_new_llm_work", False)):
-                await _complete_from_summary(client, run_id, "partial")
-                return
-            request = await client.invoke(
-                run_id,
-                "reflection_work_request",
-                {"run_id": run_id, "cycle": cycle},
-            )
-            await client.consume(run_id, "llm_calls")
-            submitted = await client.submit_work(run_id, request)
-            request_id = str(submitted["id"])
-            await client.invoke(
-                run_id,
-                "record_reflection_request",
-                {"request_id": request_id, "run_id": run_id, "cycle": cycle},
-            )
-            await client.checkpoint(
-                run_id,
-                {
-                    "discovery_cycle": cycle,
-                    "phase": "reflect",
-                    "pending_reflection_request_id": request_id,
-                    "coverage": _checkpoint_coverage(coverage),
-                },
-            )
-            state["pending_llm"] = 1
-            state["activity"] = "Waiting for manager-routed discovery reflection"
-            while True:
-                control = await client.control(run_id)
-                stop_status = _stop_status(control, assignment)
-                if stop_status is not None:
-                    state["pending_llm"] = 0
-                    await _complete_from_summary(
-                        client,
-                        run_id,
-                        stop_status,
-                        reflection_queued=True,
-                    )
+            added = int(reflection.get("new_strategies", 0))
+            if not added and reflection.get("llm_recommended") and evidence != last_reflection:
+                reason = await control_reason()
+                if reason:
+                    await finish(reason, "cancelled" if reason == "cancelled" else "partial")
                     return
-                await asyncio.sleep(1.0)
-                harvested = await _harvest_reflection_results(client, run_id)
-                if request_id in harvested:
-                    break
-            state["pending_llm"] = 0
-            if harvested[request_id] > 0:
-                continue
-            await _complete_from_summary(client, run_id, "succeeded")
-            return
+                last_reflection = evidence
+                request = await client.invoke(
+                    run_id, "reflection_work_request", {"run_id": run_id, "cycle": cycle},
+                )
+                await client.consume(run_id, "llm_calls")
+                submitted = await client.submit_work(run_id, request)
+                request_id = str(submitted["id"])
+                await client.invoke(
+                    run_id, "record_reflection_request",
+                    {"request_id": request_id, "run_id": run_id, "cycle": cycle},
+                )
+                await checkpoint("reflect", pending_reflection_request_id=request_id)
+                state["pending_llm"] = 1
+                for _ in range(180):
+                    # The final authorized call must be allowed to return its result.
+                    # Exhaustion prevents the next admission, not harvesting this one.
+                    reason = await control_reason(check_budgets=False)
+                    if reason:
+                        await finish(reason, "cancelled" if reason == "cancelled" else "partial")
+                        return
+                    harvested = await _harvest_reflection_results(client, run_id)
+                    if request_id in harvested:
+                        added = harvested[request_id]
+                        break
+                    await asyncio.sleep(5)
+                else:
+                    await finish("reflection_result_timeout")
+                    return
+                state["pending_llm"] = 0
+
+            wave += 1
+            await checkpoint(
+                "refresh", reflection_outcome="added" if added else "no_new_strategies",
+                strategies_added=added, pending_reflection_request_id=None,
+            )
+            # The next cycle reseeds new companies and due sources; eligibility is
+            # timestamp-based, so an empty reflection never resets attempt history.
+            if result.get("strategies_exhausted") and not added and not scored_this_cycle:
+                idle_rounds += 1
+                if idle_rounds > 3:
+                    await finish("no_work_after_three_refresh_backoffs")
+                    return
+                seconds = 30 * 2 ** (idle_rounds - 1)
+                await checkpoint(
+                    "backoff", idle_reason="no_eligible_strategies_or_scoring",
+                    backoff_seconds=seconds,
+                )
+                for _ in range(seconds // 5):
+                    reason = await control_reason()
+                    if reason:
+                        await finish(reason, "cancelled" if reason == "cancelled" else "partial")
+                        return
+                    await asyncio.sleep(5)
     finally:
         heartbeat.cancel()
         await asyncio.gather(heartbeat, return_exceptions=True)

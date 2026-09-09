@@ -222,6 +222,10 @@ class ModuleSupervisor:
             "cancel_requested": pending.context.cancellation_requested(),
             "shutdown_requested": session.stop_requested,
             "deadline": pending.assignment.deadline,
+            "budget_usage": {
+                "requests": pending.context.resources.usage.requests,
+                "llm_calls": pending.context.resources.usage.llm_calls,
+            },
             **self._session_policy(pending.assignment.session_id),
         }
 

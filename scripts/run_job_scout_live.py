@@ -55,12 +55,16 @@ class ProgressReporter:
         phase = str(checkpoint.get("phase") or status)
         cycle = int(checkpoint.get("discovery_cycle") or 0)
         counts = _progress_counts(
-            dict(checkpoint.get("coverage") or run.get("result_metrics") or {})
+            {**dict(checkpoint.get("coverage") or run.get("result_metrics") or {}),
+             **checkpoint}
         )
         detail = f"discovery {phase}"
         if cycle:
             detail += f" cycle={cycle}"
-        return self._observe(("discovery", status, phase, cycle, counts), detail, counts)
+        for key in ("wave", "next_work_decision", "idle_reason", "terminal_reason"):
+            if checkpoint.get(key) is not None:
+                detail += f" | {key}={checkpoint[key]}"
+        return self._observe(("discovery", status, detail, cycle, counts), detail, counts)
 
     def observe_manager(
         self,
@@ -104,6 +108,10 @@ def _progress_counts(values: dict[str, Any]) -> tuple[tuple[str, int], ...]:
         ("postings_inspected", "postings"),
         ("opportunities_retained", "roles"),
         ("provider_warning_count", "warnings"),
+        ("provisional_scores_completed", "provisional"),
+        ("full_scores_completed", "full_scores"),
+        ("requests_remaining", "requests_left"),
+        ("llm_calls_remaining", "llm_left"),
     )
     return tuple(
         (label, int(values[key]))
@@ -145,6 +153,7 @@ class ManagedApi:
         self.data_dir = data_dir
         self.log_path = log_path
         self.default_model = default_model
+        self.session_id: str | None = None
         self.process: subprocess.Popen[bytes] | None = None
         self._log: Any = None
 
@@ -191,6 +200,13 @@ class ManagedApi:
         raise RuntimeError(f"Nerve Center API did not become healthy; see {self.log_path}")
 
     def __exit__(self, *_exc: object) -> None:
+        # Close the session while its API is still available, including Ctrl+C.
+        if self.session_id:
+            with suppress(OSError, RuntimeError):
+                request_json(
+                    self.endpoint,
+                    f"/api/v1/sessions/{self.session_id}/emergency-stop", "POST", {},
+                )
         if self.process is not None and self.process.poll() is None:
             self.process.terminate()
             with suppress(subprocess.TimeoutExpired):
@@ -223,6 +239,7 @@ def configure_workspace(
     target_titles: list[str],
     locations: list[str],
     remote_preference: str,
+    score_limit: int = 25,
 ) -> dict[str, Any]:
     workspace = request_json(endpoint, "/api/v1/modules/job_scout/workspace")
     configuration = dict(workspace.get("configuration") or {})
@@ -231,6 +248,7 @@ def configure_workspace(
     if locations:
         configuration["locations"] = locations
     configuration["remote_preference"] = remote_preference
+    configuration["full_score_limit"] = score_limit
     workspace = request_json(
         endpoint,
         "/api/v1/modules/job_scout/config",
@@ -254,6 +272,7 @@ def monitor_session(
     poll_seconds: float,
     report_path: Path,
     report: dict[str, Any],
+    on_session: Callable[[str], None] | None = None,
 ) -> tuple[dict[str, Any], str]:
     progress = ProgressReporter()
     recent_sessions = request_json(endpoint, "/api/v1/sessions?limit=20")
@@ -267,6 +286,8 @@ def monitor_session(
             {"duration_seconds": duration_seconds},
         )
     run_id = str((session.get("module_run_ids") or {}).get("job_scout") or "")
+    if on_session is not None:
+        on_session(str(session["id"]))
     if not run_id:
         raise RuntimeError("Manager session did not create a Job Scout run")
     if resumed:
@@ -296,6 +317,20 @@ def monitor_session(
             "checkpoint": run.get("checkpoint"),
             "result_metrics": run.get("result_metrics"),
         }
+        checkpoint = dict(run.get("checkpoint") or {})
+        transition = {
+            "wave": checkpoint.get("wave"), "cycle": checkpoint.get("discovery_cycle"),
+            "phase": checkpoint.get("phase"), "status": run.get("status"),
+            "roles": (checkpoint.get("coverage") or {}).get("opportunities_retained", 0),
+            "full_scores": checkpoint.get("full_scores_completed", 0),
+            "reflection": checkpoint.get("reflection_outcome"),
+            "terminal_reason": checkpoint.get("terminal_reason"),
+        }
+        transitions = report.setdefault("transitions", [])
+        if not transitions or transition != transitions[-1]["state"]:
+            transitions.append({"at": datetime.now().astimezone().isoformat(),
+                                "state": transition})
+            report["transitions"] = transitions[-1000:]
         write_report(report_path, report)
         progress.observe_run(run)
         if run.get("status") in TERMINAL_STATUSES:
@@ -304,28 +339,8 @@ def monitor_session(
         time.sleep(poll_seconds)
     if final is None:
         raise RuntimeError("Job Scout session exceeded its safety deadline")
-    session_id = str(session["id"])
-    while time.monotonic() < deadline:
-        session_state = request_json(endpoint, f"/api/v1/sessions/{session_id}")
-        queue_state = request_json(
-            endpoint, "/api/v1/work-requests/status?module_id=job_scout"
-        )
-        report["manager_session"] = {
-            "status": session_state.get("status"),
-            "admission_phase": session_state.get("admission_phase"),
-            "queue": queue_state,
-        }
-        write_report(report_path, report)
-        progress.observe_manager(session_state, queue_state)
-        active_queue = int(queue_state.get("queued", 0)) + int(
-            queue_state.get("claimed", 0)
-        )
-        if (
-            session_state.get("status") in {"completed", "cancelled", "missed", "failed"}
-            and active_queue == 0
-        ):
-            break
-        time.sleep(poll_seconds)
+    # Scoring is interleaved by the worker. A terminal module run must not
+    # strand this diagnostic in an otherwise open manager window.
     return final, run_id
 
 
@@ -457,6 +472,7 @@ def run(args: argparse.Namespace) -> int:
                 target_titles=args.target_title,
                 locations=args.location,
                 remote_preference=args.remote_preference,
+                score_limit=args.score_limit,
             )
             report.update(
                 {
@@ -485,6 +501,7 @@ def run(args: argparse.Namespace) -> int:
                 args.poll_seconds,
                 report_path,
                 report,
+                on_session=lambda session_id: setattr(context, "session_id", session_id),
             )
             jobs = request_json(args.endpoint, "/api/v1/discovery/jobs")
             opportunities = request_json(
@@ -527,14 +544,11 @@ def run(args: argparse.Namespace) -> int:
             report["run"]["status"] = final.get("status")
             report["status"] = "scoring"
             write_report(report_path, report)
-            score_candidates(
-                args.endpoint,
-                opportunities,
-                args.score_limit,
-                args.model,
-                report_path,
-                report,
-            )
+            report["scoring"] = {
+                "completed": (final.get("checkpoint") or {}).get("full_scores_completed", 0),
+                "limit": args.score_limit,
+                "timing": "during_active_session",
+            }
             report["model_evidence"] = {
                 task_id: request_json(
                     args.endpoint,

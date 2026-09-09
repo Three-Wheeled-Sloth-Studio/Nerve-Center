@@ -31,10 +31,10 @@ def test_job_scout_run_crosses_supervised_process_boundary(tmp_path: Path) -> No
         )
         module = client.get("/api/v1/modules/job_scout").json()
 
-        assert final["status"] == "succeeded"
+        assert final["status"] == "partial"
         assert final["session_id"] == session["id"]
         assert final["module_priority"] == 100
-        assert final["result_metrics"]["sources_completed"] == 0
+        assert final["result_metrics"]["terminal_reason"] == "no_configured_evidence_or_market"
         assert module["manifest"]["launch"]["runtime"] == "managed_python"
         assert module["runtime"]["process_id"] is not None
         assert module["runtime"]["work_items_processed"] == 1

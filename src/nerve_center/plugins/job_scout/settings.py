@@ -185,6 +185,7 @@ class JobScoutConfiguration(BaseModel):
     keywords: list[str] = Field(default_factory=list, max_length=100, exclude=True)
     broad_search_enabled: bool = True
     scan_interval_minutes: int = Field(default=1440, ge=5, le=10080)
+    full_score_limit: int = Field(default=25, ge=0, le=1000)
 
     @field_validator(
         "target_titles",
