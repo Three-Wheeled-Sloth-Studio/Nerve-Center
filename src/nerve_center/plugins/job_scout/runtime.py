@@ -15,6 +15,8 @@ from nerve_center.plugins.job_scout.configuration import (
 )
 from nerve_center.plugins.job_scout.discovery_learning import JobScoutDiscoveryRepository
 from nerve_center.plugins.job_scout.discovery_loop import JobScoutDiscoveryLoop
+from nerve_center.providers.errors import ProviderError
+from nerve_center.scoring.service import ScoringService
 
 
 class JobScoutOperationBridge:
@@ -25,14 +27,50 @@ class JobScoutOperationBridge:
         coordinator: JobScoutCoordinator,
         learning: JobScoutDiscoveryRepository,
         discovery_loop: JobScoutDiscoveryLoop,
+        scoring: ScoringService | None = None,
     ) -> None:
         self.service = service
         self.sources = sources
         self.coordinator = coordinator
         self.learning = learning
         self.discovery_loop = discovery_loop
+        self.scoring = scoring
 
     async def invoke(self, operation: str, payload: Mapping[str, Any]) -> dict[str, Any]:
+        if operation == "scoring_candidates":
+            if self.scoring is None:
+                return {"candidates": [], "provisional_scores_completed": 0, "limit": 0}
+            config = self.coordinator.store.load()
+            attempted = set(payload.get("attempted_ids", []))
+            candidates = []
+            provisional = 0
+            for opening in self.scoring.jobs.list():
+                existing = self.scoring.scores.list(opening.id)
+                score = self.scoring.ensure_provisional_score(
+                    opening.id, intent_terms=config.manual_keywords,
+                    target_titles=config.target_titles,
+                )
+                provisional += not existing
+                if opening.id not in attempted and str(
+                    score.calculation.get("fit_contract_version", "")
+                ).startswith("job-fit-provisional-"):
+                    candidates.append((score.priority, opening.id))
+            candidates.sort(reverse=True)
+            return {
+                "candidates": [job_id for _, job_id in candidates[:1]],
+                "provisional_scores_completed": provisional,
+                "limit": config.full_score_limit,
+            }
+        if operation == "score_candidate":
+            if self.scoring is None:
+                raise ValueError("scoring service unavailable")
+            job_id = _required_string(payload, "job_id")
+            try:
+                analysis = await self.scoring.analyze_fit(job_id)
+                score = self.scoring.score(job_id, fit_analysis_id=analysis.id)
+                return {"completed": True, "job_id": job_id, "priority": score.priority}
+            except (ProviderError, ValueError, KeyError) as error:
+                return {"completed": False, "job_id": job_id, "error": type(error).__name__}
         if operation == "discovery_readiness":
             configuration = self.coordinator.store.load()
             keywords = self.coordinator._discover_keywords(configuration).keywords
@@ -105,11 +143,11 @@ class JobScoutOperationBridge:
             source_id = str(payload.get("source_id", ""))
             if not source_id:
                 raise ValueError("scan_source requires source_id")
-            result = await self.service.scan_source(source_id)
+            scan_result = await self.service.scan_source(source_id)
             return {
-                "status": result.status.value,
-                "openings_found": len(result.openings),
-                "requests_made": result.requests_made,
+                "status": scan_result.status.value,
+                "openings_found": len(scan_result.openings),
+                "requests_made": scan_result.requests_made,
             }
         raise ValueError(f"unsupported Job Scout operation {operation!r}")
 

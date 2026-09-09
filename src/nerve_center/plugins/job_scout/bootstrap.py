@@ -95,6 +95,7 @@ def install_job_scout(
             coordinator,
             learning_repository,
             discovery_loop,
+            scoring_service,
         ),
     )
 

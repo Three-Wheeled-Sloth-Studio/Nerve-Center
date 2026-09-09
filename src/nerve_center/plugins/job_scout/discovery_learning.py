@@ -304,6 +304,7 @@ class JobScoutDiscoveryRepository:
         exploration_floor: float = 0.25,
         excluded_company_ids: set[str] | None = None,
         excluded_source_ids: set[str] | None = None,
+        revisit_after_seconds: float | None = None,
         now: datetime | None = None,
     ) -> list[DiscoveryStrategySnapshot]:
         if limit < 1:
@@ -325,7 +326,17 @@ class JobScoutDiscoveryRepository:
             candidates = [
                 item
                 for item in models
-                if item.id not in attempted
+                if (
+                    item.id not in attempted
+                    if revisit_after_seconds is None
+                    else item.last_attempt_at is None
+                    or current.timestamp() - _utc_sort_value(item.last_attempt_at)
+                    >= (
+                        revisit_after_seconds
+                        if item.dimensions.get("kind") == "public_search"
+                        else min(revisit_after_seconds, 3600)
+                    )
+                )
                 and item.dimensions.get("company_id") not in blocked_companies
                 and item.dimensions.get("source_id") not in blocked_sources
             ]

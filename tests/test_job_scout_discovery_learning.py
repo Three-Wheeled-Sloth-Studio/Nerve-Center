@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from nerve_center.applications.models import ApplicationStatus, ApplicationUpdate
@@ -88,6 +88,24 @@ def test_strategy_selection_reserves_company_deepening_capacity(tmp_path: Path) 
     selected = learning.select_strategies("run-1", limit=4, exploration_floor=0.25)
 
     assert company.id in {item.id for item in selected}
+
+
+def test_cooldown_survives_restart_and_run_changes(tmp_path: Path) -> None:
+    database = _database(tmp_path)
+    learning = JobScoutDiscoveryRepository(database)
+    strategy = learning.ensure_strategy(
+        {"kind": "public_search", "anchor": "Product"}, origin="fixture",
+    )
+    now = datetime.now(UTC)
+    learning.record_attempt("run-1", 1, strategy.id, "expand", StrategyOutcome(),
+                            finished_at=now)
+    restarted = JobScoutDiscoveryRepository(database)
+    assert restarted.select_strategies(
+        "run-2", revisit_after_seconds=86400, now=now + timedelta(hours=1),
+    ) == []
+    assert restarted.select_strategies(
+        "run-1", revisit_after_seconds=86400, now=now + timedelta(days=1),
+    )[0].id == strategy.id
 
 
 def test_company_is_retained_as_strategy_evidence_with_zero_openings(tmp_path: Path) -> None:

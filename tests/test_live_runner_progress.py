@@ -92,3 +92,27 @@ def test_resumable_session_requires_an_actionable_job_scout_run() -> None:
 
 def test_remaining_session_seconds_uses_fallback_for_invalid_deadline() -> None:
     assert _remaining_session_seconds({"ends_at": "not-a-date"}, 300) == 300.0
+
+
+def test_monitor_returns_scored_terminal_run_without_waiting_for_open_manager(
+    tmp_path, monkeypatch,
+):
+    monitor = _SCRIPT["monitor_session"]
+    calls = []
+
+    def request(endpoint, path, method="GET", payload=None):
+        calls.append(path)
+        if path.startswith("/api/v1/sessions?"):
+            return [{"id": "session", "status": "running",
+                     "module_run_ids": {"job_scout": "run"}}]
+        if path == "/api/v1/runs/run":
+            return {"status": "partial", "checkpoint": {
+                "full_scores_completed": 1, "terminal_reason": "no_work",
+            }}
+        raise AssertionError(f"Unexpected wait after scoring: {path}")
+
+    monkeypatch.setitem(monitor.__globals__, "request_json", request)
+    report = {}
+    final, _ = monitor("http://fixture", 28800, 5, tmp_path / "report.json", report)
+    assert final["checkpoint"]["full_scores_completed"] == 1
+    assert calls == ["/api/v1/sessions?limit=20", "/api/v1/runs/run"]

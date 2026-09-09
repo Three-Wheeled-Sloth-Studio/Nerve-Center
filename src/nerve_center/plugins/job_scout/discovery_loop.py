@@ -197,6 +197,9 @@ class JobScoutDiscoveryLoop:
         }
 
     async def cycle(self, run_id: str, cycle: int) -> DiscoveryCycleSummary:
+        # New employer surfaces are work, even when the previous reflection was empty.
+        self._seed_known_company_strategies()
+        self._seed_due_source_strategies()
         board_domains = {
             _clean_domain(item)
             for item in self.coordinator.store.load().public_job_boards
@@ -209,12 +212,17 @@ class JobScoutDiscoveryLoop:
             for item in self.sources.list()
             if not _is_employer_source(item) or item.company_id in excluded_company_ids
         }
+        due_ids = {item.id for item in self.sources.list_due()}
+        excluded_source_ids.update(
+            item.id for item in self.sources.list() if item.id not in due_ids
+        )
         selected = self.learning.select_strategies(
             run_id,
             limit=self.strategies_per_cycle,
             exploration_floor=self.exploration_floor,
             excluded_company_ids=excluded_company_ids,
             excluded_source_ids=excluded_source_ids,
+            revisit_after_seconds=86400,
         )
         if not selected:
             session = self.learning.update_session(run_id, phase="reflect", cycle=cycle)
@@ -663,7 +671,8 @@ class JobScoutDiscoveryLoop:
         request_count = 0
         postings = 0
         source_ids: set[str] = set()
-        for source in sources[:8]:
+        due_ids = {item.id for item in self.sources.list_due()}
+        for source in [item for item in sources if item.id in due_ids][:8]:
             source = self._attribute_source(source, strategy.id)
             source_ids.add(source.id)
             scan, requests = await self._scan_source(source)
