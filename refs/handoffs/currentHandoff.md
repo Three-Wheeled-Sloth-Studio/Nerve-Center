@@ -13,7 +13,7 @@ tags: [nerve-center, handoff]
 - Application version remains `0.12.4`.
 - The manager/module boundary, durable work sessions and queue, provider-neutral LLM manager, Windows desktop/package baseline, career evidence profile, company-first Job Scout discovery, scoring, application tracking, and durable discovery learning are accepted foundations.
 - Job Scout resolves aggregator-listed openings to actual hiring companies, protects employer-owned deepening from board-source crowding, persists strategy/yield learning, expands local markets, and implements the component phases of `expand -> converge -> deepen -> reflect`.
-- Issue #34 is implemented on PR #36: bounded discovery waves, durable revisit cooldowns, and interleaved active-window scoring replace early success after empty reflection. Deterministic validation passes; short live acceptance is pending before merge.
+- Issue #34 is implemented and live-validated on PR #36: bounded discovery waves, durable revisit cooldowns, and interleaved active-window scoring replace early success after empty reflection.
 - Manager-owned Ollama routing uses `gemma3:4b` as the primary general model. Strict structured-output requests validate the result and may retry once on `qwen2.5:7b-instruct`; the next general request starts on Gemma again. Job Scout stays model-blind.
 - Discovery includes direct Greenhouse, Lever, and Ashby board support, preserves the actual hiring-company identity while deepening ATS sources, and seeds all configured role families before repeating location/source combinations.
 - Fit analysis contract v6 validates model-proposed claim links through a reusable semantic evidence matcher, retains claim/evidence provenance, and derives an explicit direct/adjacent/transferable/mismatch domain assessment instead of trusting an unexplained model scalar.
@@ -68,17 +68,18 @@ These causes are addressed in the implementation below; they are retained here a
 - Regressions prove retained/scored wave 1 precedes empty reflection and useful company-revisit wave 2 while admission is open, paced exhaustion without unchanged repeated reflection, durable cooldowns across repository/run restart, scoring reservation cap on restart, final-call harvesting, explicit request-budget stop, and runner return without waiting for manager termination.
 - Request accounting remains at discovery-batch granularity. A bounded batch can exceed the remaining request allowance; `requests_observed` and `request_batch_overrun` make that explicit while the reservation ledger remains capped. Per-fetch admission is a future hardening slice, not a strict per-HTTP ceiling claim.
 - In-flight source/scoring operations may finish after admission changes; control is checked between bounded operations and during reflection/backoff waits. Full scoring reservations are conservative on crash: an interrupted attempt is not automatically retried in the same run.
-- Short live validation and hosted CI results will be recorded before merging PR #36. No overnight run is authorized for this checkpoint.
+- Hosted CI and Windows packaging pass. A 900-second live acceptance run completed all three allowed full analyses during the open session, continued through 20 waves, and stopped explicitly on request-budget exhaustion.
 
 ## Next slice
 
-Complete short live acceptance and merge PR #36 to `dev`; then return the checkout to `dev`. Follow with per-fetch budget admission/recovery hardening if real evidence requires it, otherwise resume qualification-importance normalization and ranking-quality work.
+After merging PR #36 to `dev`, follow with per-fetch budget admission/recovery hardening if real evidence requires it; otherwise resume qualification-importance normalization and ranking-quality work.
 
 The previous qualification-importance normalization/ranking-quality work remains valid but is deferred until this liveness defect is corrected. Do not tune ranking weights as a workaround for the control-loop problem.
 
 ## Latest live evidence
 
 - The 8-hour run above is the pre-fix runtime failure: early discovery termination plus deferred scoring left most of the authorized window idle.
+- The post-fix 900-second run (`da004e4a-8b1b-4723-8ea2-5dcdded6f724`) performed 89 cycles across 20 waves, attempted 356 strategies, discovered 49 companies and 70 career sources, retained 121 opportunities, and created 212 provisional plus 3/3 bounded full scores. It crossed added and empty reflection outcomes and kept discovering afterward. It stopped `partial` with `requests_budget_exhausted` after 500 reserved/502 observed requests; the two-request batch overrun was exposed. Two provider warnings recorded public-search cooldown/unavailability without failing the run.
 - The durable inventory previously contained 151 roles across 96 companies and 579 sources; broad market state exists, so the failure is not simply lack of durable discovery material.
 - A 20-role v6 sample previously completed 20/20 fit analyses on `gemma3:4b` with explicit domain results: 2 direct, 1 adjacent, 5 transferable, and 12 mismatch.
 - Reflection evidence demonstrates the strict-schema fallback lane: Gemma remains primary, while failed reflection schemas can retry successfully on `qwen2.5:7b-instruct`.
