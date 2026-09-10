@@ -1,8 +1,4 @@
-from nerve_center.discovery.models import (
-    JobProvenance,
-    NormalizedJobOpening,
-    WorkArrangement,
-)
+from nerve_center.discovery.models import JobProvenance, NormalizedJobOpening, WorkArrangement
 from nerve_center.scoring.location import (
     classify_listing_locations,
     is_specific_physical_location,
@@ -59,6 +55,31 @@ def test_real_location_strings_do_not_trigger_state_substring_false_positives() 
     assert not opening_matches_market(_opening("London OR Dublin"), "Portland, OR")
     assert not opening_matches_market(
         _opening("Remote, Canada; Remote, US", WorkArrangement.REMOTE),
+        "Greensboro, NC",
+    )
+
+
+def test_state_only_location_is_regional_without_inventing_city_match() -> None:
+    preferences = LocationPreferences(local_markets=["Greensboro, NC"])
+
+    state_only = classify_listing_locations(
+        ["North Carolina, United States"],
+        preferences,
+    )
+    remote_state = classify_listing_locations(
+        ["Remote - North Carolina"],
+        preferences,
+        work_arrangement=WorkArrangement.REMOTE,
+    )
+
+    assert state_only[0] is LocationScope.REGIONAL
+    assert remote_state[0] is LocationScope.REGIONAL
+    assert not opening_matches_market(
+        _opening("North Carolina, United States"),
+        "Greensboro, NC",
+    )
+    assert not opening_matches_market(
+        _opening("Remote - North Carolina", WorkArrangement.REMOTE),
         "Greensboro, NC",
     )
 
