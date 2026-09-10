@@ -13,7 +13,7 @@ tags: [nerve-center, planning, roadmap]
 
 The repository contains a working local API, durable SQLite foundation, manager-owned scheduling and work queues, provider-neutral local LLM routing, the Job Scout reference workflow, a Tauri/React desktop shell, Windows packaging/runtime bootstrap, and an iterative company-first discovery/scoring loop.
 
-The reusable manager/module boundary is established. Job Scout remains the reference module for validating those contracts while its domain behavior continues to mature.
+The reusable manager/module boundary is established. Job Scout remains the reference module for validating those contracts while the core roadmap resumes with Model Lab.
 
 ## Increment 7: Core and module boundary (implemented)
 
@@ -77,7 +77,7 @@ Implemented in `0.11.0`. Production model calls pass through a manager-owned pro
 
 ## Job Scout reference-module foundation (implemented)
 
-The self-improving discovery correction previously listed here is now accepted implementation, primarily through Issues #18, #20, #22, #24, #26, #28, #30, #32, and #34.
+The self-improving discovery correction previously listed here is accepted implementation, primarily through Issues #18, #20, #22, #24, #26, #28, #30, #32, and #34.
 
 Current accepted Job Scout behavior includes:
 
@@ -114,33 +114,66 @@ Accepted behavior:
 
 Do not tune ranking weights to compensate for missing geography and do not add an LLM location classifier for evidence that can be derived deterministically. Query constraints are source capabilities, not universal syntax: structured ATS x-ray retrieval may intentionally omit geography when post-fetch location evidence is more authoritative, while local employer discovery and source-native search may still use geography directly.
 
-Per-fetch request-budget admission remains a possible hardening follow-up if later evidence shows batch-level overrun is operationally harmful. Qualification-importance normalization remains a ranking-quality follow-up after discovery-quality work is trustworthy.
+## Job Scout source-aware discovery quality (implemented)
 
-## Immediate Job Scout discovery-quality slice: source-aware query portfolios and gap-driven reflection
+Issue **#43: Add source-aware query portfolios and gap-driven reflection** is implemented in PR #44.
 
-Issue **#43: Add source-aware query portfolios and gap-driven reflection** is the immediate Job Scout roadmap slice.
+Accepted behavior:
 
-Improve the information value of each discovery experiment without replacing the durable company-first architecture:
+1. Search work is allocated across bounded materially different query families and source paths rather than superficial rewrites.
+2. Public web, ordinary site search, and structured ATS x-ray strategies compile according to source capability.
+3. Deterministic query linting rejects known self-defeating or unsupported structures before network spend.
+4. Company/opening convergence is retained as discovery evidence and may affect deepening priority, but it never substitutes for fit scoring or creates duplicate score credit.
+5. Coverage gaps are explicit across role, domain/capability, seniority, geography, work arrangement, employer archetype, source coverage, and query-family coverage.
+6. Deterministic and manager-routed reflection receive the same bounded uncovered-space profile.
+7. Healthy structured direct sources receive appropriate refresh preference after discovery without overriding source-health evidence.
+8. The discovery audit exposes query family, compiled query/source path, total and location-conditioned yield, warnings, overlap, coverage gaps, and learned-weight changes without requiring approval for unattended work.
 
-1. **Source-aware query portfolio compilation.** Replace one universal query shape with a source-capability model. Generate a bounded portfolio of materially different retrieval hypotheses such as direct-role/title family, adjacent-role family, seniority variant, domain/capability angle, and employer-archetype angle. Do not spend requests on superficial rewordings of the same query.
-2. **Deterministic query linting and regression corpus.** Validate proposed searches before network spend. Catch self-defeating exclusions, catch-all title groups that create noise, invented technologies or constraints, duplicated constraints, and source-specific terms known to collapse recall. Deterministic failures should gate; subjective LLM judging should remain advisory evidence rather than a single-run release gate.
-3. **Cross-strategy overlap provenance.** Retain when several materially different strategies surface the same employer or opening. Use convergence as evidence to deepen that employer or source sooner, not as a substitute for opportunity fit scoring or as duplicate score inflation.
-4. **First-class coverage gaps.** Deterministically compare requested role, domain, seniority, geography, work-arrangement, employer-archetype, and source coverage against observed inventory. Feed the bounded gap profile into reflection so the manager-routed LLM is solving an explicit uncovered-space problem instead of repeatedly inventing generic alternatives.
-5. **Prefer structured refresh after source discovery.** Spend broad web search increasingly on unknown employers and unknown sources. Once Greenhouse, Lever, Ashby, sitemap, feed, or another healthy direct source is known, favor the cheapest authoritative direct refresh path for recurring inventory.
-6. **Human-visible strategy audit without mandatory approval.** Expose generated search hypotheses, source-specific compiled queries, observed yield, conditioned yield, warnings, overlap evidence, coverage gaps, and strategy weight changes so the user can understand and diagnose discovery. Normal unattended sessions should not require a human click before each search.
+Preserve the local-first posture. Firecrawl is not a core dependency while local parsers/source health/caching cover the responsibility. Do not export career prompts or traces to LangSmith by default. A curated ATS-board catalog may be optional seed evidence but must never define market coverage.
 
-Preserve the existing privacy and local-first posture. Firecrawl is not a core dependency while local parsers/source health/caching already cover the same responsibility. Do not export career prompts or traces to LangSmith as a default observability mechanism. A curated Greenhouse-board catalog may be used only as optional seed evidence, never as authoritative market coverage.
+## Job Scout qualification-importance ranking (implemented)
+
+Issue **#45: Normalize qualification importance in Job Scout fit scoring** is implemented in PR #46.
+
+Accepted behavior:
+
+1. Fit-analysis contract v7 represents employer-side decision weight independently from broad qualification category and candidate match strength.
+2. A bounded model centrality hint is advisory only; deterministic importance changes come from validated verbatim job excerpts, never model-authored requirement labels.
+3. Explicit must/minimum/essential/core language can raise effective weight, while preferred/optional/nice-to-have language can lower it.
+4. Required, responsibility, and preferred coverage use normalized weighted contributions rather than equal averaging.
+5. Near-duplicate qualifications remain auditable but cannot manufacture repeated coverage, domain-evidence, or factual-gate credit.
+6. Ordinary high-importance mismatches remain soft ranking evidence. Licenses, clearances, configured minimums, and other factual/user gates remain separate.
+7. Ranking engine v5 exposes effective weight, rationale, duplicate linkage, counted status, match value, and weighted contribution for reconstruction.
+8. Legacy v6 fit-analysis payloads remain loadable through neutral defaults and may be deterministically rescored without another LLM fit pass.
+
+Calibration is intentionally bounded rather than nonlinear: central evidence should dominate a small set of peripheral bullets, but no single extracted item receives unlimited veto power unless an independent factual gate applies.
+
+Per-fetch request-budget admission remains a possible Job Scout hardening follow-up if later live evidence shows batch-level overrun is operationally harmful. People enrichment remains deferred.
 
 ## Increment 12: Model Lab
 
-- Add a manager-owned, toggleable Model Lab subsystem outside module priority.
-- Maintain a model catalog seeded by Ollama metadata, compatibility data, and relevant public benchmarks or leaderboards.
-- Add policy-constrained automatic model installation and separate opt-in automatic removal.
-- Retain eligible real requests as a local benchmark corpus by default, with user and module opt-out.
-- Reserve a configurable 5-10% exploration ceiling during contention while freely using otherwise idle compute.
-- Add explicit exploration sessions such as `Explore models for four hours.`
-- Reuse historical real requests for comparison.
+Issue **#47: Add Model Lab foundation and local benchmark corpus** is the immediate roadmap slice.
+
+The provider-neutral manager already supplies the accepted foundation: installed-model discovery, durable provider/model metadata, task-specific production evidence, schema validation, model-blind production requests, and manager-owned selection. Build Model Lab on those seams rather than creating a parallel provider stack.
+
+### Issue #47 foundation slice
+
+1. Add a manager-owned, toggleable Model Lab service/API contract over the existing model catalog and production task evidence.
+2. Retain eligible completed model-blind requests/results as a deduplicated local benchmark corpus with module/request opt-out and secret-safe provenance.
+3. Support bounded replay of a corpus item against a selected installed model through a manager-owned experimental path.
+4. Persist benchmark attempts/results separately from production routing evidence so experiments cannot silently change normal model selection.
+5. Add an explicit exploration-session budget/window outside module priority. Normal module work retains precedence; exploration may use otherwise idle capacity.
+6. Expose a minimal read-only Model Lab UI for installed models, empirical production evidence, corpus eligibility/counts, exploration state, and benchmark history.
+7. Keep corpus and benchmark data local by default and keep CI deterministic with provider fixtures.
+
+### Later Model Lab slices
+
+- Enrich the model catalog with compatibility data and carefully sourced public benchmark/leaderboard evidence.
+- Add policy-constrained automatic model installation and separately opt-in automatic removal.
+- Add configurable exploration ceilings during contention and richer explicit exploration sessions.
+- Reuse historical real requests for comparison across newly installed models.
 - Add simple blinded pairwise A/B review using a Likert preference scale.
+- Define evidence thresholds for when benchmark results may influence production routing; never promote a model from one experimental run.
 
 ## Increment 13: Attention, safety, and connectors
 
@@ -165,7 +198,7 @@ Preserve the existing privacy and local-first posture. Firecrawl is not a core d
 
 ## Reference-module continuation
 
-Job Scout remains the first reference module and should continue to improve, but its domain roadmap is subordinate to the core boundary:
+Job Scout remains the first reference module and should continue to improve when new evidence justifies it, but its domain roadmap is subordinate to the core boundary:
 
 - resume and evidence-profile management remain module configuration;
 - source policies and connectors remain module capabilities;
