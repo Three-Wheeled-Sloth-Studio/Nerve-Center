@@ -8,6 +8,7 @@ from typing import Any
 
 from sqlalchemy import select
 
+from nerve_center.persistence.models import DiscoverySourceModel, JobProvenanceModel
 from nerve_center.plugins.job_scout.discovery_learning import (
     CompanyDiscoveryEvidenceModel,
     DiscoverySessionModel,
@@ -17,7 +18,10 @@ from nerve_center.plugins.job_scout.discovery_learning import (
     StrategyAttemptModel,
     StrategyOutcome,
 )
-from nerve_center.plugins.job_scout.discovery_loop import JobScoutDiscoveryLoop
+from nerve_center.plugins.job_scout.discovery_loop import (
+    JobScoutDiscoveryLoop,
+    _is_employer_source,
+)
 from nerve_center.plugins.job_scout.query_portfolio import (
     STRUCTURED_SOURCE_KINDS,
     build_coverage_gap_profile,
@@ -132,21 +136,46 @@ class DiscoveryQualityRepository(JobScoutDiscoveryRepository):
                 )
             ).all()
             attempts = session.scalars(
-                select(StrategyAttemptModel).order_by(StrategyAttemptModel.finished_at.desc())
+                select(StrategyAttemptModel).order_by(
+                    StrategyAttemptModel.finished_at.desc()
+                )
             ).all()
             latest_by_strategy: dict[str, StrategyAttemptModel] = {}
             for attempt in attempts:
                 latest_by_strategy.setdefault(attempt.strategy_id, attempt)
+
             evidence = session.scalars(select(CompanyDiscoveryEvidenceModel)).all()
             strategy_companies: dict[str, set[str]] = {}
             company_strategies: dict[str, set[str]] = {}
             for item in evidence:
                 strategy_companies.setdefault(item.strategy_id, set()).add(item.company_id)
                 company_strategies.setdefault(item.company_id, set()).add(item.strategy_id)
-            latest_session = session.scalar(
-                select(DiscoverySessionModel).order_by(DiscoverySessionModel.updated_at.desc())
-            )
 
+            source_models = session.scalars(select(DiscoverySourceModel)).all()
+            source_strategies = {
+                item.id: {
+                    str(strategy_id)
+                    for strategy_id in (item.configuration or {}).get(
+                        "discovery_strategy_ids", []
+                    )
+                }
+                for item in source_models
+            }
+            job_strategies: dict[str, set[str]] = {}
+            for item in session.scalars(select(JobProvenanceModel)).all():
+                job_strategies.setdefault(item.job_id, set()).update(
+                    source_strategies.get(item.source_id, set())
+                )
+            strategy_openings: dict[str, set[str]] = {}
+            for job_id, strategy_ids in job_strategies.items():
+                for strategy_id in strategy_ids:
+                    strategy_openings.setdefault(strategy_id, set()).add(job_id)
+
+            latest_session = session.scalar(
+                select(DiscoverySessionModel).order_by(
+                    DiscoverySessionModel.updated_at.desc()
+                )
+            )
             rows: list[dict[str, Any]] = []
             for strategy in strategies:
                 latest = latest_by_strategy.get(strategy.id)
@@ -155,6 +184,11 @@ class DiscoveryQualityRepository(JobScoutDiscoveryRepository):
                     company_id
                     for company_id in strategy_companies.get(strategy.id, set())
                     if len(company_strategies.get(company_id, set())) > 1
+                )
+                overlap_openings = sorted(
+                    job_id
+                    for job_id in strategy_openings.get(strategy.id, set())
+                    if len(job_strategies.get(job_id, set())) > 1
                 )
                 rows.append(
                     {
@@ -166,7 +200,8 @@ class DiscoveryQualityRepository(JobScoutDiscoveryRepository):
                         "location": strategy.dimensions.get("location", ""),
                         "source_domain": strategy.dimensions.get("source_domain", ""),
                         "source_path": detail.get(
-                            "source_path", strategy.dimensions.get("source_path", "")
+                            "source_path",
+                            strategy.dimensions.get("source_path", ""),
                         ),
                         "compiled_query": detail.get("query", ""),
                         "learned_weight": round(float(strategy.learned_weight), 3),
@@ -188,11 +223,15 @@ class DiscoveryQualityRepository(JobScoutDiscoveryRepository):
                         "warnings": list(detail.get("warnings", [])),
                         "overlap_company_count": len(overlap_companies),
                         "overlap_company_ids": overlap_companies[:8],
+                        "overlap_opening_count": len(overlap_openings),
+                        "overlap_opening_ids": overlap_openings[:8],
                         "last_attempt_at": strategy.last_attempt_at,
                     }
                 )
             coverage = (
-                dict(latest_session.coverage or {}) if latest_session is not None else {}
+                dict(latest_session.coverage or {})
+                if latest_session is not None
+                else {}
             )
             return {
                 "run_id": latest_session.run_id if latest_session is not None else None,
@@ -229,7 +268,7 @@ class DiscoveryQualityRepository(JobScoutDiscoveryRepository):
 
 
 class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
-    """Compile source-appropriate experiments and reflect against explicit coverage gaps."""
+    """Compile source-appropriate experiments and reflect against explicit gaps."""
 
     async def prepare(self, run_id: str) -> dict[str, Any]:
         result = await super().prepare(run_id)
@@ -259,11 +298,14 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
             limit=96,
         )
         for dimensions in portfolio:
-            self.learning.ensure_strategy(dimensions, origin="source_aware_portfolio")
+            self.learning.ensure_strategy(
+                dimensions,
+                origin="source_aware_portfolio",
+            )
 
     def _seed_due_source_strategies(self) -> None:
         for source in self.sources.list_due():
-            if not source.configuration.get("direct_employer_source", True):
+            if not _is_employer_source(source):
                 continue
             strategy = self.learning.ensure_strategy(
                 {"kind": "source_revisit", "source_id": source.id},
@@ -309,9 +351,14 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
             )
 
         original_adapter = self.search_adapter
-        self.search_adapter = _CompiledQueryAdapter(original_adapter, compiled.query)
+        self.search_adapter = _CompiledQueryAdapter(
+            original_adapter,
+            compiled.query,
+        )
         try:
-            outcome, requests, warnings = await super()._execute_public_search(strategy)
+            outcome, requests, warnings = await super()._execute_public_search(
+                strategy
+            )
         finally:
             self.search_adapter = original_adapter
         detail = {
@@ -362,7 +409,10 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
             )
         created = 0
         for hypothesis, dimensions in proposals[:6]:
-            strategy = self.learning.ensure_strategy(dimensions, origin="gap_reflection")
+            strategy = self.learning.ensure_strategy(
+                dimensions,
+                origin="gap_reflection",
+            )
             if strategy.id in existing_ids:
                 continue
             existing_ids.add(strategy.id)
@@ -395,10 +445,10 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
         request = super().reflection_work_request(run_id, cycle)
         payload = dict(request["payload"])
         payload["user_prompt"] = (
-            "Use the explicit uncovered-space profile below as the primary assignment. Propose "
-            "up to six materially different public discovery strategies that target real gaps, "
-            "not superficial query rewordings. Preserve broad exploration. "
-            f"Coverage gaps: {gaps}. {payload['user_prompt']}"
+            "Use the explicit uncovered-space profile below as the primary assignment. "
+            "Propose up to six materially different public discovery strategies that "
+            "target real gaps, not superficial query rewordings. Preserve broad "
+            f"exploration. Coverage gaps: {gaps}. {payload['user_prompt']}"
         )
         request["payload"] = payload
         request["output_contract"] = _quality_reflection_schema()
@@ -407,7 +457,11 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
         }
         return request
 
-    def apply_reflection_result(self, request_id: str, value: dict[str, Any]) -> int:
+    def apply_reflection_result(
+        self,
+        request_id: str,
+        value: dict[str, Any],
+    ) -> int:
         request = self.learning.reflection_request(request_id)
         if request is None or request["status"] == "applied":
             return 0
@@ -420,18 +474,25 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
         for item in strategies[:6]:
             if not isinstance(item, dict):
                 continue
-            family = str(item.get("hypothesis_family") or "gap_reflection").strip()
+            family = str(
+                item.get("hypothesis_family") or "gap_reflection"
+            ).strip()
             dimensions = {
                 "kind": "public_search",
                 "hypothesis_family": family,
                 "anchor": str(item.get("anchor") or "").strip(),
                 "location": str(item.get("location") or "").strip(),
-                "source_domain": str(item.get("source_domain") or "web").strip(),
+                "source_domain": str(
+                    item.get("source_domain") or "web"
+                ).strip(),
                 "employer_archetype": str(
                     item.get("employer_archetype") or ""
                 ).strip(),
             }
-            compiled = compile_strategy_query(dimensions, evidence_terms=evidence_terms)
+            compiled = compile_strategy_query(
+                dimensions,
+                evidence_terms=evidence_terms,
+            )
             if not compiled.valid:
                 continue
             strategy = self.learning.ensure_strategy(
@@ -447,7 +508,8 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
                 int(request["cycle"]),
                 origin="llm_gap",
                 hypothesis=str(
-                    item.get("rationale") or "LLM-proposed uncovered search path"
+                    item.get("rationale")
+                    or "LLM-proposed uncovered search path"
                 ),
                 dimensions=strategy.dimensions,
                 strategy_id=strategy.id,
@@ -473,7 +535,11 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
             sources=self.sources.list(),
         )
 
-    def _record_gaps(self, run_id: str, gaps: dict[str, list[str]]) -> None:
+    def _record_gaps(
+        self,
+        run_id: str,
+        gaps: dict[str, list[str]],
+    ) -> None:
         if isinstance(self.learning, DiscoveryQualityRepository):
             self.learning.set_session_audit(run_id, coverage_gaps=gaps)
 
@@ -498,7 +564,7 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
 
 
 class _CompiledQueryAdapter:
-    """Run one compiled query through accepted adapter without duplicating deepening logic."""
+    """Run one compiled query without duplicating accepted deepening logic."""
 
     def __init__(self, delegate: Any, query: str) -> None:
         self.delegate = delegate
@@ -538,8 +604,14 @@ def _quality_reflection_schema() -> dict[str, Any]:
                             "minLength": 1,
                             "maxLength": 120,
                         },
-                        "location": {"type": "string", "maxLength": 120},
-                        "source_domain": {"type": "string", "maxLength": 200},
+                        "location": {
+                            "type": "string",
+                            "maxLength": 120,
+                        },
+                        "source_domain": {
+                            "type": "string",
+                            "maxLength": 200,
+                        },
                         "employer_archetype": {
                             "type": "string",
                             "maxLength": 120,
