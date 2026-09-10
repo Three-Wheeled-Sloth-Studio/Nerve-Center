@@ -238,9 +238,12 @@ def opening_matches_market(opening: NormalizedJobOpening, market: str) -> bool:
             city, region, _candidate_country, remote = _location_parts(candidate, None)
             if remote and not city and not region:
                 continue
-            if market_city and city == market_city:
-                if not market_region or not region or region == market_region:
-                    return True
+            if (
+                market_city
+                and city == market_city
+                and (not market_region or not region or region == market_region)
+            ):
+                return True
             if not market_city and market_region and region == market_region:
                 return True
     return False
@@ -365,7 +368,12 @@ def _location_parts(
         country = "us"
     else:
         tokens = set(re.findall(r"[a-z0-9]+", normalized_value))
-        if normalized_value in _US_COUNTRY_MARKERS or "usa" in tokens or "us" in tokens or "united states" in normalized_value:
+        if (
+            normalized_value in _US_COUNTRY_MARKERS
+            or "usa" in tokens
+            or "us" in tokens
+            or "united states" in normalized_value
+        ):
             country = "us"
         elif "canada" in normalized_value:
             country = "canada"
@@ -403,7 +411,10 @@ def _clean_labels(values: list[str]) -> list[str]:
 
 
 def _has_remote_listing(labels: list[str]) -> bool:
-    return any(any(marker in _normalize_text(label) for marker in _REMOTE_MARKERS) for label in labels)
+    return any(
+        any(marker in _normalize_text(label) for marker in _REMOTE_MARKERS)
+        for label in labels
+    )
 
 
 def _listing_rationale(scope: LocationScope, label: str) -> str:
