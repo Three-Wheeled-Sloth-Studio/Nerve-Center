@@ -12,114 +12,78 @@ tags: [nerve-center, handoff]
 - `dev` is the accepted integration branch; return the active checkout to `dev` after merging a topic branch.
 - Application version remains `0.12.4`.
 - The manager/module boundary, durable work sessions and queue, provider-neutral LLM manager, Windows desktop/package baseline, career evidence profile, company-first Job Scout discovery, scoring, application tracking, and durable discovery learning are accepted foundations.
-- Job Scout resolves aggregator-listed openings to actual hiring companies, protects employer-owned deepening from board-source crowding, persists strategy/yield learning, expands local markets, and implements the component phases of `expand -> converge -> deepen -> reflect`.
-- Issue #34 is implemented and live-validated on PR #36: bounded discovery waves, durable revisit cooldowns, and interleaved active-window scoring replace early success after empty reflection.
-- Manager-owned Ollama routing uses `gemma3:4b` as the primary general model. Strict structured-output requests validate the result and may retry once on `qwen2.5:7b-instruct`; the next general request starts on Gemma again. Job Scout stays model-blind.
-- Discovery includes direct Greenhouse, Lever, and Ashby board support, preserves the actual hiring-company identity while deepening ATS sources, and seeds all configured role families before repeating location/source combinations.
-- Fit analysis contract v6 validates model-proposed claim links through a reusable semantic evidence matcher, retains claim/evidence provenance, and derives an explicit direct/adjacent/transferable/mismatch domain assessment instead of trusting an unexplained model scalar.
-- Ranking engine v3 weights requirement and responsibility coverage directly, limits configured-title influence to a weak +/-3 point clue, and uses source-backed company hiring-location evidence to improve remote-role response ranking when a configured local market matches.
-- Opportunity cards open HTTP(S) listings through the Tauri opener and expose the selected application/canonical URL for copying and manual QA.
-- The source launcher initializes and validates a complete x64 Visual C++ environment before Tauri compilation. It skips incomplete Visual Studio installations and preserves an already valid developer shell.
-- Employer identity resolution rejects weak social/job-board identity hints, preserves unresolved employers safely, and can disambiguate same-name unresolved companies when a stable organization hint exists.
-- `scripts/run_job_scout_live.py` is the reusable real-run diagnostic. It reattaches to an actionable durable Job Scout session, records wave/scoring transitions, and returns when the module run terminates. Scoring happens inside the worker's active loop, not after manager shutdown. The runner closes its adopted/created session before stopping its API, including on Ctrl+C.
-- Coding-agent context/token conservation is a primary engineering concern. `scripts/agent_context.py` generates a compact reset packet from authoritative refs and git state so agents can load context progressively instead of rereading large unchanged documents.
+- Job Scout is now an iterative market-research loop rather than a bounded one-shot search. The accepted loop remains `expand -> converge -> deepen -> reflect -> re-expand`, with discovery optimized for recall and ranking/scoring providing precision.
+- Issue #34 is complete and merged through PR #36. Job Scout now performs bounded discovery waves, persists opportunities promptly, interleaves provisional and bounded full scoring during the active manager window, refreshes companies and due sources between waves, and continues after empty reflections until a real stop condition is reached.
+- A 900-second live acceptance run completed 89 cycles across 20 waves, retained 121 opportunities from 49 companies and 70 career sources, created 212 provisional scores, completed 3/3 allowed full analyses, continued after both added and empty reflection outcomes, and stopped explicitly on request-budget exhaustion.
+- Request accounting is still admitted at discovery-batch granularity. The live acceptance run reserved 500 requests and observed 502, exposing a two-request batch overrun. Per-fetch admission remains a hardening option if future evidence makes strict request ceilings necessary.
+- Job Scout resolves aggregator-listed openings to actual hiring companies, protects employer-owned deepening from board-source crowding, persists strategy/yield learning, expands configured markets, and supports direct Greenhouse, Lever, and Ashby discovery.
+- Fit analysis contract v6 validates model-proposed career-claim evidence through the reusable semantic matcher and derives explicit `direct`, `adjacent`, `transferable`, or `mismatch` domain relationships.
+- Ranking engine v3 is responsibility/evidence-first. Listed title is only a weak +/-3 point clue. Required and preferred qualification evidence, responsibility coverage, domain relationship, freshness, source quality, and location evidence are intended to drive practical pursuit priority.
+- Manager-owned Ollama routing uses `gemma3:4b` as the primary general model. Strict structured-output work validates results and may retry once on `qwen2.5:7b-instruct`; the next general request returns to Gemma. Job Scout remains model-blind.
+- Opportunity cards open HTTP(S) listings through the Tauri opener and expose the selected application/canonical URL for copying and QA.
+- The source launcher now discovers and validates a complete x64 Visual C++ environment before Tauri compilation, skips incomplete Visual Studio installations, preserves an already valid developer shell, and fails with an actionable setup message when no complete toolchain is available. PR #39 passed CI and Windows packaging.
+- `scripts/run_job_scout_live.py` is the reusable real-run diagnostic. It reattaches to actionable durable sessions, reports discovery/scoring milestones and stop state, and closes its adopted or created session before shutting down the managed API.
+- Coding-agent context/token conservation is a primary engineering concern. `scripts/agent_context.py` generates a bounded reset packet from authoritative refs and git state so agents can load context progressively rather than rereading large unchanged documents.
 
 ## Active product correction
 
-Issue **#34: Keep Job Scout productive through the full work session and interleave scoring** is the active PR #36 validation checkpoint.
+Issue **#40: Make Job Scout location-aware in scoring, discovery learning, and UI** is the next recommended implementation slice.
 
-A live run launched with:
+The latest live inventory exposed a location-data gap rather than a general discovery-liveness problem:
 
-```powershell
-.\.venv\Scripts\python.exe scripts\run_job_scout_live.py `
-  --duration-seconds 28800 `
-  --score-limit 25
-```
+- raw opening location text is persisted, but current score records frequently retain location scope as `unknown` because listing locations are not normalized into the structured location evidence expected by scoring;
+- the current inventory contains no Greensboro/Triad postings and only one wider-region posting, so local discovery effectiveness cannot currently be audited well;
+- a location-seeded search can discover a national employer and then receive credit for all downstream career-site openings, even when those openings are distant, which can falsely reinforce an unproductive local-market strategy;
+- UI review does not yet expose enough location scope, counts, or filtering to distinguish local, regional, remote, and distant inventory cleanly.
 
-performed a small amount of discovery, then stopped useful work and waited for the eight-hour manager window to close. It did not fully score the retained candidates during the active window and did not re-enter discovery expansion as intended.
+## Recommended next slice
 
-The accepted runtime behavior is:
+Implement Issue #40 as one coherent location-awareness slice across persistence, scoring, discovery learning, and review UI:
 
-`search -> identify companies/roles -> persist and score -> reflect/broaden -> search again`
+1. Normalize persisted opening location text into deterministic, explainable structured evidence using configured labor-market context. Preserve raw source text and provenance.
+2. Classify meaningful scopes such as local, regional, remote, and distant without hard-coding one city, employer, or title. Treat ambiguous or conflicting evidence explicitly rather than forcing certainty.
+3. Recompute or backfill existing opportunity scores from deterministic location evidence without requiring another LLM analysis when fit evidence is already valid.
+4. Separate total discovery yield from location-conditioned yield. A location-seeded strategy may receive general discovery credit for finding a useful employer, but it must not be learned as locally productive solely because later company deepening returned distant jobs.
+5. Preserve exploration and broad retention. Location relevance should influence ranking and discovery allocation, not become a premature hard filter that hides otherwise valuable remote or adjacent-market opportunities.
+6. Surface location scope, local/regional counts, and useful filtering or audit controls in the Job Scout UI so live-market behavior can be inspected directly.
+7. Add deterministic repository and UI regressions proving local/regional evidence changes classification and ranking, existing openings can be rescored, distant deepening does not falsely reward a local strategy, and broad discovery remains intact.
 
-repeating while manager admission remains open and resource budget remains, with bounded cooldown/backoff rather than a hot loop when no immediate work is productive.
+Use the existing scoring-location contracts and configured market data before introducing new abstractions. Keep geography deterministic and explainable; do not ask the LLM to solve location normalization that can be derived from persisted source evidence and public/cached geographic data.
 
-### Before: confirmed control-flow causes
+## Deferred follow-up
 
-1. `scripts/run_job_scout_live.py::monitor_session()` first waits for the Job Scout run to become terminal and then waits for the **manager session** to become terminal before returning. `run()` only calls `score_candidates()` after `monitor_session()` returns, so an early-terminal discovery run can leave scoring deferred for hours.
-2. `src/nerve_center/plugins/job_scout/worker.py::_execute_discovery_loop()` explicitly calls `_complete_from_summary(..., "succeeded")` when a manager-routed reflection produces zero new strategies. One empty reflection can therefore terminate the Job Scout run even though the fixed run deadline is the end of the multi-hour manager session.
-3. `JobScoutDiscoveryRepository.select_strategies()` excludes every strategy already attempted anywhere in the same `run_id`. Simply removing the early completion would therefore not solve the problem; once the strategy set is exhausted it would repeatedly reach reflection with nothing newly eligible.
-4. `WorkSessionService.start()` creates one fixed-window run per enabled module and does not replace an early-terminal Job Scout run with another run while the same manager session remains open.
-5. `RunnerService` assigns the Job Scout fixed run the full manager-session deadline, confirming that the premature stop originates in Job Scout/runtime semantics rather than generic scheduler timeout.
-
-These causes are addressed in the implementation below; they are retained here as the before/after evidence, not a description of current branch behavior.
-
-## Implemented runtime semantics
-
-- Each bounded discovery cycle persists discoveries, ensures provisional scores, and attempts at most one full fit analysis before reflection/refresh and another cycle. All retained roles remain discoverable regardless of rank. The durable per-run attempted-ID reservation enforces `--score-limit`, including failed analyses and restart; existing full scores are not needlessly repeated.
-- Full analysis uses the existing manager-side `ScoringService` and provider routing through the scoped operation bridge. Reflection uses the manager work queue. No scheduler-specific Job Scout loop, provider change, or ranking-weight change was introduced.
-- Known-company and due-source strategies are reseeded each cycle. A persisted public-search attempt cools down for 24 hours; company/source revisit strategies cool down for one hour, and source due timestamps must also permit a scan. New company/source IDs and changed search dimensions yield distinct eligible work. New waves never erase attempt history.
-- An empty reflection advances to refresh, not success. LLM reflection is only requested when durable company/source/retained-role/full-score evidence changes. Three no-work backoffs of 30, 60, and 120 seconds each precede another eligibility refresh; continued exhaustion terminates explicitly as `no_work_after_three_refresh_backoffs`.
-- Checkpoints expose wave, cycle, coverage, scoring reservations/completions, budget usage/remaining, reflection outcome, next-work decision, idle reason, and terminal reason. Stops distinguish cancellation, deadline, admission drain/close, request/LLM budget exhaustion, no configured evidence, bounded no-work, and reflection timeout.
-- The final authorized reflection call can return and be harvested before LLM budget exhaustion prevents the next admission.
-
-## Validation and remaining risks
-
-- Local canonical validation passed: tracked-path guard, refs indexes/validation, context packet, Ruff, Python tests, desktop web build, and Rust test compilation. Deterministic tests use real SQLite discovery/scoring persistence plus fake public sources, clock, and provider; CI has no live-service dependency. The packaged empty-workspace smoke now requires the exact partial `no_configured_evidence_or_market` stop instead of the previous generic success.
-- Regressions prove retained/scored wave 1 precedes empty reflection and useful company-revisit wave 2 while admission is open, paced exhaustion without unchanged repeated reflection, durable cooldowns across repository/run restart, scoring reservation cap on restart, final-call harvesting, explicit request-budget stop, and runner return without waiting for manager termination.
-- Request accounting remains at discovery-batch granularity. A bounded batch can exceed the remaining request allowance; `requests_observed` and `request_batch_overrun` make that explicit while the reservation ledger remains capped. Per-fetch admission is a future hardening slice, not a strict per-HTTP ceiling claim.
-- In-flight source/scoring operations may finish after admission changes; control is checked between bounded operations and during reflection/backoff waits. Full scoring reservations are conservative on crash: an interrupted attempt is not automatically retried in the same run.
-- Hosted CI and Windows packaging pass. A 900-second live acceptance run completed all three allowed full analyses during the open session, continued through 20 waves, and stopped explicitly on request-budget exhaustion.
-
-## Next slice
-
-After merging PR #36 to `dev`, follow with per-fetch budget admission/recovery hardening if real evidence requires it; otherwise resume qualification-importance normalization and ranking-quality work.
-
-The previous qualification-importance normalization/ranking-quality work remains valid but is deferred until this liveness defect is corrected. Do not tune ranking weights as a workaround for the control-loop problem.
+- Per-fetch request-budget admission/recovery hardening remains available if additional live evidence shows batch-level overrun is operationally harmful.
+- Qualification-importance normalization and additional ranking-quality work remain valid after location evidence is trustworthy. Do not tune ranking weights to compensate for unknown or misclassified geography.
+- People enrichment remains deferred; preserve seams but do not build a CRM inside Job Scout.
 
 ## Latest live evidence
 
-- The 8-hour run above is the pre-fix runtime failure: early discovery termination plus deferred scoring left most of the authorized window idle.
-- The post-fix 900-second run (`da004e4a-8b1b-4723-8ea2-5dcdded6f724`) performed 89 cycles across 20 waves, attempted 356 strategies, discovered 49 companies and 70 career sources, retained 121 opportunities, and created 212 provisional plus 3/3 bounded full scores. It crossed added and empty reflection outcomes and kept discovering afterward. It stopped `partial` with `requests_budget_exhausted` after 500 reserved/502 observed requests; the two-request batch overrun was exposed. Two provider warnings recorded public-search cooldown/unavailability without failing the run.
-- The durable inventory previously contained 151 roles across 96 companies and 579 sources; broad market state exists, so the failure is not simply lack of durable discovery material.
-- A 20-role v6 sample previously completed 20/20 fit analyses on `gemma3:4b` with explicit domain results: 2 direct, 1 adjacent, 5 transferable, and 12 mismatch.
-- Reflection evidence demonstrates the strict-schema fallback lane: Gemma remains primary, while failed reflection schemas can retry successfully on `qwen2.5:7b-instruct`.
-- Direct-employer listing locations build durable company-presence evidence with source URLs; generic remote/nationwide labels and aggregator-only evidence do not establish local presence.
+- Post-fix 900-second Job Scout acceptance run: 89 cycles, 20 waves, 356 strategies attempted, 49 companies discovered, 70 career sources discovered, 121 opportunities retained, 212 provisional scores, and 3/3 bounded full scores.
+- The run crossed both added and empty reflection outcomes and continued discovering afterward, then stopped `partial` with `requests_budget_exhausted` after 500 reserved/502 observed requests.
+- A 20-role fit-analysis v6 sample completed 20/20 analyses on `gemma3:4b` with explicit domain results: 2 direct, 1 adjacent, 5 transferable, and 12 mismatch.
+- Direct-employer listing locations already build durable company-presence evidence with source URLs, while generic remote/nationwide labels and aggregator-only evidence do not establish local employer presence. Issue #40 should connect opening-level location evidence to the same explainable location intent rather than replace that existing company-presence logic.
 
 ## Do not reopen without new evidence
 
-- Company-first discovery as the product architecture and the double-diamond loop; PR #36 repairs its full-session liveness rather than changing the architecture.
+- Company-first discovery and the double-diamond loop.
 - Manager-owned provider/session/queue boundaries; modules remain model-blind.
 - `gemma3:4b` as the current Job Scout default local evaluator.
 - Separate discovery-learning and opportunity-ranking feedback loops.
-- Responsibility/requirement evidence is primary for fit; listed title is only a weak clue. Domain ordering remains direct > adjacent > transferable > mismatch.
-- Public-source safety: no authenticated LinkedIn/job-board crawling, CAPTCHA circumvention, stealth automation, unattended applications, or outreach.
-- People enrichment remains deferred; preserve seams but do not build a CRM inside Job Scout.
+- Responsibility/requirement evidence is primary for fit; listed title is only a weak clue. Domain ordering remains `direct > adjacent > transferable > mismatch`.
+- Public-source safety: no authenticated LinkedIn/job-board crawling, CAPTCHA circumvention, stealth automation, unattended applications, or automated outreach.
 
 ## Coding-agent reset path
 
-For issue #34, start with:
+For Issue #40, start with:
 
 ```powershell
-python scripts/agent_context.py --focus "job scout continuous session discovery scoring reflection re-expansion" --issue 34
+python scripts/agent_context.py --focus "job scout location evidence scoring discovery learning UI" --issue 40
 ```
 
-Use the generated packet, issue #34, and its file-map hints first. The highest-value code reads are expected to be:
+Use the generated packet and Issue #40 first. Expand only to source/ref paths identified by the packet or direct implementation evidence. Likely relevant surfaces include scoring location classification/enrichment, Job Scout opportunity persistence and discovery-learning attribution, review/workspace API aggregation, and the desktop opportunity list/filter UI.
 
-- `scripts/run_job_scout_live.py`
-- `src/nerve_center/plugins/job_scout/worker.py`
-- `src/nerve_center/plugins/job_scout/discovery_learning.py`
-- `src/nerve_center/plugins/job_scout/discovery_loop.py`
-- `src/nerve_center/scheduler/sessions.py`
-- `src/nerve_center/scheduler/runner.py`
-- `src/nerve_center/scoring/service.py`
-- `tests/test_job_scout_discovery_loop.py`
-- `tests/test_job_scout_discovery_learning.py`
-- `tests/test_live_runner_progress.py`
-- `tests/test_sessions.py`
-
-Read deeper architecture/history only if the packet or implementation evidence requires it. Do not re-derive accepted decisions.
+Do not reread repository history wholesale and do not re-derive accepted discovery, scoring, provider, or scheduler decisions.
 
 ## Validation boundary
 
-Run required commands in `refs/testing/validationCommands.yaml`. CI must remain deterministic and independent of Ollama, GPUs, live job boards, and mutable career sites. The live 8-hour failure must gain deterministic control-flow regressions before promotion; a shorter real local run may then validate the repaired behavior without making live services a CI requirement.
+Run the required commands in `refs/testing/validationCommands.yaml`. CI must remain deterministic and independent of Ollama, GPUs, live job boards, and mutable career sites. After deterministic validation is green, use the reusable live runner for a short local-market diagnostic to verify that location scope and location-conditioned strategy telemetry are visible and plausible before another long run.
