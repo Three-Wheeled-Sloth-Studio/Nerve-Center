@@ -113,6 +113,39 @@ class ProviderManager:
             raise last_error
         raise ProviderError("manager", "NO_COMPATIBLE_MODEL", "No compatible model is installed.")
 
+    async def execute_specific(
+        self,
+        request: ModelBlindRequest,
+        *,
+        provider_name: str,
+        model_id: str,
+    ) -> JsonGenerationResult:
+        """Run an explicitly selected manager experiment without production routing evidence."""
+
+        candidates = await self._discover_candidates()
+        selected = next(
+            (
+                (provider, model)
+                for provider, model in candidates
+                if provider.name == provider_name and model.id == model_id
+            ),
+            None,
+        )
+        if selected is None:
+            raise ProviderError(
+                provider_name,
+                "MODEL_UNAVAILABLE",
+                f"Model {provider_name}/{model_id} is not installed.",
+            )
+        provider, model = selected
+        return await provider.generate_json(
+            model=model.id,
+            system_prompt=request.system_prompt,
+            user_prompt=request.user_prompt,
+            output_schema=request.output_schema,
+            contract_version=request.contract_version,
+        )
+
     def _record_failure(
         self,
         request: ModelBlindRequest,
