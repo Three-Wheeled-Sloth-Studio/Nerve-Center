@@ -19,12 +19,14 @@ _IMPORTANCE_MAX = 1.5
 _DUPLICATE_JACCARD = 0.72
 
 _STRONG_CUES = (
-    "must",
+    "must ",
     "minimum qualification",
     "minimum requirement",
-    "essential",
+    "essential qualification",
+    "essential requirement",
     "mandatory",
-    "critical",
+    "critical requirement",
+    "critical responsibility",
     "core responsibility",
     "primary responsibility",
 )
@@ -37,9 +39,11 @@ _LOW_CUES = (
     "preferred",
     "nice to have",
     "nice-to-have",
-    "bonus",
+    "bonus points",
     "a plus",
     "plus if",
+    "not required",
+    "optional",
 )
 
 _STOPWORDS = {
@@ -202,7 +206,7 @@ def _normalize_weight(item: QualificationAssessment) -> QualificationAssessment:
 
     if any(cue in text for cue in _LOW_CUES):
         weight = min(weight, 0.7)
-        rationale.append("Explicit preferred/nice-to-have/bonus job language lowered importance.")
+        rationale.append("Explicit optional/preferred job language lowered importance.")
 
     weight = min(_IMPORTANCE_MAX, max(_IMPORTANCE_MIN, weight))
     if not rationale:
