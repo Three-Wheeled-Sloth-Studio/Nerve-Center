@@ -64,6 +64,29 @@ class DiscoveryCycleSummary:
     coverage: dict[str, Any]
 
 
+class _RequestAllowance:
+    """Reserve a bounded cycle's outbound calls before network work begins."""
+
+    def __init__(self, limit: int | None = None) -> None:
+        if limit is not None and limit < 0:
+            raise ValueError("request limit cannot be negative")
+        self.limit = limit
+        self.used = 0
+
+    @property
+    def exhausted(self) -> bool:
+        return self.limit is not None and self.used >= self.limit
+
+    def reserve(self) -> None:
+        if self.exhausted:
+            raise _RequestAllowanceExhausted
+        self.used += 1
+
+
+class _RequestAllowanceExhausted(RuntimeError):
+    pass
+
+
 class PublicCareerSurfaceResolver:
     """Inspect one public employer career page for ATS and sitemap surfaces."""
 
@@ -197,7 +220,12 @@ class JobScoutDiscoveryLoop:
             "coverage": session.coverage,
         }
 
-    async def cycle(self, run_id: str, cycle: int) -> DiscoveryCycleSummary:
+    async def cycle(
+        self,
+        run_id: str,
+        cycle: int,
+        request_limit: int | None = None,
+    ) -> DiscoveryCycleSummary:
         # New employer surfaces are work, even when the previous reflection was empty.
         self._seed_known_company_strategies()
         self._seed_due_source_strategies()
@@ -239,6 +267,7 @@ class JobScoutDiscoveryLoop:
                 warnings=[],
                 coverage=session.coverage,
             )
+        allowance = _RequestAllowance(request_limit)
         request_count = 0
         useful_yield = 0
         openings_found = 0
@@ -254,9 +283,14 @@ class JobScoutDiscoveryLoop:
             "opportunities_retained": 0,
         }
         for strategy in selected:
+            if allowance.exhausted:
+                break
             source_ids_before = self._career_source_ids()
             job_ids_before = {item.id for item in self.jobs.list(active_only=False)}
-            outcome, used_requests, strategy_warnings = await self._execute_strategy(strategy)
+            outcome, used_requests, strategy_warnings = await self._execute_strategy(
+                strategy,
+                allowance,
+            )
             # Successful revisits are valuable coverage, but only newly durable
             # sources and openings are discovery yield. Otherwise cached/repeated
             # pages continually promote a strategy and prevent reflection.
@@ -297,7 +331,7 @@ class JobScoutDiscoveryLoop:
         return DiscoveryCycleSummary(
             run_id=run_id,
             cycle=cycle,
-            strategies_attempted=len(selected),
+            strategies_attempted=increments["strategies_attempted"],
             request_count=request_count,
             useful_yield=useful_yield,
             openings_found=openings_found,
@@ -509,24 +543,32 @@ class JobScoutDiscoveryLoop:
     async def _execute_strategy(
         self,
         strategy: DiscoveryStrategySnapshot,
+        allowance: _RequestAllowance | None = None,
     ) -> tuple[StrategyOutcome, int, list[str]]:
+        allowance = allowance or _RequestAllowance()
         kind = strategy.dimensions.get("kind")
         if kind == "public_search":
-            return await self._execute_public_search(strategy)
+            return await self._execute_public_search(strategy, allowance)
         if kind == "company_revisit":
-            return await self._execute_company_revisit(strategy)
+            return await self._execute_company_revisit(strategy, allowance)
         if kind == "source_revisit":
-            return await self._execute_source_revisit(strategy)
+            return await self._execute_source_revisit(strategy, allowance)
         return StrategyOutcome(status="failed", failed=1), 0, [f"Unknown strategy kind: {kind}"]
 
     async def _execute_public_search(
         self,
         strategy: DiscoveryStrategySnapshot,
+        allowance: _RequestAllowance | None = None,
     ) -> tuple[StrategyOutcome, int, list[str]]:
+        allowance = allowance or _RequestAllowance()
+        start_requests = allowance.used
         query = _strategy_query(strategy)
         warnings: list[str] = []
         try:
+            allowance.reserve()
             results = await self.search_adapter.search(query)
+        except _RequestAllowanceExhausted:
+            return StrategyOutcome(status="budget_exhausted"), 0, []
         except SearchChallengeError as error:
             return (
                 StrategyOutcome(
@@ -534,13 +576,13 @@ class JobScoutDiscoveryLoop:
                     challenged=1,
                     detail={"query": query},
                 ),
-                1,
+                allowance.used - start_requests,
                 [str(error)],
             )
         except RuntimeError as error:
             return (
                 StrategyOutcome(status="failed", failed=1, detail={"query": query}),
-                1,
+                allowance.used - start_requests,
                 [str(error)],
             )
         companies_before = {item.id for item in self.companies.list()}
@@ -548,10 +590,11 @@ class JobScoutDiscoveryLoop:
         sources_seen: set[str] = set()
         postings = 0
         retained = 0
-        request_count = 1
         configuration = self.coordinator.store.load()
         inspected_results = results[: self.results_per_strategy]
         for result in inspected_results:
+            if allowance.exhausted:
+                break
             if result.classification not in {
                 UrlClassification.GREENHOUSE,
                 UrlClassification.LEVER,
@@ -590,8 +633,7 @@ class JobScoutDiscoveryLoop:
                     },
                     openings_seen=0,
                 )
-            scan, requests = await self._scan_source(source)
-            request_count += requests
+            scan, _ = await self._scan_source(source, allowance)
             postings += len(scan.openings) if scan is not None else 0
             retained += len(scan.openings) if scan is not None else 0
             if scan is not None:
@@ -618,11 +660,10 @@ class JobScoutDiscoveryLoop:
                         origin="aggregator_hiring_organization",
                     )
                     if company.career_url:
-                        deepened_sources, deepened_requests, deepened_postings = (
-                            await self._deepen_company(company, strategy.id)
+                        deepened_sources, _, deepened_postings = (
+                            await self._deepen_company(company, strategy.id, allowance)
                         )
                         sources_seen.update(deepened_sources)
-                        request_count += deepened_requests
                         postings += deepened_postings
                         retained += deepened_postings
         return (
@@ -634,14 +675,17 @@ class JobScoutDiscoveryLoop:
                 opportunities_retained=retained,
                 detail={"query": query},
             ),
-            request_count,
+            allowance.used - start_requests,
             warnings,
         )
 
     async def _execute_company_revisit(
         self,
         strategy: DiscoveryStrategySnapshot,
+        allowance: _RequestAllowance | None = None,
     ) -> tuple[StrategyOutcome, int, list[str]]:
+        allowance = allowance or _RequestAllowance()
+        start_requests = allowance.used
         company_id = strategy.dimensions.get("company_id", "")
         try:
             company = self.companies.get(company_id)
@@ -669,20 +713,19 @@ class JobScoutDiscoveryLoop:
                 sources = [self._attribute_source(source, strategy.id)]
             except ValueError as error:
                 return StrategyOutcome(status="failed", failed=1), 0, [str(error)]
-        request_count = 0
         postings = 0
         source_ids: set[str] = set()
         due_ids = {item.id for item in self.sources.list_due()}
         for source in [item for item in sources if item.id in due_ids][:8]:
+            if allowance.exhausted:
+                break
             source = self._attribute_source(source, strategy.id)
             source_ids.add(source.id)
-            scan, requests = await self._scan_source(source)
-            request_count += requests
+            scan, _ = await self._scan_source(source, allowance)
             if scan is not None:
                 postings += len(scan.openings)
-        deepened, requests, found = await self._deepen_company(company, strategy.id)
+        deepened, _, found = await self._deepen_company(company, strategy.id, allowance)
         source_ids.update(deepened)
-        request_count += requests
         postings += found
         self.learning.record_company_evidence(
             company.id,
@@ -696,14 +739,17 @@ class JobScoutDiscoveryLoop:
                 postings_inspected=postings,
                 opportunities_retained=postings,
             ),
-            request_count,
+            allowance.used - start_requests,
             [],
         )
 
     async def _execute_source_revisit(
         self,
         strategy: DiscoveryStrategySnapshot,
+        allowance: _RequestAllowance | None = None,
     ) -> tuple[StrategyOutcome, int, list[str]]:
+        allowance = allowance or _RequestAllowance()
+        start_requests = allowance.used
         source_id = strategy.dimensions.get("source_id", "")
         try:
             source = self.sources.get(source_id)
@@ -711,9 +757,14 @@ class JobScoutDiscoveryLoop:
             return StrategyOutcome(status="failed", failed=1), 0, [str(error)]
         source = self._attribute_source(source, strategy.id)
         companies_before = {item.id for item in self.companies.list()}
-        scan, requests = await self._scan_source(source)
+        scan, _ = await self._scan_source(source, allowance)
         if scan is None:
-            return StrategyOutcome(status="failed", failed=1), requests, []
+            return (
+                StrategyOutcome(status="budget_exhausted" if allowance.exhausted else "failed",
+                                failed=0 if allowance.exhausted else 1),
+                allowance.used - start_requests,
+                [],
+            )
         discovered_company_ids = {item.company_id for item in scan.openings}
         for company_id in discovered_company_ids:
             self.learning.record_company_evidence(
@@ -733,11 +784,17 @@ class JobScoutDiscoveryLoop:
                 postings_inspected=len(scan.openings),
                 opportunities_retained=len(scan.openings),
             ),
-            requests,
+            allowance.used - start_requests,
             [],
         )
 
-    async def _scan_source(self, source: DiscoverySource) -> tuple[Any | None, int]:
+    async def _scan_source(
+        self,
+        source: DiscoverySource,
+        allowance: _RequestAllowance | None = None,
+    ) -> tuple[Any | None, int]:
+        allowance = allowance or _RequestAllowance()
+        start_requests = allowance.used
         try:
             # Different search dimensions or company deepening can resolve to the
             # same source within one wave. Recheck durable due state here, not only
@@ -749,26 +806,40 @@ class JobScoutDiscoveryLoop:
                 and due.replace(tzinfo=UTC) > datetime.now(UTC)
             ):
                 return None, 0
-            result = await self.discovery.scan_source(source.id)
+            if allowance.exhausted:
+                return None, 0
+            result = await self.discovery.scan_source(
+                source.id,
+                before_request=allowance.reserve,
+            )
+        except _RequestAllowanceExhausted:
+            return None, allowance.used - start_requests
         except (KeyError, ValueError):
             return None, 0
-        return result, result.requests_made
+        return result, allowance.used - start_requests
 
     async def _deepen_company(
         self,
         company: Company,
         strategy_id: str,
+        allowance: _RequestAllowance | None = None,
     ) -> tuple[set[str], int, int]:
+        allowance = allowance or _RequestAllowance()
+        start_requests = allowance.used
         if not company.career_url:
             return set(), 0, 0
         try:
+            allowance.reserve()
             urls = await self.surface_resolver.resolve(company)
+        except _RequestAllowanceExhausted:
+            return set(), 0, 0
         except (httpx.HTTPError, OSError, ValueError):
-            return set(), 1, 0
+            return set(), allowance.used - start_requests, 0
         source_ids: set[str] = set()
         postings = 0
-        request_count = 1
         for url in urls[:8]:
+            if allowance.exhausted:
+                break
             try:
                 if "sitemap" in url.casefold() or url.casefold().endswith(".xml"):
                     source = self._register_sitemap(company, url, strategy_id)
@@ -789,10 +860,9 @@ class JobScoutDiscoveryLoop:
             except ValueError:
                 continue
             source_ids.add(source.id)
-            scan, requests = await self._scan_source(source)
-            request_count += requests
+            scan, _ = await self._scan_source(source, allowance)
             postings += len(scan.openings) if scan is not None else 0
-        return source_ids, request_count, postings
+        return source_ids, allowance.used - start_requests, postings
 
     def _register_sitemap(
         self,

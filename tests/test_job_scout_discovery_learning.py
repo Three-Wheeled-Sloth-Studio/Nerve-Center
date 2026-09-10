@@ -90,6 +90,77 @@ def test_strategy_selection_reserves_company_deepening_capacity(tmp_path: Path) 
     assert company.id in {item.id for item in selected}
 
 
+def test_location_strategy_family_accumulates_zero_yield_across_query_variants(
+    tmp_path: Path,
+) -> None:
+    learning = JobScoutDiscoveryRepository(_database(tmp_path))
+    variants = [
+        learning.ensure_strategy(
+            {
+                "kind": "public_search",
+                "hypothesis_family": "direct_role",
+                "anchor": anchor,
+                "source_domain": "web",
+                "source_path": "broad_web",
+                "location": "Greensboro, NC",
+            },
+            origin="fixture",
+        )
+        for anchor in ("Product Manager", "Digital Product Lead")
+    ]
+    assert variants[0].family_id == variants[1].family_id
+
+    for cycle, strategy in enumerate(variants, start=1):
+        learning.record_attempt(
+            "prior-run",
+            cycle,
+            strategy.id,
+            "deepen",
+            StrategyOutcome(
+                companies_discovered=1,
+                career_sources_resolved=1,
+                opportunities_retained=0,
+            ),
+        )
+
+    family = next(
+        item for item in learning.list_strategy_families()
+        if item.id == variants[0].family_id
+    )
+    assert family.attempts == 2
+    assert family.companies_discovered == 2
+    assert family.career_sources_resolved == 2
+    assert family.opportunities_retained == 0
+    assert family.learned_weight == 0.84
+    assert family.influence == "deprioritized"
+
+    productive = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "direct_role",
+            "anchor": "Product Manager",
+            "source_domain": "web",
+            "source_path": "broad_web",
+            "location": "Raleigh, NC",
+        },
+        origin="fixture",
+    )
+    learning.record_attempt(
+        "prior-run",
+        3,
+        productive.id,
+        "deepen",
+        StrategyOutcome(opportunities_retained=1),
+    )
+
+    selected = learning.select_strategies(
+        "current-run",
+        limit=1,
+        exploration_floor=0,
+    )
+    assert selected[0].id == productive.id
+
+
 def test_cooldown_survives_restart_and_run_changes(tmp_path: Path) -> None:
     database = _database(tmp_path)
     learning = JobScoutDiscoveryRepository(database)

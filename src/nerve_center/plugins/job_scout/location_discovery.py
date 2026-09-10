@@ -16,6 +16,7 @@ from nerve_center.plugins.job_scout.discovery_loop import (
     DiscoveryCycleSummary,
     _clean_domain,
     _is_employer_source,
+    _RequestAllowance,
 )
 from nerve_center.plugins.job_scout.discovery_quality import SourceAwareJobScoutDiscoveryLoop
 from nerve_center.plugins.job_scout.settings import clean_list
@@ -30,7 +31,12 @@ class LocationAwareJobScoutDiscoveryLoop(SourceAwareJobScoutDiscoveryLoop):
         result = await super().prepare(run_id)
         return {**result, "legacy_location_strategies_normalized": normalized}
 
-    async def cycle(self, run_id: str, cycle: int) -> DiscoveryCycleSummary:
+    async def cycle(
+        self,
+        run_id: str,
+        cycle: int,
+        request_limit: int | None = None,
+    ) -> DiscoveryCycleSummary:
         self._seed_known_company_strategies()
         self._seed_due_source_strategies()
         board_domains = {
@@ -72,6 +78,7 @@ class LocationAwareJobScoutDiscoveryLoop(SourceAwareJobScoutDiscoveryLoop):
                 coverage=session.coverage,
             )
 
+        allowance = _RequestAllowance(request_limit)
         request_count = 0
         useful_yield = 0
         openings_found = 0
@@ -88,11 +95,16 @@ class LocationAwareJobScoutDiscoveryLoop(SourceAwareJobScoutDiscoveryLoop):
         }
 
         for strategy in selected:
+            if allowance.exhausted:
+                break
             source_ids_before = self._career_source_ids()
             jobs_before = {
                 item.id: item for item in self.jobs.list(active_only=False)
             }
-            outcome, used_requests, strategy_warnings = await self._execute_strategy(strategy)
+            outcome, used_requests, strategy_warnings = await self._execute_strategy(
+                strategy,
+                allowance,
+            )
             jobs_after = {
                 item.id: item for item in self.jobs.list(active_only=False)
             }
@@ -169,7 +181,7 @@ class LocationAwareJobScoutDiscoveryLoop(SourceAwareJobScoutDiscoveryLoop):
         return DiscoveryCycleSummary(
             run_id=run_id,
             cycle=cycle,
-            strategies_attempted=len(selected),
+            strategies_attempted=increments["strategies_attempted"],
             request_count=request_count,
             useful_yield=useful_yield,
             openings_found=openings_found,

@@ -36,8 +36,10 @@ class _FixtureConnector:
         self.calls: list[str] = []
 
     async def scan(
-        self, company: Company, source: DiscoverySource, _fetcher: Any
+        self, company: Company, source: DiscoverySource, fetcher: Any
     ) -> ConnectorScanResult:
+        if fetcher.before_request is not None:
+            fetcher.before_request()
         self.calls.append(source.id)
         openings: list[NormalizedJobOpening] = []
         if self.opening and source.kind in {SourceKind.JSON_LD, SourceKind.ASHBY}:

@@ -106,9 +106,17 @@ def _register_discovery_learning_routes(
 ) -> None:
     @application.get("/api/v1/modules/job_scout/discovery/strategies")
     def list_discovery_strategies() -> list[dict[str, object]]:
-        return [
-            {
+        families = {item.id: item for item in learning.list_strategy_families()}
+        rows: list[dict[str, object]] = []
+        for item in learning.list_strategies():
+            family = families[item.family_id]
+            rows.append({
                 "id": item.id,
+                "family_id": item.family_id,
+                "family_learned_weight": family.learned_weight,
+                "family_influence": family.influence,
+                "family_attempts": family.attempts,
+                "family_conditioned_yield": family.opportunities_retained,
                 "dimensions": item.dimensions,
                 "origin": item.origin,
                 "learned_weight": item.learned_weight,
@@ -130,9 +138,8 @@ def _register_discovery_learning_routes(
                 "failure_count": item.failure_count,
                 "last_attempt_at": item.last_attempt_at,
                 "last_productive_at": item.last_productive_at,
-            }
-            for item in learning.list_strategies()
-        ]
+            })
+        return rows
 
     @application.get("/api/v1/modules/job_scout/discovery/audit")
     def get_discovery_audit() -> dict[str, object]:

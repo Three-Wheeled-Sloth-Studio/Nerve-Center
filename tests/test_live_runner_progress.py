@@ -116,3 +116,48 @@ def test_monitor_returns_scored_terminal_run_without_waiting_for_open_manager(
     final, _ = monitor("http://fixture", 28800, 5, tmp_path / "report.json", report)
     assert final["checkpoint"]["full_scores_completed"] == 1
     assert calls == ["/api/v1/sessions?limit=20", "/api/v1/runs/run"]
+
+
+def test_monitor_submits_explicit_resource_policy(tmp_path, monkeypatch):
+    monitor = _SCRIPT["monitor_session"]
+    submitted = []
+
+    def request(endpoint, path, method="GET", payload=None):
+        if path.startswith("/api/v1/sessions?"):
+            return []
+        if path == "/api/v1/sessions":
+            submitted.append(payload)
+            return {
+                "id": "session",
+                "status": "running",
+                "ends_at": None,
+                "module_run_ids": {"job_scout": "run"},
+                "resource_policy": payload["resource_policy"],
+            }
+        if path == "/api/v1/runs/run":
+            return {
+                "status": "partial",
+                "checkpoint": {"terminal_reason": "requests_budget_exhausted"},
+            }
+        raise AssertionError(path)
+
+    monkeypatch.setitem(monitor.__globals__, "request_json", request)
+    report = {}
+    monitor(
+        "http://fixture",
+        1800,
+        0,
+        tmp_path / "report.json",
+        report,
+        max_requests=1200,
+        max_llm_calls=75,
+    )
+
+    assert submitted == [{
+        "duration_seconds": 1800,
+        "resource_policy": {"max_requests": 1200, "max_llm_calls": 75},
+    }]
+    assert report["session"]["resource_policy"] == {
+        "max_requests": 1200,
+        "max_llm_calls": 75,
+    }

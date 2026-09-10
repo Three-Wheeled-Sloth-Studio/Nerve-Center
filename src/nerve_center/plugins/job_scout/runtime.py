@@ -94,6 +94,7 @@ class JobScoutOperationBridge:
             summary = await self.discovery_loop.cycle(
                 _required_string(payload, "run_id"),
                 int(payload.get("cycle", 0)),
+                int(payload["request_limit"]) if "request_limit" in payload else None,
             )
             return asdict(summary)
         if operation == "deterministic_reflection":

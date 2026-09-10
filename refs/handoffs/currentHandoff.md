@@ -10,8 +10,8 @@ tags: [nerve-center, handoff]
 ## Current state
 
 - `dev` is the accepted integration branch; return the active checkout to `dev` after merging a topic branch.
-- Accepted `dev` after PR #50 is `fb43e8a75ff6ff52ca817264670903115bab3976`.
-- Application version remains `0.12.4`.
+- Accepted `dev` entering Issue #51 is `9b7c8b634863444b72c19a40dfa38a9629515bf8`.
+- Application version is `0.12.5`.
 - The manager/module boundary, durable work sessions and queue, provider-neutral LLM manager, Windows desktop/package baseline, career evidence profile, company-first Job Scout discovery, scoring, application tracking, durable discovery learning, and first Model Lab foundation are accepted.
 - Job Scout remains an iterative market-research loop: `expand -> converge -> deepen -> reflect -> re-expand`. Discovery optimizes recall; ranking/scoring provides precision.
 - Issue #34 continuous-work/liveness is complete. The accepted 900-second run completed 89 cycles across 20 waves, retained 121 opportunities from 49 companies and 70 career sources, created 212 provisional scores, completed 3/3 bounded full analyses, continued through added and empty reflections, and stopped explicitly on request-budget exhaustion.
@@ -27,6 +27,8 @@ tags: [nerve-center, handoff]
 - `scripts/run_job_scout_live.py` remains the reusable real-run diagnostic and continuously writes a durable local report/checkpoint history.
 - Issue #49's short live gate is complete. The valid run stopped cleanly on the inherited 500-request limit after about 21 minutes rather than completing the requested 30-minute window; it completed 25/25 full scores and captured 826 ranked opportunities, 199 companies, 1,170 sources, and 1,389 strategies.
 - The run classified every ranked opportunity (34 regional, 792 distant, 0 unknown) and did not falsely credit national openings as local yield. It found zero directly local Greensboro/Triad openings; 366 location-conditioned strategies retained zero conditioned openings and none reached a downweighted state.
+- Issue #51 is implemented on `dev`. Live-run duration, request, LLM, and full-score ceilings are explicit in stdout and the durable report; the session receives the requested resource policy; each cycle receives its remaining request allowance; network fetches reserve from that allowance before execution; and an invariant rejects any overrun.
+- Public-search strategies now share durable evidence at a stable hypothesis-family/source/location identity. Location-family exploitation uses conditioned opening yield rather than employer/source discoveries, while individual strategy provenance and the exploration floor remain intact. The discovery API/audit and live report expose family attempts, yield, influence, and before/after weight evidence.
 - Coding-agent token conservation is a primary engineering concern. Use `scripts/agent_context.py` and progressive context loading instead of repository-wide rereads.
 
 ## Accepted Issue #47 behavior
@@ -53,16 +55,16 @@ PR #48 exact-head validation before merge:
 - Windows package run `34502474968` / #134: green;
 - packaged backend health, Job Scout workspace route, managed module runtime smoke, NSIS build, output verification, and artifact upload: green.
 
-## Next slice: Issue #51
+## Completed slice: Issue #51
 
-Issue **#51: Make Job Scout run budgets explicit and local discovery learning converge** is the next implementation checkpoint.
+Issue **#51: Make Job Scout run budgets explicit and local discovery learning converge** is implemented in `0.12.5`.
 
 The Issue #49 observation demonstrated two related blockers to a trustworthy unattended soak:
 
 1. A duration-only live-run request silently inherits the generic manager defaults of 500 outbound requests and 100 LLM calls. The 30-minute test therefore stopped after about 21 minutes on request-budget exhaustion, and its terminal batch observed 515 requests against the capped 500-request ledger.
 2. Location attribution is truthful, but learning is not converging quickly enough. All 366 location-conditioned strategies retained zero conditioned openings, yet distinct strategy/query identities prevented that repeated evidence from producing a downweighted family or visible reallocation during the run.
 
-Implement the smallest coherent correction:
+Implemented correction:
 
 1. Add `--max-requests` and `--max-llm-calls` to `scripts/run_job_scout_live.py` and send them in the session `resource_policy`.
 2. Echo and persist every effective run ceiling at startup: duration, outbound requests, LLM calls, and full-score limit.
@@ -74,9 +76,25 @@ Implement the smallest coherent correction:
 
 Do not encode Greensboro, particular roles, employers, or observed false positives as correction rules. The tool must generalize from outcome evidence. A truthful zero-result market remains acceptable; the required behavior is inspectable convergence and reallocation, not a manufactured minimum count.
 
-### Long-run decision rule
+### Live-gate evidence
 
-Do not begin the 4-8 hour unattended soak until Issue #51 is implemented and the 15-30 minute gate is rerun with explicit limits. The rerun passes when its limiting conditions are known before startup, actual request use respects the declared ceiling, attribution remains truthful, and repeated unsuccessful location-conditioned families demonstrably influence later allocation without collapsing exploration.
+The rerun declared 900 seconds, 1,000 requests, 100 LLM calls, and 25 full scores before work started. It completed 43 cycles across 25 waves, consumed and observed exactly 157 requests with zero overrun, used 41 LLM calls, completed 25 full and 58 provisional scores, and retained 58 additional opportunity observations. Manager wind-down began normally near the end of the window and the module stopped explicitly on `admission_draining`.
+
+All 169 attempted location-conditioned families still had zero conditioned opening yield. Eighty-seven were now durably `deprioritized` or `negative`, including the repeatedly attempted Greensboro/source families. The Greensboro coverage gap remained open, confirming that self-correction changed allocation evidence without manufacturing a local success.
+
+## Next gate: unattended soak
+
+Run a 4-8 hour unattended Job Scout soak with explicit ceilings. A representative four-hour invocation is:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_job_scout_live.py `
+  --duration-seconds 14400 `
+  --max-requests 5000 `
+  --max-llm-calls 1000 `
+  --score-limit 100
+```
+
+The soak should establish sustained liveness, exact request accounting, healthy queue/scoring behavior, bounded reflection, explainable family-level reallocation, truthful location coverage, and usable diagnostics. Do not interpret a truthful zero local-opening count as failure by itself.
 
 ## Deferred follow-up
 
@@ -101,14 +119,14 @@ Do not begin the 4-8 hour unattended soak until Issue #51 is implemented and the
 
 ## Coding-agent reset path
 
-For Issue #51, start with:
+For the unattended soak, start with:
 
 ```powershell
-python scripts/agent_context.py --focus "job scout explicit run budgets request admission local strategy family learning" --issue 51
+python scripts/agent_context.py --focus "job scout unattended soak explicit budgets family learning liveness" --issue 51
 ```
 
-Read the generated packet and Issue #51 first. Inspect `scripts/run_job_scout_live.py`, session resource-policy construction, worker request admission, discovery strategy identity/learning, and the discovery-audit/report surfaces. Preserve the accepted manager/module boundary and location-evidence separation.
+Read the generated packet and Issue #51 first. Use `scripts/run_job_scout_live.py` with explicit ceilings and inspect its durable report before reopening implementation. Preserve the accepted manager/module boundary and location-evidence separation.
 
 ## Validation boundary
 
-Issue #51 requires deterministic coverage for CLI-to-session budget propagation, request admission, stable strategy-family learning, zero-yield accumulation, and allocation changes. Do not weaken or replace ordinary tests. After deterministic CI is green, rerun the live gate against real public sources and the local model before authorizing the unattended soak.
+Issue #51 has deterministic coverage for CLI-to-session budget propagation, request admission, stable strategy-family learning, zero-yield accumulation, and allocation changes. Its short live gate passed. The unattended soak remains outside deterministic CI and should use the same accepted code/configuration with explicitly declared limits.

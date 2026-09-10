@@ -107,8 +107,8 @@ def setup_bridge(tmp_path, monkeypatch, *, empty=False):
     if empty:
         original = loop.cycle
 
-        async def empty_cycle(run_id, cycle):
-            result = await original(run_id, cycle)
+        async def empty_cycle(run_id, cycle, request_limit=None):
+            result = await original(run_id, cycle, request_limit)
             return type(result)(**{
                 **asdict(result), "strategies_attempted": 0, "strategies_exhausted": True,
             })
@@ -207,7 +207,7 @@ def test_scoring_reservation_survives_restart_and_enforces_cap(tmp_path, monkeyp
     assert client.final[1]["full_scores_completed"] == 0
 
 
-def test_request_batch_exhaustion_is_explicit_and_reports_overrun(tmp_path, monkeypatch):
+def test_request_budget_is_admitted_before_fetch_without_overrun(tmp_path, monkeypatch):
     bridge, _, _ = setup_bridge(tmp_path, monkeypatch)
     client = Client(bridge)
     work = assignment()
@@ -215,10 +215,9 @@ def test_request_batch_exhaustion_is_explicit_and_reports_overrun(tmp_path, monk
     asyncio.run(worker._execute_discovery_loop(client, work))
     assert client.final[1]["terminal_reason"] == "requests_budget_exhausted"
     assert client.checkpoints[-1]["requests_remaining"] == 0
-    assert client.checkpoints[-1]["requests_observed"] >= 1
-    assert client.checkpoints[-1]["request_batch_overrun"] == (
-        client.checkpoints[-1]["requests_observed"] - 1
-    )
+    assert client.checkpoints[-1]["requests_observed"] == 1
+    assert client.checkpoints[-1]["request_batch_overrun"] == 0
+    assert client.usage["requests"] == 1
 
 
 def test_different_strategies_cannot_rescan_a_source_before_due(tmp_path, monkeypatch):

@@ -114,18 +114,26 @@ async def _execute_discovery_loop(
                 return
             cycle += 1
             await checkpoint("expand", idle_reason=None, terminal_reason=None)
+            remaining_requests = max(int(saved["requests_remaining"]), 0)
             result = await client.invoke(
-                run_id, "discovery_cycle", {"run_id": run_id, "cycle": cycle},
+                run_id,
+                "discovery_cycle",
+                {
+                    "run_id": run_id,
+                    "cycle": cycle,
+                    "request_limit": remaining_requests,
+                },
             )
             requests = int(result.get("request_count", 0))
             if requests:
-                # Source requests are reported at batch completion, not reserved per
-                # HTTP fetch. Preserve observed overrun explicitly; never hide it in
-                # the manager's capped reservation ledger.
                 remaining = int(saved["requests_remaining"])
                 saved["requests_observed"] = int(saved.get("requests_observed", 0)) + requests
                 saved["request_batch_overrun"] = max(0, requests - remaining)
-                await client.consume(run_id, "requests", min(requests, remaining))
+                if requests > remaining:
+                    raise RuntimeError(
+                        "discovery cycle exceeded its admitted outbound-request allowance"
+                    )
+                await client.consume(run_id, "requests", requests)
                 if requests >= remaining:
                     coverage = dict(result.get("coverage") or coverage)
                     await control_reason()

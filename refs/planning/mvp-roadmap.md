@@ -9,7 +9,7 @@ tags: [nerve-center, planning, roadmap]
 
 > Product intent and non-negotiable boundaries are defined in `refs/planning/product-requirements-document.md`. This roadmap orders implementation; it does not redefine the product.
 
-## Accepted baseline through 0.12.4
+## Accepted baseline through 0.12.5
 
 The repository contains a working local API, durable SQLite foundation, manager-owned scheduling and work queues, provider-neutral local LLM routing, the Job Scout reference workflow, a Tauri/React desktop shell, Windows packaging/runtime bootstrap, an iterative company-first discovery/scoring loop, and the first manager-owned Model Lab foundation.
 
@@ -179,13 +179,13 @@ PR #48 exact head `8119e5cf577fa1f1d19ce8afe7fdbf4740ac864d` passed CI run `3450
 - Add simple blinded pairwise A/B review using a Likert preference scale.
 - Define evidence thresholds for when benchmark results may influence production routing; never promote a model from one experimental run.
 
-## Job Scout explicit run budgets and convergent local learning (next slice)
+## Job Scout explicit run budgets and convergent local learning (implemented)
 
 Issue **#49: Run Job Scout short live acceptance before unattended soak** completed with useful blocking evidence. The valid run exited cleanly after about 21 minutes, completed 25/25 full scores, retained an inventory of 826 ranked opportunities, classified all of them as 34 regional and 792 distant, and preserved an explicit `requests_budget_exhausted` terminal reason. It did not complete the requested 30-minute observation window because `scripts/run_job_scout_live.py` submitted only the duration and silently inherited the platform default of 500 outbound requests and 100 LLM calls. The terminal discovery batch observed 515 requests against the capped 500-request ledger.
 
 The run also confirmed that corrected location attribution is working: national openings were not credited as local yield and the Greensboro/Triad coverage gap remained open. However, 366 location-conditioned strategies retained zero location-conditioned openings, no directly local opening was found, and no unsuccessful strategy family reached a downweighted state during the run. Distinct query text currently fragments evidence enough that repeated zero-yield hypotheses do not converge quickly into a useful allocation correction.
 
-Issue **#51: Make Job Scout run budgets explicit and local discovery learning converge** is the immediate implementation slice:
+Issue **#51: Make Job Scout run budgets explicit and local discovery learning converge** is implemented in `0.12.5`:
 
 1. Expose `--max-requests` and `--max-llm-calls` in the live runner and persist them in the session resource policy.
 2. Print and report the effective duration, request, LLM, and scoring ceilings before work starts; distinguish duration completion from budget exhaustion.
@@ -196,7 +196,9 @@ Issue **#51: Make Job Scout run budgets explicit and local discovery learning co
 
 This correction must remain evidence-driven. Do not hard-code role, employer, city, or false-positive exclusion lists, and do not require a minimum local result count when the market evidence truthfully supports zero. Distant/national openings must remain separate from local-opening yield, while verified company/source evidence remains durable and useful.
 
-After Issue #51 passes deterministic validation, rerun the 15-30 minute live gate with explicit resource ceilings. Proceed to a **4-8 hour unattended Job Scout soak** only when the full intended gate duration or its declared limiting budget is visible in advance, usage respects that declaration, and repeated unsuccessful location-conditioned families demonstrably affect subsequent allocation.
+The post-implementation live gate ran with explicit ceilings of 900 seconds, 1,000 requests, 100 LLM calls, and 25 full scores. Manager wind-down began normally near the end of the window after 43 cycles and 25 waves. The run consumed and observed exactly 157 requests with zero overrun, used 41 LLM calls, completed 25 full and 58 provisional scores, retained 58 additional opportunity observations, and stopped explicitly on `admission_draining`. All 169 attempted location-conditioned families still had zero conditioned yield; 87 were now durably deprioritized or negative, while the Greensboro coverage gap remained open.
+
+The next gate is a **4-8 hour unattended Job Scout soak** with explicit ceilings. It should validate sustained liveness, exact request accounting, source cooldown behavior, scoring throughput, family-level reallocation, truthful coverage gaps, and durable failure explanation under a longer workload.
 
 ## Increment 13: Attention, safety, and connectors
 

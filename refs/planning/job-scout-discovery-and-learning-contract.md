@@ -27,7 +27,7 @@ The accepted discovery loop is:
 
 Issue #34 and PR #36 established the current runtime semantics: bounded discovery waves, prompt persistence, interleaved provisional and bounded full scoring, safe revisit cooldowns, paced no-work backoff, and explicit stop reasons. One empty reflection or one exhausted wave is not successful completion while productive work remains eligible.
 
-Issue #40 and PR #42 established deterministic location awareness while preserving broad retention. Issue #43 and PR #44 establish source-aware search portfolios, deterministic query linting, cross-strategy convergence, explicit coverage gaps, structured-source refresh preference, and a human-visible discovery audit.
+Issue #40 and PR #42 established deterministic location awareness while preserving broad retention. Issue #43 and PR #44 established source-aware search portfolios, deterministic query linting, cross-strategy convergence, explicit coverage gaps, structured-source refresh preference, and a human-visible discovery audit. Issue #51 established explicit live-run resource policies, pre-fetch request admission, and durable hypothesis-family learning.
 
 ## Expand
 
@@ -57,6 +57,8 @@ For structured ATS x-ray paths such as Greenhouse, Lever, and Ashby, reliable po
 ## Converge
 
 Allocate more effort to strategies that produce useful signal while preserving an exploration floor.
+
+Materially equivalent public-search strategies share a stable evidence family based on hypothesis family, source domain, and location. Query wording and anchor variants remain independently auditable, but they may not reset accumulated family evidence. Repeated zero location-conditioned opening yield lowers exploitation priority at the family level while the exploration floor continues to sample alternatives.
 
 Useful signal includes:
 
@@ -115,6 +117,8 @@ A strategy is a first-class durable Job Scout concept. It may include dimensions
 - origin, such as profile evidence, user rule, learned strategy, or reflection hypothesis.
 
 Strategy provenance must be strong enough to explain why work was attempted and why its future weight changed.
+
+Strategy identity preserves the complete experiment dimensions. Family identity deliberately omits superficial query wording while retaining the hypothesis family, source, and location needed to interpret yield. Company and source evidence remains durable and visible but does not offset zero location-conditioned opening yield when allocating a location-targeted public-search family.
 
 Retain bounded telemetry such as attempts, results examined, employers discovered, sources resolved, postings inspected, unique openings retained, location-conditioned yield, relevant/high-ranking opportunities, user/outcome feedback, duplicate/noise rate, challenge/failure rate, last attempted/productive time, current learned influence, and before/after weight movement where available.
 
@@ -183,18 +187,15 @@ Session reporting and the read-only discovery audit should expose useful signals
 - source warnings/challenges;
 - current next-work decision and terminal reason;
 - consumed and remaining request/LLM budget where available.
+- configured duration and effective request, LLM, and full-score ceilings before work starts;
+- family-level attempts, location-conditioned yield, learned influence, and weight movement.
 
 These are observability metrics, not quotas. Ordinary unattended sessions remain autonomous; viewing strategy audit information does not create an approval step.
 
 ## Current implementation priority
 
-The discovery-quality foundation through Issue #43 is accepted. The next bounded ranking-quality slice is **Issue #45: Normalize qualification importance in Job Scout fit scoring**.
-
-That work should keep qualification importance as job-side evidence, separate from candidate match strength; weight required and responsibility coverage by decision importance rather than simple equal averaging; prevent duplicate qualification phrasing from inflating fit; preserve required > preferred influence, title weakness, domain ordering, factual gates, and evidence provenance; and expose the normalized weighted coverage in score factors.
-
-Issue #45 is a ranking/fit refinement. It must not reopen company-first discovery, source-aware portfolio semantics, location evidence, or the manager-owned provider boundary without new evidence.
+The explicit-budget and strategy-family-learning slice through Issue #51 is implemented and passed its 15-minute live gate. The next operational checkpoint is a 4-8 hour unattended Job Scout soak with explicit duration, request, LLM, and full-score ceilings. The soak should validate sustained liveness, exact request accounting, source cooldown behavior, scoring throughput, family-level reallocation, truthful geography gaps, and sufficient durable diagnostics.
 
 ## Deferred work
 
-- Per-fetch request-budget admission/recovery hardening if later live evidence shows batch-level overrun is operationally harmful.
 - People enrichment and richer relationship intelligence; preserve external person/relationship seams for a future dedicated product instead of growing a CRM inside Job Scout.

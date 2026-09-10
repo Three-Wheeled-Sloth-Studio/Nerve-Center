@@ -273,6 +273,9 @@ def monitor_session(
     report_path: Path,
     report: dict[str, Any],
     on_session: Callable[[str], None] | None = None,
+    *,
+    max_requests: int = 500,
+    max_llm_calls: int = 100,
 ) -> tuple[dict[str, Any], str]:
     progress = ProgressReporter()
     recent_sessions = request_json(endpoint, "/api/v1/sessions?limit=20")
@@ -283,27 +286,42 @@ def monitor_session(
             endpoint,
             "/api/v1/sessions",
             "POST",
-            {"duration_seconds": duration_seconds},
+            {
+                "duration_seconds": duration_seconds,
+                "resource_policy": {
+                    "max_requests": max_requests,
+                    "max_llm_calls": max_llm_calls,
+                },
+            },
         )
     run_id = str((session.get("module_run_ids") or {}).get("job_scout") or "")
     if on_session is not None:
         on_session(str(session["id"]))
     if not run_id:
         raise RuntimeError("Manager session did not create a Job Scout run")
+    policy = dict(session.get("resource_policy") or {})
     if resumed:
         print_progress(
             "discovery resumed"
             f" | session={session.get('id')}"
             f" | run={run_id}"
             f" | ends={session.get('ends_at')}"
+            f" | max_requests={policy.get('max_requests', 'unknown')}"
+            f" | max_llm_calls={policy.get('max_llm_calls', 'unknown')}"
         )
     else:
-        print_progress(f"discovery scheduled | duration={duration_seconds}s | run={run_id}")
+        print_progress(
+            f"discovery scheduled | duration={duration_seconds}s"
+            f" | max_requests={policy.get('max_requests', max_requests)}"
+            f" | max_llm_calls={policy.get('max_llm_calls', max_llm_calls)}"
+            f" | run={run_id}"
+        )
     report["session"] = {
         "id": session.get("id"),
         "run_id": run_id,
         "resumed": resumed,
         "ends_at": session.get("ends_at"),
+        "resource_policy": dict(session.get("resource_policy") or {}),
     }
     write_report(report_path, report)
     remaining_seconds = _remaining_session_seconds(session, duration_seconds)
@@ -449,11 +467,19 @@ def run(args: argparse.Namespace) -> int:
         "target_titles": args.target_title,
         "locations": args.location,
         "duration_seconds": args.duration_seconds,
+        "resource_limits": {
+            "max_requests": args.max_requests,
+            "max_llm_calls": args.max_llm_calls,
+            "full_score_limit": args.score_limit,
+        },
         "default_model": args.model,
     }
     write_report(report_path, report)
     print_progress(
-        f"runner starting | duration={args.duration_seconds}s | score_limit={args.score_limit}"
+        f"runner starting | duration={args.duration_seconds}s"
+        f" | max_requests={args.max_requests}"
+        f" | max_llm_calls={args.max_llm_calls}"
+        f" | score_limit={args.score_limit}"
     )
     context = ManagedApi(
         args.endpoint,
@@ -502,6 +528,22 @@ def run(args: argparse.Namespace) -> int:
                 report_path,
                 report,
                 on_session=lambda session_id: setattr(context, "session_id", session_id),
+                max_requests=args.max_requests,
+                max_llm_calls=args.max_llm_calls,
+            )
+            final_checkpoint = dict(final.get("checkpoint") or {})
+            terminal_reason = str(final_checkpoint.get("terminal_reason") or "completed")
+            report["completion"] = {
+                "status": final.get("status"),
+                "terminal_reason": terminal_reason,
+                "requests_consumed": final_checkpoint.get("requests_consumed"),
+                "llm_calls_consumed": final_checkpoint.get("llm_calls_consumed"),
+            }
+            print_progress(
+                f"discovery stopped | status={final.get('status')}"
+                f" | reason={terminal_reason}"
+                f" | requests={final_checkpoint.get('requests_consumed', 0)}/{args.max_requests}"
+                f" | llm_calls={final_checkpoint.get('llm_calls_consumed', 0)}/{args.max_llm_calls}"
             )
             jobs = request_json(args.endpoint, "/api/v1/discovery/jobs")
             opportunities = request_json(
@@ -513,6 +555,10 @@ def run(args: argparse.Namespace) -> int:
             strategies = request_json(
                 args.endpoint, "/api/v1/modules/job_scout/discovery/strategies"
             )
+            discovery_audit = request_json(
+                args.endpoint, "/api/v1/modules/job_scout/discovery/audit"
+            )
+            strategy_families = discovery_audit.get("strategy_families") or []
             reflections = request_json(
                 args.endpoint,
                 f"/api/v1/modules/job_scout/discovery/sessions/{run_id}/reflections",
@@ -529,6 +575,11 @@ def run(args: argparse.Namespace) -> int:
                 "downweighted_strategies": sum(
                     item.get("influence") in {"negative", "deprioritized"} for item in strategies
                 ),
+                "strategy_families": len(strategy_families),
+                "downweighted_strategy_families": sum(
+                    item.get("influence") in {"negative", "deprioritized"}
+                    for item in strategy_families
+                ),
                 "reflection_hypotheses": len(reflections),
             }
             print_progress(
@@ -540,8 +591,16 @@ def run(args: argparse.Namespace) -> int:
             )
             report["ranked_opportunities"] = opportunities
             report["strategies"] = strategies
+            report["discovery_audit"] = discovery_audit
             report["reflections"] = reflections
             report["run"]["status"] = final.get("status")
+            report["completion"].update({
+                "duration_completed": terminal_reason in {"deadline", "completed"},
+                "request_budget_exhausted": terminal_reason
+                == "requests_budget_exhausted",
+                "llm_budget_exhausted": terminal_reason
+                == "llm_calls_budget_exhausted",
+            })
             report["status"] = "scoring"
             write_report(report_path, report)
             report["scoring"] = {
@@ -607,6 +666,8 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--duration-seconds", type=int, default=1800)
     result.add_argument("--poll-seconds", type=float, default=5.0)
     result.add_argument("--score-limit", type=int, default=10)
+    result.add_argument("--max-requests", type=int, default=500)
+    result.add_argument("--max-llm-calls", type=int, default=100)
     result.add_argument("--model", default="gemma3:4b")
     return result
 
@@ -617,6 +678,10 @@ def main() -> int:
         raise SystemExit("--duration-seconds must be at least 30")
     if args.score_limit < 0:
         raise SystemExit("--score-limit cannot be negative")
+    if args.max_requests < 1:
+        raise SystemExit("--max-requests must be at least 1")
+    if args.max_llm_calls < 1:
+        raise SystemExit("--max-llm-calls must be at least 1")
     if args.resume is not None and not args.resume.is_file():
         raise SystemExit(f"Resume not found: {args.resume}")
     return run(args)

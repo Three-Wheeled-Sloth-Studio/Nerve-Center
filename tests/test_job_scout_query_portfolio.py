@@ -233,6 +233,14 @@ def test_strategy_attempt_audit_records_weight_movement(tmp_path: Path) -> None:
     assert row["weight_before"] == 1.0
     assert row["weight_after"] == round(result.learned_weight, 3)
     assert row["weight_after"] > row["weight_before"]
+    assert row["family_id"] == strategy.family_id
+    assert row["family_weight_before"] == 1.0
+    assert row["family_weight_after"] is not None
+    family = next(
+        item for item in learning.discovery_audit()["strategy_families"]
+        if item["id"] == strategy.family_id
+    )
+    assert family["attempts"] == 1
 
 
 def test_structured_refresh_gets_one_time_initial_preference(tmp_path: Path) -> None:

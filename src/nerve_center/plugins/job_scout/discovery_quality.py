@@ -18,10 +18,12 @@ from nerve_center.plugins.job_scout.discovery_learning import (
     JobScoutDiscoveryRepository,
     StrategyAttemptModel,
     StrategyOutcome,
+    strategy_family_identity,
 )
 from nerve_center.plugins.job_scout.discovery_loop import (
     JobScoutDiscoveryLoop,
     _is_employer_source,
+    _RequestAllowance,
 )
 from nerve_center.plugins.job_scout.query_portfolio import (
     STRUCTURED_SOURCE_KINDS,
@@ -46,7 +48,12 @@ class DiscoveryQualityRepository(JobScoutDiscoveryRepository):
         started_at: datetime | None = None,
         finished_at: datetime | None = None,
     ) -> DiscoveryStrategySnapshot:
-        before = self.get_strategy(strategy_id).learned_weight
+        strategy = self.get_strategy(strategy_id)
+        before = strategy.learned_weight
+        family_before = next(
+            item for item in self.list_strategy_families()
+            if item.id == strategy.family_id
+        )
         result = super().record_attempt(
             run_id,
             cycle,
@@ -55,6 +62,10 @@ class DiscoveryQualityRepository(JobScoutDiscoveryRepository):
             outcome,
             started_at=started_at,
             finished_at=finished_at,
+        )
+        family_after = next(
+            item for item in self.list_strategy_families()
+            if item.id == strategy.family_id
         )
         with self.database.session() as session:
             attempt = session.scalar(
@@ -71,6 +82,13 @@ class DiscoveryQualityRepository(JobScoutDiscoveryRepository):
                 detail = dict(attempt.detail or {})
                 detail["weight_before"] = round(before, 3)
                 detail["weight_after"] = round(result.learned_weight, 3)
+                detail["family_id"] = strategy.family_id
+                detail["family_weight_before"] = round(family_before.learned_weight, 3)
+                detail["family_weight_after"] = round(family_after.learned_weight, 3)
+                detail["family_attempts_after"] = family_after.attempts
+                detail["family_conditioned_yield_after"] = (
+                    family_after.opportunities_retained
+                )
                 attempt.detail = detail
         return result
 
@@ -129,6 +147,8 @@ class DiscoveryQualityRepository(JobScoutDiscoveryRepository):
             model.updated_at = current
 
     def discovery_audit(self) -> dict[str, Any]:
+        family_rows = self.list_strategy_families()
+        families = {item.id: item for item in family_rows}
         with self.database.session() as session:
             strategies = session.scalars(
                 select(DiscoveryStrategyModel).order_by(
@@ -179,6 +199,8 @@ class DiscoveryQualityRepository(JobScoutDiscoveryRepository):
             )
             rows: list[dict[str, Any]] = []
             for strategy in strategies:
+                family_id = strategy_family_identity(dict(strategy.dimensions))[1]
+                family = families[family_id]
                 latest = latest_by_strategy.get(strategy.id)
                 detail = dict(latest.detail or {}) if latest is not None else {}
                 overlap_companies = sorted(
@@ -194,6 +216,13 @@ class DiscoveryQualityRepository(JobScoutDiscoveryRepository):
                 rows.append(
                     {
                         "id": strategy.id,
+                        "family_id": family_id,
+                        "family_learned_weight": round(family.learned_weight, 3),
+                        "family_influence": family.influence,
+                        "family_attempts": family.attempts,
+                        "family_conditioned_yield": family.opportunities_retained,
+                        "family_weight_before": detail.get("family_weight_before"),
+                        "family_weight_after": detail.get("family_weight_after"),
                         "hypothesis_family": strategy.dimensions.get(
                             "hypothesis_family", "legacy"
                         ),
@@ -237,6 +266,23 @@ class DiscoveryQualityRepository(JobScoutDiscoveryRepository):
             return {
                 "run_id": latest_session.run_id if latest_session is not None else None,
                 "coverage_gaps": coverage.get("coverage_gaps", {}),
+                "strategy_families": [
+                    {
+                        "id": item.id,
+                        "dimensions": item.dimensions,
+                        "learned_weight": round(item.learned_weight, 3),
+                        "influence": item.influence,
+                        "member_count": item.member_count,
+                        "attempts": item.attempts,
+                        "companies_discovered": item.companies_discovered,
+                        "career_sources_resolved": item.career_sources_resolved,
+                        "conditioned_yield": item.opportunities_retained,
+                        "challenge_count": item.challenge_count,
+                        "failure_count": item.failure_count,
+                        "last_attempt_at": item.last_attempt_at,
+                    }
+                    for item in family_rows
+                ],
                 "strategies": rows[:120],
             }
 
@@ -322,6 +368,7 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
     async def _execute_public_search(
         self,
         strategy: Any,
+        allowance: _RequestAllowance | None = None,
     ) -> tuple[StrategyOutcome, int, list[str]]:
         configuration = self.coordinator.store.load()
         evidence_terms = [
@@ -359,7 +406,8 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
         )
         try:
             outcome, requests, warnings = await super()._execute_public_search(
-                strategy
+                strategy,
+                allowance,
             )
         finally:
             self.search_adapter = original_adapter

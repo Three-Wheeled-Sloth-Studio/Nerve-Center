@@ -172,6 +172,35 @@ class DiscoveryStrategySnapshot:
     last_productive_at: datetime | None
 
     @property
+    def family_id(self) -> str:
+        return strategy_family_identity(self.dimensions)[1]
+
+    @property
+    def influence(self) -> str:
+        if self.learned_weight >= 1.2:
+            return "positive"
+        if self.learned_weight < 0.55:
+            return "negative"
+        if self.learned_weight < 0.85:
+            return "deprioritized"
+        return "neutral"
+
+
+@dataclass(frozen=True, slots=True)
+class DiscoveryStrategyFamilySnapshot:
+    id: str
+    dimensions: dict[str, str]
+    learned_weight: float
+    member_count: int
+    attempts: int
+    companies_discovered: int
+    career_sources_resolved: int
+    opportunities_retained: int
+    challenge_count: int
+    failure_count: int
+    last_attempt_at: datetime | None
+
+    @property
     def influence(self) -> str:
         if self.learned_weight >= 1.2:
             return "positive"
@@ -296,6 +325,15 @@ class JobScoutDiscoveryRepository:
             ).all()
             return [_strategy_snapshot(item) for item in models]
 
+    def list_strategy_families(self) -> list[DiscoveryStrategyFamilySnapshot]:
+        with self.database.session() as session:
+            models = session.scalars(select(DiscoveryStrategyModel)).all()
+            return sorted(
+                _strategy_family_snapshots(models),
+                key=lambda item: (item.learned_weight, item.attempts, item.id),
+                reverse=True,
+            )
+
     def select_strategies(
         self,
         run_id: str,
@@ -321,6 +359,9 @@ class JobScoutDiscoveryRepository:
                 ).all()
             )
             models = session.scalars(select(DiscoveryStrategyModel)).all()
+            family_weights = {
+                item.id: item.learned_weight for item in _strategy_family_snapshots(models)
+            }
             blocked_companies = excluded_company_ids or set()
             blocked_sources = excluded_source_ids or set()
             candidates = [
@@ -357,7 +398,14 @@ class JobScoutDiscoveryRepository:
             exploration_ids = {item.id for item in exploration}
             exploitation = sorted(
                 (item for item in candidates if item.id not in exploration_ids),
-                key=lambda item: (_strategy_score(item, current), item.id),
+                key=lambda item: (
+                    _strategy_score(
+                        item,
+                        current,
+                        family_weight=family_weights[item_family_id(item)],
+                    ),
+                    item.id,
+                ),
                 reverse=True,
             )[: count - len(exploration)]
             selected = [*exploitation, *exploration]
@@ -371,7 +419,14 @@ class JobScoutDiscoveryRepository:
                         if item.dimensions.get("kind") == "company_revisit"
                         and item.id not in {chosen.id for chosen in selected}
                     ),
-                    key=lambda item: (_strategy_score(item, current), item.id),
+                    key=lambda item: (
+                        _strategy_score(
+                            item,
+                            current,
+                            family_weight=family_weights[item_family_id(item)],
+                        ),
+                        item.id,
+                    ),
                     reverse=True,
                 )
                 if company_candidates:
@@ -696,6 +751,109 @@ def _strategy_identity(dimensions: dict[str, str]) -> tuple[dict[str, str], str,
     return normalized, identity, strategy_id
 
 
+def strategy_family_identity(dimensions: dict[str, str]) -> tuple[dict[str, str], str]:
+    """Return the stable evidence family for materially equivalent strategies."""
+
+    normalized = {
+        str(key).strip().casefold(): " ".join(str(value).split()).strip().casefold()
+        for key, value in dimensions.items()
+        if str(key).strip() and " ".join(str(value).split()).strip()
+    }
+    kind = normalized.get("kind", "unknown")
+    if kind == "public_search":
+        family = {
+            "kind": kind,
+            "hypothesis_family": normalized.get("hypothesis_family", "legacy"),
+            "source_domain": normalized.get("source_domain", "web"),
+            "location": normalized.get("location", ""),
+        }
+    elif kind == "company_revisit":
+        family = {"kind": kind, "company_id": normalized.get("company_id", "")}
+    elif kind == "source_revisit":
+        family = {"kind": kind, "source_id": normalized.get("source_id", "")}
+    else:
+        family = normalized
+    family = {key: value for key, value in family.items() if value}
+    canonical = json.dumps(family, sort_keys=True, separators=(",", ":"))
+    return family, hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def item_family_id(model: DiscoveryStrategyModel) -> str:
+    return strategy_family_identity(dict(model.dimensions))[1]
+
+
+def _strategy_family_snapshots(
+    models: list[DiscoveryStrategyModel],
+) -> list[DiscoveryStrategyFamilySnapshot]:
+    grouped: dict[str, list[DiscoveryStrategyModel]] = {}
+    dimensions: dict[str, dict[str, str]] = {}
+    for model in models:
+        family_dimensions, family_id = strategy_family_identity(dict(model.dimensions))
+        grouped.setdefault(family_id, []).append(model)
+        dimensions[family_id] = family_dimensions
+
+    snapshots: list[DiscoveryStrategyFamilySnapshot] = []
+    for family_id, members in grouped.items():
+        attempts = sum(item.attempts for item in members)
+        retained = sum(item.opportunities_retained for item in members)
+        challenged = sum(item.challenge_count for item in members)
+        failed = sum(item.failure_count for item in members)
+        snapshots.append(
+            DiscoveryStrategyFamilySnapshot(
+                id=family_id,
+                dimensions=dimensions[family_id],
+                learned_weight=_family_learned_weight(
+                    attempts=attempts,
+                    opportunities_retained=retained,
+                    challenge_count=challenged,
+                    failure_count=failed,
+                    location_conditioned=bool(dimensions[family_id].get("location")),
+                    member_weights=[float(item.learned_weight) for item in members],
+                ),
+                member_count=len(members),
+                attempts=attempts,
+                companies_discovered=sum(item.companies_discovered for item in members),
+                career_sources_resolved=sum(
+                    item.career_sources_resolved for item in members
+                ),
+                opportunities_retained=retained,
+                challenge_count=challenged,
+                failure_count=failed,
+                last_attempt_at=max(
+                    (_as_utc(item.last_attempt_at) for item in members if item.last_attempt_at),
+                    default=None,
+                ),
+            )
+        )
+    return snapshots
+
+
+def _family_learned_weight(
+    *,
+    attempts: int,
+    opportunities_retained: int,
+    challenge_count: int,
+    failure_count: int,
+    location_conditioned: bool,
+    member_weights: list[float],
+) -> float:
+    if attempts <= 0:
+        return sum(member_weights) / len(member_weights) if member_weights else 1.0
+    if location_conditioned:
+        yield_rate = opportunities_retained / attempts
+        productive_attempt_equivalent = min(opportunities_retained, attempts)
+        zero_yield_attempts = attempts - productive_attempt_equivalent
+        target = (
+            1.0
+            + min(yield_rate, 4.0) * 0.5
+            - min(zero_yield_attempts * 0.08, 0.65)
+        )
+    else:
+        target = sum(member_weights) / len(member_weights) if member_weights else 1.0
+    health_penalty = min((challenge_count * 0.08 + failure_count * 0.04) / attempts, 0.4)
+    return _clamp(target - health_penalty, 0.2, 4.0)
+
+
 def _strategy_snapshot(model: DiscoveryStrategyModel) -> DiscoveryStrategySnapshot:
     return DiscoveryStrategySnapshot(
         id=model.id,
@@ -786,13 +944,23 @@ def _attempt_target_weight(outcome: StrategyOutcome) -> float:
     return _clamp(1.0 + useful - penalties, 0.2, 4.0)
 
 
-def _strategy_score(model: DiscoveryStrategyModel, now: datetime) -> float:
+def _strategy_score(
+    model: DiscoveryStrategyModel,
+    now: datetime,
+    *,
+    family_weight: float = 1.0,
+) -> float:
     attempts = max(model.attempts, 1)
-    productivity = (
-        model.opportunities_retained * 1.5
-        + model.career_sources_resolved
-        + model.companies_discovered * 0.75
-    ) / attempts
+    if model.dimensions.get("kind") == "public_search" and model.dimensions.get(
+        "location"
+    ):
+        productivity = model.opportunities_retained * 1.5 / attempts
+    else:
+        productivity = (
+            model.opportunities_retained * 1.5
+            + model.career_sources_resolved
+            + model.companies_discovered * 0.75
+        ) / attempts
     health_penalty = (model.challenge_count * 0.7 + model.failure_count * 0.4) / attempts
     feedback = (model.positive_feedback - model.negative_feedback) * 0.15
     staleness = 0.2 if model.last_attempt_at is None else 0.0
@@ -802,7 +970,15 @@ def _strategy_score(model: DiscoveryStrategyModel, now: datetime) -> float:
             staleness = 0.2
         elif age_days >= 2:
             staleness = 0.1
-    return float(model.learned_weight) + productivity + feedback + staleness - health_penalty
+    family_adjustment = (family_weight - 1.0) * 1.5
+    return (
+        float(model.learned_weight)
+        + productivity
+        + feedback
+        + staleness
+        + family_adjustment
+        - health_penalty
+    )
 
 
 def _utc_sort_value(value: datetime | None) -> float:
