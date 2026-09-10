@@ -14,6 +14,32 @@ import type {
   WorkRequestRecord,
 } from "./types";
 
+export interface DiscoveryAuditStrategy {
+  id: string;
+  hypothesis_family: string;
+  anchor: string;
+  location: string;
+  source_domain: string;
+  source_path: string;
+  compiled_query: string;
+  learned_weight: number;
+  weight_before: number | null;
+  weight_after: number | null;
+  attempts: number;
+  total_yield: number;
+  conditioned_yield: number;
+  warnings: string[];
+  overlap_company_count: number;
+  overlap_company_ids: string[];
+  last_attempt_at: string | null;
+}
+
+export interface DiscoveryAudit {
+  run_id: string | null;
+  coverage_gaps: Record<string, string[]>;
+  strategies: DiscoveryAuditStrategy[];
+}
+
 const API_BASE = import.meta.env.VITE_NERVE_CENTER_API ?? "http://127.0.0.1:8765";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -116,6 +142,9 @@ export function saveLocationPreferences(preferences: Record<string, unknown>) {
 }
 export function getJobScoutWorkspace() {
   return request<JobScoutWorkspace>("/api/v1/modules/job_scout/workspace");
+}
+export function getJobScoutDiscoveryAudit() {
+  return request<DiscoveryAudit>("/api/v1/modules/job_scout/discovery/audit");
 }
 export function saveJobScoutConfiguration(configuration: JobScoutConfiguration) {
   return request<JobScoutWorkspace>("/api/v1/modules/job_scout/config", {

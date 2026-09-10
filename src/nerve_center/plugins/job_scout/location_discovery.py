@@ -14,15 +14,15 @@ from nerve_center.plugins.job_scout.discovery_learning import (
 )
 from nerve_center.plugins.job_scout.discovery_loop import (
     DiscoveryCycleSummary,
-    JobScoutDiscoveryLoop,
     _clean_domain,
     _is_employer_source,
 )
+from nerve_center.plugins.job_scout.discovery_quality import SourceAwareJobScoutDiscoveryLoop
 from nerve_center.plugins.job_scout.settings import clean_list
 from nerve_center.scoring.location import opening_matches_market
 
 
-class LocationAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
+class LocationAwareJobScoutDiscoveryLoop(SourceAwareJobScoutDiscoveryLoop):
     """Preserve total discovery while learning location strategies from local yield."""
 
     async def prepare(self, run_id: str) -> dict[str, object]:
@@ -162,6 +162,10 @@ class LocationAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
             increments=increments,
             warnings=warnings,
         )
+        gaps = self._coverage_gaps()
+        self._record_gaps(run_id, gaps)
+        coverage = dict(session.coverage)
+        coverage["coverage_gaps"] = gaps
         return DiscoveryCycleSummary(
             run_id=run_id,
             cycle=cycle,
@@ -172,7 +176,7 @@ class LocationAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
             needs_reflection=no_yield >= 2,
             strategies_exhausted=False,
             warnings=clean_list(warnings),
-            coverage=session.coverage,
+            coverage=coverage,
         )
 
 

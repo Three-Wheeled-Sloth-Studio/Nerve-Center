@@ -18,7 +18,7 @@ from nerve_center.persistence.discovery import (
 from nerve_center.plugins.job_scout.configuration import (
     register_job_scout_configuration_routes,
 )
-from nerve_center.plugins.job_scout.discovery_learning import JobScoutDiscoveryRepository
+from nerve_center.plugins.job_scout.discovery_quality import DiscoveryQualityRepository
 from nerve_center.plugins.job_scout.location_discovery import LocationAwareJobScoutDiscoveryLoop
 from nerve_center.plugins.job_scout.manifest import job_scout_manifest
 from nerve_center.plugins.job_scout.runtime import JobScoutOperationBridge
@@ -43,7 +43,7 @@ def install_job_scout(
     company_repository = CompanyRepository(database)
     source_repository = DiscoverySourceRepository(database)
     job_repository = JobOpeningRepository(database)
-    learning_repository = JobScoutDiscoveryRepository(database)
+    learning_repository = DiscoveryQualityRepository(database)
     application.state.job_scout_learning = learning_repository
     discovery_service = DiscoveryService(
         company_repository,
@@ -102,7 +102,7 @@ def install_job_scout(
 
 def _register_discovery_learning_routes(
     application: FastAPI,
-    learning: JobScoutDiscoveryRepository,
+    learning: DiscoveryQualityRepository,
 ) -> None:
     @application.get("/api/v1/modules/job_scout/discovery/strategies")
     def list_discovery_strategies() -> list[dict[str, object]]:
@@ -133,6 +133,10 @@ def _register_discovery_learning_routes(
             }
             for item in learning.list_strategies()
         ]
+
+    @application.get("/api/v1/modules/job_scout/discovery/audit")
+    def get_discovery_audit() -> dict[str, object]:
+        return learning.discovery_audit()
 
     @application.get("/api/v1/modules/job_scout/discovery/sessions/{run_id}")
     def get_discovery_session(run_id: str) -> object:

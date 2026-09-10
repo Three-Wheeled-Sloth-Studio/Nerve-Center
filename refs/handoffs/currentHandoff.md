@@ -14,47 +14,50 @@ tags: [nerve-center, handoff]
 - The manager/module boundary, durable work sessions and queue, provider-neutral LLM manager, Windows desktop/package baseline, career evidence profile, company-first Job Scout discovery, scoring, application tracking, and durable discovery learning are accepted foundations.
 - Job Scout remains an iterative market-research loop: `expand -> converge -> deepen -> reflect -> re-expand`. Discovery optimizes recall; ranking/scoring provides precision.
 - Issue #34 continuous-work/liveness is complete. The accepted 900-second run completed 89 cycles across 20 waves, retained 121 opportunities from 49 companies and 70 career sources, created 212 provisional scores, completed 3/3 bounded full analyses, continued through added and empty reflections, and stopped explicitly on request-budget exhaustion.
-- Issue #40 location awareness is complete in PR #42. Raw opening locations now feed deterministic, explainable location classification; ranking engine v4 invalidates stale engine scores for deterministic refresh; location-seeded discovery learns from location-conditioned opening yield instead of all downstream company openings; legacy contaminated location yield is neutralized; and review exposes scope counts, filters, badges, and rationale without hiding distant retained candidates.
-- Opening location, company-presence location, and discovery-strategy market evidence are separate concepts. A remote listing available in a region is not proof of a company office there, and an employer discovered by a local search does not make all of its national openings local yield.
+- Issue #40 location awareness is complete in PR #42. Raw opening locations feed deterministic, explainable location classification; ranking engine v4 refreshes stale deterministic scores; location-seeded discovery learns from location-conditioned opening yield; and review exposes scope counts, filters, badges, and rationale without hiding distant retained candidates.
+- Issue #43 source-aware discovery quality is complete in PR #44. Job Scout compiles bounded materially distinct query families by source capability, lints invalid search structures before request spend, tracks company/opening convergence separately from fit, computes explicit coverage gaps for reflection, prefers eligible structured refresh paths, and exposes a read-only discovery audit.
+- Opening location, company-presence location, and discovery-strategy market evidence remain separate concepts. A remote listing available in a region is not proof of a company office there, and an employer discovered by a local search does not make all of its national openings local yield.
 - Fit analysis contract v6 remains responsibility/evidence-first and derives explicit `direct`, `adjacent`, `transferable`, or `mismatch` domain relationships. Listed title remains a weak clue, not a fit gate.
 - Manager-owned Ollama routing uses `gemma3:4b` as the primary general model. Strict structured-output work may retry once on `qwen2.5:7b-instruct`; Job Scout remains model-blind.
 - The Windows source launcher validates a complete x64 Visual C++ environment before Tauri compilation and skips incomplete Visual Studio installations.
 - `scripts/run_job_scout_live.py` remains the reusable real-run diagnostic.
 - Coding-agent token conservation is a primary engineering concern. Use `scripts/agent_context.py` and progressive context loading instead of repository-wide rereads.
 
-## Accepted Issue #40 behavior
+## Accepted Issue #43 behavior
 
-Location awareness is now a first-class, deterministic product dimension:
+Source-aware discovery quality is now part of the durable Job Scout contract:
 
-- Persisted `location_text` and `locations` remain raw source truth and are interpreted against configured local/regional markets at score time.
-- Direct local/regional listing evidence changes location scope and therefore practical response/value scoring with reconstructable source rationale.
-- Ambiguous, nationwide, generic remote, mixed-country, and multi-location text does not manufacture false local certainty.
-- Stale pre-v4 scores are refreshed through the normal scoring service while reusing the existing full fit analysis; review does not require a new LLM analysis merely because location scoring changed.
-- Broad retention remains intact. Distant or unknown opportunities stay reviewable unless an explicit factual/user gate excludes them.
-- Discovery-learning keeps total retained openings for observability but uses location-conditioned opening yield when a strategy carries a location dimension.
-- Existing location-strategy opening counts created under the old attribution semantics are neutralized once so they can be relearned under the corrected contract.
-- The UI defaults to all retained opportunities and provides explicit `local`, `regional`, `local + regional`, `distant`, and `unknown` audit views.
+- Query portfolios are bounded and allocated across materially different families and source paths rather than multiplying superficial rewrites.
+- Initial hypothesis families include direct role, adjacent role, seniority variant, domain/capability, and employer archetype.
+- Broad web, ordinary site search, and structured ATS x-ray paths compile differently according to retrieval capability.
+- Greenhouse/Lever/Ashby-style x-ray strategies may defer geography to post-fetch structured evidence instead of wasting low-recall duplicate queries.
+- Deterministic query linting rejects missing/catch-all anchors, contradictory exclusions, unsupported invented technologies/requirements, and other known bad structures before network spend.
+- Company convergence from distinct strategies can raise company-revisit priority, but never alters opportunity fit. Opening convergence is retained for audit through existing source/job provenance and does not create duplicate score credit.
+- Coverage gaps are explicit across role, domain/capability, seniority, geography, work arrangement, employer archetype, source coverage, and query-family coverage.
+- Deterministic reflection targets those gaps first; manager-routed reflection receives the same bounded uncovered-space profile and proposed strategies still pass deterministic compilation before execution.
+- Direct structured source revisits receive a one-time initial preference only when source health is unknown and needs first verification or is known healthy. Known degraded, challenged, or blocked sources do not get a bonus merely because they are structured.
+- The discovery audit exposes hypothesis family, compiled query/source path, total and location-conditioned yield, warnings, overlap, coverage gaps, and before/after learned weight without creating an approval gate.
+- Issue #40 location-conditioned yield and broad-retention semantics remain intact because the location-aware loop extends the source-aware loop rather than replacing it.
 
 ## Next implementation slice
 
-Issue **#43: Add source-aware query portfolios and gap-driven reflection** is the next planned Job Scout slice.
+Issue **#45: Normalize qualification importance in Job Scout fit scoring** is the next planned Job Scout slice.
 
-The goal is to improve the information value of each discovery experiment without replacing company-first discovery, narrowing recall into title matching, or making the LLM the sole judge of search quality.
+The current analyzer selects up to eight decision-relevant job requirements/responsibilities and validates matches against persisted career evidence, but coverage still averages items equally within the broad `required`, `responsibility`, and `preferred` buckets. That can let several peripheral matches offset a missed central requirement too easily.
 
-Implement as one coherent discovery-quality slice:
+Implement as one coherent ranking-quality slice:
 
-1. Compile bounded source-aware query portfolios rather than sending one universal query shape everywhere.
-2. Generate materially different hypothesis families such as direct role/title family, adjacent role family, seniority variant, domain/capability angle, and employer-archetype angle.
-3. Add deterministic query linting before network spend for self-defeating exclusions, catch-all title groups, invented constraints/technologies, duplicate constraints, and source-specific structures known to collapse recall.
-4. Preserve cross-strategy overlap provenance. Convergence from distinct strategies should increase confidence that a company/source deserves deepening, not inflate opportunity fit or duplicate scoring credit.
-5. Make coverage gaps first-class across role, domain, seniority, geography, work arrangement, employer archetype, and source coverage; feed that bounded gap profile into manager-routed reflection.
-6. Prefer cheap authoritative structured refresh once a healthy direct Greenhouse, Lever, Ashby, sitemap, feed, or equivalent source is known, while broad search continues exploring unknown employers.
-7. Expose strategy hypotheses, compiled queries, total/conditioned yield, warnings, overlap, coverage gaps, and weight changes for audit without requiring approval for normal unattended sessions.
+1. Represent job-side decision importance separately from candidate match strength and from the factual required/responsibility/preferred category.
+2. Derive importance conservatively from explicit job language and bounded structured analysis, with deterministic normalization and no candidate-strength feedback loop.
+3. Weight required and responsibility coverage by normalized decision importance; preferred items remain lower influence.
+4. Deduplicate materially equivalent qualification phrasings so repeated bullets cannot manufacture fit.
+5. Preserve explicit license/clearance gates as gates rather than turning ordinary weighted mismatches into hidden exclusions.
+6. Expose weighted coverage inputs and rationale in score factors and version contracts as needed.
+7. Add realistic ordering regressions where central evidence beats many peripheral matches while title weakness and domain ordering remain unchanged.
 
 ## Deferred follow-up
 
-- Per-fetch request-budget admission/recovery hardening remains available if later live evidence shows batch-level overrun is operationally harmful.
-- Qualification-importance normalization and additional ranking-quality work remain valid after discovery-quality work is trustworthy.
+- Per-fetch request-budget admission/recovery hardening remains evidence-triggered if later live runs show batch-level overrun is operationally harmful.
 - People enrichment remains deferred; preserve seams but do not build a CRM inside Job Scout.
 - Firecrawl is not a core dependency while local parsing, caching, and source-health tracking cover the need.
 - Do not export career prompts/traces to LangSmith by default.
@@ -62,6 +65,7 @@ Implement as one coherent discovery-quality slice:
 ## Do not reopen without new evidence
 
 - Company-first discovery and the double-diamond loop.
+- Source-aware query portfolios, query linting, explicit coverage gaps, and convergence semantics from Issue #43.
 - Manager-owned provider/session/queue boundaries; modules remain model-blind.
 - `gemma3:4b` as the current Job Scout default local evaluator.
 - Separate discovery-learning and opportunity-ranking feedback loops.
@@ -71,14 +75,16 @@ Implement as one coherent discovery-quality slice:
 
 ## Coding-agent reset path
 
-For Issue #43, start with:
+For Issue #45, start with:
 
 ```powershell
-python scripts/agent_context.py --focus "job scout source aware query portfolio query lint coverage gaps reflection overlap structured refresh" --issue 43
+python scripts/agent_context.py --focus "job scout qualification importance weighted required responsibility coverage dedup fit response scoring" --issue 45
 ```
 
-Read the generated packet and Issue #43 first. Expand only to source/ref paths identified by the packet or direct implementation evidence. Do not reread repository history wholesale or re-derive accepted discovery, scoring, provider, scheduler, or location decisions.
+Read the generated packet and Issue #45 first. Expand only to source/ref paths identified by the packet or direct implementation evidence. Do not reread repository history wholesale or re-derive accepted discovery, provider, scheduler, domain, or location decisions.
 
 ## Validation boundary
 
-Run the required commands in `refs/testing/validationCommands.yaml`. CI must remain deterministic and independent of Ollama, GPUs, live job boards, and mutable career sites. After deterministic validation is green, use the live runner for a short diagnostic to inspect query diversity, coverage gaps, structured-source refresh choices, overlap evidence, and strategy-yield telemetry before another long run.
+Run the required commands in `refs/testing/validationCommands.yaml`. CI must remain deterministic and independent of Ollama, GPUs, live job boards, and mutable career sites.
+
+The Issue #43 closeout did not use a local live market run from the GitHub-connected environment. Before another long discovery run, a short local `scripts/run_job_scout_live.py` diagnostic remains useful to inspect real query diversity, gap targeting, overlap telemetry, and structured-source refresh choices; treat it as runtime observation, not permission to retune ranking without evidence.

@@ -27,6 +27,8 @@ The accepted discovery loop is:
 
 Issue #34 and PR #36 established the current runtime semantics: bounded discovery waves, prompt persistence, interleaved provisional and bounded full scoring, safe revisit cooldowns, paced no-work backoff, and explicit stop reasons. One empty reflection or one exhausted wave is not successful completion while productive work remains eligible.
 
+Issue #40 and PR #42 established deterministic location awareness while preserving broad retention. Issue #43 and PR #44 establish source-aware search portfolios, deterministic query linting, cross-strategy convergence, explicit coverage gaps, structured-source refresh preference, and a human-visible discovery audit.
+
 ## Expand
 
 Generate a portfolio of plausible strategies from:
@@ -46,6 +48,12 @@ Expansion should be deliberately liberal. False positives are acceptable because
 
 Search constraints must be source-aware. Do not mechanically put every user preference into every search query. A constraint that is reliable after retrieval but destructive to search recall should be applied to normalized results instead. Location, compensation, seniority, and technology terms may therefore be retrieval dimensions for some source types and post-retrieval evidence for others.
 
+Source-aware portfolio compilation must preserve materially different hypothesis families rather than superficial query rewrites. The accepted initial families are direct role, adjacent role, seniority variant, domain/capability, and employer archetype. Portfolio allocation is bounded and should give multiple source paths a chance to participate rather than allowing one broad-search family to consume the request budget first.
+
+Before network spend, deterministic query linting rejects structurally bad experiments such as contradictory exclusions, catch-all anchors, unsupported invented technologies or requirements, and other source-specific combinations known to collapse recall. Subjective LLM judgment is not a single-run execution gate.
+
+For structured ATS x-ray paths such as Greenhouse, Lever, and Ashby, reliable post-fetch fields may replace destructive query constraints. In particular, geography may be deferred to normalized opening evidence instead of being repeated in every x-ray query.
+
 ## Converge
 
 Allocate more effort to strategies that produce useful signal while preserving an exploration floor.
@@ -63,6 +71,8 @@ Useful signal includes:
 
 Raw result count alone is not enough. A strategy can be broadly productive but locally unproductive, or can discover a valuable employer even when the first listing itself is not a fit. Persist enough provenance to keep those distinctions available.
 
+When materially different strategies converge on the same employer, that convergence may raise the priority of employer/source deepening. When they converge on the same opening, retain the multi-strategy provenance for audit. Neither form of convergence changes opportunity fit truth or creates duplicate scoring credit.
+
 ## Deepen
 
 A board or search result is often evidence about an employer, not the end of discovery.
@@ -78,24 +88,17 @@ For a plausible employer, attempt to:
 
 Direct employer evidence should supersede copied aggregator evidence when both describe the same opening.
 
+Once a direct structured source is known, prefer a cheap authoritative refresh path without ending broad exploration of unknown employers. A newly discovered source with unknown health may receive one initial verification preference; a known healthy structured source remains eligible for preference. Known degraded, challenged, or blocked sources do not receive a discovery-quality bonus merely because they are structured. After the initial preference, observed source yield and health control normal learning.
+
 ## Reflect and re-expand
 
 When marginal discovery falls, Job Scout should ask what useful avenue has not yet been tried.
 
 Reflection may use deterministic heuristics and occasional manager-routed LLM work. It must consume bounded structured evidence rather than an unbounded career-history dump.
 
-Reflection evidence should increasingly include explicit coverage gaps, not only prior strategy yield. Useful gap dimensions include:
+Reflection evidence includes explicit requested-vs-observed coverage gaps across role/title family, responsibility or skill family, domain/capability, employer archetype, location/labor market, work arrangement, seniority, source/ATS coverage, and query-family coverage.
 
-- role/title family;
-- responsibility or skill family;
-- domain or employer archetype;
-- location/labor market;
-- remote/hybrid/on-site arrangement;
-- seniority;
-- source/ATS coverage;
-- companies with incomplete career-surface resolution.
-
-Reflection may then propose materially different search paths targeted at uncovered dimensions. Rewording the same query several times is not meaningful exploration.
+Deterministic reflection should first propose bounded strategies targeted at actual gaps. Manager-routed reflection receives the same explicit uncovered-space profile and may propose additional materially different strategies. Proposed LLM strategies still pass deterministic query compilation/linting before execution.
 
 An empty reflection still triggers a deliberate next-work decision from newly persisted companies/sources, due revisits, scoring backlog, cooldown eligibility, remaining budget, and explicit coverage gaps.
 
@@ -113,13 +116,13 @@ A strategy is a first-class durable Job Scout concept. It may include dimensions
 
 Strategy provenance must be strong enough to explain why work was attempted and why its future weight changed.
 
-Retain bounded telemetry such as attempts, results examined, employers discovered, sources resolved, postings inspected, unique openings retained, location-conditioned yield, relevant/high-ranking opportunities, user/outcome feedback, duplicate/noise rate, challenge/failure rate, last attempted/productive time, and current learned influence.
+Retain bounded telemetry such as attempts, results examined, employers discovered, sources resolved, postings inspected, unique openings retained, location-conditioned yield, relevant/high-ranking opportunities, user/outcome feedback, duplicate/noise rate, challenge/failure rate, last attempted/productive time, current learned influence, and before/after weight movement where available.
 
 A bandit or more sophisticated allocator is optional. Evidence-driven explore/exploit allocation with recency and an explicit exploration floor is required.
 
 ## Search-portfolio quality
 
-One logical search intent may be represented by several materially different query angles when the source supports it. Useful angles can include obvious titles, adjacent titles, seniority variants, technology-as-role forms, domain terms, and employer archetypes.
+One logical search intent may be represented by several materially different query angles when the source supports it. Useful angles can include obvious titles, adjacent titles, seniority variants, domain/capability terms, and employer archetypes.
 
 The strategy system should prefer diversity over superficial rewording. If two query strategies retrieve substantially the same result set, that is duplicate search effort and should reduce their independent value.
 
@@ -162,10 +165,11 @@ Do not defeat CAPTCHAs, use stealth fingerprinting, reuse authenticated personal
 
 The user must be able to distinguish a genuinely thin result set from a shallow search.
 
-Session reporting should expose useful coverage signals, including:
+Session reporting and the read-only discovery audit should expose useful signals, including:
 
 - waves/cycles completed;
 - strategies and public searches attempted;
+- hypothesis family and compiled query/source path;
 - results examined;
 - companies and career sources discovered;
 - known sources revisited;
@@ -173,31 +177,24 @@ Session reporting should expose useful coverage signals, including:
 - unique opportunities retained;
 - provisional/full scores completed during the window;
 - location-scope counts and location-conditioned strategy yield;
-- strategies promoted/down-weighted;
+- strategies promoted/down-weighted and before/after weight movement;
+- employer/opening overlap from materially distinct strategies;
 - explicit coverage gaps and reflection hypotheses;
 - source warnings/challenges;
 - current next-work decision and terminal reason;
 - consumed and remaining request/LLM budget where available.
 
-These are observability metrics, not quotas.
+These are observability metrics, not quotas. Ordinary unattended sessions remain autonomous; viewing strategy audit information does not create an approval step.
 
 ## Current implementation priority
 
-The iterative discovery/runtime foundation is accepted. The active correction is **Issue #40: Make Job Scout location-aware in scoring, discovery learning, and UI**.
+The discovery-quality foundation through Issue #43 is accepted. The next bounded ranking-quality slice is **Issue #45: Normalize qualification importance in Job Scout fit scoring**.
 
-Implement this as one coherent slice:
+That work should keep qualification importance as job-side evidence, separate from candidate match strength; weight required and responsibility coverage by decision importance rather than simple equal averaging; prevent duplicate qualification phrasing from inflating fit; preserve required > preferred influence, title weakness, domain ordering, factual gates, and evidence provenance; and expose the normalized weighted coverage in score factors.
 
-1. normalize persisted opening locations into structured, source-backed evidence using configured labor-market context;
-2. backfill/rescore existing opportunities deterministically when existing fit evidence remains valid;
-3. separate total discovery yield from location-conditioned yield so distant company-deepening results do not falsely reward local seed strategies;
-4. surface useful local/regional/remote/distant scope, counts, and filters in the Job Scout review UI;
-5. preserve broad retention and the exploration floor;
-6. add deterministic regressions and validate with a short live local-market diagnostic.
-
-Do not tune ranking weights to compensate for missing geography, and do not add an LLM location classifier for evidence that can be derived deterministically.
+Issue #45 is a ranking/fit refinement. It must not reopen company-first discovery, source-aware portfolio semantics, location evidence, or the manager-owned provider boundary without new evidence.
 
 ## Deferred work
 
-- Per-fetch request-budget admission/recovery hardening if later evidence shows batch-level overrun is operationally harmful.
-- Qualification-importance normalization and additional ranking refinements after location evidence is trustworthy.
+- Per-fetch request-budget admission/recovery hardening if later live evidence shows batch-level overrun is operationally harmful.
 - People enrichment and richer relationship intelligence; preserve external person/relationship seams for a future dedicated product instead of growing a CRM inside Job Scout.
