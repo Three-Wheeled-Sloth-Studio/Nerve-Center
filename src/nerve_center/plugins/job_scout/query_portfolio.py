@@ -7,7 +7,11 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from urllib.parse import urlparse
 
-from nerve_center.discovery.models import DiscoverySource, NormalizedJobOpening, SourceKind
+from nerve_center.discovery.models import (
+    DiscoverySource,
+    NormalizedJobOpening,
+    SourceKind,
+)
 from nerve_center.plugins.job_scout.discovery_learning import DiscoveryStrategySnapshot
 from nerve_center.plugins.job_scout.settings import clean_list
 from nerve_center.scoring.location import opening_matches_market
