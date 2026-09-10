@@ -37,11 +37,16 @@ def test_portfolio_compiles_materially_distinct_source_aware_families() -> None:
     portfolio = build_query_portfolio(
         target_titles=["Director of Product Management"],
         keywords=["data analytics", "workflow automation", "healthcare technology"],
-        locations=["Greensboro, NC"],
-        source_domains=["job-boards.greenhouse.io"],
-        limit=60,
+        locations=["Greensboro, NC", "Winston-Salem, NC", "Raleigh, NC"],
+        source_domains=[
+            "indeed.com",
+            "job-boards.greenhouse.io",
+            "jobs.lever.co",
+        ],
+        limit=16,
     )
     families = {item["hypothesis_family"] for item in portfolio}
+    domains = {item["source_domain"] for item in portfolio}
     compiled = [
         compile_strategy_query(
             item,
@@ -56,6 +61,9 @@ def test_portfolio_compiles_materially_distinct_source_aware_families() -> None:
     ]
 
     assert {"direct_role", "adjacent_role", "seniority_variant"}.issubset(families)
+    assert {"web", "indeed.com", "job-boards.greenhouse.io", "jobs.lever.co"}.issubset(
+        domains
+    )
     identities = {(item.source_path, item.query.casefold()) for item in compiled}
     assert len(identities) == len(compiled)
     greenhouse = [
@@ -65,8 +73,16 @@ def test_portfolio_compiles_materially_distinct_source_aware_families() -> None:
     ]
     assert greenhouse
     assert all("Greensboro" not in item.query for item in greenhouse)
+    assert all("jobs careers" not in item.query for item in greenhouse)
     assert all(item.source_path == "structured_ats_xray" for item in greenhouse)
-    assert source_capabilities("builtin.com").include_location is True
+    broad = next(
+        item
+        for dimensions, item in zip(portfolio, compiled, strict=True)
+        if dimensions["source_domain"] == "web"
+    )
+    assert "Greensboro" in broad.query
+    assert "jobs careers" in broad.query
+    assert source_capabilities("indeed.com").include_location is True
 
 
 def test_query_linter_rejects_contradictions_and_unsupported_requirements() -> None:
@@ -114,6 +130,8 @@ class _ConfigStore:
     def load(self) -> JobScoutConfiguration:
         return JobScoutConfiguration(
             target_titles=["Product Manager"],
+            locations=["Greensboro, NC"],
+            remote_preference="remote",
             manual_keywords=["analytics"],
             public_job_boards=[],
         )
@@ -182,6 +200,32 @@ def test_cross_strategy_convergence_promotes_deepening_not_fit(tmp_path: Path) -
     assert learning.get_strategy(revisit.id).learned_weight > 1.0
 
 
+def test_strategy_attempt_audit_records_weight_movement(tmp_path: Path) -> None:
+    learning = DiscoveryQualityRepository(_database(tmp_path))
+    strategy = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "direct_role",
+            "anchor": "Product Manager",
+            "source_domain": "web",
+        },
+        origin="test",
+    )
+
+    result = learning.record_attempt(
+        "run-1",
+        1,
+        strategy.id,
+        "deepen",
+        StrategyOutcome(results_examined=4, companies_discovered=1),
+    )
+    row = next(item for item in learning.discovery_audit()["strategies"] if item["id"] == strategy.id)
+
+    assert row["weight_before"] == 1.0
+    assert row["weight_after"] == round(result.learned_weight, 3)
+    assert row["weight_after"] > row["weight_before"]
+
+
 def test_structured_refresh_gets_one_time_initial_preference(tmp_path: Path) -> None:
     learning = DiscoveryQualityRepository(_database(tmp_path))
     strategy = learning.ensure_strategy(
@@ -197,6 +241,31 @@ def test_structured_refresh_gets_one_time_initial_preference(tmp_path: Path) -> 
     learned = learning.get_strategy(strategy.id)
     learning.promote_initial_structured_refresh(strategy.id, floor=1.8)
     assert learning.get_strategy(strategy.id).learned_weight == learned.learned_weight
+
+
+def test_due_structured_source_is_preferred_through_real_seeding_path(tmp_path: Path) -> None:
+    learning = DiscoveryQualityRepository(_database(tmp_path))
+    source = DiscoverySource(
+        id="greenhouse-1",
+        company_id="company-1",
+        name="Example Greenhouse",
+        kind=SourceKind.GREENHOUSE,
+        acquisition_class=AcquisitionClass.PUBLIC_STRUCTURED_FEED,
+        base_url="https://job-boards.greenhouse.io/example",
+        parser_version="greenhouse-v1",
+    )
+    loop = object.__new__(SourceAwareJobScoutDiscoveryLoop)
+    loop.learning = learning
+    loop.sources = SimpleNamespace(list_due=lambda: [source])
+
+    loop._seed_due_source_strategies()
+
+    strategy = next(
+        item
+        for item in learning.list_strategies()
+        if item.dimensions.get("source_id") == source.id
+    )
+    assert strategy.learned_weight == 1.35
 
 
 def test_coverage_gaps_are_explicit_and_bounded(tmp_path: Path) -> None:
@@ -249,3 +318,21 @@ def test_coverage_gaps_are_explicit_and_bounded(tmp_path: Path) -> None:
     assert gaps["geography"] == ["Greensboro, NC"]
     assert gaps["work_arrangement"] == ["remote"]
     assert "direct_role" in gaps["query_family"]
+
+
+def test_reflection_work_is_explicitly_gap_driven(tmp_path: Path) -> None:
+    learning = DiscoveryQualityRepository(_database(tmp_path))
+    learning.update_session("run-1", phase="reflect", cycle=3)
+    loop = object.__new__(SourceAwareJobScoutDiscoveryLoop)
+    loop.learning = learning
+    loop.coordinator = _Coordinator()
+    loop.jobs = SimpleNamespace(list=lambda active_only=False: [])
+    loop.sources = SimpleNamespace(list=lambda: [])
+
+    work = loop.reflection_work_request("run-1", 3)
+
+    assert work["requirements"]["contract_version"] == "job-scout-discovery-reflection-v2"
+    assert "Coverage gaps:" in work["payload"]["user_prompt"]
+    assert "Greensboro, NC" in work["payload"]["user_prompt"]
+    assert "remote" in work["payload"]["user_prompt"]
+    assert learning.session("run-1").coverage["coverage_gaps"]
