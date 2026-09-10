@@ -94,6 +94,25 @@ def test_near_duplicate_requirement_is_retained_but_not_double_counted() -> None
     assert responsibility_coverage(_analysis([required, duplicate])) == 0.5
 
 
+def test_duplicate_factual_gate_keeps_only_one_active_gate() -> None:
+    first = _qualification(
+        "clearance-1",
+        "Maintain active security clearance",
+        match=MatchLevel.NONE,
+    ).model_copy(update={"gate_category": GateCategory.CLEARANCE})
+    duplicate = _qualification(
+        "clearance-2",
+        "Maintain security clearance",
+        match=MatchLevel.NONE,
+    ).model_copy(update={"gate_category": GateCategory.CLEARANCE})
+
+    normalized = normalize_qualifications([first, duplicate])
+
+    assert sum(item.gate_category is GateCategory.CLEARANCE for item in normalized) == 1
+    suppressed = next(item for item in normalized if item.duplicate_of is not None)
+    assert suppressed.gate_category is GateCategory.NONE
+
+
 def test_critical_match_outweighs_multiple_peripheral_matches() -> None:
     critical = _qualification(
         "critical",
