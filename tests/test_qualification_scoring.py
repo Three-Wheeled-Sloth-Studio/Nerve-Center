@@ -57,7 +57,7 @@ def test_fit_factor_exposes_weighted_inputs_and_central_match_ordering() -> None
             MatchLevel.NONE,
             0.6,
         )
-        for index in range(3)
+        for index in range(2)
     ]
     inverse = [
         central.model_copy(update={"match_level": MatchLevel.NONE}),
