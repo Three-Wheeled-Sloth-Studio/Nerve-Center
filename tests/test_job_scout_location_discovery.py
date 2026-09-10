@@ -17,7 +17,11 @@ from nerve_center.discovery.models import (
 from nerve_center.discovery.search import SearchResult, UrlClassification
 from nerve_center.discovery.service import ConnectorRegistry, DiscoveryService
 from nerve_center.persistence.database import Database
-from nerve_center.persistence.discovery import CompanyRepository, DiscoverySourceRepository, JobOpeningRepository
+from nerve_center.persistence.discovery import (
+    CompanyRepository,
+    DiscoverySourceRepository,
+    JobOpeningRepository,
+)
 from nerve_center.plugins.job_scout.configuration import JobScoutCoordinator
 from nerve_center.plugins.job_scout.discovery_learning import (
     JobScoutDiscoveryRepository,
@@ -93,7 +97,14 @@ class _NoExtraSurfaces:
         return []
 
 
-def _build(tmp_path: Path) -> tuple[LocationAwareJobScoutDiscoveryLoop, JobScoutDiscoveryRepository, JobOpeningRepository, Database]:
+def _build(
+    tmp_path: Path,
+) -> tuple[
+    LocationAwareJobScoutDiscoveryLoop,
+    JobScoutDiscoveryRepository,
+    JobOpeningRepository,
+    Database,
+]:
     settings = Settings(data_dir=tmp_path / "runtime")
     database = Database(settings)
     database.initialize()
@@ -164,7 +175,11 @@ def test_legacy_location_strategy_opening_credit_is_neutralized_before_relearnin
 ) -> None:
     _loop, learning, _jobs, _database = _build(tmp_path)
     strategy = learning.ensure_strategy(
-        {"kind": "public_search", "anchor": "Product Manager", "location": "Greensboro, NC"},
+        {
+            "kind": "public_search",
+            "anchor": "Product Manager",
+            "location": "Greensboro, NC",
+        },
         origin="legacy-test",
     )
     learning.record_attempt(
