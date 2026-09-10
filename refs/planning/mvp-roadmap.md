@@ -11,9 +11,9 @@ tags: [nerve-center, planning, roadmap]
 
 ## Accepted baseline through 0.12.4
 
-The repository contains a working local API, durable SQLite foundation, manager-owned scheduling and work queues, provider-neutral local LLM routing, the Job Scout reference workflow, a Tauri/React desktop shell, Windows packaging/runtime bootstrap, and an iterative company-first discovery/scoring loop.
+The repository contains a working local API, durable SQLite foundation, manager-owned scheduling and work queues, provider-neutral local LLM routing, the Job Scout reference workflow, a Tauri/React desktop shell, Windows packaging/runtime bootstrap, an iterative company-first discovery/scoring loop, and the first manager-owned Model Lab foundation.
 
-The reusable manager/module boundary is established. Job Scout remains the reference module for validating those contracts while the core roadmap resumes with Model Lab.
+The reusable manager/module boundary is established. Job Scout remains the reference module for validating those contracts. Model Lab now has its first durable local evaluation seams, and the immediate Job Scout checkpoint is a short real-world acceptance run before an unattended soak.
 
 ## Increment 7: Core and module boundary (implemented)
 
@@ -150,21 +150,25 @@ Calibration is intentionally bounded rather than nonlinear: central evidence sho
 
 Per-fetch request-budget admission remains a possible Job Scout hardening follow-up if later live evidence shows batch-level overrun is operationally harmful. People enrichment remains deferred.
 
-## Increment 12: Model Lab
+## Increment 12: Model Lab foundation (implemented)
 
-Issue **#47: Add Model Lab foundation and local benchmark corpus** is the immediate roadmap slice.
+Issue **#47: Add Model Lab foundation and local benchmark corpus** is implemented in PR #48.
 
-The provider-neutral manager already supplies the accepted foundation: installed-model discovery, durable provider/model metadata, task-specific production evidence, schema validation, model-blind production requests, and manager-owned selection. Build Model Lab on those seams rather than creating a parallel provider stack.
+The accepted provider-neutral manager remains the production authority. Model Lab extends those seams rather than creating a parallel provider stack.
 
-### Issue #47 foundation slice
+Accepted foundation behavior:
 
-1. Add a manager-owned, toggleable Model Lab service/API contract over the existing model catalog and production task evidence.
-2. Retain eligible completed model-blind requests/results as a deduplicated local benchmark corpus with module/request opt-out and secret-safe provenance.
-3. Support bounded replay of a corpus item against a selected installed model through a manager-owned experimental path.
-4. Persist benchmark attempts/results separately from production routing evidence so experiments cannot silently change normal model selection.
-5. Add an explicit exploration-session budget/window outside module priority. Normal module work retains precedence; exploration may use otherwise idle capacity.
-6. Expose a minimal read-only Model Lab UI for installed models, empirical production evidence, corpus eligibility/counts, exploration state, and benchmark history.
-7. Keep corpus and benchmark data local by default and keep CI deterministic with provider fixtures.
+1. Manager-owned Model Lab settings, benchmark corpus, exploration sessions, and benchmark results persist locally in additive schema v11.
+2. Eligible completed model-blind requests/results can be harvested lazily and idempotently into a deduplicated local benchmark corpus, including after restart.
+3. Corpus capture supports request-level and module-level opt-out and redacts credential-like retained values while preserving replay-critical schemas and provenance.
+4. A benchmark item can be replayed against a selected installed model through a manager-owned exact-model experimental path.
+5. Experimental benchmark outcomes are stored separately from production `TaskModelEvidence` and do not alter the production loaded-model state.
+6. Exploration sessions are bounded by explicit duration and attempt ceilings.
+7. Benchmark replay is refused while production LLM work is queued or claimed, preserving normal module precedence.
+8. Read-only manager API/UI state exposes installed models, empirical production evidence, corpus state, exploration state, benchmark outcomes, and production queue state.
+9. Model Lab remains local-first and deterministic CI does not require Ollama, GPUs, live models, cloud telemetry, or public benchmark scraping.
+
+PR #48 exact head `8119e5cf577fa1f1d19ce8afe7fdbf4740ac864d` passed CI run `34502474954` / #250 with 192 Python tests and green desktop-web/desktop-rust jobs. Windows package run `34502474968` / #134 also passed packaged-backend health, Job Scout workspace and managed-runtime smoke, NSIS build, output verification, and artifact upload. PR #48 merged to `dev` as `fdca1c1075f3d1bfb2e8b79d7644abfa2fdbbed1`.
 
 ### Later Model Lab slices
 
@@ -174,6 +178,20 @@ The provider-neutral manager already supplies the accepted foundation: installed
 - Reuse historical real requests for comparison across newly installed models.
 - Add simple blinded pairwise A/B review using a Likert preference scale.
 - Define evidence thresholds for when benchmark results may influence production routing; never promote a model from one experimental run.
+
+## Job Scout short live acceptance before unattended soak (active gate)
+
+Issue **#49: Run Job Scout short live acceptance before unattended soak** is the immediate checkpoint.
+
+This is not another feature-development increment. It is a bounded 15-30 minute real-world observation gate using `scripts/run_job_scout_live.py` against the accepted #40/#43/#45 behavior and the current manager runtime.
+
+The gate should verify that materially different query families survive actual source execution, coverage gaps produce useful re-expansion, structured ATS refresh choices remain sensible, location-conditioned yield is truthful, deterministic score reinterpretation avoids unnecessary LLM work, reflection stays bounded, scoring does not starve discovery, queue/resource accounting remains stable, source degradation/cooldown behavior is visible, and the durable report is sufficient to explain failure.
+
+If no operational blocker is demonstrated, proceed directly to a **4-8 hour unattended Job Scout soak** on the same accepted code and configuration. Do not insert another feature slice merely because optional ranking or query tuning opportunities are visible.
+
+Block the soak only for demonstrated liveness/accounting/attribution/explainability defects such as uncontrolled resource growth, queue deadlock or sustained unhealthy buildup, scoring starvation, premature unexplained termination, materially wrong local-yield attribution, repetitive unbounded reflection/strategy collapse, or insufficient durable diagnostics.
+
+Expected throttles/challenges with correct cooldown behavior, distant roles retained for broad recall, isolated low-yield query families, bounded fallback-model use, and noncritical ranking-quality observations are not by themselves blockers. The previously observed small batch-level request-count discrepancy remains evidence-triggered hardening, not an automatic stop condition.
 
 ## Increment 13: Attention, safety, and connectors
 
