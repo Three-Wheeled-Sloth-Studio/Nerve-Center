@@ -40,6 +40,73 @@ export interface DiscoveryAudit {
   strategies: DiscoveryAuditStrategy[];
 }
 
+export interface ModelLabEvidence {
+  provider: string;
+  model: string;
+  attempts: number;
+  success_rate: number;
+  schema_valid_rate: number;
+  acceptance_rate: number | null;
+  average_duration_ms: number;
+}
+
+export interface ModelLabOverview {
+  settings: {
+    enabled: boolean;
+    capture_enabled: boolean;
+    excluded_modules: string[];
+    updated_at: string;
+  };
+  models: Array<{
+    provider: string;
+    model: string;
+    label: string;
+    family: string | null;
+    parameter_size: string | null;
+    quantization: string | null;
+    installed: boolean;
+    capabilities: Record<string, unknown>;
+    hardware_fit: Record<string, unknown>;
+    last_seen_at: string;
+  }>;
+  task_evidence: Record<string, ModelLabEvidence[]>;
+  corpus_count: number;
+  corpus: Array<{
+    id: string;
+    module_id: string;
+    task_id: string;
+    contract_version: string;
+    production_provider: string | null;
+    production_model: string | null;
+    created_at: string;
+  }>;
+  exploration_session: {
+    id: string;
+    status: string;
+    starts_at: string;
+    ends_at: string;
+    max_attempts: number;
+    attempts_used: number;
+    created_at: string;
+    finished_at: string | null;
+  } | null;
+  benchmark_results: Array<{
+    id: string;
+    corpus_id: string;
+    session_id: string;
+    provider: string;
+    model: string;
+    status: string;
+    schema_valid: boolean | null;
+    duration_ms: number;
+    output: Record<string, unknown> | unknown[] | null;
+    error_code: string | null;
+    provider_call_id: string | null;
+    created_at: string;
+  }>;
+  production_queue: QueueStatusRecord;
+}
+
 const API_BASE = import.meta.env.VITE_NERVE_CENTER_API ?? "http://127.0.0.1:8765";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -145,6 +212,9 @@ export function getJobScoutWorkspace() {
 }
 export function getJobScoutDiscoveryAudit() {
   return request<DiscoveryAudit>("/api/v1/modules/job_scout/discovery/audit");
+}
+export function getModelLab() {
+  return request<ModelLabOverview>("/api/v1/model-lab");
 }
 export function saveJobScoutConfiguration(configuration: JobScoutConfiguration) {
   return request<JobScoutWorkspace>("/api/v1/modules/job_scout/config", {
