@@ -299,6 +299,7 @@ def test_coverage_gaps_are_explicit_and_bounded(tmp_path: Path) -> None:
         work_arrangement=WorkArrangement.ON_SITE,
         source_url="https://example.com/jobs/1",
         canonical_url="https://example.com/jobs/1",
+        provenance=[],
     )
     source = DiscoverySource(
         id="source-1",
