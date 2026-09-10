@@ -42,7 +42,10 @@ from nerve_center.domain.work_queue import (
     WorkRequestNotFoundError,
     WorkRequestStatus,
 )
+from nerve_center.model_lab.api import register_model_lab_routes
+from nerve_center.model_lab.service import ModelLabService
 from nerve_center.persistence.database import Database
+from nerve_center.persistence.model_lab import ModelLabRepository
 from nerve_center.persistence.modules import ModuleNotFoundError, ModuleRepository
 from nerve_center.persistence.providers import ModelEvidenceRepository, ProviderCallRepository
 from nerve_center.persistence.runs import RunRepository
@@ -83,6 +86,7 @@ def create_app(
     module_repository = ModuleRepository(database)
     session_repository = SessionRepository(database)
     model_evidence = ModelEvidenceRepository(database)
+    model_lab_repository = ModelLabRepository(database)
     work_queue = WorkQueueService(
         WorkQueueRepository(database), model_evidence=model_evidence
     )
@@ -104,6 +108,12 @@ def create_app(
         runtime_provider = provider_manager
     elif isinstance(runtime_provider, JsonProvider):
         provider_manager = ProviderManager((runtime_provider,), evidence=model_evidence)
+    model_lab = ModelLabService(
+        model_lab_repository,
+        model_evidence,
+        provider_manager,
+        work_queue,
+    )
     registry = TaskRegistry()
     registry.register(SyntheticTaskPlugin())
 
@@ -184,7 +194,9 @@ def create_app(
     application.state.work_sessions = work_sessions
     application.state.work_queue = work_queue
     application.state.provider_manager = provider_manager
+    application.state.model_lab = model_lab
     register_runtime_routes(application, module_supervisor)
+    register_model_lab_routes(application, model_lab)
 
     def queue_error(error: Exception) -> HTTPException:
         if isinstance(error, (WorkRequestNotFoundError, WorkAttemptNotFoundError)):

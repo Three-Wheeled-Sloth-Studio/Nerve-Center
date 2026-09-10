@@ -46,10 +46,11 @@ import type {
 import { HomePanel, ManagerSettings, QueuePanel, SchedulePanel } from "./CorePanels";
 import { DiscoveryAuditPanel } from "./DiscoveryAuditPanel";
 import { JobScoutPanel } from "./JobScoutPanel";
+import { ModelLabPanel } from "./ModelLabPanel";
 import { messageOf, remaining, titleCase } from "./display";
 import "./module.css";
 
-type CoreTab = "home" | "schedule" | "queue" | "settings";
+type CoreTab = "home" | "schedule" | "queue" | "lab" | "settings";
 type View = { kind: "core"; tab: CoreTab } | { kind: "module"; moduleId: string };
 type SortKey = "priority" | "response" | "fit" | "freshness";
 
@@ -154,14 +155,14 @@ export default function App() {
       </header>
 
       <nav className="tabs" aria-label="Primary">
-        {(["home", "schedule", "queue", "settings"] as CoreTab[]).map((tab) => (
+        {(["home", "schedule", "queue", "lab", "settings"] as CoreTab[]).map((tab) => (
           <button
             key={tab}
             type="button"
             className={view.kind === "core" && view.tab === tab ? "tab active" : "tab"}
             onClick={() => setView({ kind: "core", tab })}
           >
-            {titleCase(tab)}
+            {tab === "lab" ? "Model Lab" : titleCase(tab)}
           </button>
         ))}
         {selectedModule ? (
@@ -197,6 +198,7 @@ export default function App() {
         {view.kind === "core" && view.tab === "queue" ? (
           <QueuePanel requests={requests} status={queueStatus} onRefresh={refresh} onError={setError} />
         ) : null}
+        {view.kind === "core" && view.tab === "lab" ? <ModelLabPanel /> : null}
         {view.kind === "core" && view.tab === "settings" ? (
           <ManagerSettings modules={modules} />
         ) : null}
