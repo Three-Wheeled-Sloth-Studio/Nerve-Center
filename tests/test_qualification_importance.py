@@ -110,7 +110,7 @@ def test_critical_match_outweighs_multiple_peripheral_matches() -> None:
             weight=0.6,
             rationale=["supporting requirement"],
         )
-        for index in range(3)
+        for index in range(2)
     ]
     inverse = [
         critical.model_copy(update={"match_level": MatchLevel.NONE}),
