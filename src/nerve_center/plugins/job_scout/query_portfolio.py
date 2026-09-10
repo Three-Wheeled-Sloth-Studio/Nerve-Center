@@ -16,7 +16,6 @@ from nerve_center.plugins.job_scout.discovery_learning import DiscoveryStrategyS
 from nerve_center.plugins.job_scout.settings import clean_list
 from nerve_center.scoring.location import opening_matches_market
 
-
 GENERIC_TITLE_TERMS = {
     "chief",
     "director",
