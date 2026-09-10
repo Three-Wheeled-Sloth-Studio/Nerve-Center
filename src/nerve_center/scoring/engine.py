@@ -35,7 +35,7 @@ from nerve_center.scoring.models import (
     ScoringSettings,
 )
 
-SCORING_ENGINE_VERSION = "job-scout-ranking-v3"
+SCORING_ENGINE_VERSION = "job-scout-ranking-v4"
 
 
 class OpportunityScorer:
@@ -61,6 +61,8 @@ class OpportunityScorer:
             job_location=job_enrichment,
             company=company_enrichment,
             preferences=location_preferences,
+            listing_locations=[opening.location_text or "", *opening.locations],
+            listing_evidence=[item.source_url for item in opening.provenance],
         )
         fit, required, preferred = _fit_score(fit_analysis, factors)
         if target_title_alignment is not None:
