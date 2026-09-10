@@ -75,7 +75,13 @@ All weights, thresholds, gates, and multipliers are configurable.
 5. Distant remote.
 6. Relocation required: excluded.
 
-Local means an estimated drive of up to 90 minutes. Commute contribution decays continuously with time. Remote jobs receive a presence adjustment based on the nearest relevant company office and evidence that the employer genuinely hires distributed teams.
+Local means an estimated drive of up to 90 minutes when coordinate or commute evidence exists. Commute contribution decays continuously with time. Remote jobs receive a presence adjustment based on the nearest relevant company office and evidence that the employer genuinely hires distributed teams.
+
+When explicit structured job-location enrichment is absent, scoring must deterministically interpret the opening's persisted `location_text` and `locations` against configured local-market preferences. Exact configured-city evidence may establish local scope; a recognized configured region may establish regional scope; explicit foreign, out-of-region, or remote-only evidence may establish distant scope. Raw source text is preserved on the opening, and the scoring rationale retains the matched label plus its listing source so the classification remains reconstructable.
+
+Structured job enrichment remains more authoritative than fallback listing-text interpretation. Listing location evidence and company-presence evidence are separate facts: a role being available in a market does not prove the employer has a physical office there, and an employer office does not rewrite the listing's stated location. Remote or multi-location strings such as `Remote - US`, mixed-country remote labels, and `City A OR City B` must be handled conservatively without substring-based state-code inference.
+
+A scoring-engine version change that only changes deterministic location interpretation may backfill existing score history from persisted opening, profile, fit, company, and job evidence. It must not require another LLM fit analysis when the existing fit contract remains valid.
 
 ## Hard gates
 
@@ -87,6 +93,8 @@ Initial gates may exclude or explicitly flag:
 - Excluded employment types.
 - Hard-excluded companies, domains, titles, industries, locations, or sources.
 
+Geography must not be applied as an invisible pre-review deletion rule. Broadly discovered opportunities remain retained unless an explicit factual gate excludes pursuit. The review UI may filter by scored location scope, but filtering is a user-visible view operation rather than destructive discovery behavior.
+
 ## Explainability
 
 Every score must provide:
@@ -96,3 +104,4 @@ Every score must provide:
 - Missing or uncertain evidence.
 - The contract and model versions used.
 - Any user rule or learned positioning hypothesis that affected the result.
+- The location rationale and source evidence used for local, regional, distant, or unknown classification.
