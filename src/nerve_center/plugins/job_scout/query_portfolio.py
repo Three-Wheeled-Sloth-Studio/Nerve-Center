@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, Iterable
 from urllib.parse import urlparse
 
 from nerve_center.discovery.models import DiscoverySource, NormalizedJobOpening, SourceKind
@@ -375,11 +375,10 @@ def build_coverage_gap_profile(
             for item in strategies
         ]
     )
-    observed_domains = {_clean_domain(item.base_url) for item in sources}
     gaps["source"] = [
         item
         for item in configured_domains
-        if item not in {"", "web"} and item not in observed_domains
+        if item not in {"", "web"} and not _source_domain_observed(item, sources)
     ][:6]
 
     productive_families = {
@@ -409,6 +408,19 @@ def preferred_structured_source_ids(sources: list[DiscoverySource]) -> set[str]:
         for item in sources
         if item.enabled and item.kind in STRUCTURED_SOURCE_KINDS
     }
+
+
+def _source_domain_observed(domain: str, sources: list[DiscoverySource]) -> bool:
+    source_kind = None
+    if domain == "greenhouse.io" or domain.endswith(".greenhouse.io"):
+        source_kind = SourceKind.GREENHOUSE
+    elif domain == "lever.co" or domain.endswith(".lever.co"):
+        source_kind = SourceKind.LEVER
+    elif domain == "ashbyhq.com" or domain.endswith(".ashbyhq.com"):
+        source_kind = SourceKind.ASHBY
+    if source_kind is not None and any(item.kind is source_kind for item in sources):
+        return True
+    return any(_clean_domain(item.base_url) == domain for item in sources)
 
 
 def _adjacent_anchors(
