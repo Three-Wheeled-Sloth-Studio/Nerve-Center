@@ -307,4 +307,4 @@ def test_target_title_alignment_is_only_a_weak_visible_fit_clue() -> None:
     assert unrelated.priority < aligned.priority
     assert any(item.code == "target_title_alignment" for item in unrelated.factors)
     assert unrelated.calculation["target_title_alignment"] == 0.0
-    assert unrelated.calculation["scoring_engine_version"] == "job-scout-ranking-v4"
+    assert unrelated.calculation["scoring_engine_version"] == "job-scout-ranking-v5"
