@@ -44,6 +44,7 @@ import type {
   WorkRequestRecord,
 } from "./types";
 import { HomePanel, ManagerSettings, QueuePanel, SchedulePanel } from "./CorePanels";
+import { DiscoveryAuditPanel } from "./DiscoveryAuditPanel";
 import { JobScoutPanel } from "./JobScoutPanel";
 import { messageOf, remaining, titleCase } from "./display";
 import "./module.css";
@@ -200,23 +201,26 @@ export default function App() {
           <ManagerSettings modules={modules} />
         ) : null}
         {view.kind === "module" && view.moduleId === "job_scout" ? (
-          <JobScoutPanel
-            workspace={jobScout}
-            opportunities={opportunities}
-            rules={rules}
-            scoringSettings={scoringSettings}
-            location={location}
-            sort={sort}
-            includeDismissed={includeDismissed}
-            scanSummary={scanSummary}
-            busy={busy}
-            onBusy={setBusy}
-            onSort={setSort}
-            onIncludeDismissed={setIncludeDismissed}
-            onScanSummary={setScanSummary}
-            onRefresh={refresh}
-            onError={setError}
-          />
+          <>
+            <JobScoutPanel
+              workspace={jobScout}
+              opportunities={opportunities}
+              rules={rules}
+              scoringSettings={scoringSettings}
+              location={location}
+              sort={sort}
+              includeDismissed={includeDismissed}
+              scanSummary={scanSummary}
+              busy={busy}
+              onBusy={setBusy}
+              onSort={setSort}
+              onIncludeDismissed={setIncludeDismissed}
+              onScanSummary={setScanSummary}
+              onRefresh={refresh}
+              onError={setError}
+            />
+            <DiscoveryAuditPanel />
+          </>
         ) : null}
       </main>
 
@@ -226,4 +230,3 @@ export default function App() {
     </div>
   );
 }
-
