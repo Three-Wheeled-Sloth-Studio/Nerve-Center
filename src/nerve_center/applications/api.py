@@ -13,7 +13,6 @@ from nerve_center.applications.models import (
     ApplicationUpdate,
     ReviewOpportunity,
 )
-from nerve_center.discovery.models import NormalizedJobOpening, WorkArrangement
 from nerve_center.persistence.applications import ApplicationRepository
 from nerve_center.persistence.database import Database
 from nerve_center.persistence.discovery import CompanyRepository, JobOpeningRepository
@@ -69,8 +68,6 @@ def register_application_routes(
         items: list[ReviewOpportunity] = []
         configuration = configuration_store.load() if configuration_store else None
         for opening in jobs.list(active_only=False):
-            if configuration and not _matches_review_geography(opening, configuration.locations):
-                continue
             record = applications.get_or_default(opening.id)
             if not include_dismissed and record.status is ApplicationStatus.DISMISSED:
                 continue
@@ -114,30 +111,6 @@ def register_application_routes(
         return items[:limit]
 
     return applications
-
-
-def _matches_review_geography(
-    opening: NormalizedJobOpening, configured_locations: list[str]
-) -> bool:
-    if opening.work_arrangement is WorkArrangement.REMOTE:
-        return True
-    if not configured_locations:
-        return True
-    location = " ".join([opening.location_text or "", *opening.locations]).casefold()
-    aliases: set[str] = set()
-    for configured in configured_locations:
-        city = configured.split(",", 1)[0].strip().casefold()
-        if city == "triad":
-            aliases.update({"greensboro", "winston-salem", "winston salem", "high point"})
-        elif city:
-            aliases.add(city)
-    if any(alias in location for alias in aliases):
-        return True
-    if opening.work_arrangement in {WorkArrangement.HYBRID, WorkArrangement.ON_SITE}:
-        return False
-    normalized = location.strip(" ,;")
-    nationwide = {"", "usa", "united states", "united states of america"}
-    return normalized in nationwide or "remote" in normalized
 
 
 def _require_job(repository: JobOpeningRepository, job_id: str) -> None:
