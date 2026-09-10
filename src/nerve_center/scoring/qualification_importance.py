@@ -110,7 +110,14 @@ def normalize_qualifications(
             duplicate_of[index] = normalized[duplicate].id
 
     return [
-        item.model_copy(update={"duplicate_of": duplicate_of.get(index)})
+        item.model_copy(
+            update={
+                "duplicate_of": duplicate_of.get(index),
+                "gate_category": (
+                    GateCategory.NONE if index in duplicate_of else item.gate_category
+                ),
+            }
+        )
         for index, item in enumerate(normalized)
     ]
 
