@@ -10,7 +10,6 @@ from typing import Any
 
 from jsonschema import SchemaError, ValidationError, validate
 
-from nerve_center.domain.work_queue import WorkRequestStatus
 from nerve_center.persistence.model_lab import (
     BenchmarkCorpusItem,
     BenchmarkResultSnapshot,
@@ -24,7 +23,9 @@ from nerve_center.providers.errors import ProviderError
 from nerve_center.providers.manager import ProviderManager
 from nerve_center.scheduler.work_queue import WorkQueueService
 
-_SECRET_KEY = re.compile(r"(api[_-]?key|token|password|credential|secret)", re.IGNORECASE)
+_SECRET_KEY = re.compile(
+    r"(api[_-]?key|token|password|credential|secret)", re.IGNORECASE
+)
 _SECRET_ASSIGNMENT = re.compile(
     r"(?i)\b(api[_-]?key|token|password|secret)\s*[:=]\s*([^\s,;]+)"
 )
@@ -91,7 +92,9 @@ class ModelLabService:
                 continue
             safe_system = _redact_text(system_prompt)
             safe_user = _redact_text(user_prompt)
-            safe_schema = _redact_value(item.output_contract)
+            # JSON schema is structural contract data, not a credential value. Preserve it
+            # exactly so a property named "token" or "secret" does not break replay.
+            safe_schema = dict(item.output_contract)
             safe_requirements = _safe_requirements(item.requirements)
             safe_output = _redact_value(expected_output)
             fingerprint = _fingerprint(
@@ -291,7 +294,9 @@ def _redact_value(value: Any) -> Any:
 
 
 def _redact_text(value: str) -> str:
-    redacted = _SECRET_ASSIGNMENT.sub(lambda match: f"{match.group(1)}=[REDACTED]", value)
+    redacted = _SECRET_ASSIGNMENT.sub(
+        lambda match: f"{match.group(1)}=[REDACTED]", value
+    )
     return _BEARER.sub("Bearer [REDACTED]", redacted)
 
 
