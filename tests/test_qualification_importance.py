@@ -61,7 +61,22 @@ def test_explicit_job_language_bounds_model_hint_and_controls_weight() -> None:
     assert normalized[0].decision_weight == 1.45
     assert normalized[1].decision_weight == 0.7
     assert any("must/minimum" in item for item in normalized[0].decision_weight_rationale)
-    assert any("nice-to-have" in item for item in normalized[1].decision_weight_rationale)
+    assert any("optional/preferred" in item for item in normalized[1].decision_weight_rationale)
+
+
+def test_model_authored_requirement_label_cannot_manufacture_source_importance() -> None:
+    item = _qualification(
+        "invented-label",
+        "Critical requirement: Own product strategy",
+        excerpt="Own product strategy for the platform.",
+    )
+
+    normalized = normalize_qualifications([item])
+
+    assert normalized[0].decision_weight == 1.0
+    assert normalized[0].decision_weight_rationale == [
+        "No explicit centrality cue; neutral job-side decision weight retained."
+    ]
 
 
 def test_near_duplicate_requirement_is_retained_but_not_double_counted() -> None:
