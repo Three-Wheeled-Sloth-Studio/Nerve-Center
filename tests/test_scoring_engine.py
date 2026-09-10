@@ -120,6 +120,29 @@ def test_closer_local_role_has_higher_response_score() -> None:
     assert close.response_likelihood > far.response_likelihood
 
 
+def test_raw_listing_location_classifies_local_without_llm_enrichment() -> None:
+    result = _score(
+        job=JobEnrichment(job_id="job-1"),
+        preferences=LocationPreferences(local_markets=["Greensboro, NC"]),
+    )
+
+    assert result.location.scope is LocationScope.LOCAL
+    assert result.location.location_score == 100.0
+    assert any("Greensboro, NC" in item for item in result.location.rationale)
+    assert any("https://example.com/jobs/1" in item for item in result.location.rationale)
+
+
+def test_raw_listing_region_classifies_regional_without_manual_home_region() -> None:
+    opening = _opening().model_copy(update={"location_text": "Winston-Salem, NC"})
+    result = _score(
+        opening=opening,
+        job=JobEnrichment(job_id="job-1"),
+        preferences=LocationPreferences(local_markets=["Greensboro, NC"]),
+    )
+
+    assert result.location.scope is LocationScope.REGIONAL
+
+
 def test_distant_remote_penalty_requires_exceptional_match() -> None:
     opening = _opening(
         arrangement=WorkArrangement.REMOTE,
@@ -284,4 +307,4 @@ def test_target_title_alignment_is_only_a_weak_visible_fit_clue() -> None:
     assert unrelated.priority < aligned.priority
     assert any(item.code == "target_title_alignment" for item in unrelated.factors)
     assert unrelated.calculation["target_title_alignment"] == 0.0
-    assert unrelated.calculation["scoring_engine_version"] == "job-scout-ranking-v3"
+    assert unrelated.calculation["scoring_engine_version"] == "job-scout-ranking-v4"
