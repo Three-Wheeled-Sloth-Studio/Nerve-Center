@@ -9,11 +9,11 @@ tags: [nerve-center, planning, roadmap]
 
 > Product intent and non-negotiable boundaries are defined in `refs/planning/product-requirements-document.md`. This roadmap orders implementation; it does not redefine the product.
 
-## Accepted baseline through 0.11.0
+## Accepted baseline through 0.12.4
 
-The repository already contains a working local API, durable SQLite foundation, initial scheduling and task concepts, the Job Scout reference workflow, a Tauri/React desktop shell, and Windows packaging/runtime bootstrap.
+The repository contains a working local API, durable SQLite foundation, manager-owned scheduling and work queues, provider-neutral local LLM routing, the Job Scout reference workflow, a Tauri/React desktop shell, Windows packaging/runtime bootstrap, and an iterative company-first discovery/scoring loop.
 
-That baseline proved the application can be packaged and launched. The next work must separate the reusable manager from Job Scout-specific assumptions before adding more domain modules.
+The reusable manager/module boundary is established. Job Scout remains the reference module for validating those contracts while its domain behavior continues to mature.
 
 ## Increment 7: Core and module boundary (implemented)
 
@@ -24,12 +24,7 @@ That baseline proved the application can be packaged and launched. The next work
 - Move Job Scout-specific behavior behind the same contracts future modules will use.
 - Preserve the accepted Windows package and startup-health baseline.
 
-Implemented in `0.7.0`. The manager now validates versioned manifests and
-task declarations, persists module lifecycle state, owns module storage roots,
-enforces pause state during run admission, and installs Job Scout through a
-module bootstrap adapter. The existing Job Scout tables retain their names for
-migration safety but have explicit module ownership. Process isolation and the
-loopback runtime protocol begin in Increment 8.
+Implemented in `0.7.0`. The manager validates versioned manifests and task declarations, persists module lifecycle state, owns module storage roots, enforces pause state during run admission, and installs Job Scout through a module bootstrap adapter. The existing Job Scout tables retain their names for migration safety but have explicit module ownership.
 
 ## Increment 8: Module process runtime (implemented)
 
@@ -40,13 +35,7 @@ loopback runtime protocol begin in Increment 8.
 - Support Enabled, Paused, and Not Installed lifecycle states.
 - Add manager-rendered compact module cards and manager-owned module tabs.
 
-Implemented in `0.8.0`. Job Scout task orchestration now runs in a supervised
-managed-Python child process. The manager issues a per-launch scoped token,
-serves a versioned loopback protocol, delegates only registered module
-operations, and retains exclusive ownership of shared persistence and resource
-accounting. Runtime cards report process state, activity, heartbeat, backlog,
-queue pressure, and completed work. Pause requests perform graceful shutdown
-with bounded forced termination.
+Implemented in `0.8.0`. Job Scout task orchestration runs in a supervised managed-Python child process. The manager issues a per-launch scoped token, serves a versioned loopback protocol, delegates only registered module operations, and retains exclusive ownership of shared persistence and resource accounting.
 
 ## Increment 9: Session scheduler and wind-down (implemented)
 
@@ -59,13 +48,7 @@ with bounded forced termination.
 - Add explicit Emergency Stop.
 - Restore active sessions after application or machine restart using the original wall-clock end.
 
-Implemented in `0.9.0`. Durable manager work sessions now own concrete
-wall-clock windows, enabled-module selection, normalized priority allocation,
-resource policy, module run IDs, and recurrence history. The scheduler derives
-Open, Constrained, Draining, and Closed admission from remaining time and queue
-estimates; workers receive that control state on every checkpoint boundary.
-Restart recovery preserves the original end, missed recurrence windows are not
-replayed, and Emergency Stop cancels runs and applies bounded process shutdown.
+Implemented in `0.9.0`. Durable manager work sessions own concrete wall-clock windows, enabled-module selection, normalized priority allocation, resource policy, module run IDs, and recurrence history. Restart recovery preserves the original end and missed recurrence windows are not replayed.
 
 ## Increment 10: Durable shared work queue (implemented)
 
@@ -73,20 +56,12 @@ replayed, and Emergency Stop cancels runs and applies bounded process shutdown.
 - Persist typed requests before acknowledgement.
 - Add durable attempts, results, acknowledgements, redelivery, and idempotency keys.
 - Enforce global and per-module soft and hard queue limits.
-- Estimate each module’s next-request wait and queue-clear time.
+- Estimate each module's next-request wait and queue-clear time.
 - Normalize enabled-module priorities to exactly 100 points.
 - Order LLM work using module priority, request age, task priority, model suitability, and model-switch cost.
 - Add progressively disclosed queue inspection, retry, cancellation, and reprioritization controls.
 
-Implemented in `0.10.0`. The manager now persists typed work requests before
-acknowledgement, records every claim as an attempt, retains results until module
-acknowledgement, and redelivers both interrupted claims and unacknowledged
-results after restart. Module-scoped idempotency keys prevent duplicate
-admission. Global and per-module hard limits enforce backpressure while queue
-depth, pressure, next-request wait, and clear-time estimates feed both runtime
-telemetry and the desktop inspector. Initial ordering uses module priority,
-task priority, and age. Model suitability and switch-cost terms become active
-with the provider-neutral manager in Increment 11.
+Implemented in `0.10.0`. The manager persists typed work requests before acknowledgement, records every claim as an attempt, retains results until module acknowledgement, and redelivers interrupted claims and unacknowledged results after restart. Module-scoped idempotency keys prevent duplicate admission and queue limits enforce backpressure.
 
 ## Increment 11: Provider-neutral LLM manager (implemented)
 
@@ -98,35 +73,49 @@ with the provider-neutral manager in Increment 11.
 - Add policy-driven retry and quality-tier escalation without exposing model names to modules.
 - Preserve a cloud-provider abstraction with local-only as the default and bring-your-own credentials when enabled later.
 
-Implemented in `0.11.0`. Production model calls now pass through a manager-owned,
-provider-neutral JSON contract. The manager discovers Ollama models, records a
-durable installed-model catalog and task-specific outcome evidence, selects models
-without module-supplied identities, retains loaded-model affinity when evidence
-supports it, and falls back or escalates after provider or schema failures. Durable
-queue execution validates output schemas before delivery and records provider
-timing, retries, failures, schema validity, and explicit module dispositions. Cloud
-Task evidence and loaded-model affinity provide a bounded queue-ordering adjustment
-without overriding module priority. Cloud provider credentials and routing remain
-disabled; future adapters can implement the same contract without changing module
-requests.
+Implemented in `0.11.0`. Production model calls pass through a manager-owned provider-neutral JSON contract. The manager discovers Ollama models, records durable task-specific outcome evidence, selects models without module-supplied identities, and validates structured outputs before delivery. Job Scout currently uses `gemma3:4b` as the primary general model with a bounded `qwen2.5:7b-instruct` strict-schema fallback while remaining model-blind.
 
-## Immediate Job Scout correction: self-improving discovery loop
+## Job Scout reference-module foundation (implemented)
 
-This reference-module correction is the immediate product priority before returning to Increment 12. The current implementation proves source acquisition and scheduled execution but still behaves too much like a bounded search pass. The accepted behavior is defined in `refs/planning/job-scout-discovery-and-learning-contract.md`.
+The self-improving discovery correction previously listed here is now accepted implementation, primarily through Issues #18, #20, #22, #24, #26, #28, #30, #32, and #34.
+
+Current accepted Job Scout behavior includes:
+
+1. durable discovery-strategy identity, provenance, yield telemetry, learned influence, and an exploration floor;
+2. companies as first-class durable discovery targets even when no current relevant opening exists;
+3. company-first deepening into direct career pages, Greenhouse, Lever, Ashby, feeds, sitemaps, and other public employer surfaces;
+4. cached local-market expansion from configured starting locations;
+5. iterative `expand -> converge -> deepen -> reflect -> re-expand` execution across bounded waves;
+6. prompt opportunity persistence plus provisional and bounded full scoring during the active manager window;
+7. evidence-backed fit analysis where responsibilities/requirements and domain relationship dominate weak title clues;
+8. explicit domain relationship ordering: `direct > adjacent > transferable > mismatch`;
+9. manager-routed LLM reflection and scoring with modules remaining model-blind;
+10. durable cooldown/revisit behavior, paced no-work handling, and attributable stop reasons;
+11. reusable live-run diagnostics and compact coding-agent context generation.
+
+PR #36 closed the major work-window liveness defect. A 900-second live acceptance run completed 89 cycles across 20 waves, retained 121 opportunities from 49 companies and 70 career sources, created 212 provisional scores, completed 3/3 bounded full analyses, and stopped explicitly on request-budget exhaustion after continuing through both added and empty reflection outcomes.
+
+PR #39 hardened the Windows source launcher so ordinary PowerShell startup discovers and validates a complete x64 Visual C++ environment before Tauri compilation.
+
+## Immediate Job Scout correction: location-aware discovery and ranking
+
+Issue **#40: Make Job Scout location-aware in scoring, discovery learning, and UI** is the immediate reference-module priority before returning attention to the next core increment.
+
+The latest live inventory shows that opening location text is persisted but not consistently normalized into the structured location evidence used by scoring. Recent scores therefore retain `unknown` location scope too often. Location-seeded strategies can also receive credit for distant openings found later while deepening national employers, making weak local search paths appear more productive than they are.
 
 Required sequence:
 
-1. Add durable discovery-strategy identity, provenance, yield telemetry, and transparent learned weights.
-2. Make companies first-class durable discovery targets even when they currently expose zero relevant openings.
-3. Add company-first deepening that resolves career pages, ATS endpoints, feeds, sitemaps, and other public employer-owned job surfaces, then inspects the employer's broader openings.
-4. Add cheap local-market expansion from the user's configured starting location using cached public geographic reference data and useful city/metro aliases.
-5. Replace one-pass discovery with an iterative expand, converge, deepen, reflect, and re-expand loop that runs until the manager's session begins draining or marginal discovery is exhausted.
-6. Preserve an exploration floor so learned high-yield strategies do not permanently crowd out novel titles, companies, markets, or source paths.
-7. Feed user dismiss/save/apply/interview/response outcomes back into the correct discovery and ranking signals without silently converting learned negatives into hard exclusions.
-8. Surface coverage telemetry such as strategies attempted, results examined, companies discovered, career sources resolved, postings inspected, opportunities retained, strategy-weight changes, reflection hypotheses, and provider warnings.
-9. Route reflection/ideation model work only through the manager-owned provider boundary.
+1. Normalize persisted opening location text into deterministic, explainable evidence using configured labor-market context while preserving raw source text and provenance.
+2. Classify useful local, regional, remote, distant, and uncertain scopes without hard-coded employer, title, or city rules.
+3. Backfill or rescore existing opportunities from deterministic location evidence without another LLM fit analysis when existing fit evidence remains valid.
+4. Separate total discovery yield from location-conditioned yield. A location-seeded strategy may receive general credit for discovering an employer, but distant openings found during later company deepening must not count as local yield.
+5. Preserve broad exploration and candidate retention. Geography should guide discovery allocation and ranking rather than become a hidden hard filter.
+6. Expose location scope, local/regional counts, and useful audit/filter controls in the Job Scout UI.
+7. Add deterministic backend/UI regressions and validate the behavior with a short local-market live diagnostic.
 
-Do not implement people enrichment in this slice. Retain clean future seams for public person references and a possible Farley File integration without turning Job Scout into a CRM.
+Do not tune ranking weights to compensate for missing geography and do not add an LLM location classifier for evidence that can be derived deterministically.
+
+Per-fetch request-budget admission remains a possible hardening follow-up if later evidence shows batch-level overrun is operationally harmful. Qualification-importance normalization remains a ranking-quality follow-up after location evidence is trustworthy.
 
 ## Increment 12: Model Lab
 
@@ -134,8 +123,8 @@ Do not implement people enrichment in this slice. Retain clean future seams for 
 - Maintain a model catalog seeded by Ollama metadata, compatibility data, and relevant public benchmarks or leaderboards.
 - Add policy-constrained automatic model installation and separate opt-in automatic removal.
 - Retain eligible real requests as a local benchmark corpus by default, with user and module opt-out.
-- Reserve a configurable 5–10% exploration ceiling during contention while freely using otherwise idle compute.
-- Add explicit exploration sessions such as “Explore models for four hours.”
+- Reserve a configurable 5-10% exploration ceiling during contention while freely using otherwise idle compute.
+- Add explicit exploration sessions such as `Explore models for four hours.`
 - Reuse historical real requests for comparison.
 - Add simple blinded pairwise A/B review using a Likert preference scale.
 
