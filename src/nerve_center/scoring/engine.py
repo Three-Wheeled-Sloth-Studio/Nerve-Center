@@ -9,11 +9,6 @@ from uuid import uuid4
 
 from nerve_center.discovery.models import NormalizedJobOpening, WorkArrangement
 from nerve_center.profile.models import CanonicalCareerProfile
-from nerve_center.scoring.fit import (
-    preferred_coverage,
-    required_coverage,
-    responsibility_coverage,
-)
 from nerve_center.scoring.location import assess_location
 from nerve_center.scoring.models import (
     CompanyEnrichment,
@@ -34,8 +29,9 @@ from nerve_center.scoring.models import (
     ScoringRule,
     ScoringSettings,
 )
+from nerve_center.scoring.qualification_importance import coverage_breakdown
 
-SCORING_ENGINE_VERSION = "job-scout-ranking-v4"
+SCORING_ENGINE_VERSION = "job-scout-ranking-v5"
 
 
 class OpportunityScorer:
@@ -64,7 +60,7 @@ class OpportunityScorer:
             listing_locations=[opening.location_text or "", *opening.locations],
             listing_evidence=[item.source_url for item in opening.provenance],
         )
-        fit, required, preferred = _fit_score(fit_analysis, factors)
+        fit, required, preferred, responsibilities = _fit_score(fit_analysis, factors)
         if target_title_alignment is not None:
             adjustment = (target_title_alignment - 0.5) * 6.0
             fit += adjustment
@@ -249,6 +245,7 @@ class OpportunityScorer:
                 "fit_model": fit_analysis.model,
                 "target_title_alignment": target_title_alignment,
                 "required_coverage": round(required, 4),
+                "responsibility_coverage": round(responsibilities, 4),
                 "preferred_coverage": round(preferred, 4),
                 "weights": weights,
                 "calculated_priority_before_gates": round(calculated, 2),
@@ -263,10 +260,11 @@ class OpportunityScorer:
 def _fit_score(
     analysis: JobFitAnalysis,
     factors: list[ScoreFactor],
-) -> tuple[float, float, float]:
-    required = required_coverage(analysis)
-    preferred = preferred_coverage(analysis)
-    responsibilities = responsibility_coverage(analysis)
+) -> tuple[float, float, float, float]:
+    coverage = coverage_breakdown(analysis.qualifications)
+    required = float(coverage["required"])
+    responsibilities = float(coverage["responsibility"])
+    preferred = float(coverage["preferred"])
     components = {
         "required_coverage": required * 100,
         "responsibility_coverage": responsibilities * 100,
@@ -296,7 +294,11 @@ def _fit_score(
             kind=FactorKind.NEUTRAL,
             points=score,
             confidence=analysis.confidence,
-            detail={"components": components, "weights": weights},
+            detail={
+                "components": components,
+                "weights": weights,
+                "qualification_coverage": coverage["qualifications"],
+            },
         )
     )
     domain = analysis.domain_assessment
@@ -322,7 +324,7 @@ def _fit_score(
             },
         )
     )
-    return score, required, preferred
+    return score, required, preferred, responsibilities
 
 
 def _response_score(
