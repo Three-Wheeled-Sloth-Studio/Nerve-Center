@@ -120,6 +120,7 @@ class CompanyEnrichment(BaseModel):
 
 class JobEnrichment(BaseModel):
     job_id: str
+    location_labels: list[str] = Field(default_factory=list)
     point: GeoPoint | None = None
     region: str | None = None
     country: str | None = None

@@ -39,6 +39,7 @@ def test_expands_start_location_with_cached_public_geography(tmp_path: Path) -> 
     labels = [item.label for item in aliases]
 
     assert labels[0] == "Greensboro, NC"
+    assert labels[1:3] == ["Greensboro-High Point, NC", "Guilford County, NC"]
     assert "Burlington, NC" in labels
     assert "Winston-Salem, NC" in labels
     assert "Guilford County, NC" in labels

@@ -107,6 +107,7 @@ def _progress_counts(values: dict[str, Any]) -> tuple[tuple[str, int], ...]:
         ("career_sources_resolved", "sources"),
         ("postings_inspected", "postings"),
         ("opportunities_retained", "roles"),
+        ("market_relevant_opportunities", "market_roles"),
         ("provider_warning_count", "warnings"),
         ("provisional_scores_completed", "provisional"),
         ("full_scores_completed", "full_scores"),
@@ -322,6 +323,9 @@ def monitor_session(
             "wave": checkpoint.get("wave"), "cycle": checkpoint.get("discovery_cycle"),
             "phase": checkpoint.get("phase"), "status": run.get("status"),
             "roles": (checkpoint.get("coverage") or {}).get("opportunities_retained", 0),
+            "market_roles": (checkpoint.get("coverage") or {}).get(
+                "market_relevant_opportunities", 0
+            ),
             "full_scores": checkpoint.get("full_scores_completed", 0),
             "reflection": checkpoint.get("reflection_outcome"),
             "terminal_reason": checkpoint.get("terminal_reason"),

@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from nerve_center.config import Settings
 from nerve_center.persistence.models import Base
 
-SCHEMA_VERSION = 10
+SCHEMA_VERSION = 11
 
 
 class Database:
@@ -75,6 +75,23 @@ def _migrate(connection: Connection) -> None:
         if "module_priority" not in columns:
             connection.execute(
                 text("ALTER TABLE runs ADD COLUMN module_priority INTEGER NOT NULL DEFAULT 10")
+            )
+    for table in (
+        "job_scout_discovery_strategies",
+        "job_scout_strategy_attempts",
+    ):
+        if table not in tables:
+            continue
+        columns = {
+            row[1]
+            for row in connection.execute(text(f"PRAGMA table_info({table})")).fetchall()
+        }
+        if "market_relevant_opportunities" not in columns:
+            connection.execute(
+                text(
+                    f"ALTER TABLE {table} ADD COLUMN "
+                    "market_relevant_opportunities INTEGER NOT NULL DEFAULT 0"
+                )
             )
     connection.execute(
         text("UPDATE schema_state SET version = :version"),

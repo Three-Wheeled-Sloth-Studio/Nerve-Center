@@ -42,6 +42,7 @@ import { messageOf, Metric, score, titleCase } from "./display";
 import { formatMultivalueText, parseMultivalueText } from "./multivalue";
 
 type SortKey = "priority" | "response" | "fit" | "freshness";
+type LocationFilter = "all" | "local" | "local_or_regional";
 type DraftField =
   | "target_titles"
   | "locations"
@@ -287,10 +288,22 @@ function ReviewPanel({ items, sort, includeDismissed, busy, onBusy, onSort, onIn
   onError: (message: string) => void;
 }) {
   const [query, setQuery] = useState("");
+  const [locationFilter, setLocationFilter] = useState<LocationFilter>("all");
+  const locationCounts = useMemo(() => ({
+    local: items.filter((item) => item.score?.location.scope === "local").length,
+    regional: items.filter((item) => item.score?.location.scope === "regional").length,
+  }), [items]);
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    return needle ? items.filter((item) => `${item.opening.title} ${item.opening.company_name} ${item.opening.location_text ?? ""}`.toLowerCase().includes(needle)) : items;
-  }, [items, query]);
+    return items.filter((item) => {
+      const matchesQuery = !needle || `${item.opening.title} ${item.opening.company_name} ${item.opening.location_text ?? ""}`.toLowerCase().includes(needle);
+      const scope = item.score?.location.scope ?? "unknown";
+      const matchesLocation = locationFilter === "all"
+        || (locationFilter === "local" && scope === "local")
+        || (locationFilter === "local_or_regional" && ["local", "regional"].includes(scope));
+      return matchesQuery && matchesLocation;
+    });
+  }, [items, locationFilter, query]);
   async function change(item: ReviewOpportunity, status: ApplicationStatus) {
     onBusy(true);
     try { await updateApplication(item.opening.id, status); await onRefresh(); } catch (reason) { onError(messageOf(reason)); } finally { onBusy(false); }
@@ -299,6 +312,7 @@ function ReviewPanel({ items, sort, includeDismissed, busy, onBusy, onSort, onIn
     <div className="review-controls">
       <label>Search<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Title, company, location" /></label>
       <label>Sort<select value={sort} onChange={(event) => onSort(event.target.value as SortKey)}><option value="priority">Priority</option><option value="response">Response likelihood</option><option value="fit">Fit</option><option value="freshness">Freshness</option></select></label>
+      <label>Location<select value={locationFilter} onChange={(event) => setLocationFilter(event.target.value as LocationFilter)}><option value="all">All locations ({items.length})</option><option value="local">Local ({locationCounts.local})</option><option value="local_or_regional">Local + regional ({locationCounts.local + locationCounts.regional})</option></select></label>
       <label className="checkbox"><input type="checkbox" checked={includeDismissed} onChange={(event) => onIncludeDismissed(event.target.checked)} />Show dismissed</label>
     </div>
     <div className="opportunity-list">{filtered.length === 0 ? <div className="empty-state">No opportunities match this view.</div> : filtered.map((item) => <OpportunityCard key={item.opening.id} item={item} busy={busy} onChange={change} onError={onError} />)}</div>
@@ -332,7 +346,7 @@ function OpportunityCard({ item, busy, onChange, onError }: {
     }
   }
   return <article className="opportunity-card">
-    <div className="opportunity-summary"><div className="priority-badge"><strong>{score(item.score?.priority)}</strong><span>priority</span></div><div className="opportunity-title"><h3>{item.opening.title}</h3><p><strong>{item.opening.company_name}</strong> · {item.opening.location_text ?? "Location unclear"}</p><div className="opportunity-meta"><span><BriefcaseBusiness aria-hidden="true" />{titleCase(item.opening.work_arrangement)}</span><span><Clock3 aria-hidden="true" />{freshness(item.opening.posted_at ?? item.opening.discovered_at)}</span><span>{item.score ? `${Math.round(item.score.confidence)}% confidence` : "Unscored"}</span></div></div><div className="score-strip"><Metric label="Fit" value={item.score?.fit} /><Metric label="Response" value={item.score?.response_likelihood} /><Metric label="Value" value={item.score?.opportunity_value} /></div><div className="opportunity-actions"><button className="icon-button" disabled={busy} title="Save" aria-label="Save" onClick={() => void onChange(item, "saved")}><Bookmark aria-hidden="true" /></button><button className="icon-button primary" disabled={busy} title="Plan to apply" aria-label="Plan to apply" onClick={() => void onChange(item, "planned_to_apply")}><ClipboardCheck aria-hidden="true" /></button><button className="icon-button" disabled={busy} title="Dismiss" aria-label="Dismiss" onClick={() => void onChange(item, "dismissed")}><X aria-hidden="true" /></button><button className="icon-button" type="button" title="Open original listing" aria-label="Open original listing" onClick={() => void openListing()}><ExternalLink aria-hidden="true" /></button></div></div>
+    <div className="opportunity-summary"><div className="priority-badge"><strong>{score(item.score?.priority)}</strong><span>priority</span></div><div className="opportunity-title"><h3>{item.opening.title}</h3><p><strong>{item.opening.company_name}</strong> · {item.opening.location_text ?? "Location unclear"}</p><div className="opportunity-meta"><span><BriefcaseBusiness aria-hidden="true" />{titleCase(item.opening.work_arrangement)}</span><span><MapPin aria-hidden="true" />{item.score ? titleCase(item.score.location.scope) : "Location unscored"}</span><span><Clock3 aria-hidden="true" />{freshness(item.opening.posted_at ?? item.opening.discovered_at)}</span><span>{item.score ? `${Math.round(item.score.confidence)}% confidence` : "Unscored"}</span></div></div><div className="score-strip"><Metric label="Fit" value={item.score?.fit} /><Metric label="Response" value={item.score?.response_likelihood} /><Metric label="Value" value={item.score?.opportunity_value} /></div><div className="opportunity-actions"><button className="icon-button" disabled={busy} title="Save" aria-label="Save" onClick={() => void onChange(item, "saved")}><Bookmark aria-hidden="true" /></button><button className="icon-button primary" disabled={busy} title="Plan to apply" aria-label="Plan to apply" onClick={() => void onChange(item, "planned_to_apply")}><ClipboardCheck aria-hidden="true" /></button><button className="icon-button" disabled={busy} title="Dismiss" aria-label="Dismiss" onClick={() => void onChange(item, "dismissed")}><X aria-hidden="true" /></button><button className="icon-button" type="button" title="Open original listing" aria-label="Open original listing" onClick={() => void openListing()}><ExternalLink aria-hidden="true" /></button></div></div>
     <details><summary>Listing details and description</summary><div className="listing-url"><code title={listingUrl}>{listingUrl}</code><button type="button" onClick={() => void copyListing()}><Copy aria-hidden="true" />{copied ? "Copied" : "Copy URL"}</button><button type="button" onClick={() => void openListing()}><ExternalLink aria-hidden="true" />Open listing</button></div><p>{item.opening.description}</p></details>
   </article>;
 }

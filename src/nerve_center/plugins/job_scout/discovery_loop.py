@@ -40,6 +40,7 @@ from nerve_center.plugins.job_scout.discovery_learning import (
 )
 from nerve_center.plugins.job_scout.market import GazetteerMarketExpander, MarketAlias
 from nerve_center.plugins.job_scout.settings import clean_list
+from nerve_center.scoring.location import opening_matches_markets
 
 
 class MarketExpander(Protocol):
@@ -252,7 +253,9 @@ class JobScoutDiscoveryLoop:
             "known_company_sources_revisited": 0,
             "postings_inspected": 0,
             "opportunities_retained": 0,
+            "market_relevant_opportunities": 0,
         }
+        configured_markets = self.coordinator.store.load().locations
         for strategy in selected:
             source_ids_before = self._career_source_ids()
             job_ids_before = {item.id for item in self.jobs.list(active_only=False)}
@@ -260,13 +263,23 @@ class JobScoutDiscoveryLoop:
             # Successful revisits are valuable coverage, but only newly durable
             # sources and openings are discovery yield. Otherwise cached/repeated
             # pages continually promote a strategy and prevent reflection.
+            added_job_ids = {
+                item.id for item in self.jobs.list(active_only=False)
+            } - job_ids_before
+            added_openings = [
+                item
+                for item in self.jobs.list(active_only=False)
+                if item.id in added_job_ids
+            ]
             outcome = replace(
                 outcome,
                 career_sources_resolved=len(
                     self._career_source_ids() - source_ids_before
                 ),
-                opportunities_retained=len(
-                    {item.id for item in self.jobs.list(active_only=False)} - job_ids_before
+                opportunities_retained=len(added_job_ids),
+                market_relevant_opportunities=sum(
+                    opening_matches_markets(item, configured_markets)
+                    for item in added_openings
                 ),
             )
             self.learning.record_attempt(run_id, cycle, strategy.id, "deepen", outcome)
@@ -280,6 +293,9 @@ class JobScoutDiscoveryLoop:
             increments["career_sources_resolved"] += outcome.career_sources_resolved
             increments["postings_inspected"] += outcome.postings_inspected
             increments["opportunities_retained"] += outcome.opportunities_retained
+            increments["market_relevant_opportunities"] += (
+                outcome.market_relevant_opportunities
+            )
             if strategy.dimensions.get("kind") == "public_search":
                 increments["public_searches_executed"] += 1
             if strategy.dimensions.get("kind") in {"company_revisit", "source_revisit"}:
@@ -467,22 +483,47 @@ class JobScoutDiscoveryLoop:
     ) -> None:
         domains = clean_list([_clean_domain(item) for item in boards if _clean_domain(item)])
         paths = ["web", *domains]
-        seeded = 0
-        for location in locations[:12]:
+        bounded_locations = locations[:18]
+        combinations: list[tuple[str, str, str]] = []
+        seen: set[tuple[str, str, str]] = set()
+
+        def add(anchor: str, location: str, source_domain: str) -> None:
+            combination = (anchor, location, source_domain)
+            if combination not in seen:
+                seen.add(combination)
+                combinations.append(combination)
+
+        # Give every role family, market alias, and acquisition path a trial before
+        # any one dimension consumes the bounded strategy portfolio.
+        for index, anchor in enumerate(anchors):
+            add(
+                anchor,
+                bounded_locations[index % len(bounded_locations)],
+                paths[index % len(paths)],
+            )
+        for index, location in enumerate(bounded_locations):
+            add(anchors[index % len(anchors)], location, paths[index % len(paths)])
+        for index, source_domain in enumerate(paths):
+            add(
+                anchors[index % len(anchors)],
+                bounded_locations[index % len(bounded_locations)],
+                source_domain,
+            )
+        for location in bounded_locations:
             for source_domain in paths:
                 for anchor in anchors:
-                    self.learning.ensure_strategy(
-                        {
-                            "kind": "public_search",
-                            "anchor": anchor,
-                            "location": location,
-                            "source_domain": source_domain,
-                        },
-                        origin="profile_and_market",
-                    )
-                    seeded += 1
-                    if seeded >= 96:
-                        return
+                    add(anchor, location, source_domain)
+
+        for anchor, location, source_domain in combinations[:96]:
+            self.learning.ensure_strategy(
+                {
+                    "kind": "public_search",
+                    "anchor": anchor,
+                    "location": location,
+                    "source_domain": source_domain,
+                },
+                origin="profile_and_market",
+            )
 
     def _seed_known_company_strategies(self) -> None:
         board_domains = {

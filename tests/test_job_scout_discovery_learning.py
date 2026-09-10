@@ -1,6 +1,8 @@
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from sqlalchemy import text
+
 from nerve_center.applications.models import ApplicationStatus, ApplicationUpdate
 from nerve_center.config import Settings
 from nerve_center.discovery.models import (
@@ -30,6 +32,31 @@ def _database(tmp_path: Path) -> Database:
     return database
 
 
+def test_schema_upgrade_adds_market_relevant_yield_columns(tmp_path: Path) -> None:
+    database = Database(Settings(data_dir=tmp_path / "runtime"))
+    database.settings.ensure_runtime_directories()
+    with database.engine.begin() as connection:
+        connection.execute(
+            text("CREATE TABLE job_scout_discovery_strategies (id VARCHAR(36) PRIMARY KEY)")
+        )
+        connection.execute(
+            text("CREATE TABLE job_scout_strategy_attempts (id VARCHAR(36) PRIMARY KEY)")
+        )
+
+    database.initialize()
+
+    with database.engine.begin() as connection:
+        for table in (
+            "job_scout_discovery_strategies",
+            "job_scout_strategy_attempts",
+        ):
+            columns = {
+                row[1]
+                for row in connection.execute(text(f"PRAGMA table_info({table})")).fetchall()
+            }
+            assert "market_relevant_opportunities" in columns
+
+
 def test_strategy_identity_weighting_and_exploration_floor_are_durable(tmp_path: Path) -> None:
     database = _database(tmp_path)
     learning = JobScoutDiscoveryRepository(database)
@@ -53,6 +80,7 @@ def test_strategy_identity_weighting_and_exploration_floor_are_durable(tmp_path:
             career_sources_resolved=2,
             postings_inspected=5,
             opportunities_retained=2,
+            market_relevant_opportunities=2,
         ),
     )
 
@@ -70,7 +98,34 @@ def test_strategy_identity_weighting_and_exploration_floor_are_durable(tmp_path:
     saved = restarted.get_strategy(productive.id)
     assert saved.attempts == 1
     assert saved.opportunities_retained == 2
+    assert saved.market_relevant_opportunities == 2
     assert saved.learned_weight == productive.learned_weight
+
+
+def test_location_strategy_downweights_national_only_inventory(tmp_path: Path) -> None:
+    learning = JobScoutDiscoveryRepository(_database(tmp_path))
+    strategy = learning.ensure_strategy(
+        {"kind": "public_search", "anchor": "Product", "location": "Greensboro, NC"},
+        origin="profile",
+    )
+
+    result = learning.record_attempt(
+        "run-1",
+        1,
+        strategy.id,
+        "deepen",
+        StrategyOutcome(
+            results_examined=10,
+            postings_inspected=100,
+            opportunities_retained=40,
+            market_relevant_opportunities=0,
+        ),
+    )
+
+    assert result.opportunities_retained == 40
+    assert result.market_relevant_opportunities == 0
+    assert result.learned_weight < 1.0
+    assert result.last_productive_at is None
 
 
 def test_strategy_selection_reserves_company_deepening_capacity(tmp_path: Path) -> None:

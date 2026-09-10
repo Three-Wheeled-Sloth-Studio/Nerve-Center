@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from math import asin, cos, radians, sin, sqrt
 
-from nerve_center.discovery.models import WorkArrangement
+from nerve_center.discovery.models import NormalizedJobOpening, WorkArrangement
 from nerve_center.scoring.models import (
     CompanyEnrichment,
     GeoPoint,
@@ -63,6 +63,7 @@ def assess_location(
     region = (job_location.region or "").casefold()
     home_region = (preferences.home_region or "").casefold()
     regional_regions = {item.casefold() for item in preferences.regional_regions}
+    textual_job_scope = _best_textual_scope(job_location.location_labels, preferences)
 
     rationale: list[str] = []
     confidence_inputs = [job_location.location_confidence]
@@ -76,6 +77,14 @@ def assess_location(
             "A verified company location matches a configured local or regional market."
         )
         confidence_inputs.append(nearest_office_confidence or 0.5)
+    elif effective_minutes is None and textual_job_scope is not None:
+        scope = textual_job_scope
+        rationale.append(
+            "The listing location matches the configured local or regional market."
+            if scope in {LocationScope.LOCAL, LocationScope.REGIONAL}
+            else "The listing location is outside the configured market."
+        )
+        confidence_inputs.append(job_location.location_confidence)
     elif effective_minutes is not None:
         if effective_minutes <= preferences.local_max_commute_minutes:
             scope = LocationScope.LOCAL
@@ -126,6 +135,53 @@ def assess_location(
         confidence=round(sum(confidence_inputs) / len(confidence_inputs), 4),
         rationale=rationale,
     )
+
+
+def infer_job_location(opening: NormalizedJobOpening) -> JobEnrichment:
+    """Build cheap, source-backed location evidence from a normalized opening."""
+
+    labels: list[str] = []
+    normalized_labels: set[str] = set()
+    for candidate in [opening.location_text or "", *opening.locations]:
+        for value in re.split(r"[;|]", candidate):
+            label = " ".join(value.split()).strip(" ,")
+            normalized = _normalize_location(label)
+            if label and normalized not in normalized_labels:
+                labels.append(label)
+                normalized_labels.add(normalized)
+    regions = [region for label in labels if (region := _location_region(label))]
+    specific = any(_location_parts(label, None)[0] for label in labels)
+    confidence = opening.parser_confidence * (0.9 if specific else 0.55)
+    return JobEnrichment(
+        job_id=opening.id,
+        location_labels=labels,
+        region=regions[0] if regions else None,
+        country="US" if any(_is_us_location(label) for label in labels) else None,
+        location_confidence=round(max(0.25, min(confidence, 0.95)), 4),
+    )
+
+
+def opening_matches_markets(
+    opening: NormalizedJobOpening,
+    configured_markets: list[str],
+) -> bool:
+    """Return whether listing evidence matches a configured labor-market region."""
+
+    if not configured_markets:
+        return False
+    preferences = LocationPreferences(
+        home_label=configured_markets[0],
+        home_region=_location_region(configured_markets[0]),
+        local_markets=configured_markets,
+        regional_regions=[
+            region
+            for market in configured_markets
+            if (region := _location_region(market))
+        ],
+    )
+    evidence = infer_job_location(opening)
+    scope = _best_textual_scope(evidence.location_labels, preferences)
+    return scope in {LocationScope.LOCAL, LocationScope.REGIONAL}
 
 
 def estimate_drive_minutes(
@@ -180,19 +236,80 @@ def _textual_office_scope(
         if office_city and market_city and office_city == market_city:
             return LocationScope.LOCAL
     configured_regions = {
-        item
+        _canonical_region(item)
         for item in [preferences.home_region, *preferences.regional_regions]
         if item
     }
-    if office_region and office_region in {item.casefold() for item in configured_regions}:
+    if office_region and office_region in configured_regions:
         return LocationScope.REGIONAL
+    if office_region:
+        return LocationScope.DISTANT
+    return None
+
+
+def _best_textual_scope(
+    labels: list[str],
+    preferences: LocationPreferences,
+) -> LocationScope | None:
+    scopes = [_textual_office_scope(label, None, preferences) for label in labels]
+    for preferred in (LocationScope.LOCAL, LocationScope.REGIONAL, LocationScope.DISTANT):
+        if preferred in scopes:
+            return preferred
     return None
 
 
 def _location_parts(value: str, explicit_region: str | None) -> tuple[str, str]:
     parts = [" ".join(re.findall(r"[a-z0-9]+", item.casefold())) for item in value.split(",")]
     city = parts[0].removeprefix("remote ").strip() if parts else ""
-    region = " ".join(re.findall(r"[a-z0-9]+", (explicit_region or "").casefold()))
-    if not region and len(parts) > 1:
-        region = parts[-1]
+    if city in {
+        "", "anywhere", "global", "remote", "united states", "us", "usa", "worldwide",
+    }:
+        city = ""
+    region = _canonical_region(explicit_region or "")
+    if not region:
+        region = next(
+            (_canonical_region(item) for item in parts[1:] if _canonical_region(item)),
+            "",
+        )
     return city, region
+
+
+def _location_region(value: str) -> str | None:
+    return _location_parts(value, None)[1] or None
+
+
+def _normalize_location(value: str) -> str:
+    return " ".join(re.findall(r"[a-z0-9]+", value.casefold()))
+
+
+def _is_us_location(value: str) -> bool:
+    normalized = _normalize_location(value)
+    return bool(_location_region(value)) or any(
+        marker in normalized.split() for marker in ("us", "usa")
+    ) or "united states" in normalized
+
+
+_US_STATE_CODES = {
+    "alabama": "al", "alaska": "ak", "arizona": "az", "arkansas": "ar",
+    "california": "ca", "colorado": "co", "connecticut": "ct", "delaware": "de",
+    "district of columbia": "dc", "florida": "fl", "georgia": "ga", "hawaii": "hi",
+    "idaho": "id", "illinois": "il", "indiana": "in", "iowa": "ia", "kansas": "ks",
+    "kentucky": "ky", "louisiana": "la", "maine": "me", "maryland": "md",
+    "massachusetts": "ma", "michigan": "mi", "minnesota": "mn", "mississippi": "ms",
+    "missouri": "mo", "montana": "mt", "nebraska": "ne", "nevada": "nv",
+    "new hampshire": "nh", "new jersey": "nj", "new mexico": "nm", "new york": "ny",
+    "north carolina": "nc", "north dakota": "nd", "ohio": "oh", "oklahoma": "ok",
+    "oregon": "or", "pennsylvania": "pa", "rhode island": "ri",
+    "south carolina": "sc", "south dakota": "sd", "tennessee": "tn", "texas": "tx",
+    "utah": "ut", "vermont": "vt", "virginia": "va", "washington": "wa",
+    "west virginia": "wv", "wisconsin": "wi", "wyoming": "wy",
+}
+
+
+def _canonical_region(value: str) -> str:
+    normalized = _normalize_location(value)
+    if normalized in _US_STATE_CODES:
+        return _US_STATE_CODES[normalized]
+    if len(normalized) == 2 and normalized in set(_US_STATE_CODES.values()):
+        return normalized
+    return ""

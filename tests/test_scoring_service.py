@@ -55,6 +55,8 @@ def test_configured_job_scout_markets_feed_location_preferences() -> None:
 
     assert preferences.home_label == "Greensboro, NC"
     assert preferences.local_markets == ["Greensboro, NC", "Winston-Salem, NC"]
+    assert preferences.home_region == "NC"
+    assert preferences.regional_regions == ["NC"]
 
 
 def test_direct_employer_location_evidence_builds_company_presence() -> None:

@@ -202,6 +202,7 @@ def test_company_first_cycle_persists_company_source_sitemap_and_opening(
     assert cycle.coverage["companies_discovered"] == 1
     assert cycle.coverage["career_sources_resolved"] >= 2
     assert cycle.coverage["postings_inspected"] >= 1
+    assert cycle.coverage["market_relevant_opportunities"] == 1
 
 
 def test_zero_opening_company_remains_durable_market_evidence(tmp_path: Path) -> None:
@@ -275,7 +276,19 @@ def test_search_seed_cap_preserves_anchor_diversity(tmp_path: Path) -> None:
         for item in learning.list_strategies()
         if item.dimensions.get("kind") == "public_search"
     }
+    locations = {
+        item.dimensions.get("location")
+        for item in learning.list_strategies()
+        if item.dimensions.get("kind") == "public_search"
+    }
+    source_domains = {
+        item.dimensions.get("source_domain")
+        for item in learning.list_strategies()
+        if item.dimensions.get("kind") == "public_search"
+    }
     assert len(anchors) == 20
+    assert len(locations) == 12
+    assert source_domains == {"web", "board-one.example", "board-two.example"}
 
 
 def test_company_deepening_attributes_ashby_source_to_known_employer(tmp_path: Path) -> None:

@@ -210,7 +210,7 @@ a {
 
 .review-controls {
   display: grid;
-  grid-template-columns: minmax(18rem, 1.5fr) minmax(11rem, 0.7fr) auto;
+  grid-template-columns: minmax(18rem, 1.5fr) minmax(11rem, 0.7fr) minmax(12rem, 0.8fr) auto;
   align-items: end;
   gap: 0.8rem;
 }

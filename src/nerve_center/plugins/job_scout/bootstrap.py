@@ -119,6 +119,7 @@ def _register_discovery_learning_routes(
                 "career_sources_resolved": item.career_sources_resolved,
                 "postings_inspected": item.postings_inspected,
                 "opportunities_retained": item.opportunities_retained,
+                "market_relevant_opportunities": item.market_relevant_opportunities,
                 "positive_feedback": item.positive_feedback,
                 "negative_feedback": item.negative_feedback,
                 "challenge_count": item.challenge_count,

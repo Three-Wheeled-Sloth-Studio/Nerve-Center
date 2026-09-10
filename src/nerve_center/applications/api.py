@@ -20,6 +20,7 @@ from nerve_center.persistence.discovery import CompanyRepository, JobOpeningRepo
 from nerve_center.persistence.scoring import OpportunityScoreRepository
 from nerve_center.plugins.job_scout.settings import JobScoutConfigurationStore
 from nerve_center.scoring.engine import SCORING_ENGINE_VERSION
+from nerve_center.scoring.location import opening_matches_markets
 from nerve_center.scoring.service import ScoringService
 
 SortKey = Literal["priority", "response", "fit", "freshness"]
@@ -84,6 +85,7 @@ def register_application_routes(
                 history
                 and scoring_service
                 and configuration
+                and not latest_fit_contract.startswith("job-fit-provisional-")
                 and history[0].calculation.get("scoring_engine_version")
                 != SCORING_ENGINE_VERSION
             ):
@@ -123,16 +125,9 @@ def _matches_review_geography(
         return True
     if not configured_locations:
         return True
-    location = " ".join([opening.location_text or "", *opening.locations]).casefold()
-    aliases: set[str] = set()
-    for configured in configured_locations:
-        city = configured.split(",", 1)[0].strip().casefold()
-        if city == "triad":
-            aliases.update({"greensboro", "winston-salem", "winston salem", "high point"})
-        elif city:
-            aliases.add(city)
-    if any(alias in location for alias in aliases):
+    if opening_matches_markets(opening, configured_locations):
         return True
+    location = " ".join([opening.location_text or "", *opening.locations]).casefold()
     if opening.work_arrangement in {WorkArrangement.HYBRID, WorkArrangement.ON_SITE}:
         return False
     normalized = location.strip(" ,;")

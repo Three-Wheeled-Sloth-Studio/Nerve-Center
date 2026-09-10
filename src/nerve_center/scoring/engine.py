@@ -35,7 +35,7 @@ from nerve_center.scoring.models import (
     ScoringSettings,
 )
 
-SCORING_ENGINE_VERSION = "job-scout-ranking-v3"
+SCORING_ENGINE_VERSION = "job-scout-ranking-v4"
 
 
 class OpportunityScorer:

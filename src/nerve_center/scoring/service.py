@@ -21,6 +21,7 @@ from nerve_center.persistence.scoring import (
 from nerve_center.providers.base import StructuredProvider
 from nerve_center.scoring.engine import OpportunityScorer
 from nerve_center.scoring.fit import JobFitAnalyzer
+from nerve_center.scoring.location import infer_job_location
 from nerve_center.scoring.models import (
     CompanyEnrichment,
     JobFitAnalysis,
@@ -93,12 +94,31 @@ class ScoringService:
             self.location_preferences.get(),
             self.location_markets_provider() if self.location_markets_provider else [],
         )
+        stored_job_enrichment = self.job_enrichment.get(job_id)
+        inferred_job_enrichment = infer_job_location(opening)
+        job_enrichment = stored_job_enrichment.model_copy(
+            update={
+                "location_labels": stored_job_enrichment.location_labels
+                or inferred_job_enrichment.location_labels,
+                "region": stored_job_enrichment.region or inferred_job_enrichment.region,
+                "country": stored_job_enrichment.country or inferred_job_enrichment.country,
+                "location_confidence": (
+                    stored_job_enrichment.location_confidence
+                    if stored_job_enrichment.location_labels
+                    else inferred_job_enrichment.location_confidence
+                ),
+            }
+        )
+        if job_enrichment.model_dump(exclude={"updated_at"}) != (
+            stored_job_enrichment.model_dump(exclude={"updated_at"})
+        ):
+            job_enrichment = self.job_enrichment.save(job_enrichment)
         result = self.scorer.score(
             opening=opening,
             profile=profile,
             fit_analysis=analysis,
             company_enrichment=company_enrichment,
-            job_enrichment=self.job_enrichment.get(job_id),
+            job_enrichment=job_enrichment,
             location_preferences=location_preferences,
             settings=self.settings.get(),
             rules=self.rules.list(enabled_only=True),
@@ -117,7 +137,7 @@ class ScoringService:
         intent_terms: list[str],
         target_titles: list[str] | None = None,
     ) -> OpportunityScore:
-        provisional_contract = "job-fit-provisional-v3"
+        provisional_contract = "job-fit-provisional-v4"
         existing = self.scores.list(job_id)
         if existing:
             recorded_contract = existing[0].calculation.get("fit_contract_version")
@@ -182,10 +202,19 @@ def _effective_location_preferences(
     configured_markets: list[str],
 ) -> LocationPreferences:
     markets = list(dict.fromkeys([*preferences.local_markets, *configured_markets]))
+    home_label = preferences.home_label or (markets[0] if markets else None)
+    configured_regions = [
+        region for market in markets if (region := _location_region(market))
+    ]
     return preferences.model_copy(
         update={
             "local_markets": markets,
-            "home_label": preferences.home_label or (markets[0] if markets else None),
+            "home_label": home_label,
+            "home_region": preferences.home_region
+            or (configured_regions[0] if configured_regions else None),
+            "regional_regions": list(
+                dict.fromkeys([*preferences.regional_regions, *configured_regions])
+            ),
         }
     )
 

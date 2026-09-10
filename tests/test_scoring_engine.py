@@ -7,6 +7,7 @@ from nerve_center.discovery.models import (
 )
 from nerve_center.profile.models import CanonicalCareerProfile
 from nerve_center.scoring.engine import OpportunityScorer
+from nerve_center.scoring.location import infer_job_location, opening_matches_markets
 from nerve_center.scoring.models import (
     CompanyEnrichment,
     GateCategory,
@@ -118,6 +119,39 @@ def test_closer_local_role_has_higher_response_score() -> None:
 
     assert close.location.scope is LocationScope.LOCAL
     assert close.response_likelihood > far.response_likelihood
+
+
+def test_listing_text_produces_local_and_regional_location_evidence() -> None:
+    preferences = LocationPreferences(
+        home_label="Greensboro, NC",
+        home_region="NC",
+        local_markets=["Greensboro, NC"],
+        regional_regions=["NC"],
+    )
+    local_opening = _opening().model_copy(
+        update={"location_text": "Greensboro, North Carolina, USA"}
+    )
+    regional_opening = _opening().model_copy(update={"location_text": "Raleigh, NC"})
+
+    local = _score(
+        opening=local_opening,
+        job=infer_job_location(local_opening),
+        preferences=preferences,
+    )
+    regional = _score(
+        opening=regional_opening,
+        job=infer_job_location(regional_opening),
+        preferences=preferences,
+    )
+
+    assert local.location.scope is LocationScope.LOCAL
+    assert regional.location.scope is LocationScope.REGIONAL
+    assert opening_matches_markets(local_opening, ["Greensboro, NC"])
+    assert opening_matches_markets(regional_opening, ["Greensboro, NC"])
+    assert not opening_matches_markets(
+        _opening().model_copy(update={"location_text": "Chicago, IL"}),
+        ["Greensboro, NC"],
+    )
 
 
 def test_distant_remote_penalty_requires_exceptional_match() -> None:
@@ -284,4 +318,4 @@ def test_target_title_alignment_is_only_a_weak_visible_fit_clue() -> None:
     assert unrelated.priority < aligned.priority
     assert any(item.code == "target_title_alignment" for item in unrelated.factors)
     assert unrelated.calculation["target_title_alignment"] == 0.0
-    assert unrelated.calculation["scoring_engine_version"] == "job-scout-ranking-v3"
+    assert unrelated.calculation["scoring_engine_version"] == "job-scout-ranking-v4"

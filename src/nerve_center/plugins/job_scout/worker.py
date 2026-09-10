@@ -163,7 +163,10 @@ async def _execute_discovery_loop(
             # Request new ideation only when durable yield or ranking evidence changes.
             evidence = [
                 coverage.get(key, 0) for key in (
-                    "companies_discovered", "career_sources_resolved", "opportunities_retained",
+                    "companies_discovered",
+                    "career_sources_resolved",
+                    "opportunities_retained",
+                    "market_relevant_opportunities",
                 )
             ] + [full_scores]
             reflection = await client.invoke(

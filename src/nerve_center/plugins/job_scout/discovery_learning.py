@@ -37,6 +37,7 @@ class DiscoveryStrategyModel(Base):
     career_sources_resolved: Mapped[int] = mapped_column(Integer, default=0)
     postings_inspected: Mapped[int] = mapped_column(Integer, default=0)
     opportunities_retained: Mapped[int] = mapped_column(Integer, default=0)
+    market_relevant_opportunities: Mapped[int] = mapped_column(Integer, default=0)
     positive_feedback: Mapped[float] = mapped_column(Float, default=0.0)
     negative_feedback: Mapped[float] = mapped_column(Float, default=0.0)
     challenge_count: Mapped[int] = mapped_column(Integer, default=0)
@@ -65,6 +66,7 @@ class StrategyAttemptModel(Base):
     career_sources_resolved: Mapped[int] = mapped_column(Integer, default=0)
     postings_inspected: Mapped[int] = mapped_column(Integer, default=0)
     opportunities_retained: Mapped[int] = mapped_column(Integer, default=0)
+    market_relevant_opportunities: Mapped[int] = mapped_column(Integer, default=0)
     challenged: Mapped[int] = mapped_column(Integer, default=0)
     failed: Mapped[int] = mapped_column(Integer, default=0)
     detail: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
@@ -164,6 +166,7 @@ class DiscoveryStrategySnapshot:
     career_sources_resolved: int
     postings_inspected: int
     opportunities_retained: int
+    market_relevant_opportunities: int
     positive_feedback: float
     negative_feedback: float
     challenge_count: int
@@ -190,6 +193,7 @@ class StrategyOutcome:
     career_sources_resolved: int = 0
     postings_inspected: int = 0
     opportunities_retained: int = 0
+    market_relevant_opportunities: int = 0
     challenged: int = 0
     failed: int = 0
     detail: dict[str, Any] = field(default_factory=dict)
@@ -221,6 +225,7 @@ DEFAULT_COVERAGE: dict[str, Any] = {
     "known_company_sources_revisited": 0,
     "postings_inspected": 0,
     "opportunities_retained": 0,
+    "market_relevant_opportunities": 0,
     "strategy_changes": 0,
     "reflection_hypotheses": 0,
     "provider_warnings": [],
@@ -410,6 +415,7 @@ class JobScoutDiscoveryRepository:
                     career_sources_resolved=outcome.career_sources_resolved,
                     postings_inspected=outcome.postings_inspected,
                     opportunities_retained=outcome.opportunities_retained,
+                    market_relevant_opportunities=outcome.market_relevant_opportunities,
                     challenged=outcome.challenged,
                     failed=outcome.failed,
                     detail=outcome.detail,
@@ -421,12 +427,22 @@ class JobScoutDiscoveryRepository:
             model.career_sources_resolved += outcome.career_sources_resolved
             model.postings_inspected += outcome.postings_inspected
             model.opportunities_retained += outcome.opportunities_retained
+            model.market_relevant_opportunities += outcome.market_relevant_opportunities
             model.challenge_count += outcome.challenged
             model.failure_count += outcome.failed
             model.last_attempt_at = finished
-            if outcome.useful_yield > 0:
+            location_conditioned = bool(model.dimensions.get("location"))
+            productive_yield = (
+                outcome.market_relevant_opportunities
+                if location_conditioned
+                else outcome.useful_yield
+            )
+            if productive_yield > 0:
                 model.last_productive_at = finished
-            target = _attempt_target_weight(outcome)
+            target = _attempt_target_weight(
+                outcome,
+                location_conditioned=location_conditioned,
+            )
             model.learned_weight = _clamp(model.learned_weight * 0.8 + target * 0.2, 0.2, 4.0)
             model.updated_at = finished
             session.flush()
@@ -708,6 +724,7 @@ def _strategy_snapshot(model: DiscoveryStrategyModel) -> DiscoveryStrategySnapsh
         career_sources_resolved=model.career_sources_resolved,
         postings_inspected=model.postings_inspected,
         opportunities_retained=model.opportunities_retained,
+        market_relevant_opportunities=model.market_relevant_opportunities,
         positive_feedback=float(model.positive_feedback),
         negative_feedback=float(model.negative_feedback),
         challenge_count=model.challenge_count,
@@ -773,7 +790,17 @@ def _strategy_ids_for_job(session: Any, job_id: str) -> set[str]:
     return strategy_ids
 
 
-def _attempt_target_weight(outcome: StrategyOutcome) -> float:
+def _attempt_target_weight(
+    outcome: StrategyOutcome,
+    *,
+    location_conditioned: bool = False,
+) -> float:
+    if location_conditioned:
+        useful = outcome.market_relevant_opportunities * 0.8
+        penalties = outcome.challenged * 0.6 + outcome.failed * 0.3
+        if useful == 0 and penalties == 0:
+            return 0.75
+        return _clamp(1.0 + useful - penalties, 0.2, 4.0)
     useful = (
         outcome.opportunities_retained * 0.8
         + outcome.career_sources_resolved * 0.5
@@ -788,11 +815,14 @@ def _attempt_target_weight(outcome: StrategyOutcome) -> float:
 
 def _strategy_score(model: DiscoveryStrategyModel, now: datetime) -> float:
     attempts = max(model.attempts, 1)
-    productivity = (
-        model.opportunities_retained * 1.5
-        + model.career_sources_resolved
-        + model.companies_discovered * 0.75
-    ) / attempts
+    if model.dimensions.get("location"):
+        productivity = model.market_relevant_opportunities * 1.5 / attempts
+    else:
+        productivity = (
+            model.opportunities_retained * 1.5
+            + model.career_sources_resolved
+            + model.companies_discovered * 0.75
+        ) / attempts
     health_penalty = (model.challenge_count * 0.7 + model.failure_count * 0.4) / attempts
     feedback = (model.positive_feedback - model.negative_feedback) * 0.15
     staleness = 0.2 if model.last_attempt_at is None else 0.0

@@ -21,7 +21,7 @@ from nerve_center.persistence.discovery import (
     JobOpeningRepository,
 )
 from nerve_center.persistence.profile import CareerProfileRepository
-from nerve_center.persistence.scoring import FitAnalysisRepository
+from nerve_center.persistence.scoring import FitAnalysisRepository, JobEnrichmentRepository
 from nerve_center.profile.models import CanonicalCareerProfile
 from nerve_center.providers.base import ProviderModel
 from nerve_center.scoring.api import register_scoring_routes
@@ -116,7 +116,13 @@ def test_scoring_api_preserves_history_across_settings_versions(tmp_path: Path) 
     )
     FitAnalysisRepository(database).save(analysis)
     application = FastAPI()
-    register_scoring_routes(application, database, settings, FakeProvider())
+    register_scoring_routes(
+        application,
+        database,
+        settings,
+        FakeProvider(),
+        location_markets_provider=lambda: ["Greensboro, NC"],
+    )
 
     with TestClient(application) as client:
         client.put(
@@ -127,10 +133,6 @@ def test_scoring_api_preserves_history_across_settings_versions(tmp_path: Path) 
                 "home_region": "NC",
                 "local_max_commute_minutes": 90,
             },
-        )
-        client.put(
-            f"/api/v1/scoring/jobs/{opening.id}/enrichment",
-            json={"job_id": opening.id, "commute_minutes": 25},
         )
         first = client.post(
             f"/api/v1/scoring/jobs/{opening.id}/scores",
@@ -151,6 +153,10 @@ def test_scoring_api_preserves_history_across_settings_versions(tmp_path: Path) 
         missing = client.get("/api/v1/scoring/jobs/missing/enrichment")
 
     assert first.status_code == 200
+    assert first.json()["location"]["scope"] == "local"
+    assert JobEnrichmentRepository(database).get(opening.id).location_labels == [
+        "Greensboro, NC"
+    ]
     assert saved.json()["version"] == 2
     assert second.status_code == 200
     assert {item["settings_version"] for item in history.json()} == {1, 2}

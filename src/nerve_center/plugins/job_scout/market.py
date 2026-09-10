@@ -116,7 +116,7 @@ class GazetteerMarketExpander:
                     if _distance_miles(anchor, record) <= radius_miles * 1.25
                 ),
                 key=lambda item: item[0],
-            )[:3]
+            )[:6]
             for distance, record in nearby_metros:
                 candidates.append(
                     MarketAlias(
@@ -127,9 +127,14 @@ class GazetteerMarketExpander:
                     )
                 )
             aliases.extend(
-                sorted(candidates, key=lambda item: (item.distance_miles, item.label))[
-                    :max_aliases_per_location
-                ]
+                sorted(
+                    candidates,
+                    key=lambda item: (
+                        {"metro_alias": 0, "nearby_county": 1}.get(item.kind, 2),
+                        item.distance_miles,
+                        item.label,
+                    ),
+                )[:max_aliases_per_location]
             )
         return _deduplicate_aliases(aliases)
 
