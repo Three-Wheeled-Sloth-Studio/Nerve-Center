@@ -10,7 +10,7 @@ tags: [nerve-center, handoff]
 ## Current state
 
 - `dev` is the accepted integration branch; return the active checkout to `dev` after merging a topic branch.
-- Accepted `dev` after PR #48 is `fdca1c1075f3d1bfb2e8b79d7644abfa2fdbbed1`.
+- Accepted `dev` after PR #50 is `fb43e8a75ff6ff52ca817264670903115bab3976`.
 - Application version remains `0.12.4`.
 - The manager/module boundary, durable work sessions and queue, provider-neutral LLM manager, Windows desktop/package baseline, career evidence profile, company-first Job Scout discovery, scoring, application tracking, durable discovery learning, and first Model Lab foundation are accepted.
 - Job Scout remains an iterative market-research loop: `expand -> converge -> deepen -> reflect -> re-expand`. Discovery optimizes recall; ranking/scoring provides precision.
@@ -25,6 +25,8 @@ tags: [nerve-center, handoff]
 - Manager-owned Ollama routing uses `gemma3:4b` as the primary general model. Strict structured-output work may retry once on `qwen2.5:7b-instruct`; modules remain model-blind.
 - The Windows source launcher validates a complete x64 Visual C++ environment before Tauri compilation and skips incomplete Visual Studio installations.
 - `scripts/run_job_scout_live.py` remains the reusable real-run diagnostic and continuously writes a durable local report/checkpoint history.
+- Issue #49's short live gate is complete. The valid run stopped cleanly on the inherited 500-request limit after about 21 minutes rather than completing the requested 30-minute window; it completed 25/25 full scores and captured 826 ranked opportunities, 199 companies, 1,170 sources, and 1,389 strategies.
+- The run classified every ranked opportunity (34 regional, 792 distant, 0 unknown) and did not falsely credit national openings as local yield. It found zero directly local Greensboro/Triad openings; 366 location-conditioned strategies retained zero conditioned openings and none reached a downweighted state.
 - Coding-agent token conservation is a primary engineering concern. Use `scripts/agent_context.py` and progressive context loading instead of repository-wide rereads.
 
 ## Accepted Issue #47 behavior
@@ -51,37 +53,33 @@ PR #48 exact-head validation before merge:
 - Windows package run `34502474968` / #134: green;
 - packaged backend health, Job Scout workspace route, managed module runtime smoke, NSIS build, output verification, and artifact upload: green.
 
-## Active gate: Issue #49
+## Next slice: Issue #51
 
-Issue **#49: Run Job Scout short live acceptance before unattended soak** is the next checkpoint.
+Issue **#51: Make Job Scout run budgets explicit and local discovery learning converge** is the next implementation checkpoint.
 
-This is intentionally an observation gate, not another feature slice. Run one 15-30 minute real-world Job Scout diagnostic against the accepted behavior using `scripts/run_job_scout_live.py`. Prefer the existing durable Job Scout workspace/configuration and local data directory rather than changing inputs merely to make the test easier.
+The Issue #49 observation demonstrated two related blockers to a trustworthy unattended soak:
 
-The run should establish whether:
+1. A duration-only live-run request silently inherits the generic manager defaults of 500 outbound requests and 100 LLM calls. The 30-minute test therefore stopped after about 21 minutes on request-budget exhaustion, and its terminal batch observed 515 requests against the capped 500-request ledger.
+2. Location attribution is truthful, but learning is not converging quickly enough. All 366 location-conditioned strategies retained zero conditioned openings, yet distinct strategy/query identities prevented that repeated evidence from producing a downweighted family or visible reallocation during the run.
 
-1. source-aware query portfolios remain materially different instead of collapsing into superficial rewrites;
-2. explicit coverage gaps produce useful re-expansion without repetitive reflection churn;
-3. known structured ATS sources receive sensible direct refresh/deepening treatment;
-4. location-conditioned strategy yield remains truthful;
-5. deterministic location/ranking reinterpretation avoids unnecessary LLM work when existing fit evidence is still valid;
-6. qualification importance and duplicate-credit suppression remain reconstructable in real retained opportunities;
-7. reflection stays bounded and evidence-triggered;
-8. scoring throughput does not starve discovery or build an unhealthy queue;
-9. request/resource accounting remains bounded with explicit reconstructable stop reasons;
-10. source challenge/throttle/degradation and cooldown behavior remain observable and sane;
-11. the durable diagnostic report is sufficient to explain a failure without rerunning blindly.
+Implement the smallest coherent correction:
+
+1. Add `--max-requests` and `--max-llm-calls` to `scripts/run_job_scout_live.py` and send them in the session `resource_policy`.
+2. Echo and persist every effective run ceiling at startup: duration, outbound requests, LLM calls, and full-score limit.
+3. Make terminal output/reporting distinguish duration completion, request exhaustion, and LLM exhaustion without requiring checkpoint archaeology.
+4. Move request admission ahead of fetch execution, or provide equivalent accounting that never exceeds the declared request ceiling under bounded concurrency.
+5. Define a stable, durable source/query/location hypothesis-family identity and accumulate equivalent-strategy evidence there.
+6. Let repeated zero local-opening yield lower future family allocation while maintaining bounded exploration and separately preserving employer/source discovery value.
+7. Surface family attempts, conditioned yield, learned weight, and allocation changes in the discovery audit and durable report.
+
+Do not encode Greensboro, particular roles, employers, or observed false positives as correction rules. The tool must generalize from outcome evidence. A truthful zero-result market remains acceptable; the required behavior is inspectable convergence and reallocation, not a manufactured minimum count.
 
 ### Long-run decision rule
 
-If Issue #49 has no blocking finding, proceed directly to a **4-8 hour unattended Job Scout soak** on the same accepted behavior. Do not insert another feature slice merely because the short run reveals optional tuning opportunities.
-
-Block the soak only for demonstrated operational defects such as uncontrolled resource/request growth, queue deadlock or sustained unhealthy buildup, scoring starvation, premature unexplained discovery termination, materially wrong local-yield attribution, repetitive/unbounded reflection that prevents useful exploration, or diagnostics too weak to explain failure.
-
-Expected source throttles/challenges with correct cooldown behavior, retained distant roles, individual low-yield query families, bounded fallback-model use, and ranking-quality tuning observations are not by themselves blockers.
+Do not begin the 4-8 hour unattended soak until Issue #51 is implemented and the 15-30 minute gate is rerun with explicit limits. The rerun passes when its limiting conditions are known before startup, actual request use respects the declared ceiling, attribution remains truthful, and repeated unsuccessful location-conditioned families demonstrably influence later allocation without collapsing exploration.
 
 ## Deferred follow-up
 
-- Per-fetch request-budget admission/recovery hardening remains evidence-triggered if Issue #49 or the later soak shows the known batch-level discrepancy is operationally harmful.
 - Automatic model installation and separately opt-in automatic removal belong to later Model Lab slices.
 - External/public benchmark ingestion and blinded pairwise A/B review remain later Model Lab work.
 - People enrichment remains deferred; preserve seams but do not build a CRM inside Job Scout.
@@ -103,14 +101,14 @@ Expected source throttles/challenges with correct cooldown behavior, retained di
 
 ## Coding-agent reset path
 
-For Issue #49, start with:
+For Issue #51, start with:
 
 ```powershell
-python scripts/agent_context.py --focus "job scout live acceptance long run soak query diversity coverage gaps queue accounting" --issue 49
+python scripts/agent_context.py --focus "job scout explicit run budgets request admission local strategy family learning" --issue 51
 ```
 
-Read the generated packet and Issue #49 first. This checkpoint should not require broad implementation rereads. Inspect `scripts/run_job_scout_live.py`, the current durable Job Scout configuration/report surfaces, and only the runtime/discovery/scoring code needed to explain observed evidence.
+Read the generated packet and Issue #51 first. Inspect `scripts/run_job_scout_live.py`, session resource-policy construction, worker request admission, discovery strategy identity/learning, and the discovery-audit/report surfaces. Preserve the accepted manager/module boundary and location-evidence separation.
 
 ## Validation boundary
 
-Issue #49 is intentionally outside deterministic CI because its purpose is to observe live public-source and local-model behavior. Do not weaken or replace ordinary deterministic tests. If the short run demonstrates a blocker requiring code changes, implement the smallest correction through normal issue -> branch -> tests -> PR -> CI -> merge discipline, then rerun the short live gate before the unattended soak.
+Issue #51 requires deterministic coverage for CLI-to-session budget propagation, request admission, stable strategy-family learning, zero-yield accumulation, and allocation changes. Do not weaken or replace ordinary tests. After deterministic CI is green, rerun the live gate against real public sources and the local model before authorizing the unattended soak.
