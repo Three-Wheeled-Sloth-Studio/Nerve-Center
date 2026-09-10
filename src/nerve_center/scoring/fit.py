@@ -16,10 +16,15 @@ from nerve_center.scoring.models import (
     JobFitAnalysis,
     MatchLevel,
     QualificationAssessment,
+    QualificationImportance,
     RequirementEvidenceMatch,
 )
+from nerve_center.scoring.qualification_importance import (
+    normalize_qualifications,
+    weighted_coverage,
+)
 
-FIT_ANALYSIS_CONTRACT_VERSION = "job-fit-analysis-v6"
+FIT_ANALYSIS_CONTRACT_VERSION = "job-fit-analysis-v7"
 
 _SYSTEM_PROMPT = """Analyze job requirements only against supplied verified career claims.
 Do not infer credentials, employers, education completion, licenses, clearances, or outcomes.
@@ -29,6 +34,11 @@ Every qualification must cite a short, verbatim excerpt from the supplied job de
 Matched claim identifiers must exist in the supplied claim list.
 A full or partial match requires at least one genuinely supporting career claim identifier.
 A license or clearance gate may be marked only when the job explicitly requires it.
+For each qualification, return decision_weight_hint from 0.5 to 1.5 describing only how
+central that item is to employer screening or day-to-day role success. Do not increase or
+decrease decision weight based on how well the candidate matches it. Explicit must/minimum/
+essential/core wording may justify a high hint; preferred/nice-to-have/bonus wording may
+justify a low hint. Use 1.0 when centrality is not clear from job-side evidence.
 Return seniority, domain, leadership, methods, and outcomes scores on a 0-100 scale.
 Return confidence on a 0-1 scale.
 Return structured data matching the required schema."""
@@ -59,44 +69,21 @@ class JobFitAnalyzer:
 
 
 def required_coverage(analysis: JobFitAnalysis) -> float:
-    required = [item for item in analysis.qualifications if item.importance.value == "required"]
-    if not required:
-        return 0.5
-    values = {
-        MatchLevel.FULL: 1.0,
-        MatchLevel.PARTIAL: 0.5,
-        MatchLevel.NONE: 0.0,
-        MatchLevel.UNKNOWN: 0.25,
-    }
-    return sum(values[item.match_level] for item in required) / len(required)
+    return weighted_coverage(
+        analysis.qualifications, QualificationImportance.REQUIRED
+    )[0]
 
 
 def preferred_coverage(analysis: JobFitAnalysis) -> float:
-    preferred = [item for item in analysis.qualifications if item.importance.value == "preferred"]
-    if not preferred:
-        return 0.5
-    values = {
-        MatchLevel.FULL: 1.0,
-        MatchLevel.PARTIAL: 0.5,
-        MatchLevel.NONE: 0.0,
-        MatchLevel.UNKNOWN: 0.25,
-    }
-    return sum(values[item.match_level] for item in preferred) / len(preferred)
+    return weighted_coverage(
+        analysis.qualifications, QualificationImportance.PREFERRED
+    )[0]
 
 
 def responsibility_coverage(analysis: JobFitAnalysis) -> float:
-    responsibilities = [
-        item for item in analysis.qualifications if item.importance.value == "responsibility"
-    ]
-    if not responsibilities:
-        return 0.5
-    values = {
-        MatchLevel.FULL: 1.0,
-        MatchLevel.PARTIAL: 0.5,
-        MatchLevel.NONE: 0.0,
-        MatchLevel.UNKNOWN: 0.1,
-    }
-    return sum(values[item.match_level] for item in responsibilities) / len(responsibilities)
+    return weighted_coverage(
+        analysis.qualifications, QualificationImportance.RESPONSIBILITY
+    )[0]
 
 
 def _build_prompt(opening: NormalizedJobOpening, claims: list[CareerClaim]) -> str:
@@ -111,6 +98,7 @@ def _build_prompt(opening: NormalizedJobOpening, claims: list[CareerClaim]) -> s
             "Extract job requirements from the Job description section only, then compare each",
             "against the Verified career claims section. Assess seniority, domain, leadership,",
             "methods, and outcome alignment. Use only verbatim job excerpts and listed claim IDs.",
+            "Set decision_weight_hint only from job-side centrality evidence, never candidate fit.",
         ]
     )
 
@@ -143,6 +131,12 @@ def _validate_analysis(
                 review_notes,
                 matcher.match_requirement(extracted.requirement, valid_claims.values()),
             )
+        )
+    qualifications = normalize_qualifications(qualifications)
+    duplicate_count = sum(item.duplicate_of is not None for item in qualifications)
+    if duplicate_count:
+        review_notes.append(
+            f"Marked {duplicate_count} near-duplicate qualification(s) to prevent repeated fit credit."
         )
     evidence_matches = [
         match for qualification in qualifications for match in qualification.evidence_matches
@@ -177,6 +171,7 @@ def _validate_analysis(
         bool(item.matched_claim_ids)
         and item.match_level in {MatchLevel.FULL, MatchLevel.PARTIAL}
         for item in qualifications
+        if item.duplicate_of is None
     )
     confidence = response.confidence
     if supported_qualifications == 0:
@@ -271,4 +266,5 @@ def _validated_qualification(
         evidence_matches=[
             item for item in evidence_matches if item.claim_id in set(claim_ids)
         ],
+        decision_weight=extracted.decision_weight_hint,
     )
