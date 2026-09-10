@@ -193,7 +193,7 @@ def test_request_and_module_capture_opt_outs_are_respected(tmp_path: Path) -> No
 def test_benchmark_replay_is_persistent_and_does_not_change_production_evidence(
     tmp_path: Path,
 ) -> None:
-    database, queue, evidence, repository, service, _, run_id = _context(tmp_path)
+    _, queue, evidence, repository, service, _, run_id = _context(tmp_path)
     _completed_request(queue, run_id)
     service.harvest()
     corpus = repository.list_corpus()[0]
