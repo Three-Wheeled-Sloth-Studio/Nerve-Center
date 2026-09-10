@@ -48,7 +48,7 @@ def test_v7_analysis_normalizes_hint_and_duplicate_linkage() -> None:
             ),
             ExtractedQualificationAssessment(
                 importance=QualificationImportance.RESPONSIBILITY,
-                requirement="Lead analytics products across business units",
+                requirement="Lead analytics products",
                 job_excerpt="Lead enterprise analytics products across business units.",
                 match_level=MatchLevel.UNKNOWN,
                 confidence=0.6,
