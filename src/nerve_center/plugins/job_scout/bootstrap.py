@@ -19,7 +19,7 @@ from nerve_center.plugins.job_scout.configuration import (
     register_job_scout_configuration_routes,
 )
 from nerve_center.plugins.job_scout.discovery_learning import JobScoutDiscoveryRepository
-from nerve_center.plugins.job_scout.discovery_loop import JobScoutDiscoveryLoop
+from nerve_center.plugins.job_scout.location_discovery import LocationAwareJobScoutDiscoveryLoop
 from nerve_center.plugins.job_scout.manifest import job_scout_manifest
 from nerve_center.plugins.job_scout.runtime import JobScoutOperationBridge
 from nerve_center.plugins.job_scout.uploads import register_job_scout_upload_route
@@ -70,7 +70,7 @@ def install_job_scout(
         target_titles_provider=lambda: coordinator.store.load().target_titles,
         location_markets_provider=lambda: coordinator.store.load().locations,
     )
-    discovery_loop = JobScoutDiscoveryLoop(
+    discovery_loop = LocationAwareJobScoutDiscoveryLoop(
         settings,
         coordinator,
         discovery_service,
@@ -119,6 +119,11 @@ def _register_discovery_learning_routes(
                 "career_sources_resolved": item.career_sources_resolved,
                 "postings_inspected": item.postings_inspected,
                 "opportunities_retained": item.opportunities_retained,
+                "yield_scope": (
+                    "location_conditioned"
+                    if item.dimensions.get("location")
+                    else "total"
+                ),
                 "positive_feedback": item.positive_feedback,
                 "negative_feedback": item.negative_feedback,
                 "challenge_count": item.challenge_count,
