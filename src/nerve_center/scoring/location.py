@@ -358,12 +358,18 @@ def _location_parts(
     region = explicit
     country: str | None = None
 
+    city = parts[0] if parts else normalized_value
+    city = re.sub(r"^(?:remote|distributed|work from home)\b[\s-]*", "", city).strip()
+    first_part_region = _normalize_region(city)
     if not region:
         for part in parts[1:]:
             candidate_region = _normalize_region(part)
             if candidate_region:
                 region = candidate_region
                 break
+        if not region and first_part_region:
+            region = first_part_region
+            city = ""
     if region:
         country = "us"
     else:
@@ -380,8 +386,6 @@ def _location_parts(
         elif "united kingdom" in normalized_value or normalized_value.endswith(" uk"):
             country = "uk"
 
-    city = parts[0] if parts else normalized_value
-    city = re.sub(r"^(?:remote|distributed|work from home)\b[\s-]*", "", city).strip()
     if city in _US_COUNTRY_MARKERS or city in {"canada", "united kingdom", "uk"}:
         city = ""
     if remote and not parts[1:] and country is not None:
