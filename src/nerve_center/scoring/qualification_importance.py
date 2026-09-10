@@ -194,7 +194,8 @@ def _normalize_weight(item: QualificationAssessment) -> QualificationAssessment:
         rationale = []
         if abs(item.decision_weight - 1.0) > 0.001:
             rationale.append(
-                f"Model job-centrality hint bounded to {weight:.2f}; candidate match did not affect it."
+                f"Model job-centrality hint bounded to {weight:.2f}; "
+                "candidate match did not affect it."
             )
 
     if any(cue in text for cue in _STRONG_CUES):
