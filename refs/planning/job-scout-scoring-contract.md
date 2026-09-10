@@ -28,9 +28,27 @@ Domain fit is a first-class part of fit and should distinguish, in descending or
 
 Domain-distance evidence is explainable separately from title similarity and generic skill overlap. The scorer derives a structured `direct`, `adjacent`, `transferable`, or `mismatch` relationship from a reusable deterministic taxonomy, persists the supporting claim identifiers and evidence locators, and derives the numeric domain component from that relationship. Model-produced domain scalars are advisory and do not override the evidence-backed relationship. Extend the taxonomy only with observed, testable relationships rather than inventing candidate support.
 
+## Qualification decision importance
+
+Qualification category, employer-side decision importance, and candidate match strength are separate concepts.
+
+- `required`, `responsibility`, and `preferred` describe the job-side category.
+- `decision_weight` describes how central the item appears to employer screening or day-to-day role success.
+- `full`, `partial`, `none`, and `unknown` describe candidate evidence strength.
+
+Fit-analysis contract v7 may request a bounded model `decision_weight_hint`, but the hint is advisory. It must describe the job, not how well the candidate matches it. The scorer bounds model hints conservatively and may override them only from validated verbatim job excerpts. Explicit source language such as `must`, `minimum`, `essential`, `required`, or `core responsibility` can raise importance; `preferred`, `nice to have`, `bonus`, or equivalent optional language can lower it. Model-authored requirement labels cannot manufacture those deterministic cues.
+
+Required, responsibility, and preferred coverage are weighted by normalized decision importance instead of simple equal averaging. The overall fit formula still keeps required qualifications and responsibilities materially stronger than preferred qualifications. Response likelihood consumes the same weighted required-coverage value.
+
+Near-duplicate qualification phrasings remain visible for audit but only one representative receives coverage and domain-evidence credit. Representative selection favors explicit factual gates, then required over responsibility over preferred, then stronger job-side decision importance and evidence confidence. Duplicate factual gate copies are suppressed so repeated extraction cannot create repeated exclusion noise.
+
+Decision importance remains soft unless an independent factual gate applies. Missing a high-importance ordinary requirement should reduce fit materially, but it does not become a hidden exclusion. Explicit licenses, clearances, configured minimums, and other factual/user gates remain separate.
+
+Ranking engine v5 reconstructs decision weighting and duplicate suppression from persisted qualifications. Legacy v6 fit-analysis payloads remain loadable through neutral defaults and can be deterministically reinterpreted at score time. A ranking-only refresh therefore does not require another LLM fit-analysis call when the existing evidence remains valid.
+
 ### Response likelihood, 0 to 100
 
-Estimates the chance of meaningful employer attention. Initial factors include listing freshness, direct-employer provenance, local or regional presence, work arrangement, commute time, required-qualification coverage, applicant saturation signals, hiring activity, repost patterns, and application friction.
+Estimates the chance of meaningful employer attention. Initial factors include listing freshness, direct-employer provenance, local or regional presence, work arrangement, commute time, weighted required-qualification coverage, applicant saturation signals, hiring activity, repost patterns, and application friction.
 
 This is an estimate, not a calibrated probability, until sufficient application outcome data exists.
 
@@ -81,7 +99,7 @@ When explicit structured job-location enrichment is absent, scoring must determi
 
 Structured job enrichment remains more authoritative than fallback listing-text interpretation. Listing location evidence and company-presence evidence are separate facts: a role being available in a market does not prove the employer has a physical office there, and an employer office does not rewrite the listing's stated location. Remote or multi-location strings such as `Remote - US`, mixed-country remote labels, and `City A OR City B` must be handled conservatively without substring-based state-code inference.
 
-A scoring-engine version change that only changes deterministic location interpretation may backfill existing score history from persisted opening, profile, fit, company, and job evidence. It must not require another LLM fit analysis when the existing fit contract remains valid.
+A scoring-engine version change that only changes deterministic interpretation may backfill existing score history from persisted opening, profile, fit, company, and job evidence. It must not require another LLM fit analysis when the existing fit evidence remains valid.
 
 ## Hard gates
 
@@ -105,3 +123,4 @@ Every score must provide:
 - The contract and model versions used.
 - Any user rule or learned positioning hypothesis that affected the result.
 - The location rationale and source evidence used for local, regional, distant, or unknown classification.
+- Weighted qualification coverage inputs, effective decision weights, rationale, duplicate linkage, and weighted contributions.
