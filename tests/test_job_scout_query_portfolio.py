@@ -61,9 +61,12 @@ def test_portfolio_compiles_materially_distinct_source_aware_families() -> None:
     ]
 
     assert {"direct_role", "adjacent_role", "seniority_variant"}.issubset(families)
-    assert {"web", "indeed.com", "job-boards.greenhouse.io", "jobs.lever.co"}.issubset(
-        domains
-    )
+    assert {
+        "web",
+        "indeed.com",
+        "job-boards.greenhouse.io",
+        "jobs.lever.co",
+    }.issubset(domains)
     identities = {(item.source_path, item.query.casefold()) for item in compiled}
     assert len(identities) == len(compiled)
     greenhouse = [
@@ -219,7 +222,11 @@ def test_strategy_attempt_audit_records_weight_movement(tmp_path: Path) -> None:
         "deepen",
         StrategyOutcome(results_examined=4, companies_discovered=1),
     )
-    row = next(item for item in learning.discovery_audit()["strategies"] if item["id"] == strategy.id)
+    row = next(
+        item
+        for item in learning.discovery_audit()["strategies"]
+        if item["id"] == strategy.id
+    )
 
     assert row["weight_before"] == 1.0
     assert row["weight_after"] == round(result.learned_weight, 3)
@@ -331,7 +338,10 @@ def test_reflection_work_is_explicitly_gap_driven(tmp_path: Path) -> None:
 
     work = loop.reflection_work_request("run-1", 3)
 
-    assert work["requirements"]["contract_version"] == "job-scout-discovery-reflection-v2"
+    assert (
+        work["requirements"]["contract_version"]
+        == "job-scout-discovery-reflection-v2"
+    )
     assert "Coverage gaps:" in work["payload"]["user_prompt"]
     assert "Greensboro, NC" in work["payload"]["user_prompt"]
     assert "remote" in work["payload"]["user_prompt"]
