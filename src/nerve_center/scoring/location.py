@@ -69,7 +69,9 @@ def assess_location(
     nearest_office_scope: LocationScope | None = None
     nearest_office_confidence: float | None = None
     for office in company.offices:
-        if not office.relevant_to_function or not is_specific_physical_location(office.label):
+        if not office.relevant_to_function:
+            continue
+        if office.point is None and not is_specific_physical_location(office.label):
             continue
         textual_scope = _textual_scope(office.label, office.region, preferences)
         if textual_scope is LocationScope.LOCAL or (
