@@ -8,6 +8,7 @@ from typing import Any
 
 from sqlalchemy import select
 
+from nerve_center.discovery.models import SourceHealth
 from nerve_center.persistence.models import DiscoverySourceModel, JobProvenanceModel
 from nerve_center.plugins.job_scout.discovery_learning import (
     CompanyDiscoveryEvidenceModel,
@@ -313,6 +314,7 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
             )
             if (
                 source.kind in STRUCTURED_SOURCE_KINDS
+                and source.health in {SourceHealth.UNKNOWN, SourceHealth.HEALTHY}
                 and isinstance(self.learning, DiscoveryQualityRepository)
             ):
                 self.learning.promote_initial_structured_refresh(strategy.id)
