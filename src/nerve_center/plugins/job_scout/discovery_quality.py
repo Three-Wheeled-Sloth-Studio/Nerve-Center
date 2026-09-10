@@ -4,15 +4,15 @@ from __future__ import annotations
 
 from dataclasses import replace
 from datetime import UTC, datetime
-from typing import Any, Iterable
+from typing import Any
 
 from sqlalchemy import select
 
-from nerve_center.discovery.models import SourceKind
 from nerve_center.plugins.job_scout.discovery_learning import (
     CompanyDiscoveryEvidenceModel,
     DiscoverySessionModel,
     DiscoveryStrategyModel,
+    DiscoveryStrategySnapshot,
     JobScoutDiscoveryRepository,
     StrategyAttemptModel,
     StrategyOutcome,
@@ -29,6 +29,45 @@ from nerve_center.plugins.job_scout.settings import clean_list
 
 class DiscoveryQualityRepository(JobScoutDiscoveryRepository):
     """Persistence helpers for overlap priority and human-readable audit data."""
+
+    def record_attempt(
+        self,
+        run_id: str,
+        cycle: int,
+        strategy_id: str,
+        phase: str,
+        outcome: StrategyOutcome,
+        *,
+        started_at: datetime | None = None,
+        finished_at: datetime | None = None,
+    ) -> DiscoveryStrategySnapshot:
+        before = self.get_strategy(strategy_id).learned_weight
+        result = super().record_attempt(
+            run_id,
+            cycle,
+            strategy_id,
+            phase,
+            outcome,
+            started_at=started_at,
+            finished_at=finished_at,
+        )
+        with self.database.session() as session:
+            attempt = session.scalar(
+                select(StrategyAttemptModel)
+                .where(
+                    StrategyAttemptModel.run_id == run_id,
+                    StrategyAttemptModel.cycle == cycle,
+                    StrategyAttemptModel.strategy_id == strategy_id,
+                    StrategyAttemptModel.phase == phase,
+                )
+                .order_by(StrategyAttemptModel.finished_at.desc())
+            )
+            if attempt is not None:
+                detail = dict(attempt.detail or {})
+                detail["weight_before"] = round(before, 3)
+                detail["weight_after"] = round(result.learned_weight, 3)
+                attempt.detail = detail
+        return result
 
     def record_company_evidence(
         self,
@@ -120,7 +159,9 @@ class DiscoveryQualityRepository(JobScoutDiscoveryRepository):
                 rows.append(
                     {
                         "id": strategy.id,
-                        "hypothesis_family": strategy.dimensions.get("hypothesis_family", "legacy"),
+                        "hypothesis_family": strategy.dimensions.get(
+                            "hypothesis_family", "legacy"
+                        ),
                         "anchor": strategy.dimensions.get("anchor", ""),
                         "location": strategy.dimensions.get("location", ""),
                         "source_domain": strategy.dimensions.get("source_domain", ""),
@@ -132,15 +173,27 @@ class DiscoveryQualityRepository(JobScoutDiscoveryRepository):
                         "weight_before": detail.get("weight_before"),
                         "weight_after": detail.get("weight_after"),
                         "attempts": strategy.attempts,
-                        "total_yield": int(detail.get("total_opportunities_retained", strategy.opportunities_retained)),
-                        "conditioned_yield": int(detail.get("location_conditioned_retained", strategy.opportunities_retained)),
+                        "total_yield": int(
+                            detail.get(
+                                "total_opportunities_retained",
+                                strategy.opportunities_retained,
+                            )
+                        ),
+                        "conditioned_yield": int(
+                            detail.get(
+                                "location_conditioned_retained",
+                                strategy.opportunities_retained,
+                            )
+                        ),
                         "warnings": list(detail.get("warnings", [])),
                         "overlap_company_count": len(overlap_companies),
                         "overlap_company_ids": overlap_companies[:8],
                         "last_attempt_at": strategy.last_attempt_at,
                     }
                 )
-            coverage = dict(latest_session.coverage or {}) if latest_session is not None else {}
+            coverage = (
+                dict(latest_session.coverage or {}) if latest_session is not None else {}
+            )
             return {
                 "run_id": latest_session.run_id if latest_session is not None else None,
                 "coverage_gaps": coverage.get("coverage_gaps", {}),
@@ -232,7 +285,10 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
             *configuration.manual_keywords,
             *self.coordinator._discover_keywords(configuration).keywords,
         ]
-        compiled = compile_strategy_query(strategy.dimensions, evidence_terms=evidence_terms)
+        compiled = compile_strategy_query(
+            strategy.dimensions,
+            evidence_terms=evidence_terms,
+        )
         if not compiled.valid:
             warnings = list(compiled.warnings) or ["query_rejected"]
             return (
@@ -240,7 +296,9 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
                     status="rejected",
                     failed=1,
                     detail={
-                        "hypothesis_family": strategy.dimensions.get("hypothesis_family", "legacy"),
+                        "hypothesis_family": strategy.dimensions.get(
+                            "hypothesis_family", "legacy"
+                        ),
                         "source_path": compiled.source_path,
                         "warnings": warnings,
                         "query_rejected": True,
@@ -259,11 +317,17 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
         detail = {
             **outcome.detail,
             "query": compiled.query,
-            "hypothesis_family": strategy.dimensions.get("hypothesis_family", "legacy"),
+            "hypothesis_family": strategy.dimensions.get(
+                "hypothesis_family", "legacy"
+            ),
             "source_path": compiled.source_path,
             "warnings": clean_list([*compiled.warnings, *warnings]),
         }
-        return replace(outcome, detail=detail), requests, clean_list([*compiled.warnings, *warnings])
+        return (
+            replace(outcome, detail=detail),
+            requests,
+            clean_list([*compiled.warnings, *warnings]),
+        )
 
     def deterministic_reflection(self, run_id: str, cycle: int) -> dict[str, Any]:
         gaps = self._coverage_gaps()
@@ -273,9 +337,19 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
         first_title = (configuration.target_titles or ["product management"])[0]
         proposals: list[tuple[str, dict[str, str]]] = []
         for role in gaps.get("role", [])[:2]:
-            proposals.append((f"Cover missing role evidence: {role}", self._gap_dimensions("direct_role", role)))
+            proposals.append(
+                (
+                    f"Cover missing role evidence: {role}",
+                    self._gap_dimensions("direct_role", role),
+                )
+            )
         for term in gaps.get("domain_capability", [])[:2]:
-            proposals.append((f"Cover missing capability evidence: {term}", self._gap_dimensions("domain_capability", term)))
+            proposals.append(
+                (
+                    f"Cover missing capability evidence: {term}",
+                    self._gap_dimensions("domain_capability", term),
+                )
+            )
         for location in gaps.get("geography", [])[:2]:
             proposals.append(
                 (
@@ -307,7 +381,11 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
                 phase="expand",
                 increments={"strategy_changes": created},
             )
-            return {"new_strategies": created, "llm_recommended": False, "coverage_gaps": gaps}
+            return {
+                "new_strategies": created,
+                "llm_recommended": False,
+                "coverage_gaps": gaps,
+            }
         inherited = super().deterministic_reflection(run_id, cycle)
         return {**inherited, "coverage_gaps": gaps}
 
@@ -324,7 +402,9 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
         )
         request["payload"] = payload
         request["output_contract"] = _quality_reflection_schema()
-        request["requirements"] = {"contract_version": "job-scout-discovery-reflection-v2"}
+        request["requirements"] = {
+            "contract_version": "job-scout-discovery-reflection-v2"
+        }
         return request
 
     def apply_reflection_result(self, request_id: str, value: dict[str, Any]) -> int:
@@ -347,12 +427,17 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
                 "anchor": str(item.get("anchor") or "").strip(),
                 "location": str(item.get("location") or "").strip(),
                 "source_domain": str(item.get("source_domain") or "web").strip(),
-                "employer_archetype": str(item.get("employer_archetype") or "").strip(),
+                "employer_archetype": str(
+                    item.get("employer_archetype") or ""
+                ).strip(),
             }
             compiled = compile_strategy_query(dimensions, evidence_terms=evidence_terms)
             if not compiled.valid:
                 continue
-            strategy = self.learning.ensure_strategy(dimensions, origin="llm_gap_reflection")
+            strategy = self.learning.ensure_strategy(
+                dimensions,
+                origin="llm_gap_reflection",
+            )
             if strategy.id in known_ids:
                 continue
             known_ids.add(strategy.id)
@@ -361,7 +446,9 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
                 str(request["run_id"]),
                 int(request["cycle"]),
                 origin="llm_gap",
-                hypothesis=str(item.get("rationale") or "LLM-proposed uncovered search path"),
+                hypothesis=str(
+                    item.get("rationale") or "LLM-proposed uncovered search path"
+                ),
                 dimensions=strategy.dimensions,
                 strategy_id=strategy.id,
             )
@@ -380,7 +467,7 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
             target_titles=configuration.target_titles,
             keywords=self.coordinator._discover_keywords(configuration).keywords,
             locations=configuration.locations,
-            remote_preference=configuration.remote_preference.value,
+            remote_preference=configuration.remote_preference,
             strategies=self.learning.list_strategies(),
             openings=self.jobs.list(active_only=False),
             sources=self.sources.list(),
@@ -411,7 +498,7 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
 
 
 class _CompiledQueryAdapter:
-    """Run one compiled query through the accepted adapter without duplicating deepening logic."""
+    """Run one compiled query through accepted adapter without duplicating deepening logic."""
 
     def __init__(self, delegate: Any, query: str) -> None:
         self.delegate = delegate
@@ -446,11 +533,22 @@ def _quality_reflection_schema() -> dict[str, Any]:
                                 "gap_reflection",
                             ],
                         },
-                        "anchor": {"type": "string", "minLength": 1, "maxLength": 120},
+                        "anchor": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120,
+                        },
                         "location": {"type": "string", "maxLength": 120},
                         "source_domain": {"type": "string", "maxLength": 200},
-                        "employer_archetype": {"type": "string", "maxLength": 120},
-                        "rationale": {"type": "string", "minLength": 1, "maxLength": 500},
+                        "employer_archetype": {
+                            "type": "string",
+                            "maxLength": 120,
+                        },
+                        "rationale": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 500,
+                        },
                     },
                 },
             }
