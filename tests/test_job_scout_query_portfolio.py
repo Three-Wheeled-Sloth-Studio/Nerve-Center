@@ -9,6 +9,7 @@ from nerve_center.discovery.models import (
     DiscoverySource,
     JobProvenance,
     NormalizedJobOpening,
+    SourceHealth,
     SourceKind,
     WorkArrangement,
 )
@@ -274,6 +275,32 @@ def test_due_structured_source_is_preferred_through_real_seeding_path(tmp_path: 
         if item.dimensions.get("source_id") == source.id
     )
     assert strategy.learned_weight == 1.35
+
+
+def test_unhealthy_structured_source_gets_no_initial_priority_bonus(tmp_path: Path) -> None:
+    learning = DiscoveryQualityRepository(_database(tmp_path))
+    source = DiscoverySource(
+        id="greenhouse-degraded",
+        company_id="company-1",
+        name="Degraded Greenhouse",
+        kind=SourceKind.GREENHOUSE,
+        acquisition_class=AcquisitionClass.PUBLIC_STRUCTURED_FEED,
+        base_url="https://job-boards.greenhouse.io/degraded",
+        parser_version="greenhouse-v1",
+        health=SourceHealth.DEGRADED,
+    )
+    loop = object.__new__(SourceAwareJobScoutDiscoveryLoop)
+    loop.learning = learning
+    loop.sources = SimpleNamespace(list_due=lambda: [source])
+
+    loop._seed_due_source_strategies()
+
+    strategy = next(
+        item
+        for item in learning.list_strategies()
+        if item.dimensions.get("source_id") == source.id
+    )
+    assert strategy.learned_weight == 1.0
 
 
 def test_coverage_gaps_are_explicit_and_bounded(tmp_path: Path) -> None:
