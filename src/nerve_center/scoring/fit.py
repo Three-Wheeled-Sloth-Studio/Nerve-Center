@@ -140,7 +140,10 @@ def _validate_analysis(
             "to prevent repeated fit credit."
         )
     evidence_matches = [
-        match for qualification in qualifications for match in qualification.evidence_matches
+        match
+        for qualification in qualifications
+        if qualification.duplicate_of is None
+        for match in qualification.evidence_matches
     ]
     domain_assessment = matcher.assess_domain(
         opening,
