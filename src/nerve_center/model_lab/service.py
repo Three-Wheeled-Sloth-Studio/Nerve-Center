@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from contextlib import suppress
 from dataclasses import asdict
 from typing import Any
 
@@ -134,10 +135,8 @@ class ModelLabService:
     async def overview(self) -> dict[str, Any]:
         self.harvest()
         if self.providers is not None:
-            try:
+            with suppress(ProviderError):
                 await self.providers.list_models()
-            except ProviderError:
-                pass
         evidence = {
             task_id: [asdict(item) for item in self.evidence.task_evidence(task_id)]
             for task_id in self.repository.task_ids()
