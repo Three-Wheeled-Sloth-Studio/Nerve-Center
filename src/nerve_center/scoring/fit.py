@@ -136,7 +136,8 @@ def _validate_analysis(
     duplicate_count = sum(item.duplicate_of is not None for item in qualifications)
     if duplicate_count:
         review_notes.append(
-            f"Marked {duplicate_count} near-duplicate qualification(s) to prevent repeated fit credit."
+            f"Marked {duplicate_count} near-duplicate qualification(s) "
+            "to prevent repeated fit credit."
         )
     evidence_matches = [
         match for qualification in qualifications for match in qualification.evidence_matches
