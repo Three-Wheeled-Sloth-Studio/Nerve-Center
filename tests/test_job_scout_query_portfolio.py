@@ -7,6 +7,7 @@ from nerve_center.discovery.models import (
     AcquisitionClass,
     Company,
     DiscoverySource,
+    JobProvenance,
     NormalizedJobOpening,
     SourceKind,
     WorkArrangement,
@@ -299,7 +300,15 @@ def test_coverage_gaps_are_explicit_and_bounded(tmp_path: Path) -> None:
         work_arrangement=WorkArrangement.ON_SITE,
         source_url="https://example.com/jobs/1",
         canonical_url="https://example.com/jobs/1",
-        provenance=[],
+        provenance=[
+            JobProvenance(
+                source_id="source-1",
+                connector="fixture",
+                parser_version="fixture-v1",
+                source_url="https://example.com/jobs/1",
+                direct_employer_source=True,
+            )
+        ],
     )
     source = DiscoverySource(
         id="source-1",
