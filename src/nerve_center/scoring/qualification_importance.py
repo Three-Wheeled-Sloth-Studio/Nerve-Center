@@ -185,7 +185,9 @@ def coverage_breakdown(
 
 
 def _normalize_weight(item: QualificationAssessment) -> QualificationAssessment:
-    text = f"{item.requirement} {item.job_excerpt}".casefold()
+    # Only the validated verbatim job excerpt may deterministically change centrality.
+    # The model-authored requirement label is useful for deduplication, not source truth.
+    text = item.job_excerpt.casefold()
     if item.decision_weight_rationale:
         weight = item.decision_weight
         rationale = list(item.decision_weight_rationale)
