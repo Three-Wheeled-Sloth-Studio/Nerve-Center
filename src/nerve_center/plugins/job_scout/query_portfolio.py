@@ -99,8 +99,10 @@ def build_query_portfolio(
 ) -> list[dict[str, str]]:
     """Build materially different, bounded search hypotheses.
 
-    Portfolio families are semantic experiments. Location is omitted from ATS x-ray
-    strategies where the structured posting is a better post-fetch location source.
+    Buckets are emitted round-robin across hypothesis family and source path so a
+    high-recall broad-web family cannot consume the cap before other source paths
+    are represented. ATS x-ray strategies deliberately defer geography to the
+    structured posting after retrieval.
     """
 
     titles = clean_list(target_titles)
@@ -125,16 +127,17 @@ def build_query_portfolio(
         ("employer_archetype", [(direct[0], item) for item in archetypes[:4]]),
     ]
 
-    result: list[dict[str, str]] = []
-    seen_queries: set[tuple[str, str]] = set()
-    for domain in domains:
-        capabilities_for_source = source_capabilities(domain)
-        source_locations = places if capabilities_for_source.include_location else [""]
-        for family, hypotheses in families:
-            if not hypotheses:
+    buckets: list[list[dict[str, str]]] = []
+    evidence_terms = [*titles, *terms]
+    for family, hypotheses in families:
+        if not hypotheses:
+            continue
+        for domain in domains:
+            source = source_capabilities(domain)
+            if family == "employer_archetype" and not source.include_employer_archetype:
                 continue
-            if family == "employer_archetype" and not capabilities_for_source.include_employer_archetype:
-                continue
+            source_locations = places if source.include_location else [""]
+            bucket: list[dict[str, str]] = []
             for anchor, archetype in hypotheses:
                 for location in source_locations[:6]:
                     dimensions = {
@@ -142,22 +145,43 @@ def build_query_portfolio(
                         "hypothesis_family": family,
                         "anchor": anchor,
                         "source_domain": _clean_domain(domain) or "web",
-                        "source_path": capabilities_for_source.source_path,
+                        "source_path": source.source_path,
                     }
                     if location:
                         dimensions["location"] = location
                     if archetype:
                         dimensions["employer_archetype"] = archetype
-                    compiled = compile_strategy_query(dimensions, evidence_terms=[*titles, *terms])
-                    if not compiled.valid:
-                        continue
-                    identity = (compiled.source_path, compiled.query.casefold())
-                    if identity in seen_queries:
-                        continue
+                    compiled = compile_strategy_query(
+                        dimensions,
+                        evidence_terms=evidence_terms,
+                    )
+                    if compiled.valid:
+                        bucket.append(dimensions)
+            if bucket:
+                buckets.append(bucket)
+
+    result: list[dict[str, str]] = []
+    seen_queries: set[tuple[str, str]] = set()
+    while buckets and len(result) < limit:
+        remaining: list[list[dict[str, str]]] = []
+        for bucket in buckets:
+            accepted = False
+            while bucket and not accepted:
+                dimensions = bucket.pop(0)
+                compiled = compile_strategy_query(
+                    dimensions,
+                    evidence_terms=evidence_terms,
+                )
+                identity = (compiled.source_path, compiled.query.casefold())
+                if compiled.valid and identity not in seen_queries:
                     seen_queries.add(identity)
                     result.append(dimensions)
+                    accepted = True
                     if len(result) >= limit:
-                        return result
+                        break
+            if bucket:
+                remaining.append(bucket)
+        buckets = remaining
     return result
 
 
@@ -203,7 +227,12 @@ def compile_strategy_query(
     query = " ".join(clean_list(parts)).strip()
     if capabilities.site_restricted:
         query = f"site:{source_domain} {query}".strip()
-    return CompiledQuery(query, capabilities.source_path, tuple(clean_list(warnings)), bool(query))
+    return CompiledQuery(
+        query,
+        capabilities.source_path,
+        tuple(clean_list(warnings)),
+        bool(query),
+    )
 
 
 def lint_query_dimensions(
@@ -235,7 +264,9 @@ def lint_query_dimensions(
         dimensions.get("technology", ""),
         dimensions.get("requirement", ""),
     ]
-    normalized_fields = [_normalize_phrase(item) for item in fields if _normalize_phrase(item)]
+    normalized_fields = [
+        _normalize_phrase(item) for item in fields if _normalize_phrase(item)
+    ]
     duplicates = {item for item in normalized_fields if normalized_fields.count(item) > 1}
     if duplicates:
         warnings.extend(f"duplicate_constraint:{item}" for item in sorted(duplicates))
@@ -246,8 +277,13 @@ def lint_query_dimensions(
         if value and (_tokens(value) - supported):
             return QueryLintResult(False, (f"unsupported_{key}",))
 
-    effective = capabilities or source_capabilities(dimensions.get("source_domain", "web"))
-    if effective.source_path == "structured_ats_xray" and dimensions.get("location", "").strip():
+    effective = capabilities or source_capabilities(
+        dimensions.get("source_domain", "web")
+    )
+    if (
+        effective.source_path == "structured_ats_xray"
+        and dimensions.get("location", "").strip()
+    ):
         warnings.append("source_specific_location_omitted")
     return QueryLintResult(True, tuple(clean_list(warnings)))
 
@@ -280,7 +316,11 @@ def build_coverage_gap_profile(
     for title in clean_list(target_titles)[:6]:
         role_tokens = _tokens(title) - GENERIC_TITLE_TERMS
         if role_tokens and not any(
-            _coverage_overlap(role_tokens, _tokens(item.title) - GENERIC_TITLE_TERMS) >= 0.5
+            _coverage_overlap(
+                role_tokens,
+                _tokens(item.title) - GENERIC_TITLE_TERMS,
+            )
+            >= 0.5
             for item in openings
         ):
             gaps["role"].append(title)
@@ -297,7 +337,9 @@ def build_coverage_gap_profile(
     observed_seniority = {
         level for opening in openings for level in _seniority_levels(opening.title)
     }
-    gaps["seniority"] = [item for item in requested_seniority if item not in observed_seniority]
+    gaps["seniority"] = [
+        item for item in requested_seniority if item not in observed_seniority
+    ]
 
     for location in clean_list(locations)[:8]:
         if not any(opening_matches_market(item, location) for item in openings):
@@ -318,28 +360,45 @@ def build_coverage_gap_profile(
         [
             item.dimensions.get("employer_archetype", "")
             for item in archetype_strategies
-            if item.opportunities_retained + item.companies_discovered + item.career_sources_resolved == 0
+            if (
+                item.opportunities_retained
+                + item.companies_discovered
+                + item.career_sources_resolved
+                == 0
+            )
         ]
     )[:6]
 
     configured_domains = clean_list(
-        [_clean_domain(item.dimensions.get("source_domain", "")) for item in strategies]
+        [
+            _clean_domain(item.dimensions.get("source_domain", ""))
+            for item in strategies
+        ]
     )
     observed_domains = {_clean_domain(item.base_url) for item in sources}
     gaps["source"] = [
-        item for item in configured_domains if item not in {"", "web"} and item not in observed_domains
+        item
+        for item in configured_domains
+        if item not in {"", "web"} and item not in observed_domains
     ][:6]
 
     productive_families = {
         item.dimensions.get("hypothesis_family", "")
         for item in strategies
         if item.attempts > 0
-        and item.opportunities_retained + item.companies_discovered + item.career_sources_resolved > 0
+        and (
+            item.opportunities_retained
+            + item.companies_discovered
+            + item.career_sources_resolved
+            > 0
+        )
     }
     planned_families = clean_list(
         [item.dimensions.get("hypothesis_family", "") for item in strategies]
     )
-    gaps["query_family"] = [item for item in planned_families if item not in productive_families][:6]
+    gaps["query_family"] = [
+        item for item in planned_families if item not in productive_families
+    ][:6]
 
     return {key: clean_list(value)[:8] for key, value in gaps.items() if value}
 
@@ -352,10 +411,17 @@ def preferred_structured_source_ids(sources: list[DiscoverySource]) -> set[str]:
     }
 
 
-def _adjacent_anchors(target_titles: list[str], capability_terms: list[str]) -> list[str]:
+def _adjacent_anchors(
+    target_titles: list[str],
+    capability_terms: list[str],
+) -> list[str]:
     result: list[str] = []
     for term in capability_terms[:4]:
-        words = [item for item in re.findall(r"[A-Za-z0-9]+", term) if item.casefold() not in GENERIC_TITLE_TERMS]
+        words = [
+            item
+            for item in re.findall(r"[A-Za-z0-9]+", term)
+            if item.casefold() not in GENERIC_TITLE_TERMS
+        ]
         if words:
             result.append(" ".join([*words[:3], "lead"]))
     for title in target_titles:
@@ -388,7 +454,13 @@ def _archetype_terms(capability_terms: list[str]) -> list[str]:
     result: list[str] = []
     for term in capability_terms:
         tokens = _tokens(term)
-        if not tokens or tokens & {"agile", "roadmap", "stakeholder", "workflow", "leadership"}:
+        if not tokens or tokens & {
+            "agile",
+            "roadmap",
+            "stakeholder",
+            "workflow",
+            "leadership",
+        }:
             continue
         result.append(f"{term} company")
     return clean_list(result)
@@ -397,7 +469,15 @@ def _archetype_terms(capability_terms: list[str]) -> list[str]:
 def _seniority_levels(value: str) -> list[str]:
     normalized = _normalize_phrase(value)
     levels = []
-    for level in ("chief", "vice president", "director", "head", "principal", "senior", "lead"):
+    for level in (
+        "chief",
+        "vice president",
+        "director",
+        "head",
+        "principal",
+        "senior",
+        "lead",
+    ):
         if level in normalized:
             levels.append(level)
     return levels
@@ -413,11 +493,20 @@ def _split_terms(value: str) -> list[str]:
 
 
 def _tokens(value: str) -> set[str]:
-    return {_normalize_term(item) for item in re.findall(r"[A-Za-z0-9]+", value) if len(item) > 1}
+    return {
+        _normalize_term(item)
+        for item in re.findall(r"[A-Za-z0-9]+", value)
+        if len(item) > 1
+    }
 
 
 def _normalize_term(value: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "", value.casefold())
+    normalized = re.sub(r"[^a-z0-9]+", "", value.casefold())
+    aliases = {
+        "management": "manager",
+        "products": "product",
+    }
+    return aliases.get(normalized, normalized)
 
 
 def _normalize_phrase(value: str) -> str:
