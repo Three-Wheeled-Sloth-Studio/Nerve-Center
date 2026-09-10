@@ -39,6 +39,7 @@ import type {
   ScoringRule,
 } from "./types";
 import { messageOf, Metric, score, titleCase } from "./display";
+import { countLocationScopes, matchesLocationFilter, type LocationFilter } from "./locationFilter.js";
 import { formatMultivalueText, parseMultivalueText } from "./multivalue";
 
 type SortKey = "priority" | "response" | "fit" | "freshness";
@@ -95,7 +96,7 @@ export function JobScoutPanel({ workspace, opportunities, rules, scoringSettings
   onRefresh: () => Promise<void>;
   onError: (message: string) => void;
 }) {
-  if (!workspace) return <div className="empty-state">Loading Job Scout…</div>;
+  if (!workspace) return <div className="empty-state">Loading Job Scout...</div>;
   return (
     <section aria-labelledby="job-scout-heading" className="module-workspace">
       <div className="section-heading module-heading">
@@ -106,7 +107,7 @@ export function JobScoutPanel({ workspace, opportunities, rules, scoringSettings
       </div>
       <JobScoutSetup workspace={workspace} scanSummary={scanSummary} busy={busy} onBusy={onBusy} onScanSummary={onScanSummary} onRefresh={onRefresh} onError={onError} />
       <details className="panel workspace-section" open>
-        <summary><strong>Opportunities</strong><span>{opportunities.length} in current view</span></summary>
+        <summary><strong>Opportunities</strong><span>{opportunities.length} retained</span></summary>
         <ReviewPanel items={opportunities} sort={sort} includeDismissed={includeDismissed} busy={busy} onBusy={onBusy} onSort={onSort} onIncludeDismissed={onIncludeDismissed} onRefresh={onRefresh} onError={onError} />
       </details>
       <details className="panel workspace-section">
@@ -197,7 +198,7 @@ function JobScoutSetup({ workspace, scanSummary, busy, onBusy, onScanSummary, on
           <FileText aria-hidden="true" /><span><strong>Resume</strong><small>{workspace.configuration.resume_file_name ?? "Not loaded"}</small></span>
         </button>
         <button type="button" className="setup-pill" title="Search intent and sources" onClick={() => setActiveDialog("search")}>
-          <Settings2 aria-hidden="true" /><span><strong>Search</strong><small>{configuration.target_titles.length} titles · {configuration.locations.length} locations</small></span>
+          <Settings2 aria-hidden="true" /><span><strong>Search</strong><small>{configuration.target_titles.length} titles | {configuration.locations.length} locations</small></span>
         </button>
         <button type="button" className="setup-pill" title="Relevant search terms" onClick={() => setActiveDialog("keywords")}>
           <Tags aria-hidden="true" /><span><strong>Terms</strong><small>{workspace.keywords.keywords.length} selected</small></span>
@@ -247,8 +248,8 @@ function JobScoutSetup({ workspace, scanSummary, busy, onBusy, onScanSummary, on
       <SetupDialog open={activeDialog === "scan"} title="Scan public sources" icon={<ScanSearch />} onClose={() => setActiveDialog(null)}>
         <p className="muted">Scans configured direct sources. When public discovery is enabled, it also searches the configured public boards and registers supported result pages.</p>
         {scanSummary ? <div className="scan-summary"><strong>{scanSummary.openings_found} openings found</strong><span>{scanSummary.queries_run.length} public searches run</span><span>{scanSummary.search_results_seen} results reviewed</span><span>{scanSummary.sources_scanned} sources scanned</span><span>{scanSummary.sources_registered} sources added</span>{scanSummary.warnings.map((warning) => <small key={warning}>{warning}</small>)}</div> : null}
-        {workspace.sources.length ? <ul className="source-list">{workspace.sources.map((source) => <li key={source.id}><span>{source.name}</span><small>{titleCase(source.kind)} · {titleCase(source.health)}</small></li>)}</ul> : <p className="muted">No registered sources yet.</p>}
-        <div className="dialog-actions"><button type="button" onClick={() => setActiveDialog(null)}>Close</button><button type="button" className="primary" disabled={busy || (sourceUrls.length === 0 && workspace.sources.length === 0 && parseMultivalueText(drafts.public_job_boards).length === 0)} onClick={() => { const next = materializeConfiguration(); setConfiguration(next); onBusy(true); onScanSummary(null); void saveJobScoutConfiguration(next).then(() => scanJobScout(next.public_job_boards.length > 0)).then(onScanSummary).then(onRefresh).catch((reason: unknown) => onError(messageOf(reason))).finally(() => onBusy(false)); }}>{busy ? "Working…" : "Scan now"}</button></div>
+        {workspace.sources.length ? <ul className="source-list">{workspace.sources.map((source) => <li key={source.id}><span>{source.name}</span><small>{titleCase(source.kind)} | {titleCase(source.health)}</small></li>)}</ul> : <p className="muted">No registered sources yet.</p>}
+        <div className="dialog-actions"><button type="button" onClick={() => setActiveDialog(null)}>Close</button><button type="button" className="primary" disabled={busy || (sourceUrls.length === 0 && workspace.sources.length === 0 && parseMultivalueText(drafts.public_job_boards).length === 0)} onClick={() => { const next = materializeConfiguration(); setConfiguration(next); onBusy(true); onScanSummary(null); void saveJobScoutConfiguration(next).then(() => scanJobScout(next.public_job_boards.length > 0)).then(onScanSummary).then(onRefresh).catch((reason: unknown) => onError(messageOf(reason))).finally(() => onBusy(false)); }}>{busy ? "Working..." : "Scan now"}</button></div>
       </SetupDialog>
     </div>
   );
@@ -287,10 +288,16 @@ function ReviewPanel({ items, sort, includeDismissed, busy, onBusy, onSort, onIn
   onError: (message: string) => void;
 }) {
   const [query, setQuery] = useState("");
+  const [locationFilter, setLocationFilter] = useState<LocationFilter>("all");
+  const locationCounts = useMemo(() => countLocationScopes(items), [items]);
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    return needle ? items.filter((item) => `${item.opening.title} ${item.opening.company_name} ${item.opening.location_text ?? ""}`.toLowerCase().includes(needle)) : items;
-  }, [items, query]);
+    return items.filter((item) => {
+      if (!matchesLocationFilter(item, locationFilter)) return false;
+      if (!needle) return true;
+      return `${item.opening.title} ${item.opening.company_name} ${item.opening.location_text ?? ""}`.toLowerCase().includes(needle);
+    });
+  }, [items, query, locationFilter]);
   async function change(item: ReviewOpportunity, status: ApplicationStatus) {
     onBusy(true);
     try { await updateApplication(item.opening.id, status); await onRefresh(); } catch (reason) { onError(messageOf(reason)); } finally { onBusy(false); }
@@ -298,9 +305,11 @@ function ReviewPanel({ items, sort, includeDismissed, busy, onBusy, onSort, onIn
   return <div className="embedded-panel">
     <div className="review-controls">
       <label>Search<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Title, company, location" /></label>
+      <label>Location<select value={locationFilter} onChange={(event) => setLocationFilter(event.target.value as LocationFilter)}><option value="all">All retained</option><option value="local_or_regional">Local + regional</option><option value="local">Local only</option><option value="regional">Regional only</option><option value="distant">Distant only</option><option value="unknown">Unknown only</option></select></label>
       <label>Sort<select value={sort} onChange={(event) => onSort(event.target.value as SortKey)}><option value="priority">Priority</option><option value="response">Response likelihood</option><option value="fit">Fit</option><option value="freshness">Freshness</option></select></label>
       <label className="checkbox"><input type="checkbox" checked={includeDismissed} onChange={(event) => onIncludeDismissed(event.target.checked)} />Show dismissed</label>
     </div>
+    <p className="muted">{locationCounts.local} local | {locationCounts.regional} regional | {locationCounts.distant} distant | {locationCounts.unknown} unknown | {filtered.length} shown</p>
     <div className="opportunity-list">{filtered.length === 0 ? <div className="empty-state">No opportunities match this view.</div> : filtered.map((item) => <OpportunityCard key={item.opening.id} item={item} busy={busy} onChange={change} onError={onError} />)}</div>
   </div>;
 }
@@ -331,9 +340,10 @@ function OpportunityCard({ item, busy, onChange, onError }: {
       onError(`Could not copy the listing URL: ${messageOf(reason)}`);
     }
   }
+  const locationScope = item.score?.location.scope ?? "unknown";
   return <article className="opportunity-card">
-    <div className="opportunity-summary"><div className="priority-badge"><strong>{score(item.score?.priority)}</strong><span>priority</span></div><div className="opportunity-title"><h3>{item.opening.title}</h3><p><strong>{item.opening.company_name}</strong> · {item.opening.location_text ?? "Location unclear"}</p><div className="opportunity-meta"><span><BriefcaseBusiness aria-hidden="true" />{titleCase(item.opening.work_arrangement)}</span><span><Clock3 aria-hidden="true" />{freshness(item.opening.posted_at ?? item.opening.discovered_at)}</span><span>{item.score ? `${Math.round(item.score.confidence)}% confidence` : "Unscored"}</span></div></div><div className="score-strip"><Metric label="Fit" value={item.score?.fit} /><Metric label="Response" value={item.score?.response_likelihood} /><Metric label="Value" value={item.score?.opportunity_value} /></div><div className="opportunity-actions"><button className="icon-button" disabled={busy} title="Save" aria-label="Save" onClick={() => void onChange(item, "saved")}><Bookmark aria-hidden="true" /></button><button className="icon-button primary" disabled={busy} title="Plan to apply" aria-label="Plan to apply" onClick={() => void onChange(item, "planned_to_apply")}><ClipboardCheck aria-hidden="true" /></button><button className="icon-button" disabled={busy} title="Dismiss" aria-label="Dismiss" onClick={() => void onChange(item, "dismissed")}><X aria-hidden="true" /></button><button className="icon-button" type="button" title="Open original listing" aria-label="Open original listing" onClick={() => void openListing()}><ExternalLink aria-hidden="true" /></button></div></div>
-    <details><summary>Listing details and description</summary><div className="listing-url"><code title={listingUrl}>{listingUrl}</code><button type="button" onClick={() => void copyListing()}><Copy aria-hidden="true" />{copied ? "Copied" : "Copy URL"}</button><button type="button" onClick={() => void openListing()}><ExternalLink aria-hidden="true" />Open listing</button></div><p>{item.opening.description}</p></details>
+    <div className="opportunity-summary"><div className="priority-badge"><strong>{score(item.score?.priority)}</strong><span>priority</span></div><div className="opportunity-title"><h3>{item.opening.title}</h3><p><strong>{item.opening.company_name}</strong> | {item.opening.location_text ?? "Location unclear"}</p><div className="opportunity-meta"><span><BriefcaseBusiness aria-hidden="true" />{titleCase(item.opening.work_arrangement)}</span><span><MapPin aria-hidden="true" />{titleCase(locationScope)} scope</span><span><Clock3 aria-hidden="true" />{freshness(item.opening.posted_at ?? item.opening.discovered_at)}</span><span>{item.score ? `${Math.round(item.score.confidence)}% confidence` : "Unscored"}</span></div></div><div className="score-strip"><Metric label="Fit" value={item.score?.fit} /><Metric label="Response" value={item.score?.response_likelihood} /><Metric label="Value" value={item.score?.opportunity_value} /></div><div className="opportunity-actions"><button className="icon-button" disabled={busy} title="Save" aria-label="Save" onClick={() => void onChange(item, "saved")}><Bookmark aria-hidden="true" /></button><button className="icon-button primary" disabled={busy} title="Plan to apply" aria-label="Plan to apply" onClick={() => void onChange(item, "planned_to_apply")}><ClipboardCheck aria-hidden="true" /></button><button className="icon-button" disabled={busy} title="Dismiss" aria-label="Dismiss" onClick={() => void onChange(item, "dismissed")}><X aria-hidden="true" /></button><button className="icon-button" type="button" title="Open original listing" aria-label="Open original listing" onClick={() => void openListing()}><ExternalLink aria-hidden="true" /></button></div></div>
+    <details><summary>Listing details and description</summary><div className="listing-url"><code title={listingUrl}>{listingUrl}</code><button type="button" onClick={() => void copyListing()}><Copy aria-hidden="true" />{copied ? "Copied" : "Copy URL"}</button><button type="button" onClick={() => void openListing()}><ExternalLink aria-hidden="true" />Open listing</button></div>{item.score?.location.rationale?.length ? <div><strong>Location evidence</strong><ul>{item.score.location.rationale.map((reason) => <li key={reason}>{reason}</li>)}</ul></div> : null}<p>{item.opening.description}</p></details>
   </article>;
 }
 
@@ -347,7 +357,7 @@ function freshness(value: string): string {
 function RulesPanel({ rules, onRefresh, onError }: { rules: ScoringRule[]; onRefresh: () => Promise<void>; onError: (message: string) => void }) {
   const [target, setTarget] = useState("company"); const [action, setAction] = useState("prefer"); const [pattern, setPattern] = useState("");
   async function submit(event: FormEvent) { event.preventDefault(); try { await createRule({ target, action, pattern }); setPattern(""); await onRefresh(); } catch (reason) { onError(messageOf(reason)); } }
-  return <div className="two-column embedded-panel"><form onSubmit={(event) => void submit(event)}><label>Target<select value={target} onChange={(event) => setTarget(event.target.value)}>{["company", "domain", "title", "industry", "location", "source"].map((value) => <option key={value}>{value}</option>)}</select></label><label>Action<select value={action} onChange={(event) => setAction(event.target.value)}>{["hard_include", "hard_exclude", "prefer", "deprioritize", "watch"].map((value) => <option key={value}>{value}</option>)}</select></label><label>Pattern<input required value={pattern} onChange={(event) => setPattern(event.target.value)} /></label><button className="primary">Add rule</button></form><div>{rules.length ? rules.map((rule) => <div className="rule-row" key={rule.id}><div><strong>{titleCase(rule.action)}</strong><span>{titleCase(rule.target)} contains “{rule.pattern}”</span></div><button onClick={() => void deleteRule(rule.id).then(onRefresh).catch((reason: unknown) => onError(messageOf(reason)))}>Remove</button></div>) : <p className="muted">No pursuit rules yet.</p>}</div></div>;
+  return <div className="two-column embedded-panel"><form onSubmit={(event) => void submit(event)}><label>Target<select value={target} onChange={(event) => setTarget(event.target.value)}>{["company", "domain", "title", "industry", "location", "source"].map((value) => <option key={value}>{value}</option>)}</select></label><label>Action<select value={action} onChange={(event) => setAction(event.target.value)}>{["hard_include", "hard_exclude", "prefer", "deprioritize", "watch"].map((value) => <option key={value}>{value}</option>)}</select></label><label>Pattern<input required value={pattern} onChange={(event) => setPattern(event.target.value)} /></label><button className="primary">Add rule</button></form><div>{rules.length ? rules.map((rule) => <div className="rule-row" key={rule.id}><div><strong>{titleCase(rule.action)}</strong><span>{titleCase(rule.target)} contains "{rule.pattern}"</span></div><button onClick={() => void deleteRule(rule.id).then(onRefresh).catch((reason: unknown) => onError(messageOf(reason)))}>Remove</button></div>) : <p className="muted">No pursuit rules yet.</p>}</div></div>;
 }
 
 function ProfilePanel({ workspace, onRefresh, onError }: { workspace: JobScoutWorkspace; onRefresh: () => Promise<void>; onError: (message: string) => void }) {

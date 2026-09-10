@@ -1,9 +1,9 @@
 ---
 type: Development Prompt
 title: Next Development Prompt
-description: Ready-to-use prompt for continuing Job Scout location-aware discovery and ranking from the current Nerve Center dev baseline.
+description: Ready-to-use prompt for the next Job Scout source-aware discovery-quality slice.
 status: stable
-tags: [nerve-center, handoff, job-scout, discovery, scoring, location]
+tags: [nerve-center, handoff, job-scout, discovery, search]
 ---
 # Next Development Prompt
 
@@ -13,7 +13,7 @@ Continue implementation in:
 
 Work from the latest `dev` branch using normal issue -> branch -> implementation -> tests -> PR -> CI -> merge discipline.
 
-The immediate tracking issue is **#40: Make Job Scout location-aware in scoring, discovery learning, and UI**.
+The immediate tracking issue is **#43: Add source-aware query portfolios and gap-driven reflection**.
 
 ## Bounded re-entry
 
@@ -22,88 +22,85 @@ Do not reread repository history or all planning documents.
 Start with:
 
 ```powershell
-python scripts/agent_context.py --focus "job scout location evidence scoring discovery learning UI" --issue 40
+python scripts/agent_context.py --focus "job scout source aware query portfolio query lint coverage gaps reflection overlap structured refresh" --issue 43
 ```
 
-Treat that generated packet as the initial orientation. Read Issue #40 and then only the code/docs identified by the packet or direct implementation evidence. Do not re-derive accepted architecture decisions.
+Treat that generated packet as the initial orientation. Read Issue #43 and only the code/docs identified by the packet or direct implementation evidence.
 
 ## Current accepted baseline
 
-Issue #34 is complete and merged through PR #36. Job Scout now remains productive through bounded discovery/scoring/reflection waves while manager admission and budget remain available. An empty reflection is not success; scoring occurs during the active work window; company/source revisit cooldowns persist across restarts; and terminal reasons are explicit.
+Issue #34 continuous discovery/liveness and Issue #40 location awareness are complete. Preserve:
 
-A 900-second live validation completed 89 cycles across 20 waves, retained 121 opportunities from 49 companies and 70 career sources, created 212 provisional scores, completed 3/3 bounded full analyses, crossed both added and empty reflection outcomes, and stopped explicitly on request-budget exhaustion.
+- `expand -> converge -> deepen -> reflect -> re-expand`;
+- company-first source deepening and durable discovery learning;
+- broad opportunity retention with ranking providing precision;
+- responsibility/requirement-first fit with title as a weak clue;
+- explicit `direct > adjacent > transferable > mismatch` domain relationship;
+- deterministic location scope from raw listing evidence and configured markets;
+- separate opening-location, company-presence, and discovery-market evidence;
+- location-conditioned yield for location-seeded strategies;
+- manager-owned provider/session/queue boundaries and Job Scout model blindness;
+- the exploration floor and durable revisit/cooldown behavior.
 
-Fit analysis v6 and ranking engine v3 are also accepted. Responsibility and requirement evidence is primary, title influence is weak, and domain relationship is explicitly `direct > adjacent > transferable > mismatch`.
+Do not reopen these without new evidence.
 
-The Windows source launcher fix in PR #39 is merged and validated. It discovers a complete x64 Visual C++ environment, skips incomplete Visual Studio installations, and preserves an already valid developer shell.
+## Problem to solve
 
-Do not reopen those areas without new evidence.
+Current discovery can generate and execute useful strategies, but query construction is still too close to a universal search shape. That spends requests on queries that may be redundant, poorly matched to a source's retrieval capabilities, or aimed at dimensions already well covered. Reflection has durable evidence but needs a clearer deterministic statement of what remains uncovered.
 
-## Observed location problem
-
-The current live inventory exposed a geography-specific quality gap:
-
-- opening records retain raw location text, but recent score records commonly persist location scope as `unknown` because opening locations are not normalized into the structured evidence used by scoring;
-- the current inventory contains no Greensboro/Triad postings and only one wider-region posting, making local-market effectiveness difficult to audit;
-- location-seeded discovery strategies can receive credit for distant roles found later while deepening a national employer, so a weak local search can look productive;
-- the Job Scout UI does not yet make local/regional/remote/distant inventory easy to inspect or filter.
-
-This is a data attribution and product-observability problem, not a reason to narrow discovery aggressively.
+The next improvement is not "more queries." It is a smaller set of materially different, source-appropriate experiments whose information gain can be inspected and learned from.
 
 ## Implementation objective
 
-Implement the smallest coherent location-awareness correction across scoring, discovery learning, persistence, and review UI.
+Implement the smallest coherent source-aware discovery-quality correction:
 
-Expected shape:
+1. Model source/search-path retrieval capabilities sufficiently to compile source-appropriate queries rather than one universal query grammar.
+2. Generate a bounded portfolio of materially different search hypotheses when applicable, including at least direct role/title family, adjacent role family, seniority variant, domain/capability angle, and employer-archetype angle.
+3. Add deterministic preflight linting that rejects or repairs known self-defeating structures before network spend: contradictory exclusions, catch-all title groups, duplicated constraints, invented technologies/requirements, and source-specific syntax known to collapse recall.
+4. Preserve provenance when materially different strategies converge on the same employer/opening. Use convergence to prioritize company/source deepening, not to inflate fit truth or duplicate opportunity score credit.
+5. Compute a bounded coverage-gap profile from requested versus observed role, domain, seniority, geography, work arrangement, employer archetype, and source coverage. Feed explicit uncovered dimensions into manager-routed reflection.
+6. Once a healthy authoritative direct source is known, prefer its cheapest structured recurring refresh path while broad public search continues exploring unknown employers and sources.
+7. Add human-visible strategy audit data for hypothesis family, compiled query, source/path, total and conditioned yield, warnings, overlap evidence, coverage gaps, and learned weight changes. Ordinary unattended sessions must remain autonomous.
 
-- derive deterministic structured location evidence from persisted opening location text plus configured labor-market context;
-- preserve raw source text, evidence provenance, uncertainty, and conflicting signals;
-- classify useful location scope without hard-coded employer/title/city rules;
-- reuse existing company-presence and scoring-location concepts where possible instead of creating a parallel geography model;
-- allow existing opportunities to be backfilled/rescored from deterministic location evidence without requiring another LLM fit analysis when the existing fit analysis remains valid;
-- distinguish total discovery yield from location-conditioned yield so a location-seeded strategy is not rewarded as locally productive solely because later employer deepening finds distant roles;
-- preserve broad candidate retention and exploration, including useful remote and adjacent-market roles;
-- expose location scope and useful local/regional counts or filters in the Job Scout UI;
-- make location classification and strategy attribution inspectable in persisted factors/checkpoints where practical;
-- keep Job Scout model-blind and keep deterministic geography outside the LLM.
+## Constraints
+
+- Do not turn title matching into the primary fit/discovery truth.
+- Do not collapse discovery-learning and opportunity-ranking feedback loops.
+- Do not make an LLM the sole query-quality gate. Deterministic invalid structures may block; subjective evaluation is advisory.
+- Keep manager-routed LLM calls bounded and Job Scout model-blind.
+- Do not add Firecrawl as a core dependency while existing local parsing/caching/source-health infrastructure covers the responsibility.
+- Do not export career prompts or traces to LangSmith by default.
+- A curated ATS-board catalog may be optional seed evidence only, never authoritative market coverage.
+- No authenticated LinkedIn/job-board crawling, CAPTCHA circumvention, stealth automation, unattended applications, or automated outreach.
+- Keep CI deterministic and independent of live search providers, mutable career sites, Ollama, and GPUs.
 
 ## Deterministic acceptance tests
 
 Add focused regressions proving that:
 
-1. a direct local or regional listing location produces structured location evidence with provenance and changes scope/ranking appropriately;
-2. ambiguous, nationwide, generic remote, or conflicting location text does not manufacture false local certainty;
-3. existing persisted openings can be rescored/backfilled into meaningful location scopes without another LLM call when fit evidence is unchanged;
-4. a location-seeded public search can receive general discovery credit for finding a useful employer, but distant jobs found later through company deepening do not count as local yield for that seed strategy;
-5. location-conditioned learning still preserves an exploration floor and does not prevent broad opportunity persistence;
-6. UI aggregation exposes useful location scope/count/filter behavior and does not hide otherwise eligible roles;
-7. score explanations remain reconstructable and source-backed.
-
-## Constraints
-
-- No authenticated LinkedIn/job-board crawling, CAPTCHA circumvention, stealth automation, unattended applications, or automated outreach.
-- Do not add an LLM geography classifier for evidence that can be derived deterministically.
-- Do not tune ranking weights to mask missing location normalization.
-- Do not collapse discovery-learning and opportunity-ranking feedback into one signal.
-- Do not introduce Greensboro-specific production logic; configured markets must drive behavior generically.
-- Keep CI deterministic and independent of Ollama, GPUs, live job boards, and mutable career sites.
-- Request-budget accounting remains batch-granular for now. Only pull per-fetch budget hardening into this slice if implementation evidence shows the two concerns are inseparable.
-- Qualification-importance normalization remains a later ranking-quality slice after location evidence is trustworthy.
+1. applicable search intent compiles at least three materially distinct query-angle families without superficial duplicate rewordings;
+2. bad query structures are caught before any network request and covered by a regression corpus;
+3. source capability differences produce meaningfully different compiled query forms where appropriate;
+4. distinct discovery strategies converging on one employer/opening retain overlap provenance and can increase deepening priority without changing fit evidence or duplicating score credit;
+5. coverage-gap output identifies genuinely uncovered requested dimensions and reflection receives that explicit bounded gap profile;
+6. a healthy known direct structured source is preferred for refresh while broad exploration remains enabled;
+7. audit/API/UI telemetry exposes hypotheses, queries, yield, warnings, overlap, gaps, and weight changes without creating an approval gate;
+8. existing exploration-floor, cooldown, location-conditioned-yield, and broad-retention regressions remain green.
 
 ## Likely code surface
 
-Use the packet first, but expect targeted reads around:
+Use the generated packet first, but expect targeted reads around:
 
-- scoring location classification/enrichment and score factor construction;
-- Job Scout opening persistence and review aggregation;
-- discovery strategy/yield persistence and attribution;
-- configured market expansion/context;
-- Job Scout workspace/review API models;
-- desktop opportunity list, details, counts, and filters;
-- existing tests for scoring location behavior, discovery learning, and workspace/review UI.
+- Job Scout strategy generation and public-search execution;
+- search-query compilation and source adapters/capabilities;
+- discovery-learning strategy identity, attempts, yield, and provenance;
+- reflection request construction and coverage snapshots;
+- direct source resolution/refresh selection;
+- Job Scout diagnostic/API telemetry and desktop audit UI;
+- deterministic discovery-learning/search tests.
 
-Prefer extending existing contracts over adding a second location taxonomy.
+Prefer extending existing strategy and coverage contracts over creating a parallel planner.
 
 ## Validation
 
-Run the commands in `refs/testing/validationCommands.yaml`. After deterministic CI is green, run a short local Job Scout diagnostic and verify that local/regional/distant scope counts and location-conditioned discovery telemetry are plausible before another long-duration run.
+Run `refs/testing/validationCommands.yaml`. After deterministic CI and Windows packaging are green, use `scripts/run_job_scout_live.py` for a short diagnostic. Inspect whether query hypotheses are actually distinct, gap targeting makes sense, known structured sources are being refreshed cheaply, overlap is visible, and the system still explores beyond current winners.

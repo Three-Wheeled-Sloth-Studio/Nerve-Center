@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "vite",
     "test:multivalue": "node scripts/test-multivalue.mjs",
+    "test:location": "node scripts/test-location-filter.mjs",
     "prebuild": "python ../refs/tools/check_case_collisions.py",
-    "build": "npm run test:multivalue && tsc --noEmit && vite build",
+    "build": "npm run test:multivalue && npm run test:location && tsc --noEmit && vite build",
     "tauri": "tauri"
   },
   "dependencies": {
