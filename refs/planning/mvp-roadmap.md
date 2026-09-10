@@ -13,7 +13,7 @@ tags: [nerve-center, planning, roadmap]
 
 The repository contains a working local API, durable SQLite foundation, manager-owned scheduling and work queues, provider-neutral local LLM routing, the Job Scout reference workflow, a Tauri/React desktop shell, Windows packaging/runtime bootstrap, an iterative company-first discovery/scoring loop, and the first manager-owned Model Lab foundation.
 
-The reusable manager/module boundary is established. Job Scout remains the reference module for validating those contracts. Model Lab now has its first durable local evaluation seams, and the immediate Job Scout checkpoint is a short real-world acceptance run before an unattended soak.
+The reusable manager/module boundary is established. Job Scout remains the reference module for validating those contracts. Model Lab now has its first durable local evaluation seams. The short real-world Job Scout acceptance run is complete; it exposed explicit-budget and local-discovery-learning work that must land before an unattended soak.
 
 ## Increment 7: Core and module boundary (implemented)
 
@@ -179,19 +179,24 @@ PR #48 exact head `8119e5cf577fa1f1d19ce8afe7fdbf4740ac864d` passed CI run `3450
 - Add simple blinded pairwise A/B review using a Likert preference scale.
 - Define evidence thresholds for when benchmark results may influence production routing; never promote a model from one experimental run.
 
-## Job Scout short live acceptance before unattended soak (active gate)
+## Job Scout explicit run budgets and convergent local learning (next slice)
 
-Issue **#49: Run Job Scout short live acceptance before unattended soak** is the immediate checkpoint.
+Issue **#49: Run Job Scout short live acceptance before unattended soak** completed with useful blocking evidence. The valid run exited cleanly after about 21 minutes, completed 25/25 full scores, retained an inventory of 826 ranked opportunities, classified all of them as 34 regional and 792 distant, and preserved an explicit `requests_budget_exhausted` terminal reason. It did not complete the requested 30-minute observation window because `scripts/run_job_scout_live.py` submitted only the duration and silently inherited the platform default of 500 outbound requests and 100 LLM calls. The terminal discovery batch observed 515 requests against the capped 500-request ledger.
 
-This is not another feature-development increment. It is a bounded 15-30 minute real-world observation gate using `scripts/run_job_scout_live.py` against the accepted #40/#43/#45 behavior and the current manager runtime.
+The run also confirmed that corrected location attribution is working: national openings were not credited as local yield and the Greensboro/Triad coverage gap remained open. However, 366 location-conditioned strategies retained zero location-conditioned openings, no directly local opening was found, and no unsuccessful strategy family reached a downweighted state during the run. Distinct query text currently fragments evidence enough that repeated zero-yield hypotheses do not converge quickly into a useful allocation correction.
 
-The gate should verify that materially different query families survive actual source execution, coverage gaps produce useful re-expansion, structured ATS refresh choices remain sensible, location-conditioned yield is truthful, deterministic score reinterpretation avoids unnecessary LLM work, reflection stays bounded, scoring does not starve discovery, queue/resource accounting remains stable, source degradation/cooldown behavior is visible, and the durable report is sufficient to explain failure.
+Issue **#51: Make Job Scout run budgets explicit and local discovery learning converge** is the immediate implementation slice:
 
-If no operational blocker is demonstrated, proceed directly to a **4-8 hour unattended Job Scout soak** on the same accepted code and configuration. Do not insert another feature slice merely because optional ranking or query tuning opportunities are visible.
+1. Expose `--max-requests` and `--max-llm-calls` in the live runner and persist them in the session resource policy.
+2. Print and report the effective duration, request, LLM, and scoring ceilings before work starts; distinguish duration completion from budget exhaustion.
+3. Admit requests before fetch execution, or otherwise eliminate the demonstrated batch-level overrun while retaining bounded concurrency.
+4. Accumulate durable learning against a stable source/query/location hypothesis-family identity so superficial rewrites cannot reset evidence.
+5. Reallocate effort after repeated zero local-opening yield while preserving bounded exploration and separately retaining useful employer/source discoveries.
+6. Expose family-level attempts, yield, learned weight, and allocation evidence so self-correction is inspectable.
 
-Block the soak only for demonstrated liveness/accounting/attribution/explainability defects such as uncontrolled resource growth, queue deadlock or sustained unhealthy buildup, scoring starvation, premature unexplained termination, materially wrong local-yield attribution, repetitive unbounded reflection/strategy collapse, or insufficient durable diagnostics.
+This correction must remain evidence-driven. Do not hard-code role, employer, city, or false-positive exclusion lists, and do not require a minimum local result count when the market evidence truthfully supports zero. Distant/national openings must remain separate from local-opening yield, while verified company/source evidence remains durable and useful.
 
-Expected throttles/challenges with correct cooldown behavior, distant roles retained for broad recall, isolated low-yield query families, bounded fallback-model use, and noncritical ranking-quality observations are not by themselves blockers. The previously observed small batch-level request-count discrepancy remains evidence-triggered hardening, not an automatic stop condition.
+After Issue #51 passes deterministic validation, rerun the 15-30 minute live gate with explicit resource ceilings. Proceed to a **4-8 hour unattended Job Scout soak** only when the full intended gate duration or its declared limiting budget is visible in advance, usage respects that declaration, and repeated unsuccessful location-conditioned families demonstrably affect subsequent allocation.
 
 ## Increment 13: Attention, safety, and connectors
 
