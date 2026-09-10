@@ -67,14 +67,20 @@ class BenchmarkResultModel(Base):
     __tablename__ = "core_model_lab_results"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    corpus_id: Mapped[str] = mapped_column(ForeignKey("core_model_lab_corpus.id"), index=True)
-    session_id: Mapped[str] = mapped_column(ForeignKey("core_model_lab_sessions.id"), index=True)
+    corpus_id: Mapped[str] = mapped_column(
+        ForeignKey("core_model_lab_corpus.id"), index=True
+    )
+    session_id: Mapped[str] = mapped_column(
+        ForeignKey("core_model_lab_sessions.id"), index=True
+    )
     provider: Mapped[str] = mapped_column(String(50), index=True)
     model: Mapped[str] = mapped_column(String(200), index=True)
     status: Mapped[str] = mapped_column(String(32), index=True)
     schema_valid: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     duration_ms: Mapped[int] = mapped_column(Integer, default=0)
-    output: Mapped[dict[str, Any] | list[Any] | None] = mapped_column(JSON, nullable=True)
+    output: Mapped[dict[str, Any] | list[Any] | None] = mapped_column(
+        JSON, nullable=True
+    )
     error_code: Mapped[str | None] = mapped_column(String(100))
     provider_call_id: Mapped[str | None] = mapped_column(String(36))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
@@ -179,7 +185,9 @@ class ModelLabRepository:
         with self.database.session() as session:
             model = session.get(ModelLabSettingsModel, "default")
             if model is None:
-                model = ModelLabSettingsModel(id="default", updated_at=datetime.now(UTC))
+                model = ModelLabSettingsModel(
+                    id="default", updated_at=datetime.now(UTC)
+                )
                 session.add(model)
             model.enabled = enabled
             model.capture_enabled = capture_enabled
@@ -302,7 +310,9 @@ class ModelLabRepository:
         current = _utc(now)
         active = self.active_session(current)
         if active is not None:
-            raise ValueError(f"Model Lab exploration session {active.id} is already active")
+            raise ValueError(
+                f"Model Lab exploration session {active.id} is already active"
+            )
         with self.database.session() as session:
             model = ModelLabSessionModel(
                 id=str(uuid4()),
@@ -318,7 +328,9 @@ class ModelLabRepository:
             session.flush()
             return _lab_session(model)
 
-    def active_session(self, now: datetime | None = None) -> ModelLabSessionSnapshot | None:
+    def active_session(
+        self, now: datetime | None = None
+    ) -> ModelLabSessionSnapshot | None:
         current = _utc(now)
         with self.database.session() as session:
             model = session.scalar(
@@ -329,7 +341,8 @@ class ModelLabRepository:
             )
             if model is None:
                 return None
-            if model.ends_at <= current or model.attempts_used >= model.max_attempts:
+            ends_at = _utc(model.ends_at)
+            if ends_at <= current or model.attempts_used >= model.max_attempts:
                 model.status = "completed"
                 model.finished_at = current
                 session.flush()
@@ -343,8 +356,10 @@ class ModelLabRepository:
         with self.database.session() as session:
             model = session.get(ModelLabSessionModel, session_id)
             if model is None:
-                raise KeyError(f"Model Lab exploration session {session_id!r} was not found")
-            if model.status != "running" or model.ends_at <= current:
+                raise KeyError(
+                    f"Model Lab exploration session {session_id!r} was not found"
+                )
+            if model.status != "running" or _utc(model.ends_at) <= current:
                 raise ValueError("Model Lab exploration window is closed")
             if model.attempts_used >= model.max_attempts:
                 raise ValueError("Model Lab exploration budget is exhausted")
