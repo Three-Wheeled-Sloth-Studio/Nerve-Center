@@ -4,10 +4,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from nerve_center.applications.api import (
-    _matches_review_geography,
-    register_application_routes,
-)
+from nerve_center.applications.api import register_application_routes
 from nerve_center.applications.models import ApplicationStatus, ApplicationUpdate
 from nerve_center.config import Settings
 from nerve_center.discovery.models import (
@@ -25,6 +22,10 @@ from nerve_center.persistence.discovery import (
     CompanyRepository,
     DiscoverySourceRepository,
     JobOpeningRepository,
+)
+from nerve_center.plugins.job_scout.settings import (
+    JobScoutConfiguration,
+    JobScoutConfigurationStore,
 )
 
 
@@ -140,40 +141,45 @@ def test_review_api_tracks_reversible_pursuit_state(tmp_path: Path) -> None:
     assert visible.json()[0]["next_action"].startswith("Review details")
 
 
-def test_review_geography_keeps_remote_and_filters_known_out_of_area_roles(
+def test_review_keeps_distant_roles_for_explicit_scored_location_filtering(
     tmp_path: Path,
 ) -> None:
-    opening = _seed(_database(tmp_path))
-    locations = ["Greensboro, NC", "Raleigh, NC", "Triad, NC"]
+    settings = Settings(data_dir=tmp_path / "runtime")
+    database = Database(settings)
+    database.initialize()
+    local = _seed(database)
+    distant = local.model_copy(
+        update={
+            "id": "job-2",
+            "location_text": "Minneapolis, MN",
+            "work_arrangement": WorkArrangement.HYBRID,
+            "source_url": "https://example.com/jobs/2",
+            "canonical_url": "https://example.com/jobs/2",
+            "provenance": [
+                local.provenance[0].model_copy(
+                    update={"source_url": "https://example.com/jobs/2"}
+                )
+            ],
+        }
+    )
+    JobOpeningRepository(database).upsert(distant)
+    configuration = JobScoutConfigurationStore(settings)
+    configuration.save(
+        JobScoutConfiguration(
+            target_titles=["Product Manager"],
+            locations=["Greensboro, NC"],
+            public_job_boards=[],
+        )
+    )
+    application = FastAPI()
+    register_application_routes(
+        application,
+        database,
+        configuration_store=configuration,
+    )
 
-    assert _matches_review_geography(
-        opening.model_copy(update={"work_arrangement": WorkArrangement.ON_SITE}),
-        locations,
-    )
-    assert not _matches_review_geography(
-        opening.model_copy(
-            update={
-                "location_text": "McLean, VA; Richmond, VA; USA",
-                "work_arrangement": WorkArrangement.UNKNOWN,
-            }
-        ),
-        locations,
-    )
-    assert not _matches_review_geography(
-        opening.model_copy(
-            update={
-                "location_text": "Minneapolis, MN",
-                "work_arrangement": WorkArrangement.HYBRID,
-            }
-        ),
-        locations,
-    )
-    assert _matches_review_geography(
-        opening.model_copy(
-            update={
-                "location_text": "United States",
-                "work_arrangement": WorkArrangement.REMOTE,
-            }
-        ),
-        locations,
-    )
+    with TestClient(application) as client:
+        response = client.get("/api/v1/review/opportunities")
+
+    assert response.status_code == 200
+    assert {item["opening"]["id"] for item in response.json()} == {"job-1", "job-2"}
