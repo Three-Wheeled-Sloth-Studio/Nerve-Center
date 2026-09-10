@@ -163,6 +163,9 @@ class QualificationAssessment(BaseModel):
     gate_category: GateCategory = GateCategory.NONE
     notes: str | None = None
     evidence_matches: list[RequirementEvidenceMatch] = Field(default_factory=list)
+    decision_weight: float = Field(default=1.0, ge=0.5, le=1.5)
+    decision_weight_rationale: list[str] = Field(default_factory=list)
+    duplicate_of: str | None = None
 
 
 class DomainRelationship(StrEnum):
@@ -208,6 +211,7 @@ class ExtractedQualificationAssessment(BaseModel):
     confidence: float = Field(ge=0, le=1)
     gate_category: GateCategory = GateCategory.NONE
     notes: str | None = Field(default=None, max_length=1000)
+    decision_weight_hint: float = Field(default=1.0, ge=0.5, le=1.5)
 
 
 class FitAnalysisResponse(BaseModel):
