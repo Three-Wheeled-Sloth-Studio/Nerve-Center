@@ -67,9 +67,13 @@ Modules provide domain configuration and module-specific UI panels within the ma
 
 ## Consequential-action boundary
 
-The system may analyze, recommend, draft, transform, package, and stage. It does not submit, send, publish, purchase, accept terms, alter accounts, or perform comparable unattended external actions.
+By default, the system may analyze, recommend, draft, transform, package, and stage. It does not submit, send, publish, purchase, accept terms, alter accounts, or perform comparable unattended external actions.
 
-Authenticated read and non-public remote drafts may be supported only through explicit manager-owned connectors. Automated publishing and other autonomous external-action products remain outside Nerve Center.
+Code Shop adds one narrow engineering exception. A manager-verified official module may perform a bounded external engineering action only through a manager-owned connector or execution host when the user has explicitly allowed that action for the project, the module declared the capability, the action is attributable to durable work, all repository and resource scopes pass, and manager risk policy permits it. User-supplied modules cannot receive this autonomous authority.
+
+Deployment, credential or secret mutation, destructive Git, irreversible data changes, and equivalently high-risk actions remain prohibited or human-gated regardless of ordinary project write authority. Non-engineering publishing, submissions, outreach, purchases, acceptance of terms, profile or account modification, and comparable unattended external actions remain outside Nerve Center.
+
+Authenticated reads, remote drafts, and permitted engineering writes use explicit manager-owned connectors. A module never receives connector credentials directly.
 
 ## Design principles
 

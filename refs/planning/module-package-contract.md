@@ -90,8 +90,12 @@ public reads, optional public read-only browser automation, and writes to its
 assigned storage namespace.
 
 Raw credentials and arbitrary consequential external actions are never module
-permissions. Authenticated reads and remote drafts require manager-owned
-connectors.
+permissions. Authenticated reads, remote drafts, and permitted bounded
+engineering writes require manager-owned connectors. For an external engineering
+action to execute unattended, the manager must independently verify official
+module provenance, a declared capability, explicit user project authority,
+durable task attribution, action scope, and acceptable risk. A manifest or
+module request cannot assert official trust or bypass prohibited action classes.
 
 ## UI contributions
 

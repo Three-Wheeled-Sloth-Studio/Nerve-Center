@@ -217,6 +217,16 @@ The 15-minute live gate passed. Run `f0214cd8-0151-4f38-bbdb-cc5f4096bd79` stopp
 
 The next gate is a second unattended soak using the same explicit resource ceilings and the default 25-failure allowance. It should validate longer-run marginal backoff growth/reset behavior, successful-score target completion or truthful failure-ceiling termination, and whether repeated local-employer exploration discovers durable nearby companies or correctly downweights those families.
 
+## Code Shop second reference-module foundation (staged)
+
+Issue **#54: Establish safe Code Shop orchestration foundation** is staged for implementation directly on `dev`.
+
+Code Shop is the permanent display name with stable module ID and storage namespace `code_shop`. GitHub is authoritative for repository identity and metadata; Nerve Center stores user selection, lifecycle, authority, and machine-local checkout linkage keyed to that identity. Users discover repositories through a manager-owned GitHub connector and explicitly link a checkout folder rather than defining project identity with a path.
+
+The first slice adds the built-in module declaration, manager-owned project registry and trust provenance, explicit `allow`/`ask`/`deny` authority envelopes, checkout containment and remote verification, a typed privileged-execution contract, durable engineering workflow/escalation/outcome records, model-blind capability vocabulary, minimal manager APIs, and deterministic boundary tests. Production shell/GitHub mutation, deployment, credential mutation, destructive Git, hosted execution, external premium-agent invocation, and learned policy mutation remain deferred.
+
+The consequential-action boundary is cautiously expanded only for manager-verified official modules operating under explicit user project policy, durable task attribution, capability declarations, scope checks, and manager risk policy. High-risk and destructive actions cannot become silently autonomous through ordinary project write authority. See `refs/planning/code-shop-foundation.md` and decisions NC-048 through NC-051.
+
 ## Increment 13: Attention, safety, and connectors
 
 - Add manager-owned Attention and Review queues.
@@ -270,7 +280,7 @@ A second substantially different module should be introduced early enough to val
 - Automated job applications.
 - Automated outreach or email sending.
 - Automated book, social-media, or website publishing.
-- Purchases, acceptance of legal terms, or unattended external-account changes.
+- Purchases, acceptance of legal terms, or unattended non-engineering external-account changes. The bounded official-module engineering exception is governed by NC-049.
 - Any module bypass of the manager-owned LLM boundary.
 - Domain-specific reference-module logic embedded in the core manager.
 - User data or credentials stored in the public source repository.

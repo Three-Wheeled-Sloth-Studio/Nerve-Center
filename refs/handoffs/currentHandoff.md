@@ -135,6 +135,27 @@ Run a second four-hour soak with the default 25-failure allowance:
 
 Validate exact resource accounting, multiple low-yield backoff windows and their reset after any durable yield, successful-score target/failure-ceiling semantics, and accumulated local-employer family evidence. A truthful zero local-opening count remains acceptable.
 
+## Staged next slice: Issue #54 Code Shop foundation
+
+- Code Shop is accepted as the permanent display name with stable module ID and storage namespace `code_shop`.
+- GitHub is the project-identity and repository-metadata source of truth. The manager discovers repositories through its connector; users select projects and link machine-local checkout folders.
+- The checkout link must remain inside an approved root and registered checkout, and its Git remote must match the selected GitHub repository before local execution is admitted.
+- Unattended external engineering actions require the intersection of manager-verified official-module trust, declared capability, explicit user project `allow`, durable task attribution, scope checks, and manager risk approval.
+- User-supplied modules cannot receive that autonomous authority. Deployment, credential/secret mutation, destructive Git, irreversible data changes, and equivalently high-risk actions remain prohibited or human-gated.
+- The privileged execution host is manager-owned and capability-specific; Code Shop never receives generic unrestricted shell/filesystem access.
+- The first slice is additive contracts, persistence, minimal APIs, module registration, a deterministic execution adapter, and boundary tests. It does not enable production GitHub writes or shell execution.
+- Work directly on `dev`; do not create a feature branch or PR under the current user directive. Keep Issue #54 current and push coherent validated commits.
+
+Architecture contract: `refs/planning/code-shop-foundation.md`.
+
+For implementation re-entry, start with:
+
+```powershell
+python scripts/agent_context.py --focus "code shop project registry authority execution host escalation" --issue 54
+```
+
+Read the generated packet, Issue #54, and `refs/planning/code-shop-foundation.md`. Preserve the existing module supervisor, session/queue, provider-neutral routing, and Model Lab evidence boundaries.
+
 ## Deferred follow-up
 
 - Automatic model installation and separately opt-in automatic removal belong to later Model Lab slices.

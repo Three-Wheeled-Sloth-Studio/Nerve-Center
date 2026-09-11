@@ -4,6 +4,7 @@ Generated OKF discovery index. Do not edit manually.
 
 ## Concepts
 
+* [Code Shop Foundation](code-shop-foundation.md) - Accepted first-slice architecture for safe, model-blind software-engineering orchestration.
 * [Data and Privacy Boundary](data-and-privacy-boundary.md) - Public-repository, local durable-data, credential, logging, search-provider, and browser-isolation boundaries.
 * [Decision Register](decision-register.md) - Durable accepted, deferred, rejected, and open product and architecture decisions for Nerve Center.
 * [Job Scout Discovery and Learning Contract](job-scout-discovery-and-learning-contract.md) - Accepted Job Scout behavior for continuous job-market discovery, company-first research, strategy learning, location-aware market coverage, and future people enrichment.
