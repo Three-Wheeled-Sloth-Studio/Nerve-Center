@@ -118,6 +118,11 @@ def _register_discovery_learning_routes(
                 "family_attempts": family.attempts,
                 "family_conditioned_yield": family.opportunities_retained,
                 "dimensions": item.dimensions,
+                "hypothesis_family": item.dimensions.get(
+                    "hypothesis_family", "legacy"
+                ),
+                "source_domain": item.dimensions.get("source_domain", ""),
+                "location": item.dimensions.get("location", ""),
                 "origin": item.origin,
                 "learned_weight": item.learned_weight,
                 "influence": item.influence,

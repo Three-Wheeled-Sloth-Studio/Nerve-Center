@@ -257,6 +257,12 @@ def test_public_search_strategy_bounds_result_deepening(tmp_path: Path) -> None:
     cycle = asyncio.run(loop.cycle("run-1", 1))
 
     assert cycle.coverage["results_examined"] == 6
+    assert cycle.coverage["search_requests_completed"] == 1
+    assert cycle.coverage["search_results_returned"] == 10
+    assert cycle.coverage["search_results_eligible"] == 6
+    assert cycle.coverage["search_sources_registered"] == 6
+    assert cycle.coverage["source_scans_attempted"] == 6
+    assert cycle.coverage["source_scans_completed"] == 6
     assert len(companies.list()) == 6
 
 

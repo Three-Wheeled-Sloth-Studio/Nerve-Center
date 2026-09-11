@@ -1,6 +1,6 @@
 [package]
 name = "nerve-center-desktop"
-version = "0.12.6"
+version = "0.12.7"
 description = "Windows desktop shell for Nerve Center"
 authors = ["Three-Wheeled Sloth Studio"]
 edition = "2021"

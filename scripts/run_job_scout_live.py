@@ -102,6 +102,11 @@ class ProgressReporter:
 def _progress_counts(values: dict[str, Any]) -> tuple[tuple[str, int], ...]:
     labels = (
         ("strategies_attempted", "strategies"),
+        ("search_requests_completed", "search_ok"),
+        ("search_requests_failed", "search_failed"),
+        ("search_results_returned", "search_returned"),
+        ("search_results_eligible", "search_eligible"),
+        ("source_scans_completed", "scans_ok"),
         ("results_examined", "results"),
         ("companies_discovered", "companies"),
         ("career_sources_resolved", "sources"),
@@ -256,6 +261,18 @@ def _efficiency_summary(checkpoint: dict[str, Any]) -> dict[str, Any]:
         "last_marginal_yield_window": dict(
             checkpoint.get("last_marginal_yield_window") or {}
         ),
+        "acquisition_stages": {
+            key: int(coverage.get(key) or 0)
+            for key in (
+                "search_requests_completed",
+                "search_requests_failed",
+                "search_results_returned",
+                "search_results_eligible",
+                "search_sources_registered",
+                "source_scans_attempted",
+                "source_scans_completed",
+            )
+        },
     }
 
 

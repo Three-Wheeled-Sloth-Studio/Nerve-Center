@@ -90,6 +90,37 @@ def test_strategy_selection_reserves_company_deepening_capacity(tmp_path: Path) 
     assert company.id in {item.id for item in selected}
 
 
+def test_strategy_selection_reserves_local_employer_exploration_capacity(
+    tmp_path: Path,
+) -> None:
+    learning = JobScoutDiscoveryRepository(_database(tmp_path))
+    for index in range(8):
+        learning.ensure_strategy(
+            {"kind": "public_search", "anchor": f"product {index}"},
+            origin="profile",
+        )
+    company = learning.ensure_strategy(
+        {"kind": "company_revisit", "company_id": "company-1"},
+        origin="known_company",
+    )
+    local = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer",
+            "anchor": "healthcare technology",
+            "location": "Greensboro, NC",
+            "source_domain": "web",
+        },
+        origin="source_aware_portfolio",
+    )
+
+    selected = learning.select_strategies("run-1", limit=4, exploration_floor=0.25)
+    selected_ids = {item.id for item in selected}
+
+    assert company.id in selected_ids
+    assert local.id in selected_ids
+
+
 def test_location_strategy_family_accumulates_zero_yield_across_query_variants(
     tmp_path: Path,
 ) -> None:

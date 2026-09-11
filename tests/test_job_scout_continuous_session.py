@@ -263,6 +263,12 @@ def test_repeated_zero_marginal_yield_adds_bounded_backoff(tmp_path, monkeypatch
                 })
             return result
 
+        async def control(self, run_id):
+            result = await super().control(run_id)
+            if any("backoff_seconds_remaining" in item for item in self.checkpoints):
+                result["admission_phase"] = "draining"
+            return result
+
     sleeps = []
     original_sleep = asyncio.sleep
 
@@ -272,7 +278,7 @@ def test_repeated_zero_marginal_yield_adds_bounded_backoff(tmp_path, monkeypatch
         await original_sleep(0)
 
     monkeypatch.setattr(worker.asyncio, "sleep", fake_sleep)
-    client = ZeroYieldClient(bridge, drain_after=9)
+    client = ZeroYieldClient(bridge)
     asyncio.run(worker._execute_discovery_loop(client, assignment()))
 
     backoffs = [
@@ -283,6 +289,60 @@ def test_repeated_zero_marginal_yield_adds_bounded_backoff(tmp_path, monkeypatch
     assert backoffs[0]["backoff_seconds"] == 30
     assert backoffs[0]["last_marginal_yield_window"]["cycles"] == 8
     assert client.final[1]["marginal_backoff_count"] == 1
+
+
+def test_discovery_backoff_does_not_pause_eligible_scoring(tmp_path, monkeypatch):
+    bridge, _, _ = setup_bridge(tmp_path, monkeypatch, empty=True)
+
+    class BackoffScoringClient(Client):
+        async def invoke(self, run_id, operation, payload=None):
+            result = await super().invoke(run_id, operation, payload)
+            if operation == "discovery_cycle":
+                result.update({
+                    "strategies_attempted": 4,
+                    "request_count": 4,
+                    "openings_found": 0,
+                    "strategies_exhausted": False,
+                    "yield_metrics": {
+                        "strategies_attempted": 4,
+                        "results_examined": 0,
+                        "companies_discovered": 0,
+                        "career_sources_resolved": 0,
+                        "opportunities_retained": 0,
+                    },
+                })
+            if operation == "scoring_candidates":
+                backoff_started = any(
+                    item.get("backoff_scope") == "discovery"
+                    for item in self.checkpoints
+                )
+                return {
+                    "candidates": ["candidate-during-backoff"] if backoff_started else [],
+                    "provisional_scores_completed": 0,
+                    "target": 1,
+                    "failure_limit": 1,
+                }
+            if operation == "score_candidate":
+                return {"completed": True, "job_id": (payload or {}).get("job_id")}
+            return result
+
+        async def control(self, run_id):
+            result = await super().control(run_id)
+            if any(item.get("full_scores_completed") == 1 for item in self.checkpoints):
+                result["admission_phase"] = "draining"
+            return result
+
+    client = BackoffScoringClient(bridge)
+    asyncio.run(worker._execute_discovery_loop(client, assignment()))
+
+    assert client.cycles == 8
+    assert client.final[1]["full_scores_completed"] == 1
+    assert client.final[1]["terminal_reason"] == "admission_draining"
+    assert any(
+        item.get("discovery_lane_state") == "backoff"
+        and item.get("full_scores_completed") == 1
+        for item in client.checkpoints
+    )
 
 
 def test_request_budget_is_admitted_before_fetch_without_overrun(tmp_path, monkeypatch):

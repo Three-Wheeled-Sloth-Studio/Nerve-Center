@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import os
 from contextlib import suppress
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from nerve_center.runtime.client import ModuleRuntimeClient
@@ -56,6 +56,9 @@ async def _execute_discovery_loop(
     marginal_window = _marginal_window(saved.get("marginal_yield_window"))
     low_yield_batches = int(saved.get("low_marginal_yield_batches", 0))
     marginal_backoffs = int(saved.get("marginal_backoff_count", 0))
+    discovery_backoff_until = _optional_utc_datetime(
+        saved.get("discovery_backoff_until")
+    )
     last_reflection = saved.get("reflection_evidence")
     coverage = dict(saved.get("coverage") or {})
     state = {"value": 0, "activity": "Preparing discovery", "pending_llm": 0}
@@ -76,6 +79,11 @@ async def _execute_discovery_loop(
             marginal_yield_window=marginal_window,
             low_marginal_yield_batches=low_yield_batches,
             marginal_backoff_count=marginal_backoffs,
+            discovery_backoff_until=(
+                discovery_backoff_until.isoformat()
+                if discovery_backoff_until is not None
+                else None
+            ),
             next_work_decision=phase,
         )
         saved.update(detail)
@@ -128,56 +136,79 @@ async def _execute_discovery_loop(
             if reason:
                 await finish(reason, _terminal_status(reason))
                 return
-            cycle += 1
-            await checkpoint("expand", idle_reason=None, terminal_reason=None)
-            remaining_requests = max(int(saved["requests_remaining"]), 0)
-            result = await client.invoke(
-                run_id,
-                "discovery_cycle",
-                {
-                    "run_id": run_id,
-                    "cycle": cycle,
-                    "request_limit": remaining_requests,
-                },
+            now = datetime.now(UTC)
+            discovery_paused = (
+                discovery_backoff_until is not None
+                and now < discovery_backoff_until
             )
-            requests = int(result.get("request_count", 0))
-            if requests:
-                remaining = int(saved["requests_remaining"])
-                saved["requests_observed"] = int(saved.get("requests_observed", 0)) + requests
-                saved["request_batch_overrun"] = max(0, requests - remaining)
-                if requests > remaining:
-                    raise RuntimeError(
-                        "discovery cycle exceeded its admitted outbound-request allowance"
-                    )
-                await client.consume(run_id, "requests", requests)
-                if requests >= remaining:
-                    coverage = dict(result.get("coverage") or coverage)
-                    await control_reason()
-                    await finish("requests_budget_exhausted")
-                    return
-            coverage = dict(result.get("coverage") or coverage)
-            marginal_window = _accumulate_marginal_yield(
-                marginal_window,
-                result.get("yield_metrics"),
-                requests=requests,
-                strategies=int(result.get("strategies_attempted", 0)),
-                openings=int(result.get("openings_found", 0)),
-            )
+            if discovery_backoff_until is not None and not discovery_paused:
+                discovery_backoff_until = None
+            result: dict[str, Any] = {
+                "coverage": coverage,
+                "request_count": 0,
+                "strategies_attempted": 0,
+                "openings_found": 0,
+                "needs_reflection": False,
+                "strategies_exhausted": False,
+                "yield_metrics": {},
+            }
             low_marginal_yield = False
-            if marginal_window["cycles"] >= 8:
-                last_window = dict(marginal_window)
-                durable_yield = sum(
-                    last_window[key]
-                    for key in (
-                        "companies_discovered",
-                        "career_sources_resolved",
-                        "opportunities_retained",
-                    )
+            if not discovery_paused:
+                cycle += 1
+                await checkpoint("expand", idle_reason=None, terminal_reason=None)
+                remaining_requests = max(int(saved["requests_remaining"]), 0)
+                result = await client.invoke(
+                    run_id,
+                    "discovery_cycle",
+                    {
+                        "run_id": run_id,
+                        "cycle": cycle,
+                        "request_limit": remaining_requests,
+                    },
                 )
-                low_marginal_yield = last_window["requests"] >= 8 and durable_yield == 0
-                low_yield_batches = low_yield_batches + 1 if low_marginal_yield else 0
-                marginal_window = _marginal_window()
-                saved["last_marginal_yield_window"] = last_window
+                requests = int(result.get("request_count", 0))
+                if requests:
+                    remaining = int(saved["requests_remaining"])
+                    saved["requests_observed"] = (
+                        int(saved.get("requests_observed", 0)) + requests
+                    )
+                    saved["request_batch_overrun"] = max(0, requests - remaining)
+                    if requests > remaining:
+                        raise RuntimeError(
+                            "discovery cycle exceeded its admitted outbound-request allowance"
+                        )
+                    await client.consume(run_id, "requests", requests)
+                    if requests >= remaining:
+                        coverage = dict(result.get("coverage") or coverage)
+                        await control_reason()
+                        await finish("requests_budget_exhausted")
+                        return
+                coverage = dict(result.get("coverage") or coverage)
+                marginal_window = _accumulate_marginal_yield(
+                    marginal_window,
+                    result.get("yield_metrics"),
+                    requests=requests,
+                    strategies=int(result.get("strategies_attempted", 0)),
+                    openings=int(result.get("openings_found", 0)),
+                )
+                if marginal_window["cycles"] >= 8:
+                    last_window = dict(marginal_window)
+                    durable_yield = sum(
+                        last_window[key]
+                        for key in (
+                            "companies_discovered",
+                            "career_sources_resolved",
+                            "opportunities_retained",
+                        )
+                    )
+                    low_marginal_yield = (
+                        last_window["requests"] >= 8 and durable_yield == 0
+                    )
+                    low_yield_batches = (
+                        low_yield_batches + 1 if low_marginal_yield else 0
+                    )
+                    marginal_window = _marginal_window()
+                    saved["last_marginal_yield_window"] = last_window
             reason = await control_reason()
             if reason:
                 await finish(reason, _terminal_status(reason))
@@ -210,9 +241,44 @@ async def _execute_discovery_loop(
                 await checkpoint("converge", scoring_outcome=scored)
             else:
                 await checkpoint("converge")
+            if discovery_paused:
+                remaining_seconds = max(
+                    int((discovery_backoff_until - datetime.now(UTC)).total_seconds()),
+                    0,
+                )
+                if scored_this_cycle:
+                    await checkpoint(
+                        "converge",
+                        discovery_lane_state="backoff",
+                        backoff_scope="discovery",
+                        backoff_seconds_remaining=remaining_seconds,
+                    )
+                    continue
+                await checkpoint(
+                    "backoff",
+                    idle_reason="low_marginal_yield",
+                    discovery_lane_state="backoff",
+                    backoff_scope="discovery",
+                    backoff_seconds_remaining=remaining_seconds,
+                )
+                await asyncio.sleep(min(5, max(remaining_seconds, 1)))
+                continue
             if int(result.get("strategies_attempted", 0)) or scored_this_cycle:
                 idle_rounds = 0
             if not result.get("needs_reflection"):
+                if low_marginal_yield:
+                    marginal_backoffs += 1
+                    seconds = min(30 * 2 ** (low_yield_batches - 1), 900)
+                    discovery_backoff_until = datetime.now(UTC) + timedelta(
+                        seconds=seconds
+                    )
+                    await checkpoint(
+                        "backoff",
+                        idle_reason="low_marginal_yield",
+                        discovery_lane_state="backoff",
+                        backoff_scope="discovery",
+                        backoff_seconds=seconds,
+                    )
                 continue
 
             # Request new ideation only when durable yield or ranking evidence changes.
@@ -268,17 +334,16 @@ async def _execute_discovery_loop(
             if low_marginal_yield:
                 marginal_backoffs += 1
                 seconds = min(30 * 2 ** (low_yield_batches - 1), 900)
+                discovery_backoff_until = datetime.now(UTC) + timedelta(
+                    seconds=seconds
+                )
                 await checkpoint(
                     "backoff",
                     idle_reason="low_marginal_yield",
+                    discovery_lane_state="backoff",
+                    backoff_scope="discovery",
                     backoff_seconds=seconds,
                 )
-                for _ in range(seconds // 5):
-                    reason = await control_reason()
-                    if reason:
-                        await finish(reason, _terminal_status(reason))
-                        return
-                    await asyncio.sleep(5)
                 continue
             # The next cycle reseeds new companies and due sources; eligibility is
             # timestamp-based, so an empty reflection never resets attempt history.
@@ -372,6 +437,18 @@ def _terminal_status(reason: str) -> str:
     if reason in {"admission_draining", "admission_closed", "deadline"}:
         return "succeeded"
     return "partial"
+
+
+def _optional_utc_datetime(value: object) -> datetime | None:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=UTC)
+    return parsed.astimezone(UTC)
 
 
 _MARGINAL_FIELDS = (

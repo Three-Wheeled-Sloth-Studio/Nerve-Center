@@ -244,6 +244,13 @@ class DiscoveryCoverageSnapshot:
 DEFAULT_COVERAGE: dict[str, Any] = {
     "strategies_attempted": 0,
     "public_searches_executed": 0,
+    "search_requests_completed": 0,
+    "search_requests_failed": 0,
+    "search_results_returned": 0,
+    "search_results_eligible": 0,
+    "search_sources_registered": 0,
+    "source_scans_attempted": 0,
+    "source_scans_completed": 0,
     "results_examined": 0,
     "companies_discovered": 0,
     "career_sources_resolved": 0,
@@ -431,6 +438,43 @@ class JobScoutDiscoveryRepository:
                 )
                 if company_candidates:
                     selected[-1] = company_candidates[0]
+            # Local-employer discovery is a first-class recall path. Give one
+            # eligible hypothesis a bounded slot without exempting it from
+            # normal yield learning or the one-day revisit interval.
+            if count > 2 and not any(
+                item.dimensions.get("hypothesis_family") == "local_employer"
+                for item in selected
+            ):
+                selected_ids = {item.id for item in selected}
+                local_candidates = sorted(
+                    (
+                        item
+                        for item in candidates
+                        if item.dimensions.get("hypothesis_family") == "local_employer"
+                        and item.id not in selected_ids
+                    ),
+                    key=lambda item: (
+                        item.attempts,
+                        _utc_sort_value(item.last_attempt_at),
+                        item.created_at,
+                    ),
+                )
+                replace_at = next(
+                    (
+                        index
+                        for index in range(len(selected) - 1, -1, -1)
+                        if selected[index].dimensions.get("kind")
+                        != "company_revisit"
+                    ),
+                    None,
+                )
+                if replace_at is None and sum(
+                    item.dimensions.get("kind") == "company_revisit"
+                    for item in selected
+                ) > 1:
+                    replace_at = len(selected) - 1
+                if local_candidates and replace_at is not None:
+                    selected[replace_at] = local_candidates[0]
             return [_strategy_snapshot(item) for item in selected]
 
     def record_attempt(

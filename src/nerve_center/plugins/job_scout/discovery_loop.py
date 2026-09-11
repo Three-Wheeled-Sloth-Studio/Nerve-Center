@@ -277,6 +277,13 @@ class JobScoutDiscoveryLoop:
         increments = {
             "strategies_attempted": 0,
             "public_searches_executed": 0,
+            "search_requests_completed": 0,
+            "search_requests_failed": 0,
+            "search_results_returned": 0,
+            "search_results_eligible": 0,
+            "search_sources_registered": 0,
+            "source_scans_attempted": 0,
+            "source_scans_completed": 0,
             "results_examined": 0,
             "companies_discovered": 0,
             "career_sources_resolved": 0,
@@ -316,6 +323,18 @@ class JobScoutDiscoveryLoop:
             increments["career_sources_resolved"] += outcome.career_sources_resolved
             increments["postings_inspected"] += outcome.postings_inspected
             increments["opportunities_retained"] += outcome.opportunities_retained
+            stages = outcome.detail.get("stages", {})
+            if isinstance(stages, dict):
+                for key in (
+                    "search_requests_completed",
+                    "search_requests_failed",
+                    "search_results_returned",
+                    "search_results_eligible",
+                    "search_sources_registered",
+                    "source_scans_attempted",
+                    "source_scans_completed",
+                ):
+                    increments[key] += max(int(stages.get(key, 0)), 0)
             if strategy.dimensions.get("kind") == "public_search":
                 increments["public_searches_executed"] += 1
             if strategy.dimensions.get("kind") in {"company_revisit", "source_revisit"}:
@@ -577,14 +596,24 @@ class JobScoutDiscoveryLoop:
                 StrategyOutcome(
                     status="challenged",
                     challenged=1,
-                    detail={"query": query},
+                    detail={
+                        "query": query,
+                        "stages": {"search_requests_failed": 1},
+                    },
                 ),
                 allowance.used - start_requests,
                 [str(error)],
             )
         except RuntimeError as error:
             return (
-                StrategyOutcome(status="failed", failed=1, detail={"query": query}),
+                StrategyOutcome(
+                    status="failed",
+                    failed=1,
+                    detail={
+                        "query": query,
+                        "stages": {"search_requests_failed": 1},
+                    },
+                ),
                 allowance.used - start_requests,
                 [str(error)],
             )
@@ -595,6 +624,10 @@ class JobScoutDiscoveryLoop:
         retained = 0
         configuration = self.coordinator.store.load()
         inspected_results = results[: self.results_per_strategy]
+        eligible_results = 0
+        registered_sources = 0
+        scans_attempted = 0
+        scans_completed = 0
         for result in inspected_results:
             if allowance.exhausted:
                 break
@@ -606,6 +639,7 @@ class JobScoutDiscoveryLoop:
                 UrlClassification.MAJOR_JOB_BOARD,
             }:
                 continue
+            eligible_results += 1
             try:
                 self.coordinator._validate_source_policy(result.url, configuration)
                 source = self.coordinator._register_source_url(
@@ -623,6 +657,7 @@ class JobScoutDiscoveryLoop:
                 warnings.append(str(error))
                 continue
             source = self._attribute_source(source, strategy.id)
+            registered_sources += 1
             sources_seen.add(source.id)
             if source.company_id is not None and _is_employer_source(source):
                 companies_seen.add(source.company_id)
@@ -636,7 +671,9 @@ class JobScoutDiscoveryLoop:
                     },
                     openings_seen=0,
                 )
+            scans_attempted += 1
             scan, _ = await self._scan_source(source, allowance)
+            scans_completed += int(scan is not None)
             postings += len(scan.openings) if scan is not None else 0
             retained += len(scan.openings) if scan is not None else 0
             if scan is not None:
@@ -676,7 +713,17 @@ class JobScoutDiscoveryLoop:
                 career_sources_resolved=len(sources_seen),
                 postings_inspected=postings,
                 opportunities_retained=retained,
-                detail={"query": query},
+                detail={
+                    "query": query,
+                    "stages": {
+                        "search_requests_completed": 1,
+                        "search_results_returned": len(results),
+                        "search_results_eligible": eligible_results,
+                        "search_sources_registered": registered_sources,
+                        "source_scans_attempted": scans_attempted,
+                        "source_scans_completed": scans_completed,
+                    },
+                },
             ),
             allowance.used - start_requests,
             warnings,
@@ -718,14 +765,18 @@ class JobScoutDiscoveryLoop:
                 return StrategyOutcome(status="failed", failed=1), 0, [str(error)]
         postings = 0
         source_ids: set[str] = set()
+        scans_attempted = 0
+        scans_completed = 0
         due_ids = {item.id for item in self.sources.list_due()}
         for source in [item for item in sources if item.id in due_ids][:8]:
             if allowance.exhausted:
                 break
             source = self._attribute_source(source, strategy.id)
             source_ids.add(source.id)
+            scans_attempted += 1
             scan, _ = await self._scan_source(source, allowance)
             if scan is not None:
+                scans_completed += 1
                 postings += len(scan.openings)
         deepened, _, found = await self._deepen_company(company, strategy.id, allowance)
         source_ids.update(deepened)
@@ -741,6 +792,12 @@ class JobScoutDiscoveryLoop:
                 career_sources_resolved=len(source_ids),
                 postings_inspected=postings,
                 opportunities_retained=postings,
+                detail={
+                    "stages": {
+                        "source_scans_attempted": scans_attempted,
+                        "source_scans_completed": scans_completed,
+                    }
+                },
             ),
             allowance.used - start_requests,
             [],
@@ -763,8 +820,16 @@ class JobScoutDiscoveryLoop:
         scan, _ = await self._scan_source(source, allowance)
         if scan is None:
             return (
-                StrategyOutcome(status="budget_exhausted" if allowance.exhausted else "failed",
-                                failed=0 if allowance.exhausted else 1),
+                StrategyOutcome(
+                    status="budget_exhausted" if allowance.exhausted else "failed",
+                    failed=0 if allowance.exhausted else 1,
+                    detail={
+                        "stages": {
+                            "source_scans_attempted": 1,
+                            "source_scans_completed": 0,
+                        }
+                    },
+                ),
                 allowance.used - start_requests,
                 [],
             )
@@ -786,6 +851,12 @@ class JobScoutDiscoveryLoop:
                 career_sources_resolved=1,
                 postings_inspected=len(scan.openings),
                 opportunities_retained=len(scan.openings),
+                detail={
+                    "stages": {
+                        "source_scans_attempted": 1,
+                        "source_scans_completed": 1,
+                    }
+                },
             ),
             allowance.used - start_requests,
             [],

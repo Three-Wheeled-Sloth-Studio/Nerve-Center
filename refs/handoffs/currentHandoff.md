@@ -10,8 +10,8 @@ tags: [nerve-center, handoff]
 ## Current state
 
 - `dev` is the accepted integration branch. The current user directive is to work directly on `dev` and not create feature branches.
-- Accepted `dev` entering Issue #53 is `151843c02024c079e0a8735b3e6fbcc829474c15`.
-- Application version is `0.12.6`.
+- Accepted `dev` entering Issue #55 is `93d38afd5b61`.
+- Application version is `0.12.7`.
 - The manager/module boundary, durable work sessions and queue, provider-neutral LLM manager, Windows desktop/package baseline, career evidence profile, company-first Job Scout discovery, scoring, application tracking, durable discovery learning, and first Model Lab foundation are accepted.
 - Job Scout remains an iterative market-research loop: `expand -> converge -> deepen -> reflect -> re-expand`. Discovery optimizes recall; ranking/scoring provides precision.
 - Issue #34 continuous-work/liveness is complete. The accepted 900-second run completed 89 cycles across 20 waves, retained 121 opportunities from 49 companies and 70 career sources, created 212 provisional scores, completed 3/3 bounded full analyses, continued through added and empty reflections, and stopped explicitly on request-budget exhaustion.
@@ -31,6 +31,7 @@ tags: [nerve-center, handoff]
 - Public-search strategies now share durable evidence at a stable hypothesis-family/source/location identity. Location-family exploitation uses conditioned opening yield rather than employer/source discoveries, while individual strategy provenance and the exploration floor remain intact. The discovery API/audit and live report expose family attempts, yield, influence, and before/after weight evidence.
 - The first four-hour soak completed 641 cycles across 584 waves and stopped cleanly at planned manager wind-down after 3 hours 36 minutes. It used 1,726/5,000 requests and 203/1,000 LLM calls with exact request accounting, retained 74 opportunity observations, and completed 94 of 100 reserved score attempts. It also exposed excessive late low-yield strategy churn, ambiguous completion semantics, and missing effective configuration in the report.
 - Issue #53 is implemented on `dev`: planned wind-down is a successful active-work terminal state with separate deadline evidence; scoring targets successes with a bounded failure ceiling; eight-cycle zero-marginal-yield windows cause exponential backoff; evidence-derived `local_employer` searches find nearby companies before roles; and the live report records effective configuration, efficiency, scoring failures, and grouped location-family evidence.
+- Issue #55 is implemented on `dev`: marginal-yield backoff now pauses outbound discovery without pausing eligible scoring; zero-result acquisition is split into search, classification, registration, and scan stages; and eligible local-employer hypotheses receive a bounded selection slot without bypassing learned weighting or cooldowns.
 - Coding-agent token conservation is a primary engineering concern. Use `scripts/agent_context.py` and progressive context loading instead of repository-wide rereads.
 
 ## Accepted Issue #47 behavior
@@ -120,20 +121,36 @@ Run `f0214cd8-0151-4f38-bbdb-cc5f4096bd79` passed the Issue #53 gate:
 
 No local opening was manufactured, and the short run found no additional opportunity. That is a truthful saturated-market result, not a gate failure.
 
-## Next gate: repeat unattended soak
+## Completed slice: Issue #55
 
-Run a second four-hour soak with the default 25-failure allowance:
+Issue **#55: Keep Job Scout scoring productive during discovery backoff** is implemented in `0.12.7` from the evidence produced by the second four-hour soak, run `6ada5efb-c281-429f-ab01-58ef4d62afc2`.
+
+That run was operationally healthy but spent about 8,090 seconds—roughly 62% of active time—in 13 whole-worker discovery backoffs. It completed 96/100 successful scores despite consuming only 331/5,000 requests. Its 416 discovery attempts reported zero raw results examined, and only three were `local_employer` attempts.
+
+Implemented correction:
+
+1. A low-yield window persists `discovery_backoff_until` and `backoff_scope=discovery`; it no longer sleeps the entire orchestration loop.
+2. Eligible scoring continues during discovery cooldown. Once no score is eligible, the worker waits in short bounded intervals without issuing another discovery cycle.
+3. Durable coverage and the live runner report now distinguish completed/failed search requests, raw returned results, eligible results, registered sources, and attempted/completed source scans.
+4. Strategy selection preserves one bounded slot for an eligible evidence-derived `local_employer` hypothesis alongside company deepening. It remains subject to normal cooldown and learned family weighting.
+5. Strategy API rows expose top-level hypothesis family, source domain, and location as well as the full dimensions object, eliminating ambiguity when comparing individual and grouped audit evidence.
+
+The correction remains evidence-driven. It does not exclude roles, employers, or locations and does not manufacture local yield.
+
+### Next Job Scout gate
+
+Run a 15-minute acceptance with explicit limits:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\run_job_scout_live.py `
-  --duration-seconds 14400 `
-  --max-requests 5000 `
-  --max-llm-calls 1000 `
-  --score-limit 100 `
-  --score-failure-limit 25
+  --duration-seconds 900 `
+  --max-requests 1000 `
+  --max-llm-calls 150 `
+  --score-limit 25 `
+  --score-failure-limit 10
 ```
 
-Validate exact resource accounting, multiple low-yield backoff windows and their reset after any durable yield, successful-score target/failure-ceiling semantics, and accumulated local-employer family evidence. A truthful zero local-opening count remains acceptable.
+Confirm that scoring advances while the checkpoint reports `backoff_scope=discovery`, request consumption remains unchanged during that cooldown, acquisition-stage counters explain any zero-result behavior, and eligible local-employer strategies appear in both individual and grouped evidence. After that gate, address the observed false domain/responsibility evidence in ranking through general evidence contracts and corrective evaluation—not title blacklists.
 
 ## Staged next slice: Issue #54 Code Shop foundation
 
@@ -179,14 +196,14 @@ Read the generated packet, Issue #54, and `refs/planning/code-shop-foundation.md
 
 ## Coding-agent reset path
 
-For Issue #53 continuation, start with:
+For Issue #55 continuation, start with:
 
 ```powershell
-python scripts/agent_context.py --focus "job scout soak completion convergence local auditability" --issue 53
+python scripts/agent_context.py --focus "job scout independent discovery backoff acquisition diagnostics" --issue 55
 ```
 
-Read the generated packet and Issue #53 first. Use `scripts/run_job_scout_live.py` with explicit ceilings and inspect its durable report before changing behavior. Preserve the accepted manager/module boundary, exploration floor, and location-evidence separation.
+Read the generated packet and Issue #55 first. Run the documented 15-minute live gate and inspect its durable report before changing behavior. Preserve the accepted manager/module boundary, exploration floor, and location-evidence separation.
 
 ## Validation boundary
 
-Issue #53 has deterministic coverage for successful-score replacement and failure ceilings, planned wind-down completion semantics, marginal-yield backoff, evidence-derived local-employer queries, effective configuration propagation, efficiency summaries, and grouped location-family audit evidence. Its short live gate passed; the repeat unattended soak is operational follow-up rather than a blocker to merging the slice.
+Issue #55 has deterministic coverage for scoring during discovery cooldown, paced waiting after scoring exhaustion, acquisition-stage reporting, and bounded local-employer selection alongside company deepening. Focused tests pass; the 15-minute live acceptance remains the required runtime gate.

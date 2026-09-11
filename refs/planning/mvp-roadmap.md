@@ -9,7 +9,7 @@ tags: [nerve-center, planning, roadmap]
 
 > Product intent and non-negotiable boundaries are defined in `refs/planning/product-requirements-document.md`. This roadmap orders implementation; it does not redefine the product.
 
-## Accepted baseline through 0.12.6
+## Accepted baseline through 0.12.7
 
 The repository contains a working local API, durable SQLite foundation, manager-owned scheduling and work queues, provider-neutral local LLM routing, the Job Scout reference workflow, a Tauri/React desktop shell, Windows packaging/runtime bootstrap, an iterative company-first discovery/scoring loop, and the first manager-owned Model Lab foundation.
 
@@ -215,7 +215,19 @@ Issue **#53: Make Job Scout soak completion and convergence truthful** is implem
 
 The 15-minute live gate passed. Run `f0214cd8-0151-4f38-bbdb-cc5f4096bd79` stopped successfully on planned `admission_draining` after 15 cycles and 15 waves. It consumed and observed exactly 48 requests with zero overrun and used 24 LLM calls. One eight-cycle window spent 29 requests across 32 strategy attempts without durable yield and triggered one explicit 30-second `low_marginal_yield` backoff. Scoring continued after failures and truthfully reported 10 successful full scores from 15 attempts, five failures, a target of 25, and `target_met=false` when the short window drained. The report preserved the effective Greensboro market, six target titles, score failure ceiling, and 213 location families; three new `local_employer` groups were attempted once each and retained zero conditioned openings without manufacturing a local result.
 
-The next gate is a second unattended soak using the same explicit resource ceilings and the default 25-failure allowance. It should validate longer-run marginal backoff growth/reset behavior, successful-score target completion or truthful failure-ceiling termination, and whether repeated local-employer exploration discovers durable nearby companies or correctly downweights those families.
+The second unattended soak, run `6ada5efb-c281-429f-ab01-58ef4d62afc2`, completed cleanly after 104 cycles. It consumed 331/5,000 requests and 201/1,000 LLM calls, produced 96 successful full scores from 104 attempts, and stopped on planned admission draining. Thirteen discovery backoffs occupied about 8,090 seconds, roughly 62% of active time, even though scoring still had useful work. Discovery attempted 416 strategies but reported zero raw results examined or durable yield. Only three eligible `local_employer` strategies were attempted. Manual ranking QA also found unrelated and stale roles receiving high priority; that remains an evidence-quality follow-up rather than a title-blacklist task.
+
+## Job Scout independent discovery pacing and acquisition diagnostics (implemented)
+
+Issue **#55: Keep Job Scout scoring productive during discovery backoff** is implemented in `0.12.7`:
+
+1. Persist a discovery-only cooldown deadline after repeated zero marginal yield instead of sleeping the whole worker.
+2. Continue eligible full-score work during that cooldown; when scoring is exhausted, wait in short controlled intervals without spending discovery requests or busy-looping.
+3. Record public-search completion/failure, raw returned results, eligible classifications, registered sources, and attempted/completed source scans so a zero-result run identifies the failing acquisition stage.
+4. Reserve one bounded selection slot for an eligible evidence-derived `local_employer` hypothesis while preserving company deepening, the exploration floor, cooldowns, and normal learned weighting.
+5. Flatten hypothesis family, source domain, and location onto the strategy API rows while retaining the complete dimensions object, making individual and grouped audit evidence directly comparable.
+
+The next gate is a 15-minute live acceptance run with explicit ceilings. It should demonstrate scoring progress while `backoff_scope=discovery`, no discovery requests during the cooldown, populated acquisition-stage counters, and eligible local-employer allocation. The subsequent ranking-quality slice should correct false domain and responsibility evidence through model/testable evidence contracts, not hard-coded role exclusions.
 
 ## Code Shop second reference-module foundation (staged)
 

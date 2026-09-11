@@ -221,6 +221,15 @@ def test_efficiency_summary_exposes_scoring_independent_marginal_pacing() -> Non
         "low_marginal_yield_batches": 2,
         "marginal_backoff_count": 3,
         "last_marginal_yield_window": {"cycles": 8, "requests": 24},
+        "acquisition_stages": {
+            "search_requests_completed": 0,
+            "search_requests_failed": 0,
+            "search_results_returned": 0,
+            "search_results_eligible": 0,
+            "search_sources_registered": 0,
+            "source_scans_attempted": 0,
+            "source_scans_completed": 0,
+        },
     }
 
 
