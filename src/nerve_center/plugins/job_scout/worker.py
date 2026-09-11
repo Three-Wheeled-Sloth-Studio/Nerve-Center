@@ -53,17 +53,29 @@ async def _execute_discovery_loop(
     full_scores = int(saved.get("full_scores_completed", 0))
     provisional = int(saved.get("provisional_scores_completed", 0))
     idle_rounds = int(saved.get("idle_rounds", 0))
+    marginal_window = _marginal_window(saved.get("marginal_yield_window"))
+    low_yield_batches = int(saved.get("low_marginal_yield_batches", 0))
+    marginal_backoffs = int(saved.get("marginal_backoff_count", 0))
     last_reflection = saved.get("reflection_evidence")
     coverage = dict(saved.get("coverage") or {})
     state = {"value": 0, "activity": "Preparing discovery", "pending_llm": 0}
 
     async def checkpoint(phase: str, **detail: Any) -> None:
+        pending_score = int(phase == "fit_analysis")
         saved.update(
             discovery_cycle=cycle, wave=wave, phase=phase, coverage=coverage,
             scoring_attempted_ids=attempted_ids,
             full_scores_completed=full_scores,
+            full_score_attempts=len(attempted_ids),
+            full_score_failures=max(
+                len(attempted_ids) - full_scores - pending_score, 0
+            ),
+            full_score_pending=pending_score,
             provisional_scores_completed=provisional,
             idle_rounds=idle_rounds, reflection_evidence=last_reflection,
+            marginal_yield_window=marginal_window,
+            low_marginal_yield_batches=low_yield_batches,
+            marginal_backoff_count=marginal_backoffs,
             next_work_decision=phase,
         )
         saved.update(detail)
@@ -76,6 +88,10 @@ async def _execute_discovery_loop(
         metrics.update(
             wave=wave, cycle=cycle, terminal_reason=reason,
             full_scores_completed=full_scores, provisional_scores_completed=provisional,
+            full_score_attempts=len(attempted_ids),
+            full_score_failures=max(len(attempted_ids) - full_scores, 0),
+            low_marginal_yield_batches=low_yield_batches,
+            marginal_backoff_count=marginal_backoffs,
         )
         await client.complete(run_id, status, f"Job Scout stopped: {reason}.", metrics)
 
@@ -110,7 +126,7 @@ async def _execute_discovery_loop(
         while True:
             reason = await control_reason()
             if reason:
-                await finish(reason, "cancelled" if reason == "cancelled" else "partial")
+                await finish(reason, _terminal_status(reason))
                 return
             cycle += 1
             await checkpoint("expand", idle_reason=None, terminal_reason=None)
@@ -140,9 +156,31 @@ async def _execute_discovery_loop(
                     await finish("requests_budget_exhausted")
                     return
             coverage = dict(result.get("coverage") or coverage)
+            marginal_window = _accumulate_marginal_yield(
+                marginal_window,
+                result.get("yield_metrics"),
+                requests=requests,
+                strategies=int(result.get("strategies_attempted", 0)),
+                openings=int(result.get("openings_found", 0)),
+            )
+            low_marginal_yield = False
+            if marginal_window["cycles"] >= 8:
+                last_window = dict(marginal_window)
+                durable_yield = sum(
+                    last_window[key]
+                    for key in (
+                        "companies_discovered",
+                        "career_sources_resolved",
+                        "opportunities_retained",
+                    )
+                )
+                low_marginal_yield = last_window["requests"] >= 8 and durable_yield == 0
+                low_yield_batches = low_yield_batches + 1 if low_marginal_yield else 0
+                marginal_window = _marginal_window()
+                saved["last_marginal_yield_window"] = last_window
             reason = await control_reason()
             if reason:
-                await finish(reason, "cancelled" if reason == "cancelled" else "partial")
+                await finish(reason, _terminal_status(reason))
                 return
             await checkpoint("score_candidates")
             scoring = await client.invoke(
@@ -150,8 +188,17 @@ async def _execute_discovery_loop(
             )
             provisional += int(scoring.get("provisional_scores_completed", 0))
             candidates = scoring.get("candidates") or []
+            score_target = int(scoring.get("target", scoring.get("limit", 25)))
+            score_failure_limit = int(scoring.get("failure_limit", 25))
+            score_failures = max(len(attempted_ids) - full_scores, 0)
+            saved["full_score_target"] = score_target
+            saved["full_score_failure_limit"] = score_failure_limit
             scored_this_cycle = False
-            if candidates and len(attempted_ids) < int(scoring.get("limit", 25)):
+            if (
+                candidates
+                and full_scores < score_target
+                and score_failures < score_failure_limit
+            ):
                 job_id = str(candidates[0])
                 attempted_ids.append(job_id)
                 # Persist reservation before inference so restart cannot exceed the cap.
@@ -181,7 +228,7 @@ async def _execute_discovery_loop(
             if not added and reflection.get("llm_recommended") and evidence != last_reflection:
                 reason = await control_reason()
                 if reason:
-                    await finish(reason, "cancelled" if reason == "cancelled" else "partial")
+                    await finish(reason, _terminal_status(reason))
                     return
                 last_reflection = evidence
                 request = await client.invoke(
@@ -201,7 +248,7 @@ async def _execute_discovery_loop(
                     # Exhaustion prevents the next admission, not harvesting this one.
                     reason = await control_reason(check_budgets=False)
                     if reason:
-                        await finish(reason, "cancelled" if reason == "cancelled" else "partial")
+                        await finish(reason, _terminal_status(reason))
                         return
                     harvested = await _harvest_reflection_results(client, run_id)
                     if request_id in harvested:
@@ -218,6 +265,21 @@ async def _execute_discovery_loop(
                 "refresh", reflection_outcome="added" if added else "no_new_strategies",
                 strategies_added=added, pending_reflection_request_id=None,
             )
+            if low_marginal_yield:
+                marginal_backoffs += 1
+                seconds = min(30 * 2 ** (low_yield_batches - 1), 900)
+                await checkpoint(
+                    "backoff",
+                    idle_reason="low_marginal_yield",
+                    backoff_seconds=seconds,
+                )
+                for _ in range(seconds // 5):
+                    reason = await control_reason()
+                    if reason:
+                        await finish(reason, _terminal_status(reason))
+                        return
+                    await asyncio.sleep(5)
+                continue
             # The next cycle reseeds new companies and due sources; eligibility is
             # timestamp-based, so an empty reflection never resets attempt history.
             if result.get("strategies_exhausted") and not added and not scored_this_cycle:
@@ -233,7 +295,7 @@ async def _execute_discovery_loop(
                 for _ in range(seconds // 5):
                     reason = await control_reason()
                     if reason:
-                        await finish(reason, "cancelled" if reason == "cancelled" else "partial")
+                        await finish(reason, _terminal_status(reason))
                         return
                     await asyncio.sleep(5)
     finally:
@@ -302,6 +364,58 @@ def _stop_status(control: dict[str, Any], assignment: dict[str, Any]) -> str | N
     if datetime.now(UTC) >= deadline:
         return "partial"
     return None
+
+
+def _terminal_status(reason: str) -> str:
+    if reason == "cancelled":
+        return "cancelled"
+    if reason in {"admission_draining", "admission_closed", "deadline"}:
+        return "succeeded"
+    return "partial"
+
+
+_MARGINAL_FIELDS = (
+    "cycles",
+    "requests",
+    "strategies_attempted",
+    "results_examined",
+    "companies_discovered",
+    "career_sources_resolved",
+    "opportunities_retained",
+)
+
+
+def _marginal_window(value: object = None) -> dict[str, int]:
+    source = value if isinstance(value, dict) else {}
+    return {key: max(int(source.get(key, 0)), 0) for key in _MARGINAL_FIELDS}
+
+
+def _accumulate_marginal_yield(
+    window: dict[str, int],
+    metrics: object,
+    *,
+    requests: int,
+    strategies: int,
+    openings: int,
+) -> dict[str, int]:
+    result = _marginal_window(window)
+    values = metrics if isinstance(metrics, dict) else {}
+    result["cycles"] += 1
+    result["requests"] += max(requests, 0)
+    result["strategies_attempted"] += max(
+        int(values.get("strategies_attempted", strategies)), 0
+    )
+    result["results_examined"] += max(int(values.get("results_examined", 0)), 0)
+    result["companies_discovered"] += max(
+        int(values.get("companies_discovered", 0)), 0
+    )
+    result["career_sources_resolved"] += max(
+        int(values.get("career_sources_resolved", 0)), 0
+    )
+    result["opportunities_retained"] += max(
+        int(values.get("opportunities_retained", openings)), 0
+    )
+    return result
 
 
 def _checkpoint_coverage(value: dict[str, Any]) -> dict[str, Any]:

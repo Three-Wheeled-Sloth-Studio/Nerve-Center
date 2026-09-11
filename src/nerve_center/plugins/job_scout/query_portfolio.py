@@ -128,6 +128,10 @@ def build_query_portfolio(
         ("seniority_variant", [(item, "") for item in seniority[:5]]),
         ("domain_capability", [(item, "") for item in capabilities[:6]]),
         ("employer_archetype", [(direct[0], item) for item in archetypes[:4]]),
+        # Find plausible local employers first, even when no matching opening is
+        # currently indexed. Their durable career surfaces can then be revisited
+        # independently of public-search wording.
+        ("local_employer", [(item, "") for item in archetypes[:4]]),
     ]
 
     buckets: list[list[dict[str, str]]] = []
@@ -138,6 +142,8 @@ def build_query_portfolio(
         for domain in domains:
             source = source_capabilities(domain)
             if family == "employer_archetype" and not source.include_employer_archetype:
+                continue
+            if family == "local_employer" and source.source_path != "broad_web":
                 continue
             source_locations = places if source.include_location else [""]
             bucket: list[dict[str, str]] = []

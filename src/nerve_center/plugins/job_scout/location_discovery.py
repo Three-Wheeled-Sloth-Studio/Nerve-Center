@@ -76,6 +76,7 @@ class LocationAwareJobScoutDiscoveryLoop(SourceAwareJobScoutDiscoveryLoop):
                 strategies_exhausted=True,
                 warnings=[],
                 coverage=session.coverage,
+                yield_metrics={},
             )
 
         allowance = _RequestAllowance(request_limit)
@@ -189,6 +190,7 @@ class LocationAwareJobScoutDiscoveryLoop(SourceAwareJobScoutDiscoveryLoop):
             strategies_exhausted=False,
             warnings=clean_list(warnings),
             coverage=coverage,
+            yield_metrics=increments,
         )
 
 

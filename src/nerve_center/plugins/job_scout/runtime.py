@@ -39,7 +39,12 @@ class JobScoutOperationBridge:
     async def invoke(self, operation: str, payload: Mapping[str, Any]) -> dict[str, Any]:
         if operation == "scoring_candidates":
             if self.scoring is None:
-                return {"candidates": [], "provisional_scores_completed": 0, "limit": 0}
+                return {
+                    "candidates": [],
+                    "provisional_scores_completed": 0,
+                    "target": 0,
+                    "failure_limit": 0,
+                }
             config = self.coordinator.store.load()
             attempted = set(payload.get("attempted_ids", []))
             candidates = []
@@ -59,7 +64,8 @@ class JobScoutOperationBridge:
             return {
                 "candidates": [job_id for _, job_id in candidates[:1]],
                 "provisional_scores_completed": provisional,
-                "limit": config.full_score_limit,
+                "target": config.full_score_limit,
+                "failure_limit": config.full_score_failure_limit,
             }
         if operation == "score_candidate":
             if self.scoring is None:

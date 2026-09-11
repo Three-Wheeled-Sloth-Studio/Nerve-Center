@@ -62,7 +62,12 @@ def test_portfolio_compiles_materially_distinct_source_aware_families() -> None:
         for item in portfolio
     ]
 
-    assert {"direct_role", "adjacent_role", "seniority_variant"}.issubset(families)
+    assert {
+        "direct_role",
+        "adjacent_role",
+        "seniority_variant",
+        "local_employer",
+    }.issubset(families)
     assert {
         "web",
         "indeed.com",
@@ -88,6 +93,14 @@ def test_portfolio_compiles_materially_distinct_source_aware_families() -> None:
     assert "Greensboro" in broad.query
     assert "jobs careers" in broad.query
     assert source_capabilities("indeed.com").include_location is True
+    local_employer = next(
+        item
+        for dimensions, item in zip(portfolio, compiled, strict=True)
+        if dimensions["hypothesis_family"] == "local_employer"
+    )
+    assert local_employer.source_path == "broad_web"
+    assert "company" in local_employer.query.casefold()
+    assert "Greensboro" in local_employer.query
 
 
 def test_query_linter_rejects_contradictions_and_unsupported_requirements() -> None:

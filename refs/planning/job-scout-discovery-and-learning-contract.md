@@ -189,12 +189,16 @@ Session reporting and the read-only discovery audit should expose useful signals
 - consumed and remaining request/LLM budget where available.
 - configured duration and effective request, LLM, and full-score ceilings before work starts;
 - family-level attempts, location-conditioned yield, learned influence, and weight movement.
+- effective target titles, locations, work-arrangement preference, score-success target, and score-failure ceiling inherited from the workspace or supplied by the runner;
+- successful full scores separately from attempted and failed full-score analyses;
+- rolling marginal-yield windows, low-yield backoff count, and request/result/opportunity efficiency;
+- grouped location, source-domain, and hypothesis-family evidence for explaining local-market allocation.
 
 These are observability metrics, not quotas. Ordinary unattended sessions remain autonomous; viewing strategy audit information does not create an approval step.
 
 ## Current implementation priority
 
-The explicit-budget and strategy-family-learning slice through Issue #51 is implemented and passed its 15-minute live gate. The next operational checkpoint is a 4-8 hour unattended Job Scout soak with explicit duration, request, LLM, and full-score ceilings. The soak should validate sustained liveness, exact request accounting, source cooldown behavior, scoring throughput, family-level reallocation, truthful geography gaps, and sufficient durable diagnostics.
+The first four-hour soak completed and produced the evidence for Issue #53. Job Scout now distinguishes planned manager wind-down from deadline completion, targets successful scores with a separate failure ceiling, slows repeated zero-marginal-yield work through bounded backoff, adds evidence-derived local-employer search hypotheses, and records effective configuration plus grouped location-family diagnostics. The next checkpoint is a short live acceptance run, followed by a repeat unattended soak if those diagnostics remain coherent.
 
 ## Deferred work
 

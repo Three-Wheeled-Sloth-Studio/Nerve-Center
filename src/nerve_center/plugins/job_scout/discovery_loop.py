@@ -62,6 +62,7 @@ class DiscoveryCycleSummary:
     strategies_exhausted: bool
     warnings: list[str]
     coverage: dict[str, Any]
+    yield_metrics: dict[str, int]
 
 
 class _RequestAllowance:
@@ -266,6 +267,7 @@ class JobScoutDiscoveryLoop:
                 strategies_exhausted=True,
                 warnings=[],
                 coverage=session.coverage,
+                yield_metrics={},
             )
         allowance = _RequestAllowance(request_limit)
         request_count = 0
@@ -339,6 +341,7 @@ class JobScoutDiscoveryLoop:
             strategies_exhausted=False,
             warnings=clean_list(warnings),
             coverage=session.coverage,
+            yield_metrics=increments,
         )
 
     def deterministic_reflection(self, run_id: str, cycle: int) -> dict[str, Any]:

@@ -186,6 +186,7 @@ class JobScoutConfiguration(BaseModel):
     broad_search_enabled: bool = True
     scan_interval_minutes: int = Field(default=1440, ge=5, le=10080)
     full_score_limit: int = Field(default=25, ge=0, le=1000)
+    full_score_failure_limit: int = Field(default=25, ge=1, le=1000)
 
     @field_validator(
         "target_titles",

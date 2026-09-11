@@ -9,9 +9,9 @@ tags: [nerve-center, handoff]
 
 ## Current state
 
-- `dev` is the accepted integration branch; return the active checkout to `dev` after merging a topic branch.
-- Accepted `dev` entering Issue #51 is `9b7c8b634863444b72c19a40dfa38a9629515bf8`.
-- Application version is `0.12.5`.
+- `dev` is the accepted integration branch. The current user directive is to work directly on `dev` and not create feature branches.
+- Accepted `dev` entering Issue #53 is `151843c02024c079e0a8735b3e6fbcc829474c15`.
+- Application version is `0.12.6`.
 - The manager/module boundary, durable work sessions and queue, provider-neutral LLM manager, Windows desktop/package baseline, career evidence profile, company-first Job Scout discovery, scoring, application tracking, durable discovery learning, and first Model Lab foundation are accepted.
 - Job Scout remains an iterative market-research loop: `expand -> converge -> deepen -> reflect -> re-expand`. Discovery optimizes recall; ranking/scoring provides precision.
 - Issue #34 continuous-work/liveness is complete. The accepted 900-second run completed 89 cycles across 20 waves, retained 121 opportunities from 49 companies and 70 career sources, created 212 provisional scores, completed 3/3 bounded full analyses, continued through added and empty reflections, and stopped explicitly on request-budget exhaustion.
@@ -29,6 +29,8 @@ tags: [nerve-center, handoff]
 - The run classified every ranked opportunity (34 regional, 792 distant, 0 unknown) and did not falsely credit national openings as local yield. It found zero directly local Greensboro/Triad openings; 366 location-conditioned strategies retained zero conditioned openings and none reached a downweighted state.
 - Issue #51 is implemented on `dev`. Live-run duration, request, LLM, and full-score ceilings are explicit in stdout and the durable report; the session receives the requested resource policy; each cycle receives its remaining request allowance; network fetches reserve from that allowance before execution; and an invariant rejects any overrun.
 - Public-search strategies now share durable evidence at a stable hypothesis-family/source/location identity. Location-family exploitation uses conditioned opening yield rather than employer/source discoveries, while individual strategy provenance and the exploration floor remain intact. The discovery API/audit and live report expose family attempts, yield, influence, and before/after weight evidence.
+- The first four-hour soak completed 641 cycles across 584 waves and stopped cleanly at planned manager wind-down after 3 hours 36 minutes. It used 1,726/5,000 requests and 203/1,000 LLM calls with exact request accounting, retained 74 opportunity observations, and completed 94 of 100 reserved score attempts. It also exposed excessive late low-yield strategy churn, ambiguous completion semantics, and missing effective configuration in the report.
+- Issue #53 is implemented on `dev`: planned wind-down is a successful active-work terminal state with separate deadline evidence; scoring targets successes with a bounded failure ceiling; eight-cycle zero-marginal-yield windows cause exponential backoff; evidence-derived `local_employer` searches find nearby companies before roles; and the live report records effective configuration, efficiency, scoring failures, and grouped location-family evidence.
 - Coding-agent token conservation is a primary engineering concern. Use `scripts/agent_context.py` and progressive context loading instead of repository-wide rereads.
 
 ## Accepted Issue #47 behavior
@@ -82,19 +84,56 @@ The rerun declared 900 seconds, 1,000 requests, 100 LLM calls, and 25 full score
 
 All 169 attempted location-conditioned families still had zero conditioned opening yield. Eighty-seven were now durably `deprioritized` or `negative`, including the repeatedly attempted Greensboro/source families. The Greensboro coverage gap remained open, confirming that self-correction changed allocation evidence without manufacturing a local success.
 
-## Next gate: unattended soak
+## Completed slice: Issue #53
 
-Run a 4-8 hour unattended Job Scout soak with explicit ceilings. A representative four-hour invocation is:
+Issue **#53: Make Job Scout soak completion and convergence truthful** is implemented in `0.12.6` from the evidence produced by run `646a7392-9f77-4420-b9b9-842173473b1e`.
+
+The correction remains general and evidence-driven:
+
+1. `admission_draining` and `admission_closed` mean the module completed its authorized active-work phase successfully; the report separately records `planned_wind_down_reached` and `session_deadline_reached`.
+2. `full_score_limit` is a success target. `full_score_failure_limit` bounds failed provider/schema attempts, and checkpoints/reporting preserve attempts, successes, failures, and whether the target was met.
+3. Discovery accumulates durable eight-cycle marginal-yield windows. A request-spending window with no new company, career source, or opportunity increments a consecutive low-yield counter and triggers exponential backoff capped at 15 minutes. Any material durable yield resets the consecutive counter; normal exploration selection remains unchanged.
+4. The query portfolio adds `local_employer` experiments using evidence-derived company archetypes and configured local-market aliases on broad public web search. These persist companies and career surfaces without making a local opening claim.
+5. Live reports retain effective configuration even when inherited from the workspace, summarize request/result/opportunity efficiency, and group local evidence by location, source domain, and hypothesis family.
+
+## Live acceptance evidence
+
+The 15-minute live acceptance ran as:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_job_scout_live.py `
+  --duration-seconds 900 `
+  --max-requests 1000 `
+  --max-llm-calls 150 `
+  --score-limit 25 `
+  --score-failure-limit 10
+```
+
+Run `f0214cd8-0151-4f38-bbdb-cc5f4096bd79` passed the Issue #53 gate:
+
+- status `succeeded`, terminal reason `admission_draining`, `duration_completed=true`, `planned_wind_down_reached=true`, and `session_deadline_reached=false`;
+- 48 requests consumed and observed, zero request overrun, and 24 LLM calls;
+- 15 cycles and 15 waves with one 30-second `low_marginal_yield` backoff, supported by an eight-cycle window containing 29 requests, 32 attempts, and zero new companies, career sources, or opportunities;
+- 10 successful full scores from 15 attempts, five failures, target 25, failure ceiling 10, and truthful `target_met=false` at wind-down;
+- effective configuration persisted with Greensboro, NC, six target titles, the public-board set, work-arrangement preference, score target, and failure ceiling;
+- 213 location families summarized across 793 attempts with zero conditioned yield and 139 downweighted families; three `local_employer` groups were attempted once each and retained as neutral evidence.
+
+No local opening was manufactured, and the short run found no additional opportunity. That is a truthful saturated-market result, not a gate failure.
+
+## Next gate: repeat unattended soak
+
+Run a second four-hour soak with the default 25-failure allowance:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\run_job_scout_live.py `
   --duration-seconds 14400 `
   --max-requests 5000 `
   --max-llm-calls 1000 `
-  --score-limit 100
+  --score-limit 100 `
+  --score-failure-limit 25
 ```
 
-The soak should establish sustained liveness, exact request accounting, healthy queue/scoring behavior, bounded reflection, explainable family-level reallocation, truthful location coverage, and usable diagnostics. Do not interpret a truthful zero local-opening count as failure by itself.
+Validate exact resource accounting, multiple low-yield backoff windows and their reset after any durable yield, successful-score target/failure-ceiling semantics, and accumulated local-employer family evidence. A truthful zero local-opening count remains acceptable.
 
 ## Deferred follow-up
 
@@ -119,14 +158,14 @@ The soak should establish sustained liveness, exact request accounting, healthy 
 
 ## Coding-agent reset path
 
-For the unattended soak, start with:
+For Issue #53 continuation, start with:
 
 ```powershell
-python scripts/agent_context.py --focus "job scout unattended soak explicit budgets family learning liveness" --issue 51
+python scripts/agent_context.py --focus "job scout soak completion convergence local auditability" --issue 53
 ```
 
-Read the generated packet and Issue #51 first. Use `scripts/run_job_scout_live.py` with explicit ceilings and inspect its durable report before reopening implementation. Preserve the accepted manager/module boundary and location-evidence separation.
+Read the generated packet and Issue #53 first. Use `scripts/run_job_scout_live.py` with explicit ceilings and inspect its durable report before changing behavior. Preserve the accepted manager/module boundary, exploration floor, and location-evidence separation.
 
 ## Validation boundary
 
-Issue #51 has deterministic coverage for CLI-to-session budget propagation, request admission, stable strategy-family learning, zero-yield accumulation, and allocation changes. Its short live gate passed. The unattended soak remains outside deterministic CI and should use the same accepted code/configuration with explicitly declared limits.
+Issue #53 has deterministic coverage for successful-score replacement and failure ceilings, planned wind-down completion semantics, marginal-yield backoff, evidence-derived local-employer queries, effective configuration propagation, efficiency summaries, and grouped location-family audit evidence. Its short live gate passed; the repeat unattended soak is operational follow-up rather than a blocker to merging the slice.

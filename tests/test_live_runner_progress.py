@@ -5,6 +5,10 @@ _SCRIPT = runpy.run_path(
     str(Path(__file__).parents[1] / "scripts" / "run_job_scout_live.py")
 )
 ProgressReporter = _SCRIPT["ProgressReporter"]
+_completion_flags = _SCRIPT["_completion_flags"]
+configure_workspace = _SCRIPT["configure_workspace"]
+_efficiency_summary = _SCRIPT["_efficiency_summary"]
+_location_family_evidence = _SCRIPT["_location_family_evidence"]
 _progress_counts = _SCRIPT["_progress_counts"]
 _remaining_session_seconds = _SCRIPT["_remaining_session_seconds"]
 _resumable_job_scout_session = _SCRIPT["_resumable_job_scout_session"]
@@ -161,3 +165,114 @@ def test_monitor_submits_explicit_resource_policy(tmp_path, monkeypatch):
         "max_requests": 1200,
         "max_llm_calls": 75,
     }
+
+
+def test_workspace_configuration_preserves_effective_market_and_failure_limit(
+    monkeypatch,
+) -> None:
+    written = []
+
+    def request(endpoint, path, method="GET", payload=None, timeout=60):
+        if method == "GET":
+            return {"configuration": {
+                "target_titles": ["Product Director"],
+                "locations": ["Greensboro, NC"],
+                "remote_preference": "hybrid",
+            }}
+        written.append(payload)
+        return {"configuration": payload}
+
+    monkeypatch.setitem(configure_workspace.__globals__, "request_json", request)
+    workspace = configure_workspace(
+        "http://fixture",
+        resume=None,
+        analyze_resume=False,
+        target_titles=[],
+        locations=[],
+        remote_preference="any",
+        score_limit=100,
+        score_failure_limit=12,
+    )
+
+    assert written[0]["target_titles"] == ["Product Director"]
+    assert written[0]["locations"] == ["Greensboro, NC"]
+    assert written[0]["full_score_limit"] == 100
+    assert written[0]["full_score_failure_limit"] == 12
+    assert workspace["configuration"] == written[0]
+
+
+def test_efficiency_summary_exposes_scoring_independent_marginal_pacing() -> None:
+    summary = _efficiency_summary({
+        "requests_consumed": 120,
+        "coverage": {
+            "opportunities_retained": 6,
+            "results_examined": 15,
+            "public_searches_executed": 30,
+        },
+        "low_marginal_yield_batches": 2,
+        "marginal_backoff_count": 3,
+        "last_marginal_yield_window": {"cycles": 8, "requests": 24},
+    })
+
+    assert summary == {
+        "requests_per_retained_opportunity": 20.0,
+        "searches_per_result": 2.0,
+        "result_to_opportunity_rate": 0.4,
+        "low_marginal_yield_batches": 2,
+        "marginal_backoff_count": 3,
+        "last_marginal_yield_window": {"cycles": 8, "requests": 24},
+    }
+
+
+def test_planned_manager_wind_down_counts_as_duration_completion() -> None:
+    assert _completion_flags("admission_draining") == {
+        "duration_completed": True,
+        "planned_wind_down_reached": True,
+        "session_deadline_reached": False,
+        "request_budget_exhausted": False,
+        "llm_budget_exhausted": False,
+    }
+    assert _completion_flags("requests_budget_exhausted")["duration_completed"] is False
+
+
+def test_location_family_evidence_groups_source_and_hypothesis() -> None:
+    summary = _location_family_evidence([
+        {
+            "dimensions": {
+                "location": "Greensboro, NC",
+                "source_domain": "web",
+                "hypothesis_family": "local_employer",
+            },
+            "attempts": 3,
+            "conditioned_yield": 1,
+            "learned_weight": 1.2,
+            "influence": "positive",
+        },
+        {
+            "dimensions": {
+                "location": "Greensboro, NC",
+                "source_domain": "web",
+                "hypothesis_family": "local_employer",
+            },
+            "attempts": 2,
+            "conditioned_yield": 0,
+            "learned_weight": 0.8,
+            "influence": "deprioritized",
+        },
+        {"dimensions": {"source_domain": "web"}, "attempts": 99},
+    ])
+
+    assert summary["location_families"] == 2
+    assert summary["attempts"] == 5
+    assert summary["conditioned_yield"] == 1
+    assert summary["downweighted_families"] == 1
+    assert summary["groups"] == [{
+        "location": "Greensboro, NC",
+        "source_domain": "web",
+        "hypothesis_family": "local_employer",
+        "attempts": 5,
+        "conditioned_yield": 1,
+        "downweighted_families": 1,
+        "families": 2,
+        "average_learned_weight": 1.0,
+    }]

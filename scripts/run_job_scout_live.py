@@ -110,6 +110,10 @@ def _progress_counts(values: dict[str, Any]) -> tuple[tuple[str, int], ...]:
         ("provider_warning_count", "warnings"),
         ("provisional_scores_completed", "provisional"),
         ("full_scores_completed", "full_scores"),
+        ("full_score_attempts", "score_attempts"),
+        ("full_score_failures", "score_failures"),
+        ("full_score_pending", "score_pending"),
+        ("marginal_backoff_count", "yield_backoffs"),
         ("requests_remaining", "requests_left"),
         ("llm_calls_remaining", "llm_left"),
     )
@@ -231,6 +235,105 @@ def archive_report(path: Path, report: dict[str, Any]) -> None:
         write_report(path.with_name(f"run-{run_id}.json"), report)
 
 
+def _efficiency_summary(checkpoint: dict[str, Any]) -> dict[str, Any]:
+    coverage = dict(checkpoint.get("coverage") or {})
+    requests = int(checkpoint.get("requests_consumed") or 0)
+    opportunities = int(coverage.get("opportunities_retained") or 0)
+    results = int(coverage.get("results_examined") or 0)
+    searches = int(coverage.get("public_searches_executed") or 0)
+    return {
+        "requests_per_retained_opportunity": (
+            round(requests / opportunities, 3) if opportunities else None
+        ),
+        "searches_per_result": round(searches / results, 3) if results else None,
+        "result_to_opportunity_rate": (
+            round(opportunities / results, 4) if results else None
+        ),
+        "low_marginal_yield_batches": int(
+            checkpoint.get("low_marginal_yield_batches") or 0
+        ),
+        "marginal_backoff_count": int(checkpoint.get("marginal_backoff_count") or 0),
+        "last_marginal_yield_window": dict(
+            checkpoint.get("last_marginal_yield_window") or {}
+        ),
+    }
+
+
+def _completion_flags(terminal_reason: str) -> dict[str, bool]:
+    planned_wind_down = terminal_reason in {"admission_draining", "admission_closed"}
+    return {
+        "duration_completed": planned_wind_down
+        or terminal_reason in {"deadline", "completed"},
+        "planned_wind_down_reached": planned_wind_down,
+        "session_deadline_reached": terminal_reason in {"deadline", "completed"},
+        "request_budget_exhausted": terminal_reason == "requests_budget_exhausted",
+        "llm_budget_exhausted": terminal_reason == "llm_calls_budget_exhausted",
+    }
+
+
+def _location_family_evidence(families: list[dict[str, Any]]) -> dict[str, Any]:
+    grouped: dict[tuple[str, str, str], dict[str, Any]] = {}
+    for family in families:
+        dimensions = dict(family.get("dimensions") or {})
+        location = str(dimensions.get("location") or "").strip()
+        if not location:
+            continue
+        key = (
+            location,
+            str(dimensions.get("source_domain") or "web").strip() or "web",
+            str(dimensions.get("hypothesis_family") or "legacy").strip() or "legacy",
+        )
+        row = grouped.setdefault(
+            key,
+            {
+                "location": key[0],
+                "source_domain": key[1],
+                "hypothesis_family": key[2],
+                "families": 0,
+                "attempts": 0,
+                "conditioned_yield": 0,
+                "downweighted_families": 0,
+                "learned_weight_total": 0.0,
+            },
+        )
+        row["families"] += 1
+        row["attempts"] += int(family.get("attempts") or 0)
+        row["conditioned_yield"] += int(family.get("conditioned_yield") or 0)
+        row["downweighted_families"] += family.get("influence") in {
+            "negative",
+            "deprioritized",
+        }
+        row["learned_weight_total"] += float(family.get("learned_weight") or 0.0)
+    rows = []
+    for row in grouped.values():
+        families_count = int(row.pop("families"))
+        weight_total = float(row.pop("learned_weight_total"))
+        rows.append(
+            {
+                **row,
+                "families": families_count,
+                "average_learned_weight": round(weight_total / families_count, 3),
+            }
+        )
+    rows.sort(
+        key=lambda item: (
+            -int(item["attempts"]),
+            str(item["location"]).casefold(),
+            str(item["source_domain"]).casefold(),
+            str(item["hypothesis_family"]).casefold(),
+        )
+    )
+    return {
+        "groups": rows,
+        "location_families": sum(int(item["families"]) for item in rows),
+        "attempts": sum(int(item["attempts"]) for item in rows),
+        "conditioned_yield": sum(int(item["conditioned_yield"]) for item in rows),
+        "downweighted_families": sum(
+            int(item["downweighted_families"]) for item in rows
+        ),
+    }
+
+
 def configure_workspace(
     endpoint: str,
     *,
@@ -240,6 +343,7 @@ def configure_workspace(
     locations: list[str],
     remote_preference: str,
     score_limit: int = 25,
+    score_failure_limit: int = 25,
 ) -> dict[str, Any]:
     workspace = request_json(endpoint, "/api/v1/modules/job_scout/workspace")
     configuration = dict(workspace.get("configuration") or {})
@@ -249,6 +353,7 @@ def configure_workspace(
         configuration["locations"] = locations
     configuration["remote_preference"] = remote_preference
     configuration["full_score_limit"] = score_limit
+    configuration["full_score_failure_limit"] = score_failure_limit
     workspace = request_json(
         endpoint,
         "/api/v1/modules/job_scout/config",
@@ -320,7 +425,10 @@ def monitor_session(
         "id": session.get("id"),
         "run_id": run_id,
         "resumed": resumed,
+        "starts_at": session.get("starts_at"),
         "ends_at": session.get("ends_at"),
+        "requested_window_seconds": duration_seconds,
+        "wind_down_policy": "manager_admission_phase",
         "resource_policy": dict(session.get("resource_policy") or {}),
     }
     write_report(report_path, report)
@@ -329,11 +437,13 @@ def monitor_session(
     final: dict[str, Any] | None = None
     while time.monotonic() < deadline:
         run = request_json(endpoint, f"/api/v1/runs/{run_id}")
+        observed_at = datetime.now().astimezone().isoformat()
         report["run"] = {
             "status": run.get("status"),
             "summary": run.get("result_summary"),
             "checkpoint": run.get("checkpoint"),
             "result_metrics": run.get("result_metrics"),
+            "observed_at": observed_at,
         }
         checkpoint = dict(run.get("checkpoint") or {})
         transition = {
@@ -466,17 +576,19 @@ def run(args: argparse.Namespace) -> int:
         "resume_file_name": args.resume.name if args.resume else None,
         "target_titles": args.target_title,
         "locations": args.location,
+        "remote_preference": args.remote_preference,
         "duration_seconds": args.duration_seconds,
         "resource_limits": {
             "max_requests": args.max_requests,
             "max_llm_calls": args.max_llm_calls,
             "full_score_limit": args.score_limit,
+            "full_score_failure_limit": args.score_failure_limit,
         },
         "default_model": args.model,
     }
     write_report(report_path, report)
     print_progress(
-        f"runner starting | duration={args.duration_seconds}s"
+        f"runner starting | session_window={args.duration_seconds}s"
         f" | max_requests={args.max_requests}"
         f" | max_llm_calls={args.max_llm_calls}"
         f" | score_limit={args.score_limit}"
@@ -499,7 +611,12 @@ def run(args: argparse.Namespace) -> int:
                 locations=args.location,
                 remote_preference=args.remote_preference,
                 score_limit=args.score_limit,
+                score_failure_limit=args.score_failure_limit,
             )
+            effective = dict(workspace.get("configuration") or {})
+            report["target_titles"] = list(effective.get("target_titles") or [])
+            report["locations"] = list(effective.get("locations") or [])
+            report["remote_preference"] = effective.get("remote_preference", "any")
             report.update(
                 {
                     "status": "discovering",
@@ -512,6 +629,18 @@ def run(args: argparse.Namespace) -> int:
                         "profile_claim_count": len(
                             (workspace.get("profile") or {}).get("claims") or []
                         ),
+                        "effective_configuration": {
+                            "target_titles": report["target_titles"],
+                            "locations": report["locations"],
+                            "remote_preference": report["remote_preference"],
+                            "full_score_limit": effective.get("full_score_limit"),
+                            "full_score_failure_limit": effective.get(
+                                "full_score_failure_limit"
+                            ),
+                            "public_job_boards": list(
+                                effective.get("public_job_boards") or []
+                            ),
+                        },
                     },
                 }
             )
@@ -538,6 +667,7 @@ def run(args: argparse.Namespace) -> int:
                 "terminal_reason": terminal_reason,
                 "requests_consumed": final_checkpoint.get("requests_consumed"),
                 "llm_calls_consumed": final_checkpoint.get("llm_calls_consumed"),
+                "observed_at": (report.get("run") or {}).get("observed_at"),
             }
             print_progress(
                 f"discovery stopped | status={final.get('status')}"
@@ -592,22 +722,27 @@ def run(args: argparse.Namespace) -> int:
             report["ranked_opportunities"] = opportunities
             report["strategies"] = strategies
             report["discovery_audit"] = discovery_audit
+            report["location_family_evidence"] = _location_family_evidence(
+                strategy_families
+            )
             report["reflections"] = reflections
             report["run"]["status"] = final.get("status")
-            report["completion"].update({
-                "duration_completed": terminal_reason in {"deadline", "completed"},
-                "request_budget_exhausted": terminal_reason
-                == "requests_budget_exhausted",
-                "llm_budget_exhausted": terminal_reason
-                == "llm_calls_budget_exhausted",
-            })
+            report["completion"].update(_completion_flags(terminal_reason))
             report["status"] = "scoring"
             write_report(report_path, report)
             report["scoring"] = {
-                "completed": (final.get("checkpoint") or {}).get("full_scores_completed", 0),
-                "limit": args.score_limit,
+                "completed": final_checkpoint.get("full_scores_completed", 0),
+                "target": final_checkpoint.get("full_score_target", args.score_limit),
+                "attempts": final_checkpoint.get("full_score_attempts", 0),
+                "failures": final_checkpoint.get("full_score_failures", 0),
+                "failure_limit": final_checkpoint.get(
+                    "full_score_failure_limit", args.score_failure_limit
+                ),
+                "target_met": final_checkpoint.get("full_scores_completed", 0)
+                >= final_checkpoint.get("full_score_target", args.score_limit),
                 "timing": "during_active_session",
             }
+            report["efficiency"] = _efficiency_summary(final_checkpoint)
             report["model_evidence"] = {
                 task_id: request_json(
                     args.endpoint,
@@ -666,6 +801,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--duration-seconds", type=int, default=1800)
     result.add_argument("--poll-seconds", type=float, default=5.0)
     result.add_argument("--score-limit", type=int, default=10)
+    result.add_argument("--score-failure-limit", type=int, default=25)
     result.add_argument("--max-requests", type=int, default=500)
     result.add_argument("--max-llm-calls", type=int, default=100)
     result.add_argument("--model", default="gemma3:4b")
@@ -678,6 +814,8 @@ def main() -> int:
         raise SystemExit("--duration-seconds must be at least 30")
     if args.score_limit < 0:
         raise SystemExit("--score-limit cannot be negative")
+    if args.score_failure_limit < 1:
+        raise SystemExit("--score-failure-limit must be at least 1")
     if args.max_requests < 1:
         raise SystemExit("--max-requests must be at least 1")
     if args.max_llm_calls < 1:

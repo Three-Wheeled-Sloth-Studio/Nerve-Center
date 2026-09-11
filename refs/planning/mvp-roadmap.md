@@ -9,11 +9,11 @@ tags: [nerve-center, planning, roadmap]
 
 > Product intent and non-negotiable boundaries are defined in `refs/planning/product-requirements-document.md`. This roadmap orders implementation; it does not redefine the product.
 
-## Accepted baseline through 0.12.5
+## Accepted baseline through 0.12.6
 
 The repository contains a working local API, durable SQLite foundation, manager-owned scheduling and work queues, provider-neutral local LLM routing, the Job Scout reference workflow, a Tauri/React desktop shell, Windows packaging/runtime bootstrap, an iterative company-first discovery/scoring loop, and the first manager-owned Model Lab foundation.
 
-The reusable manager/module boundary is established. Job Scout remains the reference module for validating those contracts. Model Lab now has its first durable local evaluation seams. The short real-world Job Scout acceptance run is complete; it exposed explicit-budget and local-discovery-learning work that must land before an unattended soak.
+The reusable manager/module boundary is established. Job Scout remains the reference module for validating those contracts. Model Lab now has its first durable local evaluation seams. The first four-hour Job Scout soak is complete; Issue #53 applies its duration, scoring-throughput, marginal-yield, local-employer, and report-audit findings.
 
 ## Increment 7: Core and module boundary (implemented)
 
@@ -199,6 +199,23 @@ This correction must remain evidence-driven. Do not hard-code role, employer, ci
 The post-implementation live gate ran with explicit ceilings of 900 seconds, 1,000 requests, 100 LLM calls, and 25 full scores. Manager wind-down began normally near the end of the window after 43 cycles and 25 waves. The run consumed and observed exactly 157 requests with zero overrun, used 41 LLM calls, completed 25 full and 58 provisional scores, retained 58 additional opportunity observations, and stopped explicitly on `admission_draining`. All 169 attempted location-conditioned families still had zero conditioned yield; 87 were now durably deprioritized or negative, while the Greensboro coverage gap remained open.
 
 The next gate is a **4-8 hour unattended Job Scout soak** with explicit ceilings. It should validate sustained liveness, exact request accounting, source cooldown behavior, scoring throughput, family-level reallocation, truthful coverage gaps, and durable failure explanation under a longer workload.
+
+## Job Scout soak completion and convergence (implemented)
+
+The four-hour Issue #51 soak ran for 3 hours 36 minutes until planned manager admission draining, completed 641 cycles across 584 waves, consumed and observed exactly 1,726 requests with zero overrun, used 203 LLM calls, inspected 93 postings, retained 74 opportunity observations, and completed 94 of 100 reserved full-score attempts. It ended with 958 ranked jobs, 223 companies, 1,584 sources, 2,172 strategies, and 1,533 strategy families. All 187 attempted location-conditioned families still had zero conditioned opening yield; 139 were downweighted, while Greensboro remained an explicit coverage gap.
+
+Issue **#53: Make Job Scout soak completion and convergence truthful** is implemented in `0.12.6`:
+
+1. Treat planned manager wind-down as successful completion of the module's active-work phase while separately reporting whether the session deadline itself was reached.
+2. Target successful full scores rather than reservations, with a separate explicit failure ceiling so schema/provider failures cannot silently consume the success target or create unbounded retries.
+3. Persist eight-cycle marginal-yield windows and apply bounded exponential backoff after consecutive request-spending windows produce no new company, career source, or opportunity.
+4. Preserve the exploration floor and evidence-driven strategy selection; do not add role, company, or location exclusion rules.
+5. Add broad-web `local_employer` hypotheses derived from career evidence and configured market aliases so plausible nearby companies can be persisted before a matching opening exists.
+6. Persist effective workspace configuration, scoring attempts/failures, completion semantics, efficiency measures, and grouped location/source/hypothesis-family evidence in the live report.
+
+The 15-minute live gate passed. Run `f0214cd8-0151-4f38-bbdb-cc5f4096bd79` stopped successfully on planned `admission_draining` after 15 cycles and 15 waves. It consumed and observed exactly 48 requests with zero overrun and used 24 LLM calls. One eight-cycle window spent 29 requests across 32 strategy attempts without durable yield and triggered one explicit 30-second `low_marginal_yield` backoff. Scoring continued after failures and truthfully reported 10 successful full scores from 15 attempts, five failures, a target of 25, and `target_met=false` when the short window drained. The report preserved the effective Greensboro market, six target titles, score failure ceiling, and 213 location families; three new `local_employer` groups were attempted once each and retained zero conditioned openings without manufacturing a local result.
+
+The next gate is a second unattended soak using the same explicit resource ceilings and the default 25-failure allowance. It should validate longer-run marginal backoff growth/reset behavior, successful-score target completion or truthful failure-ceiling termination, and whether repeated local-employer exploration discovers durable nearby companies or correctly downweights those families.
 
 ## Increment 13: Attention, safety, and connectors
 

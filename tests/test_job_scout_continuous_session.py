@@ -150,11 +150,14 @@ def test_two_waves_score_before_drain_despite_empty_reflection(tmp_path, monkeyp
     assert any(item.dimensions.get("kind") == "company_revisit" and item.attempts
                for item in bridge.learning.list_strategies())
     checkpoints = client.checkpoints
+    reservation = next(item for item in checkpoints if item["phase"] == "fit_analysis")
+    assert reservation["full_score_pending"] == 1
+    assert reservation["full_score_failures"] == 0
     scored = next(i for i, item in enumerate(checkpoints) if item["full_scores_completed"])
     second_wave = next(i for i, item in enumerate(checkpoints) if item["wave"] == 2)
     assert scored < second_wave
     assert checkpoints[second_wave]["reflection_outcome"] == "no_new_strategies"
-    assert client.final[0] == "partial"
+    assert client.final[0] == "succeeded"
     assert client.final[1]["terminal_reason"] == "admission_draining"
 
 
@@ -196,6 +199,7 @@ def test_scoring_reservation_survives_restart_and_enforces_cap(tmp_path, monkeyp
     bridge, scoring, jobs = setup_bridge(tmp_path, monkeypatch)
     config = bridge.coordinator.store.load()
     config.full_score_limit = 1
+    config.full_score_failure_limit = 1
     bridge.coordinator.save_configuration(config)
     client = Client(bridge, drain_after=2)
     work = assignment()
@@ -205,6 +209,80 @@ def test_scoring_reservation_survives_restart_and_enforces_cap(tmp_path, monkeyp
     assert not any(score.calculation.get("fit_model") == "fixture"
                    for job in jobs.list() for score in scoring.scores.list(job.id))
     assert client.final[1]["full_scores_completed"] == 0
+    assert client.final[1]["full_score_failures"] == 1
+
+
+def test_scoring_targets_successes_with_a_separate_failure_ceiling(tmp_path, monkeypatch):
+    bridge, _, _ = setup_bridge(tmp_path, monkeypatch)
+
+    class FlakyScoringClient(Client):
+        async def invoke(self, run_id, operation, payload=None):
+            if operation == "scoring_candidates":
+                attempted = list((payload or {}).get("attempted_ids") or [])
+                return {
+                    "candidates": [f"candidate-{len(attempted) + 1}"],
+                    "provisional_scores_completed": 0,
+                    "target": 2,
+                    "failure_limit": 2,
+                }
+            if operation == "score_candidate":
+                return {
+                    "completed": (payload or {}).get("job_id") != "candidate-1",
+                    "job_id": (payload or {}).get("job_id"),
+                }
+            return await super().invoke(run_id, operation, payload)
+
+    client = FlakyScoringClient(bridge, drain_after=4)
+    asyncio.run(worker._execute_discovery_loop(client, assignment()))
+
+    assert client.final[1]["full_score_attempts"] == 3
+    assert client.final[1]["full_scores_completed"] == 2
+    assert client.final[1]["full_score_failures"] == 1
+
+
+def test_repeated_zero_marginal_yield_adds_bounded_backoff(tmp_path, monkeypatch):
+    bridge, _, _ = setup_bridge(tmp_path, monkeypatch, empty=True)
+
+    class ZeroYieldClient(Client):
+        async def invoke(self, run_id, operation, payload=None):
+            result = await super().invoke(run_id, operation, payload)
+            if operation == "discovery_cycle":
+                result.update({
+                    "strategies_attempted": 4,
+                    "request_count": 4,
+                    "useful_yield": 0,
+                    "openings_found": 0,
+                    "strategies_exhausted": False,
+                    "yield_metrics": {
+                        "strategies_attempted": 4,
+                        "results_examined": 0,
+                        "companies_discovered": 0,
+                        "career_sources_resolved": 0,
+                        "opportunities_retained": 0,
+                    },
+                })
+            return result
+
+    sleeps = []
+    original_sleep = asyncio.sleep
+
+    async def fake_sleep(seconds):
+        if seconds == 5:
+            sleeps.append(seconds)
+        await original_sleep(0)
+
+    monkeypatch.setattr(worker.asyncio, "sleep", fake_sleep)
+    client = ZeroYieldClient(bridge, drain_after=9)
+    asyncio.run(worker._execute_discovery_loop(client, assignment()))
+
+    backoffs = [
+        item for item in client.checkpoints
+        if item.get("idle_reason") == "low_marginal_yield"
+    ]
+    assert backoffs
+    assert backoffs[0]["backoff_seconds"] == 30
+    assert backoffs[0]["last_marginal_yield_window"]["cycles"] == 8
+    assert client.final[1]["marginal_backoff_count"] == 1
 
 
 def test_request_budget_is_admitted_before_fetch_without_overrun(tmp_path, monkeypatch):
