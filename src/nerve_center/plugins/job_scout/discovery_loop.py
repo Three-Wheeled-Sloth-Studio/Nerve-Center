@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from html.parser import HTMLParser
@@ -193,6 +194,7 @@ class JobScoutDiscoveryLoop:
             locations,
             configuration.public_job_boards,
         )
+        self._seed_market_strategies(aliases)
         self._seed_known_company_strategies()
         self._seed_due_source_strategies()
         after = len(self.learning.list_strategies())
@@ -284,6 +286,7 @@ class JobScoutDiscoveryLoop:
             "search_sources_registered": 0,
             "source_scans_attempted": 0,
             "source_scans_completed": 0,
+            "regional_aliases_discovered": 0,
             "results_examined": 0,
             "companies_discovered": 0,
             "career_sources_resolved": 0,
@@ -333,6 +336,7 @@ class JobScoutDiscoveryLoop:
                     "search_sources_registered",
                     "source_scans_attempted",
                     "source_scans_completed",
+                    "regional_aliases_discovered",
                 ):
                     increments[key] += max(int(stages.get(key, 0)), 0)
             if strategy.dimensions.get("kind") == "public_search":
@@ -540,6 +544,9 @@ class JobScoutDiscoveryLoop:
                     if seeded >= 96:
                         return
 
+    def _seed_market_strategies(self, aliases: list[MarketAlias]) -> None:
+        """Optional market-evidence strategies supplied by richer loop layers."""
+
     def _seed_known_company_strategies(self) -> None:
         board_domains = {
             _clean_domain(item)
@@ -588,7 +595,10 @@ class JobScoutDiscoveryLoop:
         warnings: list[str] = []
         try:
             allowance.reserve()
-            results = await self.search_adapter.search(query)
+            search = self.search_adapter.search
+            if strategy.dimensions.get("hypothesis_family") == "regional_alias_probe":
+                search = getattr(self.search_adapter, "search_references", search)
+            results = await search(query)
         except _RequestAllowanceExhausted:
             return StrategyOutcome(status="budget_exhausted"), 0, []
         except SearchChallengeError as error:
@@ -616,6 +626,47 @@ class JobScoutDiscoveryLoop:
                 ),
                 allowance.used - start_requests,
                 [str(error)],
+            )
+        if strategy.dimensions.get("hypothesis_family") == "regional_alias_probe":
+            inspected_results = results[: self.results_per_strategy]
+            evidence = _extract_regional_alias_evidence(
+                inspected_results,
+                anchor=strategy.dimensions.get("anchor", ""),
+            )
+            created = 0
+            target_titles = self.coordinator.store.load().target_titles[:2]
+            for item in evidence:
+                for title in target_titles or ["product management"]:
+                    before = len(self.learning.list_strategies())
+                    self.learning.ensure_strategy(
+                        {
+                            "kind": "public_search",
+                            "hypothesis_family": "regional_alias",
+                            "anchor": title,
+                            "location": item["alias"],
+                            "source_domain": "web",
+                            "source_path": "broad_web",
+                            "alias_provenance_url": item["url"],
+                        },
+                        origin="public_regional_alias_evidence",
+                    )
+                    created += int(len(self.learning.list_strategies()) > before)
+            return (
+                StrategyOutcome(
+                    results_examined=len(inspected_results),
+                    detail={
+                        "query": query,
+                        "regional_alias_evidence": evidence,
+                        "stages": {
+                            "search_requests_completed": 1,
+                            "search_results_returned": len(results),
+                            "regional_aliases_discovered": len(evidence),
+                            "strategies_created": created,
+                        },
+                    },
+                ),
+                allowance.used - start_requests,
+                warnings,
             )
         companies_before = {item.id for item in self.companies.list()}
         companies_seen: set[str] = set()
@@ -993,6 +1044,60 @@ def _is_employer_source(source: DiscoverySource) -> bool:
     return bool(source.configuration.get("direct_employer_source", True)) and (
         source.configuration.get("source_role") != "aggregator_listing"
     )
+
+
+_REGIONAL_ORGANIZATION = re.compile(
+    r"(?P<name>[A-Z][A-Za-z0-9&' .-]{2,80}?)\s+Regional\s+"
+    r"(?:Council|Partnership|Commission|Authority|Planning\b)",
+    re.IGNORECASE,
+)
+_REGIONAL_ACRONYM = re.compile(r"\b(?P<name>[A-Z]{2,6})\s+(?:Region|Area)\b")
+
+
+def _extract_regional_alias_evidence(
+    results: list[Any],
+    *,
+    anchor: str,
+) -> list[dict[str, str]]:
+    """Extract bounded market-language candidates from public result titles.
+
+    Candidates only become learned search hypotheses. They do not establish a
+    listing location or company office, and normal zero-yield learning can lower
+    their future allocation.
+    """
+
+    found: list[dict[str, str]] = []
+    seen: set[str] = set()
+    anchor_key = " ".join(anchor.casefold().split())
+    for result in results:
+        title = " ".join(str(getattr(result, "title", "")).split())
+        matches = [
+            match.group("name")
+            for pattern in (_REGIONAL_ORGANIZATION, _REGIONAL_ACRONYM)
+            for match in pattern.finditer(title)
+        ]
+        for raw in matches:
+            alias = re.split(r"[|:–—]", raw)[-1].strip(" ,-.")
+            alias = re.sub(
+                r"^(?:about|welcome to|official site of)\s+",
+                "",
+                alias,
+                flags=re.IGNORECASE,
+            )
+            key = " ".join(alias.casefold().split())
+            if not key or key == anchor_key or key in seen or len(alias) < 3:
+                continue
+            seen.add(key)
+            found.append(
+                {
+                    "alias": alias,
+                    "title": title[:300],
+                    "url": str(getattr(result, "url", ""))[:1000],
+                }
+            )
+            if len(found) >= 6:
+                return found
+    return found
 
 
 def _reflection_schema() -> dict[str, Any]:

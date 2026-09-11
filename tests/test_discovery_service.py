@@ -184,6 +184,38 @@ def test_public_search_discovers_supported_result_pages(tmp_path: Path) -> None:
     )
 
 
+def test_public_reference_search_retains_non_job_evidence(tmp_path: Path) -> None:
+    database = Database(Settings(data_dir=tmp_path / "runtime"))
+    database.initialize()
+
+    class FakeFetcher:
+        async def get(self, url: str, **_kwargs: object) -> FetchResponse:
+            return FetchResponse(
+                url=url,
+                status_code=200,
+                text=(
+                    '<a href="https://region.example/about">'
+                    "Piedmont Triad Regional Council</a>"
+                ),
+                headers={},
+                challenged=False,
+                throttled=False,
+            )
+
+    adapter = PublicWebSearchAdapter(
+        SearchCacheRepository(database),
+        fetcher=FakeFetcher(),  # type: ignore[arg-type]
+    )
+
+    assert asyncio.run(adapter.search("Greensboro regional employers")) == []
+    references = asyncio.run(
+        adapter.search_references("Greensboro regional employers")
+    )
+
+    assert references[0].classification is UrlClassification.OTHER
+    assert references[0].title == "Piedmont Triad Regional Council"
+
+
 def test_cached_browser_challenge_prevents_repeated_headless_attempts(
     tmp_path: Path,
 ) -> None:

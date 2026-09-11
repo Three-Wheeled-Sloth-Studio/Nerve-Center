@@ -10,8 +10,8 @@ tags: [nerve-center, handoff]
 ## Current state
 
 - `dev` is the accepted integration branch. The current user directive is to work directly on `dev` and not create feature branches.
-- Accepted `dev` entering Issue #55 is `93d38afd5b61`.
-- Application version is `0.12.7`.
+- Accepted `dev` entering Issue #56 is `a211c076ccca`.
+- Application version is `0.12.8`.
 - The manager/module boundary, durable work sessions and queue, provider-neutral LLM manager, Windows desktop/package baseline, career evidence profile, company-first Job Scout discovery, scoring, application tracking, durable discovery learning, and first Model Lab foundation are accepted.
 - Job Scout remains an iterative market-research loop: `expand -> converge -> deepen -> reflect -> re-expand`. Discovery optimizes recall; ranking/scoring provides precision.
 - Issue #34 continuous-work/liveness is complete. The accepted 900-second run completed 89 cycles across 20 waves, retained 121 opportunities from 49 companies and 70 career sources, created 212 provisional scores, completed 3/3 bounded full analyses, continued through added and empty reflections, and stopped explicitly on request-budget exhaustion.
@@ -32,6 +32,7 @@ tags: [nerve-center, handoff]
 - The first four-hour soak completed 641 cycles across 584 waves and stopped cleanly at planned manager wind-down after 3 hours 36 minutes. It used 1,726/5,000 requests and 203/1,000 LLM calls with exact request accounting, retained 74 opportunity observations, and completed 94 of 100 reserved score attempts. It also exposed excessive late low-yield strategy churn, ambiguous completion semantics, and missing effective configuration in the report.
 - Issue #53 is implemented on `dev`: planned wind-down is a successful active-work terminal state with separate deadline evidence; scoring targets successes with a bounded failure ceiling; eight-cycle zero-marginal-yield windows cause exponential backoff; evidence-derived `local_employer` searches find nearby companies before roles; and the live report records effective configuration, efficiency, scoring failures, and grouped location-family evidence.
 - Issue #55 is implemented on `dev`: marginal-yield backoff now pauses outbound discovery without pausing eligible scoring; zero-result acquisition is split into search, classification, registration, and scan stages; and eligible local-employer hypotheses receive a bounded selection slot without bypassing learned weighting or cooldowns.
+- Issue #56 is implemented on `dev`: Job Scout cooldown is explicitly module-local; market expansion reserves room for official metros, core cities, and counties; Durham is reachable from the configured Greensboro market; generic employer-landscape searches cover the expanded geography; and regional names are learned as provenance-bearing public-search hypotheses rather than hard-coded location facts.
 - Coding-agent token conservation is a primary engineering concern. Use `scripts/agent_context.py` and progressive context loading instead of repository-wide rereads.
 
 ## Accepted Issue #47 behavior
@@ -137,6 +138,20 @@ Implemented correction:
 
 The correction remains evidence-driven. It does not exclude roles, employers, or locations and does not manufacture local yield.
 
+## Completed slice: Issue #56
+
+Issue **#56: Broaden Job Scout labor-market and employer discovery** is implemented in `0.12.8`.
+
+The prior local strategy portfolio was technically radius-aware but let the nearest small places consume its bounded alias allowance. The correction now reserves representative slots for official nearby CBSAs, resolves their named core cities against Gazetteer records, and then adds bounded counties and nearby places. This makes Durham and the Durham-Chapel Hill market reachable from Greensboro through public geographic evidence rather than a special-case city list.
+
+The portfolio seeds generic employer/career landscape searches for those evidence-derived markets. Public reference probes use official metro labels to discover regional organization names from result titles and URLs; candidates are stored only as ordinary search hypotheses with provenance and normal learned weighting. They cannot establish an opening location or company presence by themselves.
+
+The production location-aware loop now carries acquisition-stage counters all the way into durable coverage, including learned regional aliases. A two-module runtime test proves that a Job Scout backoff checkpoint does not prevent another module from claiming and completing its own eligible work.
+
+### Runtime acceptance criteria
+
+Run the standard 15-minute explicit-budget acceptance. Inspect the durable report for attempted Durham/core-metro strategies, provenance-bearing regional aliases, and populated acquisition stages. Confirm that the generic local-employer acquisition reaches representative official career sources for Volvo Group in Greensboro and Wolfspeed in Durham. Treat any miss as a query/source acquisition failure to diagnose; do not add named-company production rules.
+
 ### Next Job Scout gate
 
 Run a 15-minute acceptance with explicit limits:
@@ -196,14 +211,14 @@ Read the generated packet, Issue #54, and `refs/planning/code-shop-foundation.md
 
 ## Coding-agent reset path
 
-For Issue #55 continuation, start with:
+For Issue #56 runtime acceptance and the next ranking-quality slice, start with:
 
 ```powershell
-python scripts/agent_context.py --focus "job scout independent discovery backoff acquisition diagnostics" --issue 55
+python scripts/agent_context.py --focus "job scout regional market employer discovery and ranking evidence quality" --issue 56
 ```
 
-Read the generated packet and Issue #55 first. Run the documented 15-minute live gate and inspect its durable report before changing behavior. Preserve the accepted manager/module boundary, exploration floor, and location-evidence separation.
+Read the generated packet and Issue #56 first. Run the documented 15-minute live gate and inspect its durable report before changing behavior. Preserve the accepted manager/module boundary, exploration floor, and location-evidence separation. If acquisition passes, continue with general false domain/responsibility evidence contracts and corrective evaluation rather than title or company blacklists.
 
 ## Validation boundary
 
-Issue #55 has deterministic coverage for scoring during discovery cooldown, paced waiting after scoring exhaustion, acquisition-stage reporting, and bounded local-employer selection alongside company deepening. Focused tests pass; the 15-minute live acceptance remains the required runtime gate.
+Issue #56 has deterministic coverage for representative market expansion, evidence-derived employer and regional-alias hypotheses, production acquisition counters, and cross-module progress during Job Scout backoff. The 15-minute live acceptance remains the required runtime gate for real-source reach to the representative employers and learned regional terminology.

@@ -95,11 +95,25 @@ class PublicWebSearchAdapter:
         self._cooldown_messages: dict[str, str] = {}
 
     async def search(self, query: str) -> list[SearchResult]:
+        return await self._search(query, include_other=False)
+
+    async def search_references(self, query: str) -> list[SearchResult]:
+        """Return public reference pages as well as recognized hiring surfaces."""
+
+        return await self._search(query, include_other=True)
+
+    async def _search(
+        self,
+        query: str,
+        *,
+        include_other: bool,
+    ) -> list[SearchResult]:
         builtin_query = _board_native_query(query, "builtin.com")
         provider = "builtin_html" if builtin_query is not None else self.provider
         if provider in self._cooldown_messages:
             raise SearchChallengeError(self._cooldown_messages[provider])
-        cache_provider = f"{provider}:{self.max_results}"
+        result_scope = "references" if include_other else "hiring"
+        cache_provider = f"{provider}:{self.max_results}:{result_scope}"
         cached = self.cache.get(cache_provider, query)
         if cached is not None:
             if cached.get("status") == "challenged":
@@ -158,7 +172,7 @@ class PublicWebSearchAdapter:
                 if not split.path.casefold().startswith("/job/"):
                     continue
             classification = classify_discovered_url(url)
-            if classification is UrlClassification.OTHER:
+            if classification is UrlClassification.OTHER and not include_other:
                 continue
             seen.add(url)
             results.append(

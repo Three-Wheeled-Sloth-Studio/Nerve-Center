@@ -251,6 +251,7 @@ DEFAULT_COVERAGE: dict[str, Any] = {
     "search_sources_registered": 0,
     "source_scans_attempted": 0,
     "source_scans_completed": 0,
+    "regional_aliases_discovered": 0,
     "results_examined": 0,
     "companies_discovered": 0,
     "career_sources_resolved": 0,

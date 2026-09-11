@@ -216,6 +216,14 @@ def compile_strategy_query(
     if not lint.valid:
         return CompiledQuery("", capabilities.source_path, tuple(warnings), False)
 
+    if dimensions.get("hypothesis_family") == "regional_alias_probe":
+        return CompiledQuery(
+            f'"{anchor}" regional economic development',
+            "broad_web_reference",
+            tuple(clean_list(warnings)),
+            True,
+        )
+
     parts: list[str] = []
     if anchor:
         parts.append(f'"{anchor}"')

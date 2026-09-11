@@ -20,6 +20,7 @@ from nerve_center.plugins.job_scout.discovery_quality import (
     DiscoveryQualityRepository,
     SourceAwareJobScoutDiscoveryLoop,
 )
+from nerve_center.plugins.job_scout.market import MarketAlias
 from nerve_center.plugins.job_scout.query_portfolio import (
     build_coverage_gap_profile,
     build_query_portfolio,
@@ -101,6 +102,48 @@ def test_portfolio_compiles_materially_distinct_source_aware_families() -> None:
     assert local_employer.source_path == "broad_web"
     assert "company" in local_employer.query.casefold()
     assert "Greensboro" in local_employer.query
+
+
+def test_market_strategies_cover_employment_centers_and_region_alias_probes(
+    tmp_path: Path,
+) -> None:
+    learning = DiscoveryQualityRepository(_database(tmp_path))
+    loop = object.__new__(SourceAwareJobScoutDiscoveryLoop)
+    loop.learning = learning
+
+    loop._seed_market_strategies([
+        MarketAlias(
+            "Greensboro, NC", "configured", 0, "configured_starting_location"
+        ),
+        MarketAlias(
+            "Durham, NC", "metro_core", 50, "census_2025_gazetteer_cbsa_core_place"
+        ),
+        MarketAlias(
+            "Durham-Chapel Hill, NC",
+            "metro_alias",
+            50,
+            "census_2025_gazetteer_nearest_cbsa",
+        ),
+    ])
+
+    strategies = learning.list_strategies()
+    local_locations = {
+        item.dimensions.get("location")
+        for item in strategies
+        if item.dimensions.get("hypothesis_family") == "local_employer"
+    }
+    probes = [
+        item
+        for item in strategies
+        if item.dimensions.get("hypothesis_family") == "regional_alias_probe"
+    ]
+
+    assert {"Greensboro, NC", "Durham, NC"}.issubset(local_locations)
+    assert [item.dimensions["anchor"] for item in probes] == [
+        "Durham-Chapel Hill, NC"
+    ]
+    assert all("volvo" not in str(item.dimensions).casefold() for item in strategies)
+    assert all("wolfspeed" not in str(item.dimensions).casefold() for item in strategies)
 
 
 def test_query_linter_rejects_contradictions_and_unsupported_requirements() -> None:

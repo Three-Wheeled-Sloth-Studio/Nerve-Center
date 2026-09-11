@@ -23,7 +23,10 @@ from nerve_center.persistence.discovery import (
 )
 from nerve_center.plugins.job_scout.configuration import JobScoutCoordinator
 from nerve_center.plugins.job_scout.discovery_learning import JobScoutDiscoveryRepository
-from nerve_center.plugins.job_scout.discovery_loop import JobScoutDiscoveryLoop
+from nerve_center.plugins.job_scout.discovery_loop import (
+    JobScoutDiscoveryLoop,
+    _extract_regional_alias_evidence,
+)
 from nerve_center.plugins.job_scout.market import MarketAlias
 from nerve_center.plugins.job_scout.settings import JobScoutConfiguration
 
@@ -284,6 +287,77 @@ def test_search_seed_cap_preserves_anchor_diversity(tmp_path: Path) -> None:
         if item.dimensions.get("kind") == "public_search"
     }
     assert len(anchors) == 20
+
+
+def test_regional_alias_candidates_are_extracted_from_public_evidence() -> None:
+    evidence = _extract_regional_alias_evidence(
+        [
+            SearchResult(
+                title="Who We Are | Piedmont Triad Regional Council, NC",
+                url="https://region.example/triad",
+            ),
+            SearchResult(
+                title="About Research Triangle Regional Partnership",
+                url="https://region.example/triangle",
+            ),
+            SearchResult(
+                title="Unrelated private directory",
+                url="https://directory.example/",
+            ),
+        ],
+        anchor="Greensboro-High Point, NC",
+    )
+
+    assert [item["alias"] for item in evidence] == [
+        "Piedmont Triad",
+        "Research Triangle",
+    ]
+    assert all(item["url"].startswith("https://region.example/") for item in evidence)
+
+
+def test_regional_alias_probe_creates_learned_role_searches(tmp_path: Path) -> None:
+    class ReferenceSearch:
+        async def search(self, _query: str) -> list[SearchResult]:
+            return []
+
+        async def search_references(self, _query: str) -> list[SearchResult]:
+            return [
+                SearchResult(
+                    title="Piedmont Triad Regional Council",
+                    url="https://region.example/triad",
+                )
+            ]
+
+    loop, learning, *_rest = _build_loop(
+        tmp_path,
+        search=ReferenceSearch(),
+        strategies_per_cycle=1,
+    )
+    probe = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "regional_alias_probe",
+            "anchor": "Greensboro-High Point, NC",
+            "source_domain": "web",
+        },
+        origin="fixture",
+    )
+
+    outcome, requests, _warnings = asyncio.run(
+        loop._execute_public_search(probe)
+    )
+
+    aliases = [
+        item
+        for item in learning.list_strategies()
+        if item.dimensions.get("hypothesis_family") == "regional_alias"
+    ]
+    assert requests == 1
+    assert outcome.detail["stages"]["regional_aliases_discovered"] == 1
+    assert aliases[0].dimensions["location"] == "Piedmont Triad"
+    assert aliases[0].dimensions["alias_provenance_url"] == (
+        "https://region.example/triad"
+    )
 
 
 def test_company_deepening_attributes_ashby_source_to_known_employer(tmp_path: Path) -> None:

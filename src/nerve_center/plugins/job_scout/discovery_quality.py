@@ -25,6 +25,7 @@ from nerve_center.plugins.job_scout.discovery_loop import (
     _is_employer_source,
     _RequestAllowance,
 )
+from nerve_center.plugins.job_scout.market import MarketAlias
 from nerve_center.plugins.job_scout.query_portfolio import (
     STRUCTURED_SOURCE_KINDS,
     build_coverage_gap_profile,
@@ -350,6 +351,44 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
                 origin="source_aware_portfolio",
             )
 
+    def _seed_market_strategies(self, aliases: list[MarketAlias]) -> None:
+        representative = [
+            item
+            for item in aliases
+            if item.kind in {
+                "configured",
+                "metro_alias",
+                "metro_core",
+                "nearby_county",
+            }
+        ][:18]
+        for alias in representative:
+            for anchor in ("major employers", "company headquarters"):
+                self.learning.ensure_strategy(
+                    {
+                        "kind": "public_search",
+                        "hypothesis_family": "local_employer",
+                        "anchor": anchor,
+                        "location": alias.label,
+                        "source_domain": "web",
+                        "source_path": "broad_web",
+                        "market_provenance": alias.provenance,
+                    },
+                    origin="public_market_landscape",
+                )
+            if alias.kind == "metro_alias":
+                self.learning.ensure_strategy(
+                    {
+                        "kind": "public_search",
+                        "hypothesis_family": "regional_alias_probe",
+                        "anchor": alias.label,
+                        "source_domain": "web",
+                        "source_path": "broad_web_reference",
+                        "market_provenance": alias.provenance,
+                    },
+                    origin="public_regional_alias_probe",
+                )
+
     def _seed_due_source_strategies(self) -> None:
         for source in self.sources.list_due():
             if not _is_employer_source(source):
@@ -622,6 +661,10 @@ class _CompiledQueryAdapter:
 
     async def search(self, _legacy_query: str) -> Any:
         return await self.delegate.search(self.query)
+
+    async def search_references(self, _legacy_query: str) -> Any:
+        method = getattr(self.delegate, "search_references", self.delegate.search)
+        return await method(self.query)
 
 
 def _quality_reflection_schema() -> dict[str, Any]:

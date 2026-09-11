@@ -157,6 +157,10 @@ def test_location_strategy_keeps_distant_job_but_does_not_count_it_as_local_yiel
 
     assert cycle.openings_found == 1
     assert cycle.coverage["opportunities_retained"] == 1
+    assert cycle.coverage["search_requests_completed"] == 1
+    assert cycle.coverage["search_results_returned"] == 1
+    assert cycle.coverage["search_results_eligible"] == 1
+    assert cycle.coverage["source_scans_attempted"] == 1
     assert jobs.list()[0].location_text == "Minneapolis, MN"
     attempted = [item for item in learning.list_strategies() if item.attempts]
     assert len(attempted) == 1

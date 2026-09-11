@@ -138,6 +138,12 @@ A configured starting location represents a labor market to investigate, not mer
 
 Job Scout should derive useful nearby locations cheaply from cached public geographic reference data and retain which aliases actually produce useful employers or openings. Geometry, metro membership, and simple distance are sufficient discovery priors; expensive route-time enrichment belongs on promising opportunities.
 
+Market expansion must preserve representative coverage rather than letting the nearest small places consume the entire search allowance. Allocate bounded space across the configured place, nearby official metropolitan areas, their resolved core cities, and nearby counties so adjacent employment centers remain discoverable.
+
+Regional vocabulary such as colloquial market names should be learned from bounded public-reference searches seeded by official geographic entities. A candidate alias must retain its result title and public URL provenance, remains a search hypothesis rather than verified opening or company-location evidence, and is subject to the normal evidence-driven weighting and downweighting loop. Do not encode a catalog of regional nicknames in production logic.
+
+Local-employer landscape searches should likewise be derived from geographic evidence and generic employer/career concepts. They may discover and persist nearby employers or official career surfaces before a matching opening exists, but must not rely on company allowlists or convert search co-occurrence into local-opening evidence.
+
 Opening-level location evidence must remain separate from company-presence evidence:
 
 - an opening should retain raw source location text and normalized structured evidence with provenance;
@@ -162,6 +168,8 @@ Explicit user rules remain authoritative. Learned negatives may deprioritize but
 No single search engine, job board, ATS, or employer source is authoritative enough to end discovery.
 
 Use a portfolio of public acquisition paths and continue through other safe strategies when one source throttles, challenges, or yields little signal. Cache repeated queries, pace requests, and record provider/source health.
+
+Discovery cooldown and idle-backoff state is module-local. It may pace Job Scout's outbound discovery lane, but must not hold manager-global execution capacity or prevent another module from claiming and completing eligible work.
 
 Do not defeat CAPTCHAs, use stealth fingerprinting, reuse authenticated personal LinkedIn/job-board sessions, submit applications, or automate outreach.
 

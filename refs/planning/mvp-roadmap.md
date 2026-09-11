@@ -9,7 +9,7 @@ tags: [nerve-center, planning, roadmap]
 
 > Product intent and non-negotiable boundaries are defined in `refs/planning/product-requirements-document.md`. This roadmap orders implementation; it does not redefine the product.
 
-## Accepted baseline through 0.12.7
+## Accepted baseline through 0.12.8
 
 The repository contains a working local API, durable SQLite foundation, manager-owned scheduling and work queues, provider-neutral local LLM routing, the Job Scout reference workflow, a Tauri/React desktop shell, Windows packaging/runtime bootstrap, an iterative company-first discovery/scoring loop, and the first manager-owned Model Lab foundation.
 
@@ -228,6 +228,19 @@ Issue **#55: Keep Job Scout scoring productive during discovery backoff** is imp
 5. Flatten hypothesis family, source domain, and location onto the strategy API rows while retaining the complete dimensions object, making individual and grouped audit evidence directly comparable.
 
 The next gate is a 15-minute live acceptance run with explicit ceilings. It should demonstrate scoring progress while `backoff_scope=discovery`, no discovery requests during the cooldown, populated acquisition-stage counters, and eligible local-employer allocation. The subsequent ranking-quality slice should correct false domain and responsibility evidence through model/testable evidence contracts, not hard-coded role exclusions.
+
+## Job Scout labor-market and employer discovery (implemented)
+
+Issue **#56: Broaden Job Scout labor-market and employer discovery** is implemented in `0.12.8`:
+
+1. Keep discovery cooldown state scoped to Job Scout and prove that another module can claim and complete work while Job Scout remains backed off.
+2. Allocate the bounded market expansion across configured places, official nearby metropolitan areas, metro core cities, and counties instead of allowing nearby small places to crowd out major employment centers.
+3. Resolve core-city names through current cached Census Gazetteer and CBSA evidence, allowing a Greensboro seed to reach adjacent centers including Durham without a city-specific rule.
+4. Seed generic local-employer landscape searches from those evidence-derived aliases so nearby employers and official career surfaces can be persisted without company allowlists or manufactured local-opening evidence.
+5. Probe public regional organizations from official metro labels and learn candidate regional names from result-title and URL evidence. Learned names remain ordinary, inspectable search hypotheses that can be downweighted; they are not accepted as location truth.
+6. Preserve acquisition-stage counts through the production location-aware discovery loop and expose learned regional-alias counts in live progress/reporting.
+
+The runtime acceptance gate is a 15-minute explicit-budget run. It must confirm that representative Durham strategies are attempted, regional-name evidence is inspectable, acquisition counters remain populated, Job Scout cooldown cannot block another module, and the discovered company/source inventory reaches representative major employers in the expanded market such as Volvo Group and Wolfspeed through general evidence-derived searches. Failure to surface those employers is acquisition evidence to refine, not permission to add named-company rules.
 
 ## Code Shop second reference-module foundation (staged)
 

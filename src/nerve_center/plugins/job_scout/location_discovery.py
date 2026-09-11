@@ -87,6 +87,14 @@ class LocationAwareJobScoutDiscoveryLoop(SourceAwareJobScoutDiscoveryLoop):
         increments = {
             "strategies_attempted": 0,
             "public_searches_executed": 0,
+            "search_requests_completed": 0,
+            "search_requests_failed": 0,
+            "search_results_returned": 0,
+            "search_results_eligible": 0,
+            "search_sources_registered": 0,
+            "source_scans_attempted": 0,
+            "source_scans_completed": 0,
+            "regional_aliases_discovered": 0,
             "results_examined": 0,
             "companies_discovered": 0,
             "career_sources_resolved": 0,
@@ -160,6 +168,19 @@ class LocationAwareJobScoutDiscoveryLoop(SourceAwareJobScoutDiscoveryLoop):
             increments["career_sources_resolved"] += learning_outcome.career_sources_resolved
             increments["postings_inspected"] += outcome.postings_inspected
             increments["opportunities_retained"] += total_retained
+            stages = outcome.detail.get("stages", {})
+            if isinstance(stages, dict):
+                for key in (
+                    "search_requests_completed",
+                    "search_requests_failed",
+                    "search_results_returned",
+                    "search_results_eligible",
+                    "search_sources_registered",
+                    "source_scans_attempted",
+                    "source_scans_completed",
+                    "regional_aliases_discovered",
+                ):
+                    increments[key] += max(int(stages.get(key, 0)), 0)
             if strategy.dimensions.get("kind") == "public_search":
                 increments["public_searches_executed"] += 1
             if strategy.dimensions.get("kind") in {"company_revisit", "source_revisit"}:

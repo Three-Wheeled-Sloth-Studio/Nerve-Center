@@ -65,7 +65,7 @@ class GazetteerMarketExpander:
         locations: list[str],
         *,
         radius_miles: float = 100.0,
-        max_aliases_per_location: int = 18,
+        max_aliases_per_location: int = 36,
     ) -> list[MarketAlias]:
         if not locations:
             return []
@@ -86,29 +86,6 @@ class GazetteerMarketExpander:
             )
             if anchor is None:
                 continue
-            candidates: list[MarketAlias] = []
-            for record in places:
-                distance = _distance_miles(anchor, record)
-                if distance <= radius_miles and distance > 0.1:
-                    candidates.append(
-                        MarketAlias(
-                            label=_place_label(record),
-                            kind="nearby_place",
-                            distance_miles=distance,
-                            provenance="census_2025_gazetteer_place",
-                        )
-                    )
-            for record in counties:
-                distance = _distance_miles(anchor, record)
-                if distance <= radius_miles:
-                    candidates.append(
-                        MarketAlias(
-                            label=_county_label(record),
-                            kind="nearby_county",
-                            distance_miles=distance,
-                            provenance="census_2025_gazetteer_county",
-                        )
-                    )
             nearby_metros = sorted(
                 (
                     (_distance_miles(anchor, record), record)
@@ -116,7 +93,8 @@ class GazetteerMarketExpander:
                     if _distance_miles(anchor, record) <= radius_miles * 1.25
                 ),
                 key=lambda item: item[0],
-            )[:3]
+            )[:8]
+            candidates: list[MarketAlias] = []
             for distance, record in nearby_metros:
                 candidates.append(
                     MarketAlias(
@@ -126,10 +104,45 @@ class GazetteerMarketExpander:
                         provenance="census_2025_gazetteer_nearest_cbsa",
                     )
                 )
+                candidates.extend(
+                    _metro_core_aliases(record, places, distance_miles=distance)
+                )
+            nearby_places = sorted(
+                (
+                    (_distance_miles(anchor, record), record)
+                    for record in places
+                    if 0.1 < _distance_miles(anchor, record) <= radius_miles
+                ),
+                key=lambda item: item[0],
+            )[:12]
+            for distance, record in nearby_places:
+                candidates.append(
+                    MarketAlias(
+                        label=_place_label(record),
+                        kind="nearby_place",
+                        distance_miles=distance,
+                        provenance="census_2025_gazetteer_place",
+                    )
+                )
+            nearby_counties = sorted(
+                (
+                    (_distance_miles(anchor, record), record)
+                    for record in counties
+                    if _distance_miles(anchor, record) <= radius_miles
+                ),
+                key=lambda item: item[0],
+            )[:6]
+            for distance, record in nearby_counties:
+                candidates.append(
+                    MarketAlias(
+                        label=_county_label(record),
+                        kind="nearby_county",
+                        distance_miles=distance,
+                        provenance="census_2025_gazetteer_county",
+                    )
+                )
             aliases.extend(
-                sorted(candidates, key=lambda item: (item.distance_miles, item.label))[
-                    :max_aliases_per_location
-                ]
+                _deduplicate_aliases(candidates)[:max_aliases_per_location]
             )
         return _deduplicate_aliases(aliases)
 
@@ -226,6 +239,52 @@ def _place_label(record: _GeoRecord) -> str:
 
 def _county_label(record: _GeoRecord) -> str:
     return f"{record.name}, {record.state}" if record.state else record.name
+
+
+def _metro_core_aliases(
+    metro: _GeoRecord,
+    places: list[_GeoRecord],
+    *,
+    distance_miles: float,
+) -> list[MarketAlias]:
+    """Resolve CBSA name components back to actual Gazetteer places.
+
+    This keeps market-center expansion generic: Durham, Arlington, or another
+    employment center is selected because it appears in a nearby official CBSA,
+    not because the application carries a city allowlist.
+    """
+
+    city_part = metro.name.split(",", 1)[0]
+    result: list[MarketAlias] = []
+    whole_name_exists = any(
+        city_part.casefold() in _place_name_aliases(item.name) for item in places
+    )
+    components = (
+        [city_part]
+        if whole_name_exists
+        else [item.strip() for item in city_part.split("-")]
+    )
+    for candidate in components:
+        if not candidate:
+            continue
+        matches = [
+            item
+            for item in places
+            if candidate.casefold() in _place_name_aliases(item.name)
+            and _distance_miles(metro, item) <= 125
+        ]
+        if not matches:
+            continue
+        place = min(matches, key=lambda item: _distance_miles(metro, item))
+        result.append(
+            MarketAlias(
+                label=_place_label(place),
+                kind="metro_core",
+                distance_miles=distance_miles,
+                provenance="census_2025_gazetteer_cbsa_core_place",
+            )
+        )
+    return result
 
 
 def _distance_miles(first: _GeoRecord, second: _GeoRecord) -> float:

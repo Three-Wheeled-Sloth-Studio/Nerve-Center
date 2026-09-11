@@ -12,7 +12,10 @@ def _write_fixture(cache: Path) -> None:
         "AWATER_SQMI|INTPTLAT|INTPTLONG\n"
         "NC|3728000|x|x|Greensboro city|25|A|0|0|0|0|36.0726|-79.7920\n"
         "NC|3775000|x|x|Winston-Salem city|25|A|0|0|0|0|36.0999|-80.2442\n"
-        "NC|3709060|x|x|Burlington city|25|A|0|0|0|0|36.0957|-79.4378\n",
+        "NC|3709060|x|x|Burlington city|25|A|0|0|0|0|36.0957|-79.4378\n"
+        "NC|3719000|x|x|Durham city|25|A|0|0|0|0|35.9940|-78.8986\n"
+        "NC|3755000|x|x|Raleigh city|25|A|0|0|0|0|35.7796|-78.6382\n"
+        "NC|3711800|x|x|Chapel Hill town|25|A|0|0|0|0|35.9132|-79.0558\n",
         encoding="utf-8",
     )
     cache.joinpath("counties.txt").write_text(
@@ -25,7 +28,11 @@ def _write_fixture(cache: Path) -> None:
         "CSAFP|GEOID|GEOIDFQ|NAME|CBSA_TYPE|ALAND|AWATER|ALAND_SQMI|AWATER_SQMI|"
         "INTPTLAT|INTPTLONG\n"
         "|24660|x|Greensboro-High Point, NC|Metropolitan Statistical Area|0|0|0|0|"
-        "36.0450|-79.8000\n",
+        "36.0450|-79.8000\n"
+        "|20500|x|Durham-Chapel Hill, NC|Metropolitan Statistical Area|0|0|0|0|"
+        "35.9955|-79.0970\n"
+        "|39580|x|Raleigh-Cary, NC|Metropolitan Statistical Area|0|0|0|0|"
+        "35.7567|-78.4604\n",
         encoding="utf-8",
     )
 
@@ -43,6 +50,8 @@ def test_expands_start_location_with_cached_public_geography(tmp_path: Path) -> 
     assert "Winston-Salem, NC" in labels
     assert "Guilford County, NC" in labels
     assert "Greensboro-High Point, NC" in labels
+    assert "Durham-Chapel Hill, NC" in labels
+    assert "Durham, NC" in labels
     assert all(item.provenance.startswith(("configured_", "census_")) for item in aliases)
 
 
