@@ -121,6 +121,160 @@ def test_strategy_selection_reserves_local_employer_exploration_capacity(
     assert local.id in selected_ids
 
 
+def test_market_exploration_covers_distinct_locations_and_regional_probe(
+    tmp_path: Path,
+) -> None:
+    learning = JobScoutDiscoveryRepository(_database(tmp_path))
+    for index in range(8):
+        learning.ensure_strategy(
+            {"kind": "public_search", "anchor": f"product {index}"},
+            origin="profile",
+        )
+    company = learning.ensure_strategy(
+        {"kind": "company_revisit", "company_id": "company-1"},
+        origin="known_company",
+    )
+    first_market = [
+        learning.ensure_strategy(
+            {
+                "kind": "public_search",
+                "hypothesis_family": "local_employer",
+                "anchor": anchor,
+                "location": "First Market, NC",
+                "source_domain": "web",
+                "market_kind": "configured",
+                "market_rank": "0",
+            },
+            origin="market",
+        )
+        for anchor in ("major employers", "company headquarters")
+    ]
+    adjacent = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer",
+            "anchor": "major employers",
+            "location": "Adjacent Core, NC",
+            "source_domain": "web",
+            "market_kind": "metro_core",
+            "market_rank": "4",
+        },
+        origin="market",
+    )
+    regional = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "regional_alias_probe",
+            "anchor": "Adjacent Metro, NC Metro Area",
+            "source_domain": "web",
+            "market_kind": "metro_alias",
+            "market_rank": "3",
+        },
+        origin="market",
+    )
+    learning.record_attempt(
+        "prior-run",
+        1,
+        first_market[0].id,
+        "expand",
+        StrategyOutcome(companies_discovered=1),
+    )
+
+    selected = learning.select_strategies("run-1", limit=4, exploration_floor=0.25)
+    selected_ids = {item.id for item in selected}
+
+    assert company.id in selected_ids
+    assert adjacent.id in selected_ids
+    assert regional.id in selected_ids
+    assert first_market[1].id not in selected_ids
+
+
+def test_market_exploration_prefers_current_query_revision(tmp_path: Path) -> None:
+    learning = JobScoutDiscoveryRepository(_database(tmp_path))
+    for index in range(8):
+        learning.ensure_strategy(
+            {"kind": "public_search", "anchor": f"product {index}"},
+            origin="profile",
+        )
+    stale = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer",
+            "anchor": "major employers",
+            "location": "Stale Market, NC",
+            "source_domain": "web",
+            "market_rank": "0",
+            "query_revision": "market_reference_v2",
+        },
+        origin="market",
+    )
+    current = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer",
+            "anchor": "major employers",
+            "location": "Current Market, NC",
+            "source_domain": "web",
+            "market_rank": "1",
+            "query_revision": "market_reference_v4",
+        },
+        origin="market",
+    )
+
+    selected = learning.select_strategies("run-1", limit=4, exploration_floor=0.25)
+    selected_ids = {item.id for item in selected}
+
+    assert current.id in selected_ids
+    assert stale.id not in selected_ids
+
+
+def test_current_market_attempt_moves_selection_to_next_market(tmp_path: Path) -> None:
+    learning = JobScoutDiscoveryRepository(_database(tmp_path))
+    first = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer",
+            "anchor": "major employers",
+            "location": "First Market, NC",
+            "source_domain": "web",
+            "market_rank": "0",
+            "query_revision": "market_reference_v4",
+        },
+        origin="market",
+    )
+    learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer",
+            "anchor": "company headquarters",
+            "location": "First Market, NC",
+            "source_domain": "web",
+            "market_rank": "0",
+            "query_revision": "market_reference_v4",
+        },
+        origin="market",
+    )
+    second = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer",
+            "anchor": "major employers",
+            "location": "Second Market, NC",
+            "source_domain": "web",
+            "market_rank": "1",
+            "query_revision": "market_reference_v4",
+        },
+        origin="market",
+    )
+    learning.record_attempt(
+        "prior-run", 1, first.id, "expand", StrategyOutcome(companies_discovered=1)
+    )
+
+    selected = learning.select_strategies("run-1", limit=4, exploration_floor=0.25)
+
+    assert second.id in {item.id for item in selected}
+
+
 def test_location_strategy_family_accumulates_zero_yield_across_query_variants(
     tmp_path: Path,
 ) -> None:

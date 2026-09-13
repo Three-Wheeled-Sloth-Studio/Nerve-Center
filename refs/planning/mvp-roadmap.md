@@ -9,7 +9,7 @@ tags: [nerve-center, planning, roadmap]
 
 > Product intent and non-negotiable boundaries are defined in `refs/planning/product-requirements-document.md`. This roadmap orders implementation; it does not redefine the product.
 
-## Accepted baseline through 0.12.8
+## Accepted baseline through 0.12.9
 
 The repository contains a working local API, durable SQLite foundation, manager-owned scheduling and work queues, provider-neutral local LLM routing, the Job Scout reference workflow, a Tauri/React desktop shell, Windows packaging/runtime bootstrap, an iterative company-first discovery/scoring loop, and the first manager-owned Model Lab foundation.
 
@@ -241,6 +241,14 @@ Issue **#56: Broaden Job Scout labor-market and employer discovery** is implemen
 6. Preserve acquisition-stage counts through the production location-aware discovery loop and expose learned regional-alias counts in live progress/reporting.
 
 The runtime acceptance gate is a 15-minute explicit-budget run. It must confirm that representative Durham strategies are attempted, regional-name evidence is inspectable, acquisition counters remain populated, Job Scout cooldown cannot block another module, and the discovered company/source inventory reaches representative major employers in the expanded market such as Volvo Group and Wolfspeed through general evidence-derived searches. Failure to surface those employers is acquisition evidence to refine, not permission to add named-company rules.
+
+## Job Scout stratified market exploration (implemented; employer-depth gate open)
+
+Issue **#57: Stratify Job Scout market exploration after regional live gate** is implemented in `0.12.9`. Current-revision market strategies receive bounded selection priority over stale query variants, distinct markets are sampled before a second angle repeats a market, and one regional-reference slot remains protected alongside company deepening. Public civic pages may contribute bounded employer-name hypotheses from structured headings, lists, and table cells; every page status and candidate count is inspectable, and extracted names still require an official career surface before becoming company evidence.
+
+Live run `3e358fd2-7249-4fd7-94d3-1a1b8872fc19` discovered six provenance-bearing aliases, including Piedmont Triad, Research Triangle, and Central Pines, while inspecting seven civic pages. It retained two roles and added 18 companies, but extracted zero employer candidates and did not reach Volvo Group or Wolfspeed. A subsequent five-minute confirmation, run `6dd77d7c-8eec-4424-905f-b2943103f527`, proved the revised Greensboro market query was admitted first, learned four regional aliases, and added ten companies plus eleven sources. It also exposed that same-market query variants were still consecutive; `0.12.9` corrects that persisted-history defect and has deterministic coverage for the reset.
+
+The next acquisition slice must add a standards-compliant, cacheable path for structured public employer directories or retryable civic employer pages, preserving source provenance and normal cooldown behavior. It must rerun the representative Volvo Group/Wolfspeed check without named-company rules. Separately, local fit scoring remains unreliable: the confirmation completed zero full scores and schema/invalid-response failures persisted under both `gemma3:4b` and the `qwen2.5:7b-instruct` fallback. That requires a focused structured-output contract/evaluation slice rather than more retries.
 
 ## Code Shop second reference-module foundation (staged)
 

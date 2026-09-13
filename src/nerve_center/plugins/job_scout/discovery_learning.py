@@ -252,6 +252,8 @@ DEFAULT_COVERAGE: dict[str, Any] = {
     "source_scans_attempted": 0,
     "source_scans_completed": 0,
     "regional_aliases_discovered": 0,
+    "reference_pages_inspected": 0,
+    "employer_candidates_discovered": 0,
     "results_examined": 0,
     "companies_discovered": 0,
     "career_sources_resolved": 0,
@@ -439,43 +441,131 @@ class JobScoutDiscoveryRepository:
                 )
                 if company_candidates:
                     selected[-1] = company_candidates[0]
-            # Local-employer discovery is a first-class recall path. Give one
-            # eligible hypothesis a bounded slot without exempting it from
-            # normal yield learning or the one-day revisit interval.
-            if count > 2 and not any(
-                item.dimensions.get("hypothesis_family") == "local_employer"
-                for item in selected
-            ):
-                selected_ids = {item.id for item in selected}
+            # Local-employer discovery is a first-class recall path. Select
+            # the least-explored distinct market before repeating a second
+            # query angle for the same place. Market order is public evidence,
+            # not a named-city preference.
+            if count > 2:
+                revised_local_models = [
+                    item
+                    for item in models
+                    if item.dimensions.get("hypothesis_family") == "local_employer"
+                    and item.dimensions.get("query_revision")
+                    == "market_reference_v4"
+                ]
+                revised_local_candidates = [
+                    item
+                    for item in candidates
+                    if item.dimensions.get("hypothesis_family") == "local_employer"
+                    and item.dimensions.get("query_revision")
+                    == "market_reference_v4"
+                ]
+                local_pool = revised_local_candidates or [
+                    item
+                    for item in candidates
+                    if item.dimensions.get("hypothesis_family") == "local_employer"
+                ]
+                attempted_pool = revised_local_models or [
+                    item
+                    for item in models
+                    if item.dimensions.get("hypothesis_family") == "local_employer"
+                ]
+                market_attempts: dict[str, int] = {}
+                for item in attempted_pool:
+                    market = _normalized_market(item)
+                    market_attempts[market] = market_attempts.get(market, 0) + item.attempts
                 local_candidates = sorted(
                     (
                         item
-                        for item in candidates
-                        if item.dimensions.get("hypothesis_family") == "local_employer"
-                        and item.id not in selected_ids
+                        for item in local_pool
                     ),
                     key=lambda item: (
+                        market_attempts.get(_normalized_market(item), 0),
+                        _market_kind_priority(item),
+                        _market_rank(item),
                         item.attempts,
                         _utc_sort_value(item.last_attempt_at),
                         item.created_at,
                     ),
                 )
-                replace_at = next(
+                if local_candidates:
+                    _reserve_strategy(
+                        selected,
+                        local_candidates[0],
+                        protected_families=set(),
+                        replace_families={
+                            "local_employer",
+                        },
+                    )
+
+            # Employer names extracted from public landscape evidence receive
+            # a separate bounded deepening slot. They remain hypotheses until
+            # an official career surface is actually found.
+            if count > 3:
+                deepen_market_attempts: dict[str, int] = {}
+                for item in models:
+                    if (
+                        item.dimensions.get("hypothesis_family")
+                        != "local_employer_deepen"
+                    ):
+                        continue
+                    market = _normalized_market(item)
+                    deepen_market_attempts[market] = (
+                        deepen_market_attempts.get(market, 0) + item.attempts
+                    )
+                employer_candidates = sorted(
                     (
-                        index
-                        for index in range(len(selected) - 1, -1, -1)
-                        if selected[index].dimensions.get("kind")
-                        != "company_revisit"
+                        item
+                        for item in candidates
+                        if item.dimensions.get("hypothesis_family")
+                        == "local_employer_deepen"
+                        and item.dimensions.get("employer_evidence_authority")
+                        == "civic"
                     ),
-                    None,
+                    key=lambda item: (
+                        deepen_market_attempts.get(_normalized_market(item), 0),
+                        item.attempts,
+                        _market_rank(item),
+                        _utc_sort_value(item.last_attempt_at),
+                        item.created_at,
+                    ),
                 )
-                if replace_at is None and sum(
-                    item.dimensions.get("kind") == "company_revisit"
-                    for item in selected
-                ) > 1:
-                    replace_at = len(selected) - 1
-                if local_candidates and replace_at is not None:
-                    selected[replace_at] = local_candidates[0]
+                if employer_candidates:
+                    _reserve_strategy(
+                        selected,
+                        employer_candidates[0],
+                        protected_families={"local_employer"},
+                        replace_families={"local_employer_deepen"},
+                    )
+
+            # Regional vocabulary probes are bounded public-reference work.
+            # Keep one slot while such hypotheses are eligible so normal
+            # portfolio weight cannot indefinitely starve this coverage gap.
+            if count > 3:
+                regional_candidates = sorted(
+                    (
+                        item
+                        for item in candidates
+                        if item.dimensions.get("hypothesis_family")
+                        == "regional_alias_probe"
+                    ),
+                    key=lambda item: (
+                        item.attempts,
+                        _market_rank(item),
+                        _utc_sort_value(item.last_attempt_at),
+                        item.created_at,
+                    ),
+                )
+                if regional_candidates:
+                    _reserve_strategy(
+                        selected,
+                        regional_candidates[0],
+                        protected_families={
+                            "local_employer",
+                            "local_employer_deepen",
+                        },
+                        replace_families={"regional_alias_probe"},
+                    )
             return [_strategy_snapshot(item) for item in selected]
 
     def record_attempt(
@@ -1024,6 +1114,58 @@ def _strategy_score(
         + family_adjustment
         - health_penalty
     )
+
+
+def _normalized_market(model: DiscoveryStrategyModel) -> str:
+    return " ".join(str(model.dimensions.get("location", "")).casefold().split())
+
+
+def _market_kind_priority(model: DiscoveryStrategyModel) -> int:
+    return {
+        "configured": 0,
+        "metro_core": 1,
+        "metro_alias": 2,
+        "nearby_county": 3,
+    }.get(str(model.dimensions.get("market_kind", "")), 4)
+
+
+def _market_rank(model: DiscoveryStrategyModel) -> int:
+    try:
+        return int(model.dimensions.get("market_rank", "1000000"))
+    except (TypeError, ValueError):
+        return 1_000_000
+
+
+def _reserve_strategy(
+    selected: list[DiscoveryStrategyModel],
+    candidate: DiscoveryStrategyModel,
+    *,
+    protected_families: set[str],
+    replace_families: set[str],
+) -> None:
+    if any(item.id == candidate.id for item in selected):
+        return
+    replace_at = next(
+        (
+            index
+            for index, item in enumerate(selected)
+            if item.dimensions.get("hypothesis_family", "") in replace_families
+        ),
+        None,
+    )
+    if replace_at is None:
+        replace_at = next(
+            (
+                index
+                for index in range(len(selected) - 1, -1, -1)
+                if selected[index].dimensions.get("kind") != "company_revisit"
+                and selected[index].dimensions.get("hypothesis_family", "")
+                not in protected_families
+            ),
+            None,
+        )
+    if replace_at is not None:
+        selected[replace_at] = candidate
 
 
 def _utc_sort_value(value: datetime | None) -> float:

@@ -25,6 +25,7 @@ from nerve_center.plugins.job_scout.configuration import JobScoutCoordinator
 from nerve_center.plugins.job_scout.discovery_learning import JobScoutDiscoveryRepository
 from nerve_center.plugins.job_scout.discovery_loop import (
     JobScoutDiscoveryLoop,
+    _extract_employer_landscape_names,
     _extract_regional_alias_evidence,
 )
 from nerve_center.plugins.job_scout.market import MarketAlias
@@ -301,6 +302,10 @@ def test_regional_alias_candidates_are_extracted_from_public_evidence() -> None:
                 url="https://region.example/triangle",
             ),
             SearchResult(
+                title="About Us - Research Triangle Regional Partnership",
+                url="https://region.example/triangle/about",
+            ),
+            SearchResult(
                 title="Unrelated private directory",
                 url="https://directory.example/",
             ),
@@ -313,6 +318,83 @@ def test_regional_alias_candidates_are_extracted_from_public_evidence() -> None:
         "Research Triangle",
     ]
     assert all(item["url"].startswith("https://region.example/") for item in evidence)
+
+
+def test_employer_names_are_extracted_from_structured_landscape_heading() -> None:
+    names = _extract_employer_landscape_names(
+        """
+        <h2>Major Employers</h2>
+        <h4>Example Systems</h4><li>Sample Health</li><td>Example Mobility</td>
+        <h2>Economic Data</h2><h3>Not an employer</h3>
+        """
+    )
+
+    assert names == [
+        "Example Systems",
+        "Sample Health",
+        "Example Mobility",
+    ]
+
+
+def test_local_employer_landscape_creates_evidence_backed_deepening_searches(
+    tmp_path: Path,
+) -> None:
+    class ReferenceSearch:
+        async def search(self, _query: str) -> list[SearchResult]:
+            return []
+
+        async def search_references(self, _query: str) -> list[SearchResult]:
+            return [
+                SearchResult(
+                    title="Major Employers | Example Region",
+                    url="https://region.example.gov/employers",
+                )
+            ]
+
+        async def fetch_reference(self, _url: str) -> str:
+            return "<h2>Major Employers</h2><h4>Example Systems</h4><h2>Contact</h2>"
+
+    loop, learning, *_rest = _build_loop(
+        tmp_path,
+        search=ReferenceSearch(),
+        strategies_per_cycle=1,
+    )
+    landscape = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer",
+            "anchor": "major employers",
+            "location": "Example, NC",
+            "source_domain": "web",
+        },
+        origin="fixture",
+    )
+
+    outcome, requests, warnings = asyncio.run(
+        loop._execute_public_search(landscape)
+    )
+
+    candidates = [
+        item
+        for item in learning.list_strategies()
+        if item.dimensions.get("hypothesis_family") == "local_employer_deepen"
+    ]
+    assert warnings == []
+    assert requests == 2
+    assert outcome.detail["stages"]["reference_pages_inspected"] == 1
+    assert outcome.detail["stages"]["employer_candidates_discovered"] == 1
+    assert outcome.detail["stages"]["employer_reference_evidence"] == [
+        {
+            "url": "https://region.example.gov/employers",
+            "status": "inspected",
+            "candidate_count": 1,
+        }
+    ]
+    assert candidates[0].dimensions["anchor"] == "Example Systems"
+    assert candidates[0].dimensions["employer_evidence_authority"] == "civic"
+    assert candidates[0].dimensions["employer_evidence_url"] == (
+        "https://region.example.gov/employers"
+    )
 
 
 def test_regional_alias_probe_creates_learned_role_searches(tmp_path: Path) -> None:

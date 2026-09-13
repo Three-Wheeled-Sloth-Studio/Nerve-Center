@@ -362,7 +362,7 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
                 "nearby_county",
             }
         ][:18]
-        for alias in representative:
+        for market_rank, alias in enumerate(representative):
             for anchor in ("major employers", "company headquarters"):
                 self.learning.ensure_strategy(
                     {
@@ -373,6 +373,10 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
                         "source_domain": "web",
                         "source_path": "broad_web",
                         "market_provenance": alias.provenance,
+                        "market_kind": alias.kind,
+                        "market_distance_miles": f"{alias.distance_miles:.1f}",
+                        "market_rank": str(market_rank),
+                        "query_revision": "market_reference_v4",
                     },
                     origin="public_market_landscape",
                 )
@@ -385,6 +389,10 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
                         "source_domain": "web",
                         "source_path": "broad_web_reference",
                         "market_provenance": alias.provenance,
+                        "market_kind": alias.kind,
+                        "market_distance_miles": f"{alias.distance_miles:.1f}",
+                        "market_rank": str(market_rank),
+                        "query_revision": "market_reference_v4",
                     },
                     origin="public_regional_alias_probe",
                 )
@@ -665,6 +673,12 @@ class _CompiledQueryAdapter:
     async def search_references(self, _legacy_query: str) -> Any:
         method = getattr(self.delegate, "search_references", self.delegate.search)
         return await method(self.query)
+
+    async def fetch_reference(self, url: str) -> str:
+        method = getattr(self.delegate, "fetch_reference", None)
+        if method is None:
+            return ""
+        return await method(url)
 
 
 def _quality_reflection_schema() -> dict[str, Any]:

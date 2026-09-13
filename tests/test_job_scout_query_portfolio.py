@@ -104,6 +104,22 @@ def test_portfolio_compiles_materially_distinct_source_aware_families() -> None:
     assert "Greensboro" in local_employer.query
 
 
+def test_bounded_portfolio_rotates_starting_market_across_source_buckets() -> None:
+    locations = [f"Market {index}, NC" for index in range(12)]
+    portfolio = build_query_portfolio(
+        target_titles=["Product Manager"],
+        keywords=["analytics", "workflow automation", "healthcare technology"],
+        locations=locations,
+        source_domains=["indeed.com", "jobs.example.com", "careers.example.org"],
+        limit=24,
+    )
+
+    represented = {item.get("location", "") for item in portfolio}
+
+    assert len(represented) >= 6
+    assert any(item in represented for item in locations[6:])
+
+
 def test_market_strategies_cover_employment_centers_and_region_alias_probes(
     tmp_path: Path,
 ) -> None:
@@ -139,9 +155,28 @@ def test_market_strategies_cover_employment_centers_and_region_alias_probes(
     ]
 
     assert {"Greensboro, NC", "Durham, NC"}.issubset(local_locations)
+    durham = next(
+        item
+        for item in strategies
+        if item.dimensions.get("hypothesis_family") == "local_employer"
+        and item.dimensions.get("location") == "Durham, NC"
+    )
+    assert durham.dimensions["market_kind"] == "metro_core"
+    assert durham.dimensions["market_distance_miles"] == "50.0"
+    assert durham.dimensions["market_rank"] == "1"
+    assert durham.dimensions["query_revision"] == "market_reference_v4"
+    landscape_query = compile_strategy_query(durham.dimensions)
+    assert landscape_query.source_path == "broad_web_reference"
+    assert landscape_query.query == (
+        "Durham NC major employers chamber economic development"
+    )
     assert [item.dimensions["anchor"] for item in probes] == [
         "Durham-Chapel Hill, NC"
     ]
+    regional_query = compile_strategy_query(probes[0].dimensions)
+    assert regional_query.query == (
+        "Durham Chapel Hill NC regional partnership council"
+    )
     assert all("volvo" not in str(item.dimensions).casefold() for item in strategies)
     assert all("wolfspeed" not in str(item.dimensions).casefold() for item in strategies)
 

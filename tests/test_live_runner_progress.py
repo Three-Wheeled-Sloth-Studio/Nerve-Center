@@ -230,6 +230,8 @@ def test_efficiency_summary_exposes_scoring_independent_marginal_pacing() -> Non
             "source_scans_attempted": 0,
             "source_scans_completed": 0,
             "regional_aliases_discovered": 0,
+            "reference_pages_inspected": 0,
+            "employer_candidates_discovered": 0,
         },
     }
 

@@ -11,7 +11,7 @@ tags: [nerve-center, handoff]
 
 - `dev` is the accepted integration branch. The current user directive is to work directly on `dev` and not create feature branches.
 - Accepted `dev` entering Issue #56 is `a211c076ccca`.
-- Application version is `0.12.8`.
+- Application version is `0.12.9`.
 - The manager/module boundary, durable work sessions and queue, provider-neutral LLM manager, Windows desktop/package baseline, career evidence profile, company-first Job Scout discovery, scoring, application tracking, durable discovery learning, and first Model Lab foundation are accepted.
 - Job Scout remains an iterative market-research loop: `expand -> converge -> deepen -> reflect -> re-expand`. Discovery optimizes recall; ranking/scoring provides precision.
 - Issue #34 continuous-work/liveness is complete. The accepted 900-second run completed 89 cycles across 20 waves, retained 121 opportunities from 49 companies and 70 career sources, created 212 provisional scores, completed 3/3 bounded full analyses, continued through added and empty reflections, and stopped explicitly on request-budget exhaustion.
@@ -148,7 +148,17 @@ The portfolio seeds generic employer/career landscape searches for those evidenc
 
 The production location-aware loop now carries acquisition-stage counters all the way into durable coverage, including learned regional aliases. A two-module runtime test proves that a Job Scout backoff checkpoint does not prevent another module from claiming and completing its own eligible work.
 
-### Runtime acceptance criteria
+## Current slice: Issue #57
+
+Issue **#57: Stratify Job Scout market exploration after regional live gate** is implemented in `0.12.9`, with the representative-employer runtime gate still open. Selection now prefers the current evidence-query revision over stale persisted variants, samples distinct markets before repeating an alternate query for the same market, and reserves regional-reference capacity without displacing company deepening. Employer landscape pages support bounded heading/list/table extraction, and attempt evidence records every inspected or failed civic URL plus its candidate count.
+
+Run `3e358fd2-7249-4fd7-94d3-1a1b8872fc19` completed ten minutes with 81 requests, 16 public searches, 149 returned results, 26 eligible results, 51 completed scans, 18 companies, 21 sources, two retained roles, seven inspected civic pages, and six learned regional aliases. The learned aliases included Piedmont Triad, Research Triangle, and Central Pines with public provenance. No employer candidates were extracted, and Volvo Group/Wolfspeed remained absent.
+
+Run `6dd77d7c-8eec-4424-905f-b2943103f527` then confirmed current-revision allocation starts with Greensboro, learned four aliases, and added ten companies and eleven sources in five minutes. Its evidence exposed a second persisted-history bug that allowed the other Greensboro angle to run before the next market; the final `0.12.9` selection logic and regression test correct that behavior.
+
+The next Job Scout acquisition slice should integrate a bounded, cacheable structured-public-employer source or retryable civic-directory path. It must keep provenance/cooldowns inspectable and use Volvo Group in Greensboro and Wolfspeed in Durham only as runtime acceptance checks, never production rules. A separate scoring-quality slice is also now urgent: both local models produced repeated schema/invalid-response failures, and the two confirmation runs completed 0/8 and 0/4 full scores respectively.
+
+### Remaining runtime acceptance criteria
 
 Run the standard 15-minute explicit-budget acceptance. Inspect the durable report for attempted Durham/core-metro strategies, provenance-bearing regional aliases, and populated acquisition stages. Confirm that the generic local-employer acquisition reaches representative official career sources for Volvo Group in Greensboro and Wolfspeed in Durham. Treat any miss as a query/source acquisition failure to diagnose; do not add named-company production rules.
 

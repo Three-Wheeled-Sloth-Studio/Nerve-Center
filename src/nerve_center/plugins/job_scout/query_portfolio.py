@@ -146,6 +146,12 @@ def build_query_portfolio(
             if family == "local_employer" and source.source_path != "broad_web":
                 continue
             source_locations = places if source.include_location else [""]
+            if len(source_locations) > 1:
+                offset = len(buckets) % len(source_locations)
+                source_locations = [
+                    *source_locations[offset:],
+                    *source_locations[:offset],
+                ]
             bucket: list[dict[str, str]] = []
             for anchor, archetype in hypotheses:
                 for location in source_locations[:6]:
@@ -217,8 +223,26 @@ def compile_strategy_query(
         return CompiledQuery("", capabilities.source_path, tuple(warnings), False)
 
     if dimensions.get("hypothesis_family") == "regional_alias_probe":
+        market_terms = _market_search_terms(anchor)
         return CompiledQuery(
-            f'"{anchor}" regional economic development',
+            f"{market_terms} regional partnership council",
+            "broad_web_reference",
+            tuple(clean_list(warnings)),
+            True,
+        )
+
+    if (
+        dimensions.get("hypothesis_family") == "local_employer"
+        and anchor.casefold() in {"major employers", "company headquarters"}
+    ):
+        market_terms = _market_search_terms(location)
+        tail = (
+            "major employers chamber economic development"
+            if anchor.casefold() == "major employers"
+            else "company headquarters careers"
+        )
+        return CompiledQuery(
+            " ".join(clean_list([market_terms, tail])),
             "broad_web_reference",
             tuple(clean_list(warnings)),
             True,
@@ -250,6 +274,12 @@ def compile_strategy_query(
         tuple(clean_list(warnings)),
         bool(query),
     )
+
+
+def _market_search_terms(value: str) -> str:
+    terms = re.sub(r"\b(?:metro|micro)\s+area\b", "", value, flags=re.IGNORECASE)
+    terms = re.sub(r"[^A-Za-z0-9]+", " ", terms)
+    return " ".join(terms.split())
 
 
 def lint_query_dimensions(

@@ -7,7 +7,7 @@ from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from html.parser import HTMLParser
 from typing import Any, Protocol
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit
 from zipfile import BadZipFile
 
 import httpx
@@ -133,6 +133,43 @@ class _CareerLinkParser(HTMLParser):
             or (tag == "link" and "sitemap" in rel)
         ):
             self.links.append(absolute)
+
+
+class _EmployerLandscapeParser(HTMLParser):
+    """Capture heading structure from a public employer-landscape page."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.headings: list[tuple[int, str]] = []
+        self.items: list[tuple[str, int | None, str]] = []
+        self._level: int | None = None
+        self._capture_tag: str | None = None
+        self._parts: list[str] = []
+
+    def handle_starttag(self, tag: str, _attrs: list[tuple[str, str | None]]) -> None:
+        if len(tag) == 2 and tag.startswith("h") and tag[1].isdigit():
+            self._level = int(tag[1])
+            self._capture_tag = tag
+            self._parts = []
+        elif tag in {"li", "td"} and self._capture_tag is None:
+            self._capture_tag = tag
+            self._parts = []
+
+    def handle_data(self, data: str) -> None:
+        if self._capture_tag is not None:
+            self._parts.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if self._capture_tag is None or tag != self._capture_tag:
+            return
+        text = " ".join("".join(self._parts).split())
+        if text:
+            self.items.append((tag, self._level, text))
+            if self._level is not None:
+                self.headings.append((self._level, text))
+        self._level = None
+        self._capture_tag = None
+        self._parts = []
 
 
 class JobScoutDiscoveryLoop:
@@ -287,6 +324,8 @@ class JobScoutDiscoveryLoop:
             "source_scans_attempted": 0,
             "source_scans_completed": 0,
             "regional_aliases_discovered": 0,
+            "reference_pages_inspected": 0,
+            "employer_candidates_discovered": 0,
             "results_examined": 0,
             "companies_discovered": 0,
             "career_sources_resolved": 0,
@@ -337,6 +376,8 @@ class JobScoutDiscoveryLoop:
                     "source_scans_attempted",
                     "source_scans_completed",
                     "regional_aliases_discovered",
+                    "reference_pages_inspected",
+                    "employer_candidates_discovered",
                 ):
                     increments[key] += max(int(stages.get(key, 0)), 0)
             if strategy.dimensions.get("kind") == "public_search":
@@ -596,7 +637,10 @@ class JobScoutDiscoveryLoop:
         try:
             allowance.reserve()
             search = self.search_adapter.search
-            if strategy.dimensions.get("hypothesis_family") == "regional_alias_probe":
+            if strategy.dimensions.get("hypothesis_family") in {
+                "local_employer",
+                "regional_alias_probe",
+            }:
                 search = getattr(self.search_adapter, "search_references", search)
             results = await search(query)
         except _RequestAllowanceExhausted:
@@ -674,11 +718,77 @@ class JobScoutDiscoveryLoop:
         postings = 0
         retained = 0
         configuration = self.coordinator.store.load()
-        inspected_results = results[: self.results_per_strategy]
+        result_limit = (
+            max(self.results_per_strategy, 12)
+            if strategy.dimensions.get("hypothesis_family") == "local_employer"
+            else self.results_per_strategy
+        )
+        inspected_results = results[:result_limit]
         eligible_results = 0
         registered_sources = 0
         scans_attempted = 0
         scans_completed = 0
+        employer_candidates = 0
+        reference_pages_inspected = 0
+        reference_evidence: list[dict[str, Any]] = []
+        if strategy.dimensions.get("hypothesis_family") == "local_employer":
+            fetch_reference = getattr(self.search_adapter, "fetch_reference", None)
+            reference_results = sorted(
+                (
+                    item
+                    for item in inspected_results
+                    if item.classification is UrlClassification.OTHER
+                    and _is_civic_reference_result(item)
+                ),
+                key=_civic_reference_rank,
+            )[:2]
+            for result in reference_results:
+                if fetch_reference is None or allowance.exhausted:
+                    break
+                try:
+                    allowance.reserve()
+                    html = await fetch_reference(result.url)
+                except (RuntimeError, SearchChallengeError) as error:
+                    warnings.append(str(error))
+                    reference_evidence.append(
+                        {"url": result.url, "status": "failed", "candidate_count": 0}
+                    )
+                    continue
+                reference_pages_inspected += 1
+                candidates = _extract_employer_landscape_names(html)
+                reference_evidence.append(
+                    {
+                        "url": result.url,
+                        "status": "inspected",
+                        "candidate_count": len(candidates),
+                    }
+                )
+                for candidate in candidates:
+                    before = len(self.learning.list_strategies())
+                    self.learning.ensure_strategy(
+                        {
+                            "kind": "public_search",
+                            "hypothesis_family": "local_employer_deepen",
+                            "anchor": candidate,
+                            "location": strategy.dimensions.get("location", ""),
+                            "source_domain": "web",
+                            "source_path": "broad_web",
+                            "employer_evidence_url": result.url,
+                            "employer_evidence_authority": "civic",
+                            "market_provenance": strategy.dimensions.get(
+                                "market_provenance", ""
+                            ),
+                            "market_kind": strategy.dimensions.get("market_kind", ""),
+                            "market_distance_miles": strategy.dimensions.get(
+                                "market_distance_miles", ""
+                            ),
+                            "market_rank": strategy.dimensions.get("market_rank", ""),
+                        },
+                        origin="public_employer_landscape_evidence",
+                    )
+                    employer_candidates += int(
+                        len(self.learning.list_strategies()) > before
+                    )
         for result in inspected_results:
             if allowance.exhausted:
                 break
@@ -773,6 +883,9 @@ class JobScoutDiscoveryLoop:
                         "search_sources_registered": registered_sources,
                         "source_scans_attempted": scans_attempted,
                         "source_scans_completed": scans_completed,
+                        "reference_pages_inspected": reference_pages_inspected,
+                        "employer_candidates_discovered": employer_candidates,
+                        "employer_reference_evidence": reference_evidence,
                     },
                 },
             ),
@@ -1077,7 +1190,7 @@ def _extract_regional_alias_evidence(
             for match in pattern.finditer(title)
         ]
         for raw in matches:
-            alias = re.split(r"[|:–—]", raw)[-1].strip(" ,-.")
+            alias = re.split(r"[|:–—]|\s+-\s+", raw)[-1].strip(" ,-.")
             alias = re.sub(
                 r"^(?:about|welcome to|official site of)\s+",
                 "",
@@ -1098,6 +1211,68 @@ def _extract_regional_alias_evidence(
             if len(found) >= 6:
                 return found
     return found
+
+
+def _extract_employer_landscape_names(html: str) -> list[str]:
+    """Extract bounded employer-name hypotheses under an employer-list heading."""
+
+    parser = _EmployerLandscapeParser()
+    parser.feed(html)
+    parser.close()
+    marker: tuple[int, int] | None = None
+    for index, (_tag, level, text) in enumerate(parser.items):
+        if level is None:
+            continue
+        normalized = " ".join(text.casefold().split())
+        if re.search(r"\b(?:major|top|largest)\s+employers?\b", normalized):
+            marker = (index, level)
+            break
+    if marker is None:
+        return []
+    start, marker_level = marker
+    candidates: list[str] = []
+    seen: set[str] = set()
+    for tag, level, text in parser.items[start + 1 :]:
+        if level is not None and level <= marker_level:
+            break
+        candidate = " ".join(text.split()).strip(" |:-")
+        key = candidate.casefold()
+        if (
+            not 2 <= len(candidate) <= 100
+            or not 1 <= len(candidate.split()) <= 10
+            or key in seen
+            or key.startswith(("contact ", "learn ", "about "))
+            or (tag in {"li", "td"} and len(candidate.split()) > 8)
+        ):
+            continue
+        seen.add(key)
+        candidates.append(candidate)
+        if len(candidates) >= 12:
+            break
+    return candidates
+
+
+def _is_civic_reference_result(result: Any) -> bool:
+    """Prefer accountable public/regional sources for employer hypotheses."""
+
+    domain = (urlsplit(str(getattr(result, "url", ""))).hostname or "").casefold()
+    compact = re.sub(r"[^a-z]", "", domain)
+    return domain.endswith((".gov", ".org")) or any(
+        marker in compact
+        for marker in ("economicdevelopment", "chamber", "partnership", "council")
+    )
+
+
+def _civic_reference_rank(result: Any) -> tuple[int, str]:
+    domain = (urlsplit(str(getattr(result, "url", ""))).hostname or "").casefold()
+    compact = re.sub(r"[^a-z]", "", domain)
+    if domain.endswith(".gov"):
+        priority = 0
+    elif "economicdevelopment" in compact or "chamber" in compact:
+        priority = 1
+    else:
+        priority = 2
+    return priority, domain
 
 
 def _reflection_schema() -> dict[str, Any]:

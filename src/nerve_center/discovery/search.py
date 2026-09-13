@@ -102,6 +102,27 @@ class PublicWebSearchAdapter:
 
         return await self._search(query, include_other=True)
 
+    async def fetch_reference(self, url: str) -> str:
+        """Fetch one public result page for bounded evidence extraction."""
+
+        response = await self.fetcher.get(
+            url,
+            headers={"Accept": "text/html,application/xhtml+xml"},
+        )
+        if response.challenged or response.throttled or response.status_code in {
+            401,
+            403,
+            429,
+        }:
+            raise SearchChallengeError(
+                "A public reference page requested a cooldown; try again later."
+            )
+        if response.status_code >= 400:
+            raise RuntimeError(
+                f"Public reference fetch failed with HTTP {response.status_code}."
+            )
+        return response.text[:2_000_000]
+
     async def _search(
         self,
         query: str,
