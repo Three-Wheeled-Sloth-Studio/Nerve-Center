@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 
 from fastapi import FastAPI, HTTPException
+from sqlalchemy import select
 
 from nerve_center.applications.api import register_application_routes
 from nerve_center.config import Settings
@@ -21,6 +22,10 @@ from nerve_center.plugins.job_scout.attachment_discovery import (
 from nerve_center.plugins.job_scout.configuration import (
     register_job_scout_configuration_routes,
 )
+from nerve_center.plugins.job_scout.discovery_learning import (
+    DiscoveryStrategyModel,
+    StrategyAttemptModel,
+)
 from nerve_center.plugins.job_scout.discovery_quality import DiscoveryQualityRepository
 from nerve_center.plugins.job_scout.manifest import job_scout_manifest
 from nerve_center.plugins.job_scout.runtime import JobScoutOperationBridge
@@ -28,6 +33,26 @@ from nerve_center.plugins.job_scout.uploads import register_job_scout_upload_rou
 from nerve_center.profile.api import register_profile_routes
 from nerve_center.providers.base import StructuredProvider
 from nerve_center.scoring.api import register_scoring_routes
+
+_REFERENCE_EVIDENCE_KEYS = (
+    "reference_selection_evidence",
+    "employer_reference_evidence",
+    "attachment_reference_evidence",
+)
+_REFERENCE_STAGE_COUNTERS = (
+    "search_results_returned",
+    "reference_pages_inspected",
+    "reference_cache_hits",
+    "reference_fetches_deferred",
+    "employer_candidates_discovered",
+    "attachment_links_discovered",
+    "attachment_fetches_attempted",
+    "attachment_cache_hits",
+    "attachment_fetches_deferred",
+    "attachment_documents_parsed",
+    "attachment_documents_unsupported_or_invalid",
+    "attachment_employer_candidates_extracted",
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -102,6 +127,60 @@ def install_job_scout(
     )
 
 
+def _recent_reference_attempt_evidence(
+    learning: DiscoveryQualityRepository,
+    *,
+    limit: int = 64,
+) -> list[dict[str, object]]:
+    """Return bounded recent reference-selection diagnostics for live-run audit."""
+
+    scan_limit = max(limit * 4, 64)
+    evidence: list[dict[str, object]] = []
+    with learning.database.session() as session:
+        rows = session.execute(
+            select(StrategyAttemptModel, DiscoveryStrategyModel)
+            .join(
+                DiscoveryStrategyModel,
+                StrategyAttemptModel.strategy_id == DiscoveryStrategyModel.id,
+            )
+            .order_by(StrategyAttemptModel.finished_at.desc())
+            .limit(scan_limit)
+        ).all()
+        for attempt, strategy in rows:
+            detail = attempt.detail if isinstance(attempt.detail, dict) else {}
+            stages = detail.get("stages")
+            if not isinstance(stages, dict) or not any(
+                key in stages for key in _REFERENCE_EVIDENCE_KEYS
+            ):
+                continue
+            dimensions = (
+                strategy.dimensions if isinstance(strategy.dimensions, dict) else {}
+            )
+            row: dict[str, object] = {
+                "attempt_id": attempt.id,
+                "run_id": attempt.run_id,
+                "strategy_id": attempt.strategy_id,
+                "cycle": attempt.cycle,
+                "phase": attempt.phase,
+                "status": attempt.status,
+                "finished_at": attempt.finished_at,
+                "hypothesis_family": dimensions.get("hypothesis_family", "legacy"),
+                "location": dimensions.get("location", ""),
+                "anchor": dimensions.get("anchor", ""),
+            }
+            for key in _REFERENCE_STAGE_COUNTERS:
+                if key in stages:
+                    row[key] = stages[key]
+            for key in _REFERENCE_EVIDENCE_KEYS:
+                value = stages.get(key)
+                if isinstance(value, list):
+                    row[key] = value
+            evidence.append(row)
+            if len(evidence) >= limit:
+                break
+    return evidence
+
+
 def _register_discovery_learning_routes(
     application: FastAPI,
     learning: DiscoveryQualityRepository,
@@ -150,7 +229,11 @@ def _register_discovery_learning_routes(
 
     @application.get("/api/v1/modules/job_scout/discovery/audit")
     def get_discovery_audit() -> dict[str, object]:
-        return learning.discovery_audit()
+        audit = dict(learning.discovery_audit())
+        audit["reference_attempt_evidence"] = _recent_reference_attempt_evidence(
+            learning
+        )
+        return audit
 
     @application.get("/api/v1/modules/job_scout/discovery/sessions/{run_id}")
     def get_discovery_session(run_id: str) -> object:
