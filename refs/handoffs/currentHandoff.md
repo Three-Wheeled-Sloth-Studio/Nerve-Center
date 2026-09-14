@@ -11,7 +11,8 @@ tags: [nerve-center, handoff]
 
 - Work directly on `dev`; do not create a feature branch or PR unless explicitly requested.
 - Application version is `0.12.14`.
-- Implementation checkpoint before this handoff refresh: `ca24a9e6d9855791674a0e02f8d5055d57adf379`.
+- Accepted green implementation baseline before this documentation refresh: `fd6bc92838999ff144d9f5ec7369995fb340de4a`.
+- CI run `34884321473` / #274 is green: refs/OKF, agent context, Ruff, packaging dry-run, 241 Python tests, desktop-web, and desktop-rust/Tauri shell.
 - The manager/module boundary, durable work sessions/queue, provider-neutral local LLM routing, Windows desktop/package baseline, career-evidence profile, company-first Job Scout discovery, scoring/application tracking, durable discovery learning, and Model Lab foundation are accepted.
 - Job Scout remains an iterative market-research loop: `expand -> converge -> deepen -> reflect -> re-expand`. Discovery optimizes recall; ranking/scoring provides precision.
 - Responsibility/requirement evidence is primary. Listed title is a weak clue. Domain relationship remains `direct > adjacent > transferable > mismatch`.
@@ -30,47 +31,100 @@ Accepted behavior accumulated through this slice:
 3. Public civic reference pages are cacheable/retry-aware; success, challenge, transient failure, and invalid evidence have distinct cooldown behavior.
 4. Bounded employer extraction supports accountable HTML/JSON evidence and public PDF/CSV/TSV/JSON/XLSX directory attachments.
 5. Extracted names become provenance-bearing `local_employer_deepen` hypotheses only. They do not become company/location truth until ordinary official-career discovery resolves them.
-6. Reference selection is intent-aware: explicit `major/top/largest/leading employers`, employer/business/company directory/list signals, and supported employer documents compete before generic civic authority. The two-reference acquisition bound remains unchanged.
-7. No named city or employer production rule has been added. Volvo Group and Wolfspeed are representative runtime probes only.
+6. Reference ranking is intent-aware: explicit `major/top/largest/leading employers`, employer/business/company directory/list signals, and supported employer documents rank ahead of generic civic authority. The acquired-reference bound remains two.
+7. `0.12.14` exposes bounded reference-attempt evidence in the discovery audit so live reports can explain selection, inspection, cooldown, attachment parsing, and candidate extraction without SQLite archaeology.
+8. No named city or employer production rule has been added. Volvo Group and Wolfspeed are representative runtime probes only.
 
-### Runtime evidence to date
+## Latest runtime gate: 0.12.14
 
-The `0.12.12` gate proved the attachment path itself is safe and bounded: Durham/core-market discovery executed, regional-alias evidence executed, PDFs were fetched/parsed/reused from cache, and scoring stayed healthy. The parsed Chapel Hill policy PDF and Danville economic-development budget PDF correctly yielded zero employer candidates because neither was an employer directory. Volvo Group had already been reached through the ordinary official-career path; Wolfspeed remained absent.
+Run `dcee77be-53c7-416a-be7c-b518f2240378` is the authoritative latest live acceptance artifact.
 
-SQLite inspection of that gate exposed a general source-selection defect: generic `.gov` pages could consume both civic-reference slots while an explicit employer-list result in the same result set was skipped. `0.12.13` corrected selection generically by ranking employer-directory intent before authority and added deterministic fictional tests.
+Operational result:
 
-The next 15-minute run, `aa6a3579-6b34-4642-885e-20473a8270b3`, executed on `0.12.13` and was operationally healthy:
-
+- runtime version `0.12.14`;
 - status `succeeded`, terminal reason `admission_draining`, planned wind-down reached;
-- 155 requests and 30 LLM calls, without budget exhaustion;
-- 23/23 full-score attempts succeeded with zero failures;
-- 23 current-window `local_employer` strategies executed, including Durham-Chapel Hill market work;
-- 16 civic references were inspected, with 16 cache hits and 12 retry-deferred references;
-- zero employer candidates were created;
-- all attachment counters were zero;
-- no `local_employer_deepen` strategy executed during that run.
+- 92 requests and 30 LLM calls consumed without budget exhaustion;
+- 20/20 full-score attempts completed with zero failures; the configured target of 25 was not reached before wind-down, but structured scoring is healthy;
+- 20 public searches completed, 200 results returned, 56 eligible/registered sources, 100 source scans attempted, and 44 completed;
+- 15 civic reference pages inspected, 14 reference cache hits, and 8 retry-deferred references;
+- two cached attachment documents were parsed, both valid, with zero invalid/unsupported documents;
+- zero employer candidates were extracted and no current-run `local_employer_deepen` hypothesis was created or executed.
 
-That report could not diagnose the source-selection result because per-attempt `reference_selection_evidence`, `employer_reference_evidence`, and `attachment_reference_evidence` were durable in the attempt ledger but absent from the final live report. Another manual SQLite inspection would have been required.
+Filter `discovery_audit.reference_attempt_evidence` by this run ID before drawing conclusions. The current-run subset contains exactly 20 local-employer attempts: 10 `major employers` and 10 `company headquarters`, spanning Durham-Chapel Hill, Mount Airy, Danville, Sanford, Winston-Salem, and Martinsville market aliases/core places.
 
-### 0.12.14 diagnostic hardening
+Current-run reference behavior:
 
-`0.12.14` fixes that observability gap without changing acquisition behavior:
+- 23 civic references were selected for acquisition;
+- 15 were inspected and 8 were retry-deferred;
+- `major employers`: 20 selected, 12 inspected, 8 deferred, zero employer candidates;
+- `company headquarters`: 3 selected/inspected, zero employer candidates; seven attempts found no civic reference worth selecting;
+- the cached Danville Economic Development PDF was parsed twice and correctly yielded zero candidates again;
+- Wolfspeed and Volvo are absent from this report. This is evidence, not a reason for named production logic.
 
-- the discovery audit exposes a bounded recent `reference_attempt_evidence` stream;
-- each row carries run/attempt/strategy/cycle identity, hypothesis family, location, anchor, status, relevant acquisition counters, reference-selection ranking, employer-reference evidence, and attachment evidence;
-- only attempts containing reference evidence are included;
-- output is bounded, and the live runner already embeds the discovery audit;
-- deterministic fictional coverage proves run attribution, evidence retention, bounded output, and omission of unrelated attempts.
+## Diagnosis
 
-Implementation commits:
+The remaining blocker is now **reference-source acquisition quality**, not parser correctness, source-ranking observability, or scoring.
 
-- `80a107d0f4cbeb3dd9a5e3def43faeb173778443` — expose bounded reference-attempt evidence;
-- `a3d621079d29286441bd06e38eb34107db494786` — deterministic audit regression test;
-- `ca24a9e6d9855791674a0e02f8d5055d57adf379` — align version to `0.12.14`.
+### 1. Query intent is being diluted before ranking
 
-## Next gate
+When a high-intent result exists, the `0.12.13` ranker behaves correctly. Prior-run evidence in the audit shows `Major Employers - Durham Economic Development` at intent tier 0 ahead of generic civic pages; that source was `retry_deferred`, not starved by `.gov` authority.
 
-After exact-head CI is green, rerun the standard explicit-budget acceptance:
+In the latest current-run evidence, however, almost every `major employers` search returned only generic economic-development/chamber material. The query compiler currently emits:
+
+`<market> major employers chamber economic development`
+
+Authority is already represented in post-search ranking. Including `chamber economic development` in the query appears to bias retrieval toward generic pages and away from explicit employer lists/directories. Treat this as a generic query-capability defect.
+
+### 2. `company headquarters` civic references admit self-employment/HR pages
+
+Current-run examples include municipal `Employment Opportunities` pages. Those are legitimate public pages but poor employer-landscape evidence. Direct company career pages must remain available to ordinary non-civic discovery; civic-reference extraction should prefer evidence about companies/businesses/headquarters/existing industry, not a municipality's own HR page.
+
+### 3. Retry-deferred top references need bounded fallback
+
+`_IntentAwareReferenceAdapter` currently returns only the top two civic candidates plus non-civic results. The base acquisition loop already skips `retry_deferred` references without incrementing `references_acquired`, but it cannot fall through to the third civic candidate because preselection removed it.
+
+Preserve a small ranked fallback pool while maintaining explicit hard caps on acquired references and network fetch attempts. A zero-cost cooldown/invalid result should not consume the opportunity to inspect another already-ranked civic candidate, but the correction must not create unbounded network work.
+
+### 4. The new audit is attributable but not run-scoped
+
+The latest report's bounded `reference_attempt_evidence` contains 64 rows: 20 from the current run, 23 from `aa6a3579-6b34-4642-885e-20473a8270b3`, and 21 from `4b5ad2ea-df90-4237-8d62-e45ec7f1216c`.
+
+Each row carries `run_id`, so the data is not corrupt, but a live-run report should expose the current run directly or accept an explicit run filter. Do not make future acceptance reviewers manually separate recent historical rows.
+
+## Next implementation slice
+
+Keep the work generic and bounded. Do **not** add named employer/city exceptions.
+
+1. **Intent-pure local-employer queries**
+   - Stop using authority terms as mandatory query tail for `major employers`.
+   - Prefer a bounded employer-list vocabulary such as `major employers`, `largest employers`, `top employers`, and employer/business directory semantics.
+   - Authority remains a post-search rank/provenance dimension, not a required search term.
+   - If multiple query variants are added, keep them deterministic, bounded, and represented in strategy identity/revision so learning stays attributable.
+
+2. **Civic-reference eligibility/ranking hardening**
+   - For employer-landscape extraction, down-rank or exclude obvious civic self-employment/HR pages such as `Employment Opportunities`, municipal jobs, or careers pages when they do not also contain business/employer-landscape signals.
+   - Preserve direct employer career results on the normal discovery path.
+
+3. **Bounded fallback after deferred/invalid references**
+   - Keep a small ranked civic candidate pool larger than the two acquired-reference limit.
+   - Preserve `<=2` successfully acquired/inspected references per attempt.
+   - Add an explicit network-attempt ceiling so challenge/failure fallback cannot exceed the intended request budget.
+   - Cached `retry_deferred`/invalid candidates may fall through without consuming an acquired-reference slot.
+
+4. **Run-scope live reference evidence**
+   - Make `reference_attempt_evidence` current-run by default for the live audit, or accept/pass an explicit `run_id` filter.
+   - Preserve the bounded diagnostic shape and row-level run identity.
+
+5. **Deterministic fictional regression tests**
+   - a high-intent employer-list query does not require generic authority vocabulary;
+   - generic government HR pages do not win employer-landscape reference selection;
+   - a retry-deferred first candidate falls through to a lower-ranked eligible candidate without exceeding acquired/network caps;
+   - live audit evidence for a run excludes other runs;
+   - no named employer, city, or representative-probe logic appears in production code.
+
+## Runtime acceptance after the slice
+
+Use the standard explicit-budget 15-minute run:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\run_job_scout_live.py `
@@ -81,22 +135,22 @@ After exact-head CI is green, rerun the standard explicit-budget acceptance:
   --score-failure-limit 10
 ```
 
-The next uploaded `run-*.json` should be sufficient by itself. Inspect `discovery_audit.reference_attempt_evidence` filtered to the current run ID and answer, in order:
+The next gate should require:
 
-1. Which civic references ranked highest and were selected?
-2. Were selected references inspected, cache hits, challenged, or retry-deferred?
-3. Did a selected page expose supported directory attachments?
-4. Did HTML/JSON/attachment parsing produce valid employer candidates with provenance?
-5. Did any resulting `local_employer_deepen` hypothesis execute and resolve an ordinary official career surface?
-6. Did discovery/scoring remain productive and request/LLM accounting remain exact?
+1. the live report's reference evidence is scoped to the current run;
+2. at least one current-run high-intent employer-list/directory reference is selected and inspected, or is truthfully retry-deferred with bounded fallback to another eligible reference;
+3. if a source actually contains employer names, extraction creates provenance-bearing `local_employer_deepen` hypotheses without section-heading false positives;
+4. at least one resulting deepening hypothesis proceeds through ordinary official-career discovery when valid candidates exist;
+5. request/LLM accounting remains exact and scoring remains healthy;
+6. Volvo Group/Wolfspeed remain observational probes only. Their individual presence is not a production acceptance rule.
 
-If no valid directory-derived employer is produced, treat the evidence as a general source-capability or extraction-quality diagnosis. Do not add Wolfspeed, Durham, Volvo, or any other named production rule.
+Do not close Issue #57 until runtime evidence shows the generic employer-reference path can turn a real public employer-list/directory source into a normal company/career discovery attempt, or until the evidence demonstrates a different generic blocker that requires a separately justified slice.
 
 ## Known follow-up evidence
 
-Persisted historical `local_employer_deepen` strategies include some weak HTML-extraction artifacts that look like section headings rather than employer names. They predate the current run and were not exercised by the `0.12.13` acceptance. Do not mix that debt into the current selector diagnosis without fresh current-run evidence. If the new audit proves high-intent pages are selected and inspected but base HTML extraction creates structural headings, harden candidate structure generically with fictional tests.
-
-The earlier planned-wind-down durability note also remains open: the durable discovery-session aggregate can trail the final attempt ledger by one terminal cycle. The attempt ledger preserves the event, but final-cycle aggregate coverage should eventually flush before termination.
+- Persisted historical `local_employer_deepen` strategies include some weak HTML-extraction artifacts that look like section headings rather than employer names. Do not mix that debt into the current source-acquisition correction unless fresh current-run extraction reproduces it; if reproduced, harden candidate structure generically with fictional tests.
+- The earlier planned-wind-down durability note remains open: the durable discovery-session aggregate can trail the final attempt ledger by one terminal cycle. The attempt ledger preserves the event, but final-cycle aggregate coverage should eventually flush before termination.
+- The latest report demonstrates that scoring is not the current blocker; do not spend this slice retuning scoring or model choice.
 
 ## Staged next slice: Issue #54 Code Shop foundation
 
@@ -118,10 +172,10 @@ python scripts/agent_context.py --focus "code shop project registry authority ex
 
 ## Re-entry
 
-For the active Issue #57 runtime gate:
+For the active Issue #57 source-acquisition slice:
 
 ```powershell
-python scripts/agent_context.py --focus "job scout intent-aware civic references attachment provenance live acceptance" --issue 57
+python scripts/agent_context.py --focus "job scout local employer reference query intent fallback cooldown run scoped audit" --issue 57
 ```
 
-Read the generated packet and Issue #57 first. Do not reread repository history. The runtime report, current handoff, and directly relevant discovery files are the authoritative starting set.
+Read the generated packet, Issue #57, this handoff, and only the directly relevant query/reference files. Do not reread repository history. The authoritative runtime evidence is run `dcee77be-53c7-416a-be7c-b518f2240378`; the local report itself remains outside the public repository.
