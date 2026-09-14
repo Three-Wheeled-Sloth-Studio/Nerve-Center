@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 from datetime import timedelta
 from enum import StrEnum
 from html.parser import HTMLParser
@@ -40,6 +41,16 @@ class SearchResult(BaseModel):
     snippet: str = ""
     classification: UrlClassification = UrlClassification.OTHER
     domain: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class ReferenceDocument:
+    """One durable public reference response with acquisition provenance."""
+
+    url: str
+    text: str
+    content_type: str
+    cache_status: str
 
 
 class SearchAdapter(Protocol):
@@ -102,26 +113,94 @@ class PublicWebSearchAdapter:
 
         return await self._search(query, include_other=True)
 
-    async def fetch_reference(self, url: str) -> str:
-        """Fetch one public result page for bounded evidence extraction."""
+    def reference_cache_status(self, url: str) -> str:
+        """Describe whether a reference needs network work or is temporarily deferred."""
 
-        response = await self.fetcher.get(
-            url,
-            headers={"Accept": "text/html,application/xhtml+xml"},
-        )
+        cached = self.cache.get("public_reference:v1", canonicalize_url(url))
+        if cached is None:
+            return "miss"
+        if cached.get("status") == "succeeded":
+            return "hit"
+        return "retry_deferred"
+
+    async def fetch_reference(self, url: str) -> ReferenceDocument:
+        """Fetch and durably cache one bounded public evidence document."""
+
+        canonical_url = canonicalize_url(url)
+        cache_provider = "public_reference:v1"
+        cached = self.cache.get(cache_provider, canonical_url)
+        if cached is not None:
+            status = str(cached.get("status") or "")
+            if status in {"challenged", "failed"}:
+                raise SearchChallengeError(
+                    str(cached.get("message") or "Public reference is cooling down.")
+                )
+            if status == "succeeded":
+                return ReferenceDocument(
+                    url=str(cached.get("url") or canonical_url),
+                    text=str(cached.get("text") or ""),
+                    content_type=str(cached.get("content_type") or ""),
+                    cache_status="hit",
+                )
+
+        try:
+            response = await self.fetcher.get(
+                canonical_url,
+                headers={
+                    "Accept": (
+                        "application/json,text/html,application/xhtml+xml;q=0.9,*/*;q=0.5"
+                    )
+                },
+            )
+        except httpx.RequestError as error:
+            message = "The public reference page could not be reached; retry later."
+            self.cache.put(
+                cache_provider,
+                canonical_url,
+                {"status": "failed", "message": message},
+                ttl=timedelta(minutes=15),
+            )
+            raise SearchChallengeError(message) from error
         if response.challenged or response.throttled or response.status_code in {
             401,
             403,
             429,
         }:
-            raise SearchChallengeError(
-                "A public reference page requested a cooldown; try again later."
+            message = "A public reference page requested a cooldown; try again later."
+            self.cache.put(
+                cache_provider,
+                canonical_url,
+                {"status": "challenged", "message": message},
+                ttl=timedelta(hours=1),
             )
+            raise SearchChallengeError(message)
         if response.status_code >= 400:
-            raise RuntimeError(
-                f"Public reference fetch failed with HTTP {response.status_code}."
+            message = f"Public reference fetch failed with HTTP {response.status_code}."
+            self.cache.put(
+                cache_provider,
+                canonical_url,
+                {"status": "failed", "message": message},
+                ttl=timedelta(minutes=15),
             )
-        return response.text[:2_000_000]
+            raise SearchChallengeError(message)
+        document = ReferenceDocument(
+            url=response.url,
+            text=response.text[:2_000_000],
+            content_type=response.headers.get("content-type", ""),
+            cache_status="miss",
+        )
+        self.cache.put(
+            cache_provider,
+            canonical_url,
+            {
+                "status": "succeeded",
+                "url": document.url,
+                "text": document.text,
+                "content_type": document.content_type,
+            },
+            ttl=timedelta(days=1),
+        )
+        return document
 
     async def _search(
         self,

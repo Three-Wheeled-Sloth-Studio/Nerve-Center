@@ -674,11 +674,15 @@ class _CompiledQueryAdapter:
         method = getattr(self.delegate, "search_references", self.delegate.search)
         return await method(self.query)
 
-    async def fetch_reference(self, url: str) -> str:
+    async def fetch_reference(self, url: str) -> Any:
         method = getattr(self.delegate, "fetch_reference", None)
         if method is None:
             return ""
         return await method(url)
+
+    def reference_cache_status(self, url: str) -> str:
+        method = getattr(self.delegate, "reference_cache_status", None)
+        return method(url) if method is not None else "miss"
 
 
 def _quality_reflection_schema() -> dict[str, Any]:

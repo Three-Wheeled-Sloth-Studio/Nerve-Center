@@ -17,6 +17,7 @@ from nerve_center.discovery.plugin import JobDiscoveryTaskPlugin
 from nerve_center.discovery.search import (
     PlaywrightSearchAdapter,
     PublicWebSearchAdapter,
+    ReferenceDocument,
     SearchChallengeError,
     UrlClassification,
     classify_discovered_url,
@@ -214,6 +215,70 @@ def test_public_reference_search_retains_non_job_evidence(tmp_path: Path) -> Non
 
     assert references[0].classification is UrlClassification.OTHER
     assert references[0].title == "Piedmont Triad Regional Council"
+
+
+def test_public_reference_fetch_is_durably_cached(tmp_path: Path) -> None:
+    database = Database(Settings(data_dir=tmp_path / "runtime"))
+    database.initialize()
+    calls = 0
+
+    class FakeFetcher:
+        async def get(self, url: str, **_kwargs: object) -> FetchResponse:
+            nonlocal calls
+            calls += 1
+            return FetchResponse(
+                url=url,
+                status_code=200,
+                text='[{"employer_name":"Example Systems"}]',
+                headers={"content-type": "application/json"},
+                challenged=False,
+                throttled=False,
+            )
+
+    cache = SearchCacheRepository(database)
+    first_adapter = PublicWebSearchAdapter(cache, fetcher=FakeFetcher())  # type: ignore[arg-type]
+    first = asyncio.run(first_adapter.fetch_reference("https://data.example.gov/employers"))
+    second_adapter = PublicWebSearchAdapter(cache, fetcher=FakeFetcher())  # type: ignore[arg-type]
+    second = asyncio.run(second_adapter.fetch_reference("https://data.example.gov/employers"))
+
+    assert first == ReferenceDocument(
+        url="https://data.example.gov/employers",
+        text='[{"employer_name":"Example Systems"}]',
+        content_type="application/json",
+        cache_status="miss",
+    )
+    assert second.cache_status == "hit"
+    assert second.text == first.text
+    assert calls == 1
+
+
+def test_public_reference_challenge_is_persistently_cooled_down(tmp_path: Path) -> None:
+    database = Database(Settings(data_dir=tmp_path / "runtime"))
+    database.initialize()
+    calls = 0
+
+    class ChallengedFetcher:
+        async def get(self, url: str, **_kwargs: object) -> FetchResponse:
+            nonlocal calls
+            calls += 1
+            return FetchResponse(
+                url=url,
+                status_code=429,
+                text="rate limited",
+                headers={},
+                challenged=False,
+                throttled=True,
+            )
+
+    cache = SearchCacheRepository(database)
+    first_adapter = PublicWebSearchAdapter(cache, fetcher=ChallengedFetcher())  # type: ignore[arg-type]
+    with pytest.raises(SearchChallengeError, match="requested a cooldown"):
+        asyncio.run(first_adapter.fetch_reference("https://region.example.gov/employers"))
+    second_adapter = PublicWebSearchAdapter(cache, fetcher=ChallengedFetcher())  # type: ignore[arg-type]
+    with pytest.raises(SearchChallengeError, match="requested a cooldown"):
+        asyncio.run(second_adapter.fetch_reference("https://region.example.gov/employers"))
+
+    assert calls == 1
 
 
 def test_cached_browser_challenge_prevents_repeated_headless_attempts(

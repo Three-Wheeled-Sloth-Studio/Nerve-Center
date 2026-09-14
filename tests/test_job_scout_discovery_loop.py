@@ -388,6 +388,8 @@ def test_local_employer_landscape_creates_evidence_backed_deepening_searches(
             "url": "https://region.example.gov/employers",
             "status": "inspected",
             "candidate_count": 1,
+            "cache_status": "unavailable",
+            "content_type": "text/html",
         }
     ]
     assert candidates[0].dimensions["anchor"] == "Example Systems"
@@ -395,6 +397,134 @@ def test_local_employer_landscape_creates_evidence_backed_deepening_searches(
     assert candidates[0].dimensions["employer_evidence_url"] == (
         "https://region.example.gov/employers"
     )
+
+
+def test_structured_public_directory_creates_only_evidence_backed_hypotheses(
+    tmp_path: Path,
+) -> None:
+    class StructuredReferenceSearch:
+        async def search(self, query: str) -> list[SearchResult]:
+            return await self.search_references(query)
+
+        async def search_references(self, _query: str) -> list[SearchResult]:
+            return [
+                SearchResult(
+                    title="Regional employer directory",
+                    url="https://data.example.gov/employers.json",
+                )
+            ]
+
+        async def fetch_reference(self, url: str):  # type: ignore[no-untyped-def]
+            from nerve_center.discovery.search import ReferenceDocument
+
+            return ReferenceDocument(
+                url=url,
+                text=(
+                    '[{"employer_name":"Example Mobility","employees":1200},'
+                    '{"company_name":"Sample Semiconductor","employees":900}]'
+                ),
+                content_type="application/json",
+                cache_status="hit",
+            )
+
+        def reference_cache_status(self, _url: str) -> str:
+            return "hit"
+
+    loop, learning, *_rest = _build_loop(
+        tmp_path,
+        search=StructuredReferenceSearch(),  # type: ignore[arg-type]
+        strategies_per_cycle=1,
+    )
+    landscape = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer",
+            "anchor": "major employers",
+            "location": "Example, NC",
+            "source_domain": "web",
+        },
+        origin="fixture",
+    )
+
+    outcome, requests, warnings = asyncio.run(loop._execute_public_search(landscape))
+
+    candidates = [
+        item.dimensions["anchor"]
+        for item in learning.list_strategies()
+        if item.dimensions.get("hypothesis_family") == "local_employer_deepen"
+    ]
+    assert warnings == []
+    assert requests == 1
+    assert candidates == ["Example Mobility", "Sample Semiconductor"]
+    assert outcome.detail["stages"]["reference_cache_hits"] == 1
+    assert outcome.detail["stages"]["employer_candidates_discovered"] == 2
+
+
+def test_schema_org_organization_names_are_extracted_without_heading() -> None:
+    names = _extract_employer_landscape_names(
+        """
+        <script type="application/ld+json">
+        {"@type":"ItemList","itemListElement":[
+          {"@type":"Organization","name":"Example Aerospace"},
+          {"@type":"Corporation","name":"Sample Health"}
+        ]}
+        </script>
+        """
+    )
+
+    assert names == ["Example Aerospace", "Sample Health"]
+
+
+def test_deferred_reference_does_not_displace_an_eligible_directory(
+    tmp_path: Path,
+) -> None:
+    class RetryAwareReferenceSearch:
+        fetched: list[str] = []
+
+        async def search(self, query: str) -> list[SearchResult]:
+            return await self.search_references(query)
+
+        async def search_references(self, _query: str) -> list[SearchResult]:
+            return [
+                SearchResult(title="Deferred", url="https://a.example.gov/employers"),
+                SearchResult(title="First", url="https://b.example.gov/employers"),
+                SearchResult(title="Second", url="https://c.example.gov/employers"),
+            ]
+
+        def reference_cache_status(self, url: str) -> str:
+            return "retry_deferred" if "a.example" in url else "miss"
+
+        async def fetch_reference(self, url: str) -> str:
+            self.fetched.append(url)
+            name = "First Systems" if "b.example" in url else "Second Systems"
+            return f"<h2>Major Employers</h2><li>{name}</li><h2>Contact</h2>"
+
+    search = RetryAwareReferenceSearch()
+    loop, learning, *_rest = _build_loop(
+        tmp_path,
+        search=search,  # type: ignore[arg-type]
+        strategies_per_cycle=1,
+    )
+    landscape = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer",
+            "anchor": "major employers",
+            "location": "Example, NC",
+            "source_domain": "web",
+        },
+        origin="fixture",
+    )
+
+    outcome, requests, _warnings = asyncio.run(loop._execute_public_search(landscape))
+
+    assert search.fetched == [
+        "https://b.example.gov/employers",
+        "https://c.example.gov/employers",
+    ]
+    assert requests == 3
+    assert outcome.detail["stages"]["reference_fetches_deferred"] == 1
+    assert outcome.detail["stages"]["reference_pages_inspected"] == 2
 
 
 def test_regional_alias_probe_creates_learned_role_searches(tmp_path: Path) -> None:

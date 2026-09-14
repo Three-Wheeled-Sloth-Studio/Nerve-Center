@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
@@ -23,6 +24,7 @@ from nerve_center.discovery.models import (
 from nerve_center.discovery.normalization import canonicalize_url, stable_source_id
 from nerve_center.discovery.search import (
     PublicWebSearchAdapter,
+    ReferenceDocument,
     SearchAdapter,
     SearchChallengeError,
     UrlClassification,
@@ -730,6 +732,8 @@ class JobScoutDiscoveryLoop:
         scans_completed = 0
         employer_candidates = 0
         reference_pages_inspected = 0
+        reference_cache_hits = 0
+        reference_fetches_deferred = 0
         reference_evidence: list[dict[str, Any]] = []
         if strategy.dimensions.get("hypothesis_family") == "local_employer":
             fetch_reference = getattr(self.search_adapter, "fetch_reference", None)
@@ -741,26 +745,63 @@ class JobScoutDiscoveryLoop:
                     and _is_civic_reference_result(item)
                 ),
                 key=_civic_reference_rank,
-            )[:2]
+            )
+            references_acquired = 0
             for result in reference_results:
-                if fetch_reference is None or allowance.exhausted:
+                if fetch_reference is None or references_acquired >= 2:
                     break
-                try:
-                    allowance.reserve()
-                    html = await fetch_reference(result.url)
-                except (RuntimeError, SearchChallengeError) as error:
-                    warnings.append(str(error))
+                cache_status_method = getattr(
+                    self.search_adapter,
+                    "reference_cache_status",
+                    None,
+                )
+                cache_status = (
+                    cache_status_method(result.url)
+                    if cache_status_method is not None
+                    else "miss"
+                )
+                if cache_status == "retry_deferred":
+                    reference_fetches_deferred += 1
                     reference_evidence.append(
-                        {"url": result.url, "status": "failed", "candidate_count": 0}
+                        {
+                            "url": result.url,
+                            "status": "retry_deferred",
+                            "candidate_count": 0,
+                        }
                     )
                     continue
+                if cache_status != "hit" and allowance.exhausted:
+                    break
+                try:
+                    if cache_status != "hit":
+                        allowance.reserve()
+                    fetched = await fetch_reference(result.url)
+                except (RuntimeError, SearchChallengeError) as error:
+                    warnings.append(str(error))
+                    reference_fetches_deferred += 1
+                    reference_evidence.append(
+                        {
+                            "url": result.url,
+                            "status": "retry_deferred",
+                            "candidate_count": 0,
+                        }
+                    )
+                    continue
+                references_acquired += 1
                 reference_pages_inspected += 1
-                candidates = _extract_employer_landscape_names(html)
+                document = _as_reference_document(result.url, fetched)
+                reference_cache_hits += int(document.cache_status == "hit")
+                candidates = _extract_employer_landscape_names(
+                    document.text,
+                    content_type=document.content_type,
+                )
                 reference_evidence.append(
                     {
-                        "url": result.url,
+                        "url": document.url,
                         "status": "inspected",
                         "candidate_count": len(candidates),
+                        "cache_status": document.cache_status,
+                        "content_type": document.content_type,
                     }
                 )
                 for candidate in candidates:
@@ -884,6 +925,8 @@ class JobScoutDiscoveryLoop:
                         "source_scans_attempted": scans_attempted,
                         "source_scans_completed": scans_completed,
                         "reference_pages_inspected": reference_pages_inspected,
+                        "reference_cache_hits": reference_cache_hits,
+                        "reference_fetches_deferred": reference_fetches_deferred,
                         "employer_candidates_discovered": employer_candidates,
                         "employer_reference_evidence": reference_evidence,
                     },
@@ -1213,11 +1256,16 @@ def _extract_regional_alias_evidence(
     return found
 
 
-def _extract_employer_landscape_names(html: str) -> list[str]:
+def _extract_employer_landscape_names(
+    content: str,
+    *,
+    content_type: str = "text/html",
+) -> list[str]:
     """Extract bounded employer-name hypotheses under an employer-list heading."""
 
+    structured = _extract_structured_employer_names(content, content_type)
     parser = _EmployerLandscapeParser()
-    parser.feed(html)
+    parser.feed(content)
     parser.close()
     marker: tuple[int, int] | None = None
     for index, (_tag, level, text) in enumerate(parser.items):
@@ -1228,10 +1276,10 @@ def _extract_employer_landscape_names(html: str) -> list[str]:
             marker = (index, level)
             break
     if marker is None:
-        return []
+        return structured
     start, marker_level = marker
-    candidates: list[str] = []
-    seen: set[str] = set()
+    candidates: list[str] = list(structured)
+    seen: set[str] = {item.casefold() for item in candidates}
     for tag, level, text in parser.items[start + 1 :]:
         if level is not None and level <= marker_level:
             break
@@ -1250,6 +1298,94 @@ def _extract_employer_landscape_names(html: str) -> list[str]:
         if len(candidates) >= 12:
             break
     return candidates
+
+
+def _as_reference_document(url: str, fetched: Any) -> ReferenceDocument:
+    if isinstance(fetched, ReferenceDocument):
+        return fetched
+    return ReferenceDocument(
+        url=url,
+        text=str(fetched),
+        content_type="text/html",
+        cache_status="unavailable",
+    )
+
+
+def _extract_structured_employer_names(content: str, content_type: str) -> list[str]:
+    """Read employer names from JSON APIs and schema.org JSON-LD lists."""
+
+    documents: list[Any] = []
+    if "json" in content_type.casefold() or content.lstrip().startswith(("{", "[")):
+        try:
+            documents.append(json.loads(content))
+        except json.JSONDecodeError:
+            return []
+    else:
+        scripts = re.findall(
+            r"<script[^>]+type=[\"']application/ld\+json[\"'][^>]*>(.*?)</script>",
+            content,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+        for script in scripts:
+            try:
+                documents.append(json.loads(script))
+            except json.JSONDecodeError:
+                continue
+
+    found: list[str] = []
+    seen: set[str] = set()
+
+    def add(value: Any) -> None:
+        candidate = " ".join(str(value or "").split()).strip(" |:-")
+        key = candidate.casefold()
+        if 2 <= len(candidate) <= 100 and 1 <= len(candidate.split()) <= 10 and key not in seen:
+            seen.add(key)
+            found.append(candidate)
+
+    def walk(value: Any, *, organization_context: bool = False) -> None:
+        if len(found) >= 12:
+            return
+        if isinstance(value, list):
+            for item in value:
+                walk(item, organization_context=organization_context)
+            return
+        if not isinstance(value, dict):
+            if organization_context:
+                add(value)
+            return
+        if organization_context:
+            add(value.get("name"))
+        kind = value.get("@type")
+        kinds = {str(item).casefold() for item in (kind if isinstance(kind, list) else [kind])}
+        is_organization = bool(
+            kinds
+            & {
+                "corporation",
+                "localbusiness",
+                "organization",
+            }
+        )
+        if is_organization:
+            add(value.get("name"))
+        for key, item in value.items():
+            normalized = re.sub(r"[^a-z]", "", str(key).casefold())
+            employer_field = normalized in {
+                "businessname",
+                "company",
+                "companyname",
+                "employer",
+                "employername",
+                "organization",
+                "organizationname",
+            }
+            if employer_field and isinstance(item, str):
+                add(item)
+            else:
+                walk(item, organization_context=employer_field)
+
+    for document in documents:
+        walk(document)
+    return found[:12]
 
 
 def _is_civic_reference_result(result: Any) -> bool:

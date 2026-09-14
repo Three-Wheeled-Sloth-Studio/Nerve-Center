@@ -9,7 +9,7 @@ tags: [nerve-center, planning, roadmap]
 
 > Product intent and non-negotiable boundaries are defined in `refs/planning/product-requirements-document.md`. This roadmap orders implementation; it does not redefine the product.
 
-## Accepted baseline through 0.12.10
+## Accepted baseline through 0.12.11
 
 The repository contains a working local API, durable SQLite foundation, manager-owned scheduling and work queues, provider-neutral local LLM routing, the Job Scout reference workflow, a Tauri/React desktop shell, Windows packaging/runtime bootstrap, an iterative company-first discovery/scoring loop, and the first manager-owned Model Lab foundation.
 
@@ -248,7 +248,9 @@ Issue **#57: Stratify Job Scout market exploration after regional live gate** is
 
 Live run `3e358fd2-7249-4fd7-94d3-1a1b8872fc19` discovered six provenance-bearing aliases, including Piedmont Triad, Research Triangle, and Central Pines, while inspecting seven civic pages. It retained two roles and added 18 companies, but extracted zero employer candidates and did not reach Volvo Group or Wolfspeed. A subsequent five-minute confirmation, run `6dd77d7c-8eec-4424-905f-b2943103f527`, proved the revised Greensboro market query was admitted first, learned four regional aliases, and added ten companies plus eleven sources. It also exposed that same-market query variants were still consecutive; `0.12.9` corrects that persisted-history defect and has deterministic coverage for the reset.
 
-The next acquisition slice must add a standards-compliant, cacheable path for structured public employer directories or retryable civic employer pages, preserving source provenance and normal cooldown behavior. It must rerun the representative Volvo Group/Wolfspeed check without named-company rules. At this checkpoint local fit scoring was also unreliable: the confirmation completed zero full scores and schema/invalid-response failures persisted under both configured models. Issue #58 below resolves that completion blocker.
+Version `0.12.11` adds that acquisition layer. Canonical civic-reference URLs now have durable success, challenge, and transient-failure cache states with bounded retry windows. Retry-deferred references are skipped before the two-page acquisition cap so a challenged URL cannot displace another eligible directory, while cached successes are reused without outbound reference allowance. Attempt evidence exposes the final URL, content type, cache status, cache-hit count, and deferred count.
+
+Bounded structured extraction accepts public JSON employer fields and schema.org JSON-LD organizations as well as the existing heading/list/table form. Every extracted name remains an evidence-backed search hypothesis subject to ordinary weighting and cooldowns; an official career surface is still required before durable company evidence. The next gate is the standard 15-minute run and the representative Volvo Group/Wolfspeed check, with no named-company production rule. At the earlier checkpoint local fit scoring was also unreliable; Issue #58 below resolves that completion blocker.
 
 ## Manager-owned structured-output repair (implemented)
 
