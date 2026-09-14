@@ -11,8 +11,8 @@ tags: [nerve-center, handoff]
 
 - Work directly on `dev`; do not create a feature branch or PR unless explicitly requested.
 - Application version is `0.12.15`.
-- Accepted green implementation baseline before this documentation refresh: `fd6bc92838999ff144d9f5ec7369995fb340de4a`.
-- CI run `34884321473` / #274 is green: refs/OKF, agent context, Ruff, packaging dry-run, 241 Python tests, desktop-web, and desktop-rust/Tauri shell.
+- Accepted green implementation baseline: `66e41e7dc9557a2f1f0e5cb8f977578abc1c9586`.
+- CI run `34888748787` is green: refs/OKF, agent context, Ruff, packaging dry-run, 244 Python tests, desktop-web, and desktop-rust/Tauri shell.
 - The manager/module boundary, durable work sessions/queue, provider-neutral local LLM routing, Windows desktop/package baseline, career-evidence profile, company-first Job Scout discovery, scoring/application tracking, durable discovery learning, and Model Lab foundation are accepted.
 - Job Scout remains an iterative market-research loop: `expand -> converge -> deepen -> reflect -> re-expand`. Discovery optimizes recall; ranking/scoring provides precision.
 - Responsibility/requirement evidence is primary. Listed title is a weak clue. Domain relationship remains `direct > adjacent > transferable > mismatch`.
@@ -118,7 +118,7 @@ The generic, bounded source-acquisition correction is implemented. No named empl
 5. **Deterministic regression coverage**
    - Query intent, civic eligibility, truthful raw result telemetry, deferred/invalid fallback, acquired/network caps, and cross-run audit exclusion are covered.
 
-The local validation baseline is 244 passing Python tests plus clean Ruff and diff checks. Exact-head CI and the runtime gate remain to be recorded.
+The validation baseline is 244 passing Python tests plus clean Ruff, refs, diff, desktop-web, and GitHub desktop-rust checks. The runtime gate remains to be recorded.
 
 ## Next action: runtime acceptance
 

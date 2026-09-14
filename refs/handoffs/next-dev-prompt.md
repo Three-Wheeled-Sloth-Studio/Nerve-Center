@@ -13,13 +13,13 @@ Continue implementation in:
 
 Work directly on `dev`. Do not create a feature branch or PR unless explicitly requested.
 
-Start from the latest clean `dev` head. The accepted green implementation baseline before the latest documentation-only refresh is:
+Start from the latest clean `dev` head. The accepted green implementation baseline is:
 
-`fd6bc92838999ff144d9f5ec7369995fb340de4a`
+`66e41e7dc9557a2f1f0e5cb8f977578abc1c9586`
 
 Nerve Center version is `0.12.15`.
 
-The source-acquisition correction is implemented and deterministically green locally. Do not repeat that implementation slice. The immediate next step is exact-head CI followed by the explicit-budget 15-minute live acceptance run below.
+The source-acquisition correction is implemented and green in CI run `34888748787`. Do not repeat that implementation slice. The immediate next step is the explicit-budget 15-minute live acceptance run below.
 
 The active tracking issue is **#57: Stratify Job Scout market exploration after regional live gate**. Leave it open until runtime acceptance is satisfied.
 
@@ -166,7 +166,7 @@ Regression tests prove:
 
 ## Completed deterministic validation
 
-The local baseline is 244 passing Python tests plus clean Ruff and diff checks. Run exact-head CI and preserve generated OKF indexes when handoff metadata changes.
+The baseline is 244 passing Python tests plus clean Ruff, refs, diff, desktop-web, and GitHub desktop-rust checks. Preserve generated OKF indexes when handoff metadata changes.
 
 After exact-head CI and then after the live gate, update:
 
@@ -178,7 +178,7 @@ Do not close Issue #57 yet.
 
 ## Next live gate
 
-After exact-head CI is green, run the same explicit-budget local rerun:
+Run the same explicit-budget local rerun:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\run_job_scout_live.py `
