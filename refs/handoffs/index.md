@@ -6,7 +6,7 @@ Generated OKF discovery index. Do not edit manually.
 
 * [Career Evidence Profile Handoff](career-evidence-profile.md) - Accepted provider-neutral generation, resume registration, canonical career evidence, and positioning-hypothesis checkpoint.
 * [Core and Module Boundary Handoff](core-module-boundary.md) - Archived checkpoint for module contracts, inventory lifecycle, run admission, and Job Scout composition boundaries.
-* [Current Handoff](currentHandoff.md) - Active Nerve Center implementation state and the next context-heavy checkpoints.
+* [Current Handoff](currentHandoff.md) - Active Nerve Center implementation state and the next bounded checkpoints.
 * [Desktop Review and Application Tracking Handoff](desktop-review-application-tracking.md) - Accepted application tracking, review service, React client, and Tauri desktop-shell checkpoint.
 * [Durable Shared Work Queue Handoff](durable-shared-work-queue.md) - Accepted durable work-request, attempt, result-delivery, queue-pressure, and recovery checkpoint.
 * [Archived Foundation Handoff](foundation.md) - Original 0.1.0 foundation checkpoint for Nerve Center core runtime and project boundaries.
