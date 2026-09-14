@@ -21,6 +21,10 @@ _CHALLENGE_MARKERS = (
 )
 
 
+class ResponseTooLargeError(RuntimeError):
+    """The response exceeded the caller's declared acquisition bound."""
+
+
 @dataclass(frozen=True, slots=True)
 class FetchResponse:
     url: str
@@ -29,6 +33,7 @@ class FetchResponse:
     headers: dict[str, str]
     challenged: bool
     throttled: bool
+    content: bytes = b""
 
 
 class DomainRequestGate:
@@ -75,7 +80,10 @@ class HttpFetcher:
         *,
         params: dict[str, object] | None = None,
         headers: dict[str, str] | None = None,
+        max_bytes: int | None = None,
     ) -> FetchResponse:
+        if max_bytes is not None and max_bytes < 1:
+            raise ValueError("max_bytes must be positive")
         if self.before_request is not None:
             self.before_request()
         semaphore = await self.gate.for_url(url)
@@ -94,12 +102,40 @@ class HttpFetcher:
         try:
             async with semaphore:
                 await self.gate.wait(url)
-                response = await client.get(url, params=params, headers=request_headers)
+                if max_bytes is None:
+                    response = await client.get(url, params=params, headers=request_headers)
+                    content = response.content
+                    text = response.text
+                else:
+                    async with client.stream(
+                        "GET",
+                        url,
+                        params=params,
+                        headers=request_headers,
+                    ) as response:
+                        declared = response.headers.get("content-length")
+                        if declared and declared.isdigit() and int(declared) > max_bytes:
+                            raise ResponseTooLargeError(
+                                f"response declares {declared} bytes; limit is {max_bytes}"
+                            )
+                        body = bytearray()
+                        async for chunk in response.aiter_bytes():
+                            if len(body) + len(chunk) > max_bytes:
+                                raise ResponseTooLargeError(
+                                    f"response exceeded {max_bytes} bytes"
+                                )
+                            body.extend(chunk)
+                        content = bytes(body)
+                        encoding = response.encoding or "utf-8"
+                        text = content.decode(encoding, errors="replace")
         finally:
             if owns_client:
                 await client.aclose()
-        text = response.text
-        lowered = text[:200_000].casefold()
+        normalized_headers = {
+            key.casefold(): value for key, value in response.headers.items()
+        }
+        challenge_text = text if _is_textual(normalized_headers.get("content-type", "")) else ""
+        lowered = challenge_text[:200_000].casefold()
         challenged = response.status_code in {401, 403} and any(
             marker in lowered for marker in _CHALLENGE_MARKERS
         )
@@ -109,7 +145,13 @@ class HttpFetcher:
             url=str(response.url),
             status_code=response.status_code,
             text=text,
-            headers={key.casefold(): value for key, value in response.headers.items()},
+            headers=normalized_headers,
             challenged=challenged,
             throttled=response.status_code == 429,
+            content=content,
         )
+
+
+def _is_textual(content_type: str) -> bool:
+    mime = content_type.split(";", 1)[0].strip().casefold()
+    return not mime or mime.startswith("text/") or "json" in mime or "xml" in mime

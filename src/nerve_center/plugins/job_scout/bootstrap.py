@@ -15,11 +15,13 @@ from nerve_center.persistence.discovery import (
     DiscoverySourceRepository,
     JobOpeningRepository,
 )
+from nerve_center.plugins.job_scout.attachment_discovery import (
+    AttachmentAwareJobScoutDiscoveryLoop,
+)
 from nerve_center.plugins.job_scout.configuration import (
     register_job_scout_configuration_routes,
 )
 from nerve_center.plugins.job_scout.discovery_quality import DiscoveryQualityRepository
-from nerve_center.plugins.job_scout.location_discovery import LocationAwareJobScoutDiscoveryLoop
 from nerve_center.plugins.job_scout.manifest import job_scout_manifest
 from nerve_center.plugins.job_scout.runtime import JobScoutOperationBridge
 from nerve_center.plugins.job_scout.uploads import register_job_scout_upload_route
@@ -70,7 +72,7 @@ def install_job_scout(
         target_titles_provider=lambda: coordinator.store.load().target_titles,
         location_markets_provider=lambda: coordinator.store.load().locations,
     )
-    discovery_loop = LocationAwareJobScoutDiscoveryLoop(
+    discovery_loop = AttachmentAwareJobScoutDiscoveryLoop(
         settings,
         coordinator,
         discovery_service,
