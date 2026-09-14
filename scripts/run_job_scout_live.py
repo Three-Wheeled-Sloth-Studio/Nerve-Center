@@ -107,6 +107,8 @@ def _progress_counts(values: dict[str, Any]) -> tuple[tuple[str, int], ...]:
         ("search_results_returned", "search_returned"),
         ("search_results_eligible", "search_eligible"),
         ("regional_aliases_discovered", "region_aliases"),
+        ("reference_cache_hits", "reference_cache_hits"),
+        ("reference_fetches_deferred", "reference_deferred"),
         ("employer_candidates_discovered", "employer_candidates"),
         ("source_scans_completed", "scans_ok"),
         ("results_examined", "results"),
@@ -275,6 +277,8 @@ def _efficiency_summary(checkpoint: dict[str, Any]) -> dict[str, Any]:
                 "source_scans_completed",
                 "regional_aliases_discovered",
                 "reference_pages_inspected",
+                "reference_cache_hits",
+                "reference_fetches_deferred",
                 "employer_candidates_discovered",
             )
         },

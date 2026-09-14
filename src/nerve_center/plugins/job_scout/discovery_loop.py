@@ -327,6 +327,8 @@ class JobScoutDiscoveryLoop:
             "source_scans_completed": 0,
             "regional_aliases_discovered": 0,
             "reference_pages_inspected": 0,
+            "reference_cache_hits": 0,
+            "reference_fetches_deferred": 0,
             "employer_candidates_discovered": 0,
             "results_examined": 0,
             "companies_discovered": 0,
@@ -379,6 +381,8 @@ class JobScoutDiscoveryLoop:
                     "source_scans_completed",
                     "regional_aliases_discovered",
                     "reference_pages_inspected",
+                    "reference_cache_hits",
+                    "reference_fetches_deferred",
                     "employer_candidates_discovered",
                 ):
                     increments[key] += max(int(stages.get(key, 0)), 0)
@@ -1342,12 +1346,21 @@ def _extract_structured_employer_names(content: str, content_type: str) -> list[
             seen.add(key)
             found.append(candidate)
 
-    def walk(value: Any, *, organization_context: bool = False) -> None:
+    def walk(
+        value: Any,
+        *,
+        directory_context: bool = False,
+        organization_context: bool = False,
+    ) -> None:
         if len(found) >= 12:
             return
         if isinstance(value, list):
             for item in value:
-                walk(item, organization_context=organization_context)
+                walk(
+                    item,
+                    directory_context=directory_context,
+                    organization_context=organization_context,
+                )
             return
         if not isinstance(value, dict):
             if organization_context:
@@ -1357,6 +1370,9 @@ def _extract_structured_employer_names(content: str, content_type: str) -> list[
             add(value.get("name"))
         kind = value.get("@type")
         kinds = {str(item).casefold() for item in (kind if isinstance(kind, list) else [kind])}
+        if "itemlist" in kinds:
+            walk(value.get("itemListElement", []), directory_context=True)
+            return
         is_organization = bool(
             kinds
             & {
@@ -1365,7 +1381,7 @@ def _extract_structured_employer_names(content: str, content_type: str) -> list[
                 "organization",
             }
         )
-        if is_organization:
+        if is_organization and directory_context:
             add(value.get("name"))
         for key, item in value.items():
             normalized = re.sub(r"[^a-z]", "", str(key).casefold())
@@ -1381,7 +1397,11 @@ def _extract_structured_employer_names(content: str, content_type: str) -> list[
             if employer_field and isinstance(item, str):
                 add(item)
             else:
-                walk(item, organization_context=employer_field)
+                walk(
+                    item,
+                    directory_context=directory_context,
+                    organization_context=employer_field,
+                )
 
     for document in documents:
         walk(document)

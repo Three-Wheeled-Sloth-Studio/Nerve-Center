@@ -475,6 +475,18 @@ def test_schema_org_organization_names_are_extracted_without_heading() -> None:
     assert names == ["Example Aerospace", "Sample Health"]
 
 
+def test_schema_org_page_publisher_is_not_an_employer_directory() -> None:
+    names = _extract_employer_landscape_names(
+        """
+        <script type="application/ld+json">
+        {"@type":"Organization","name":"Example Chamber of Commerce"}
+        </script>
+        """
+    )
+
+    assert names == []
+
+
 def test_deferred_reference_does_not_displace_an_eligible_directory(
     tmp_path: Path,
 ) -> None:

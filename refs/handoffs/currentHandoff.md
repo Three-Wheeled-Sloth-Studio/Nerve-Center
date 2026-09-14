@@ -160,6 +160,10 @@ The follow-up acquisition hardening is implemented in `0.12.11`. Public civic re
 
 Employer extraction now accepts bounded public JSON directories and schema.org JSON-LD `Organization`, `Corporation`, and `LocalBusiness` evidence in addition to the existing heading/list/table path. Extracted names remain provenance-bearing `local_employer_deepen` hypotheses; they do not become company or location truth until ordinary search reaches an official career surface. No named-company rule was added.
 
+Run `cf93ae1a-4958-4dee-9959-5fe671cf4eda` exercised `0.12.11` for the standard 15-minute window and stopped successfully during planned admission draining. It consumed exactly 175 requests and 33 LLM calls, completed 21/21 full scores with no failures, executed 26 public searches, examined 240 returned results, inspected 13 civic references, and added 12 companies, 12 career sources, and 37 postings. It refreshed Volvo Group's official Greensboro career surface with current-run provenance. Durham/core-metro strategies also ran and found official Google, PowerSecure, and SAS career surfaces, but Wolfspeed remained absent.
+
+The run initially reported two employer candidates. Durable evidence showed both were the Greensboro Chamber itself, extracted from page-publisher schema.org metadata rather than an employer list. The post-gate correction now requires schema.org organizations to appear inside an `ItemList` or explicit employer/company field. This is an evidence-structure constraint, not a named exclusion; the two zero-yield hypotheses remain available to normal learning/downweighting. After correction, the run contains zero valid directory-derived employers. It also exposed one PDF economic-development reference, which is cached and identified by content type but not parsed.
+
 ## Completed slice: Issue #58
 
 Issue **#58: Repair strict-schema model output before fallback** is implemented in `0.12.10`. The Ollama adapter now performs full JSON Schema validation inside its bounded repair loop instead of accepting any object/list and leaving the first contract check to the manager. Missing fields, invalid enums/types, scalar roots, malformed JSON, and exhausted repairs have deterministic coverage. Repair prompts include only a safe validator and JSON path; provider telemetry continues to retain no generated content.
@@ -170,22 +174,11 @@ The seven-minute gate, run `e284029f-b796-4fd6-8b0e-6b9c3222f1f5`, stopped succe
 
 ### Remaining runtime acceptance criteria
 
-Run the standard 15-minute explicit-budget acceptance. Inspect the durable report for attempted Durham/core-metro strategies, provenance-bearing regional aliases, populated acquisition stages, `employer_reference_evidence`, `reference_cache_hits`, and `reference_fetches_deferred`. Confirm that the generic local-employer acquisition reaches representative official career sources for Volvo Group in Greensboro and Wolfspeed in Durham. Treat any miss as a query/source acquisition failure to diagnose; do not add named-company production rules.
+Volvo Group now passes the representative-employer check; Wolfspeed remains open. The next acquisition slice should follow discovered reference links and parse bounded public directory attachments, beginning with PDFs and tabular downloads identified through inspected civic pages. Preserve canonical-URL caching, provenance, content-type telemetry, and retry cooldowns. Use Wolfspeed in Durham only as a runtime acceptance probe; do not add an employer allowlist or named query.
 
 ### Next Job Scout gate
 
-Run a 15-minute acceptance with explicit limits:
-
-```powershell
-.\.venv\Scripts\python.exe scripts\run_job_scout_live.py `
-  --duration-seconds 900 `
-  --max-requests 1000 `
-  --max-llm-calls 150 `
-  --score-limit 25 `
-  --score-failure-limit 10
-```
-
-Confirm that scoring advances while the checkpoint reports `backoff_scope=discovery`, request consumption remains unchanged during that cooldown, acquisition-stage counters explain any zero-result behavior, and eligible local-employer strategies appear in both individual and grouped evidence. After that gate, address the observed false domain/responsibility evidence in ranking through general evidence contracts and corrective evaluation—not title blacklists.
+Implement bounded civic-directory attachment discovery and parsing, with deterministic fictional fixtures for PDF/tabular extraction, link provenance, cache reuse, unsupported content types, and retry cooldown. Then repeat the 15-minute explicit-budget acceptance and require a valid directory-derived employer hypothesis plus a general official-career path to the remaining Wolfspeed/Durham probe. A miss remains source-capability evidence, not permission for a named rule.
 
 ## Staged next slice: Issue #54 Code Shop foundation
 

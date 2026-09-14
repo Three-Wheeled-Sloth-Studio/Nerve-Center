@@ -253,6 +253,8 @@ DEFAULT_COVERAGE: dict[str, Any] = {
     "source_scans_completed": 0,
     "regional_aliases_discovered": 0,
     "reference_pages_inspected": 0,
+    "reference_cache_hits": 0,
+    "reference_fetches_deferred": 0,
     "employer_candidates_discovered": 0,
     "results_examined": 0,
     "companies_discovered": 0,

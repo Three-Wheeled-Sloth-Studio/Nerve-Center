@@ -96,6 +96,8 @@ class LocationAwareJobScoutDiscoveryLoop(SourceAwareJobScoutDiscoveryLoop):
             "source_scans_completed": 0,
             "regional_aliases_discovered": 0,
             "reference_pages_inspected": 0,
+            "reference_cache_hits": 0,
+            "reference_fetches_deferred": 0,
             "employer_candidates_discovered": 0,
             "results_examined": 0,
             "companies_discovered": 0,
@@ -182,6 +184,8 @@ class LocationAwareJobScoutDiscoveryLoop(SourceAwareJobScoutDiscoveryLoop):
                     "source_scans_completed",
                     "regional_aliases_discovered",
                     "reference_pages_inspected",
+                    "reference_cache_hits",
+                    "reference_fetches_deferred",
                     "employer_candidates_discovered",
                 ):
                     increments[key] += max(int(stages.get(key, 0)), 0)
