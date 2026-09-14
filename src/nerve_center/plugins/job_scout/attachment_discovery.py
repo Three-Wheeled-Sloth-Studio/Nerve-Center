@@ -2,11 +2,18 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import replace
 from datetime import UTC, datetime
 from typing import Any
+from urllib.parse import urlsplit
 
-from nerve_center.discovery.search import ReferenceDocument, SearchChallengeError
+from nerve_center.discovery.search import (
+    ReferenceDocument,
+    SearchChallengeError,
+    SearchResult,
+    UrlClassification,
+)
 from nerve_center.plugins.job_scout.discovery_learning import (
     DiscoverySessionModel,
     DiscoveryStrategySnapshot,
@@ -42,10 +49,55 @@ _ATTACHMENT_COUNTERS = (
     "attachment_documents_unsupported_or_invalid",
     "attachment_employer_candidates_extracted",
 )
+_SUPPORTED_REFERENCE_SUFFIXES = {".pdf", ".csv", ".tsv", ".json", ".xlsx"}
+_STRONG_EMPLOYER_INTENT = re.compile(
+    r"\b(?:major|top|largest|leading)\s+employers?\b|"
+    r"\bemployers?\s+(?:directory|list|listing)\b|"
+    r"\b(?:directory|list|listing)\s+of\s+employers?\b|"
+    r"\b(?:business|company)\s+(?:directory|list|listing)\b",
+    re.IGNORECASE,
+)
 
 
 def _empty_attachment_counters() -> dict[str, int]:
     return {key: 0 for key in _ATTACHMENT_COUNTERS}
+
+
+class _IntentAwareReferenceAdapter:
+    """Preselect bounded civic references by employer-directory intent."""
+
+    def __init__(self, delegate: Any, *, reference_limit: int = 2) -> None:
+        self.delegate = delegate
+        self.reference_limit = reference_limit
+        self.raw_result_count = 0
+        self.selection_evidence: list[dict[str, Any]] = []
+
+    async def search(self, query: str) -> Any:
+        return await self.delegate.search(query)
+
+    async def search_references(self, query: str) -> list[SearchResult]:
+        method = getattr(self.delegate, "search_references", self.delegate.search)
+        results = list(await method(query))
+        self.raw_result_count = len(results)
+        selected, evidence = _prioritize_civic_reference_results(
+            results,
+            reference_limit=self.reference_limit,
+        )
+        self.selection_evidence = evidence
+        return selected
+
+    async def fetch_reference(self, url: str) -> Any:
+        method = getattr(self.delegate, "fetch_reference", None)
+        if method is None:
+            return ""
+        return await method(url)
+
+    def reference_cache_status(self, url: str) -> str:
+        method = getattr(self.delegate, "reference_cache_status", None)
+        return method(url) if method is not None else "miss"
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self.delegate, name)
 
 
 class AttachmentAwareJobScoutDiscoveryLoop(LocationAwareJobScoutDiscoveryLoop):
@@ -103,17 +155,36 @@ class AttachmentAwareJobScoutDiscoveryLoop(LocationAwareJobScoutDiscoveryLoop):
     ) -> tuple[StrategyOutcome, int, list[str]]:
         allowance = allowance or _RequestAllowance()
         start_requests = allowance.used
-        outcome, _base_requests, warnings = await super()._execute_public_search(
-            strategy,
-            allowance,
+        is_local_employer = (
+            strategy.dimensions.get("hypothesis_family") == "local_employer"
         )
-        if strategy.dimensions.get("hypothesis_family") != "local_employer":
+        original_adapter = self.search_adapter
+        reference_adapter: _IntentAwareReferenceAdapter | None = None
+        if is_local_employer:
+            reference_adapter = _IntentAwareReferenceAdapter(original_adapter)
+            self.search_adapter = reference_adapter
+        try:
+            outcome, _base_requests, warnings = await super()._execute_public_search(
+                strategy,
+                allowance,
+            )
+        finally:
+            self.search_adapter = original_adapter
+        if not is_local_employer:
             return outcome, allowance.used - start_requests, warnings
 
         stages = dict(outcome.detail.get("stages") or {})
+        if reference_adapter is not None:
+            stages["search_results_returned"] = reference_adapter.raw_result_count
+            stages["reference_selection_evidence"] = reference_adapter.selection_evidence
         references = stages.get("employer_reference_evidence")
         if not isinstance(references, list):
-            return outcome, allowance.used - start_requests, warnings
+            detail = {**outcome.detail, "stages": stages}
+            return (
+                replace(outcome, detail=detail),
+                allowance.used - start_requests,
+                warnings,
+            )
 
         metrics = _empty_attachment_counters()
         attachment_evidence: list[dict[str, Any]] = []
@@ -330,6 +401,92 @@ class AttachmentAwareJobScoutDiscoveryLoop(LocationAwareJobScoutDiscoveryLoop):
             if candidates_remaining <= 0:
                 break
         return created
+
+
+def _prioritize_civic_reference_results(
+    results: list[SearchResult],
+    *,
+    reference_limit: int = 2,
+) -> tuple[list[SearchResult], list[dict[str, Any]]]:
+    """Keep only the strongest bounded civic references while preserving other results."""
+
+    civic = [
+        item
+        for item in results
+        if item.classification is UrlClassification.OTHER
+        and _is_civic_reference_candidate(item)
+    ]
+    ranked = sorted(civic, key=_reference_intent_rank)
+    selected = ranked[: max(reference_limit, 0)]
+    civic_ids = {id(item) for item in civic}
+    non_civic = [item for item in results if id(item) not in civic_ids]
+    selected_ids = {id(item) for item in selected}
+    evidence: list[dict[str, Any]] = []
+    for item in ranked[:8]:
+        intent_tier, authority_tier, _url = _reference_intent_rank(item)
+        evidence.append(
+            {
+                "url": item.url,
+                "title": item.title[:300],
+                "selected": id(item) in selected_ids,
+                "intent_tier": intent_tier,
+                "authority_tier": authority_tier,
+                "supported_document": _supported_reference_document(item.url),
+            }
+        )
+    return [*selected, *non_civic], evidence
+
+
+def _reference_intent_rank(result: SearchResult) -> tuple[int, int, str]:
+    url = str(result.url)
+    parsed = urlsplit(url)
+    domain = (parsed.hostname or "").casefold()
+    compact_domain = re.sub(r"[^a-z]", "", domain)
+    evidence_text = " ".join(
+        (
+            str(result.title),
+            str(result.snippet),
+            parsed.path.replace("-", " ").replace("_", " "),
+        )
+    ).casefold()
+    explicit_subject = bool(
+        re.search(r"\b(?:employers?|companies?|business(?:es)?)\b", evidence_text)
+    )
+    if _STRONG_EMPLOYER_INTENT.search(evidence_text):
+        intent_tier = 0
+    elif _supported_reference_document(url) and explicit_subject:
+        intent_tier = 1
+    elif explicit_subject or "workforce" in evidence_text:
+        intent_tier = 2
+    else:
+        intent_tier = 3
+
+    if domain.endswith(".gov"):
+        authority_tier = 0
+    elif any(
+        marker in compact_domain
+        for marker in ("economicdevelopment", "chamber", "partnership")
+    ):
+        authority_tier = 1
+    elif domain.endswith(".org") or "council" in compact_domain:
+        authority_tier = 2
+    else:
+        authority_tier = 3
+    return intent_tier, authority_tier, url.casefold()
+
+
+def _is_civic_reference_candidate(result: SearchResult) -> bool:
+    domain = (urlsplit(str(result.url)).hostname or "").casefold()
+    compact = re.sub(r"[^a-z]", "", domain)
+    return domain.endswith((".gov", ".org")) or any(
+        marker in compact
+        for marker in ("economicdevelopment", "chamber", "partnership", "council")
+    )
+
+
+def _supported_reference_document(url: str) -> bool:
+    path = urlsplit(url).path.casefold()
+    return any(path.endswith(suffix) for suffix in _SUPPORTED_REFERENCE_SUFFIXES)
 
 
 def _attachment_evidence(
