@@ -1,7 +1,7 @@
 ---
 type: Development Prompt
 title: Next Development Prompt
-description: Ready-to-use prompt for the Job Scout 0.12.15 employer-reference live gate.
+description: Ready-to-use prompt for extensionless reference documents and resilient live-run polling.
 status: stable
 tags: [nerve-center, handoff, job-scout, discovery, live-test]
 ---
@@ -19,7 +19,7 @@ Start from the latest clean `dev` head. The accepted green implementation baseli
 
 Nerve Center version is `0.12.15`.
 
-The source-acquisition correction is implemented and green in CI run `34888748787`. Do not repeat that implementation slice. The immediate next step is the explicit-budget 15-minute live acceptance run below.
+The source-acquisition correction is implemented and green in CI run `34888748787`. Its live behavior is validated, but run `d3ab2a98-0650-4c48-8ba7-1e70117e4a26` exposed an extensionless-document routing gap and a transient live-runner polling failure. Implement only that next bounded slice.
 
 The active tracking issue is **#57: Stratify Job Scout market exploration after regional live gate**. Leave it open until runtime acceptance is satisfied.
 
@@ -30,7 +30,7 @@ Do not reread repository history.
 First run:
 
 ```powershell
-python scripts/agent_context.py --focus "job scout 0.12.15 employer reference live acceptance" --issue 57
+python scripts/agent_context.py --focus "job scout extensionless reference document content type runner poll timeout" --issue 57
 ```
 
 Treat that generated packet as derived orientation, not source of truth. Read at minimum:
@@ -103,7 +103,7 @@ A bounded fallback pool can improve useful acquisition without increasing the ac
 
 `_recent_reference_attempt_evidence()` is bounded by recency, not by `run_id`. Rows are attributable, but live acceptance should not require manual filtering across previous runs.
 
-## Implemented bounded slice — do not repeat
+## Accepted bounded slice — do not repeat
 
 ### 1. Make local-employer queries intent-pure
 
@@ -154,6 +154,19 @@ Regression tests prove:
 - raw `search_results_returned` telemetry remains truthful;
 - no named city/employer rule is introduced.
 
+## Latest live result and next bounded implementation
+
+Run `d3ab2a98-0650-4c48-8ba7-1e70117e4a26` reached cycle 15 before one GET status poll timed out and caused the harness to cancel the managed run. Before cancellation it used 134 requests and 24 LLM calls; completed 15/15 searches and 15/15 full scores; retained 8 postings/6 roles; and recorded 15 reference-attempt rows, all scoped to this run.
+
+The accepted correction worked live: 11 tier-0 references were selected, 11 pages were inspected, 9 references were retry-deferred, 12 network fetches were counted, deferred references fell through, and one candidate truthfully stopped at `network_fetch_cap`.
+
+Implement only these follow-ups:
+
+1. Route a fetched reference through the existing supported-document parser when its normalized response `Content-Type` is supported, even if the URL lacks a file suffix. The live run saw extensionless `application/pdf` responses logged as inspected pages with no attachment evidence.
+2. Add a fictional extensionless-PDF regression proving attachment evidence and candidate extraction use the existing bounds, cache, and provenance path.
+3. Make live-run status monitoring tolerate a small bounded number of transient GET timeouts without cancelling a healthy managed run. Keep an explicit consecutive-timeout ceiling and truthful terminal reporting.
+4. Repeat the explicit-budget 15-minute gate after deterministic validation and exact-head CI.
+
 ## Preserve these constraints
 
 - No Wolfspeed, Volvo, Durham, Greensboro, or other named entity logic in production behavior.
@@ -161,10 +174,10 @@ Regression tests prove:
 - Keep LinkedIn and authenticated job-board safety boundaries unchanged.
 - Extracted employer names become `local_employer_deepen` hypotheses only; they never become company/location truth directly.
 - Official-career resolution remains the path from employer hypothesis to durable company/source evidence.
-- Do not retune scoring or model selection in this slice; the latest run had 20/20 successful full scores.
+- Do not retune scoring or model selection in this slice; the interrupted latest run had 15/15 successful completed full scores.
 - Keep coding-agent context use bounded and token-efficient.
 
-## Completed deterministic validation
+## Accepted baseline validation
 
 The baseline is 244 passing Python tests plus clean Ruff, refs, diff, desktop-web, and GitHub desktop-rust checks. Preserve generated OKF indexes when handoff metadata changes.
 
@@ -176,7 +189,7 @@ After exact-head CI and then after the live gate, update:
 
 Do not close Issue #57 yet.
 
-## Next live gate
+## Live gate after the next implementation
 
 Run the same explicit-budget local rerun:
 

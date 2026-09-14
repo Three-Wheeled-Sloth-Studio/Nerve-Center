@@ -120,9 +120,9 @@ The generic, bounded source-acquisition correction is implemented. No named empl
 
 The validation baseline is 244 passing Python tests plus clean Ruff, refs, diff, desktop-web, and GitHub desktop-rust checks. The runtime gate remains to be recorded.
 
-## Next action: runtime acceptance
+## Live acceptance attempt: 0.12.15
 
-Use the standard explicit-budget 15-minute run:
+Run `d3ab2a98-0650-4c48-8ba7-1e70117e4a26` used the standard explicit-budget 15-minute configuration:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\run_job_scout_live.py `
@@ -133,14 +133,34 @@ Use the standard explicit-budget 15-minute run:
   --score-failure-limit 10
 ```
 
-The next gate should require:
+The discovery run made healthy progress through cycle 15 before a runner status request timed out at about minute 13. The harness unwound and cancelled the still-healthy run rather than reaching planned wind-down.
 
-1. the live report's reference evidence is scoped to the current run;
-2. at least one current-run high-intent employer-list/directory reference is selected and inspected, or is truthfully retry-deferred with bounded fallback to another eligible reference;
-3. if a source actually contains employer names, extraction creates provenance-bearing `local_employer_deepen` hypotheses without section-heading false positives;
-4. at least one resulting deepening hypothesis proceeds through ordinary official-career discovery when valid candidates exist;
-5. request/LLM accounting remains exact and scoring remains healthy;
-6. Volvo Group/Wolfspeed remain observational probes only. Their individual presence is not a production acceptance rule.
+Persisted result at cancellation:
+
+- 134 requests and 24 LLM calls;
+- 15/15 public searches succeeded, returning 150 results and 18 eligible/registered sources;
+- 15/15 completed full scores succeeded;
+- 1 company, 2 career sources, 8 postings, and 6 retained roles;
+- 15 run-scoped reference evidence rows, all carrying the current run ID;
+- 11 reference pages inspected, 3 cache hits, 9 retry deferrals, and 12 explicit network fetch attempts;
+- 11 high-intent tier-0 reference selections and one truthful `network_fetch_cap` fallthrough result;
+- zero employer candidates.
+
+The requested correction is live-confirmed: high-intent references now appear, deferred references fall through, and acquired/network caps remain bounded. The new generic acquisition blocker is content-type routing. Extensionless civic document URLs returned `application/pdf` (including the selected `2022 Largest Employers` reference) but appeared only as inspected page evidence; no attachment evidence was created for those responses, so the document parser never received them.
+
+## Next bounded slice
+
+1. Route fetched reference responses into supported-document parsing based on normalized response `Content-Type` as well as URL suffix. Reuse the existing bounded parser/cache/provenance path; do not create a second parser.
+2. Add a fictional regression where an extensionless reference URL returns `application/pdf` and produces attachment audit evidence/candidates under the existing size/unit/request caps.
+3. Make the live runner tolerate a bounded number of transient GET status timeouts without cancelling an otherwise healthy managed run. Preserve an explicit consecutive-timeout ceiling and truthful failure reporting.
+4. Repeat the 15-minute gate. Acceptance should require:
+
+   - the run reaches planned wind-down despite isolated status-poll timeouts;
+   - an extensionless supported document is visibly parsed when returned by a reference source;
+   - if that document actually contains employer names, extraction creates provenance-bearing `local_employer_deepen` hypotheses without section-heading false positives;
+   - at least one resulting deepening hypothesis proceeds through ordinary official-career discovery when valid candidates exist;
+   - request/LLM accounting remains exact and scoring remains healthy;
+   - representative employers remain observational probes only.
 
 Do not close Issue #57 until runtime evidence shows the generic employer-reference path can turn a real public employer-list/directory source into a normal company/career discovery attempt, or until the evidence demonstrates a different generic blocker that requires a separately justified slice.
 
@@ -173,7 +193,7 @@ python scripts/agent_context.py --focus "code shop project registry authority ex
 For the active Issue #57 source-acquisition slice:
 
 ```powershell
-python scripts/agent_context.py --focus "job scout 0.12.15 employer reference live acceptance" --issue 57
+python scripts/agent_context.py --focus "job scout extensionless reference document content type runner poll timeout" --issue 57
 ```
 
-Read the generated packet, Issue #57, this handoff, and only the directly relevant query/reference files. Do not reread repository history. The authoritative runtime evidence is run `dcee77be-53c7-416a-be7c-b518f2240378`; the local report itself remains outside the public repository.
+Read the generated packet, Issue #57, this handoff, and only the directly relevant reference parser/live-runner files. Do not reread repository history. The authoritative runtime evidence is run `d3ab2a98-0650-4c48-8ba7-1e70117e4a26`; the local report itself remains outside the public repository.
