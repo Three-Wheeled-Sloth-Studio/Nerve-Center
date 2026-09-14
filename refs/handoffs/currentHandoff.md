@@ -1,7 +1,7 @@
 ---
 type: Handoff
 title: Current Handoff
-description: Active Nerve Center implementation state and the next context-heavy checkpoints.
+description: Active Nerve Center implementation state and the next bounded checkpoints.
 status: stable
 tags: [nerve-center, handoff]
 ---
@@ -9,98 +9,68 @@ tags: [nerve-center, handoff]
 
 ## Current state
 
-- `dev` is the accepted integration branch. The current user directive is to work directly on `dev` and not create feature branches.
-- Accepted `dev` entering Issue #56 is `a211c076ccca`.
-- Application version is `0.12.11`.
-- The manager/module boundary, durable work sessions and queue, provider-neutral LLM manager, Windows desktop/package baseline, career evidence profile, company-first Job Scout discovery, scoring, application tracking, durable discovery learning, and first Model Lab foundation are accepted.
+- Work directly on `dev`; do not create a feature branch or PR unless explicitly requested.
+- Application version is `0.12.14`.
+- Implementation checkpoint before this handoff refresh: `ca24a9e6d9855791674a0e02f8d5055d57adf379`.
+- The manager/module boundary, durable work sessions/queue, provider-neutral local LLM routing, Windows desktop/package baseline, career-evidence profile, company-first Job Scout discovery, scoring/application tracking, durable discovery learning, and Model Lab foundation are accepted.
 - Job Scout remains an iterative market-research loop: `expand -> converge -> deepen -> reflect -> re-expand`. Discovery optimizes recall; ranking/scoring provides precision.
-- Issue #34 continuous-work/liveness is complete. The accepted 900-second run completed 89 cycles across 20 waves, retained 121 opportunities from 49 companies and 70 career sources, created 212 provisional scores, completed 3/3 bounded full analyses, continued through added and empty reflections, and stopped explicitly on request-budget exhaustion.
-- Issue #40 location awareness is complete in PR #42. Raw opening locations feed deterministic, explainable location classification; ranking engine v4 refreshes stale deterministic scores; location-seeded discovery learns from location-conditioned opening yield; and review exposes scope counts, filters, badges, and rationale without hiding distant retained candidates.
-- Issue #43 source-aware discovery quality is complete in PR #44. Job Scout compiles bounded materially distinct query families by source capability, lints invalid search structures before request spend, tracks company/opening convergence separately from fit, computes explicit coverage gaps for reflection, prefers eligible structured refresh paths, and exposes a read-only discovery audit.
-- Issue #45 qualification importance is complete in PR #46. Fit-analysis v7 separates employer-side decision weight from candidate match strength, ranking v5 uses deterministic weighted coverage, near-duplicate qualifications cannot manufacture repeated fit/domain/gate credit, and old v6 analyses remain loadable for deterministic rescoring without another LLM pass.
-- Issue #47 Model Lab foundation is complete in PR #48. Model Lab now has local persistent settings, a deduplicated real-request benchmark corpus, request/module capture opt-outs, credential redaction, isolated benchmark results, bounded exploration sessions, exact-model replay through the manager provider boundary, production-queue precedence, and a read-only manager UI.
-- Experimental Model Lab results are structurally separate from production `TaskModelEvidence`; benchmark replay does not change production model-selection evidence or production loaded-model state.
-- Opening location, company-presence location, and discovery-strategy market evidence remain separate concepts. A remote listing available in a region is not proof of a company office there, and an employer discovered by a local search does not make all of its national openings local yield.
-- Fit analysis remains responsibility/evidence-first and derives explicit `direct`, `adjacent`, `transferable`, or `mismatch` domain relationships. Listed title remains a weak clue, not a fit gate.
-- Manager-owned Ollama routing uses `gemma3:4b` as the primary general model. Strict structured-output work may retry once on `qwen2.5:7b-instruct`; modules remain model-blind.
-- The Windows source launcher validates a complete x64 Visual C++ environment before Tauri compilation and skips incomplete Visual Studio installations.
-- `scripts/run_job_scout_live.py` remains the reusable real-run diagnostic and continuously writes a durable local report/checkpoint history.
-- Issue #49's short live gate is complete. The valid run stopped cleanly on the inherited 500-request limit after about 21 minutes rather than completing the requested 30-minute window; it completed 25/25 full scores and captured 826 ranked opportunities, 199 companies, 1,170 sources, and 1,389 strategies.
-- The run classified every ranked opportunity (34 regional, 792 distant, 0 unknown) and did not falsely credit national openings as local yield. It found zero directly local Greensboro/Triad openings; 366 location-conditioned strategies retained zero conditioned openings and none reached a downweighted state.
-- Issue #51 is implemented on `dev`. Live-run duration, request, LLM, and full-score ceilings are explicit in stdout and the durable report; the session receives the requested resource policy; each cycle receives its remaining request allowance; network fetches reserve from that allowance before execution; and an invariant rejects any overrun.
-- Public-search strategies now share durable evidence at a stable hypothesis-family/source/location identity. Location-family exploitation uses conditioned opening yield rather than employer/source discoveries, while individual strategy provenance and the exploration floor remain intact. The discovery API/audit and live report expose family attempts, yield, influence, and before/after weight evidence.
-- The first four-hour soak completed 641 cycles across 584 waves and stopped cleanly at planned manager wind-down after 3 hours 36 minutes. It used 1,726/5,000 requests and 203/1,000 LLM calls with exact request accounting, retained 74 opportunity observations, and completed 94 of 100 reserved score attempts. It also exposed excessive late low-yield strategy churn, ambiguous completion semantics, and missing effective configuration in the report.
-- Issue #53 is implemented on `dev`: planned wind-down is a successful active-work terminal state with separate deadline evidence; scoring targets successes with a bounded failure ceiling; eight-cycle zero-marginal-yield windows cause exponential backoff; evidence-derived `local_employer` searches find nearby companies before roles; and the live report records effective configuration, efficiency, scoring failures, and grouped location-family evidence.
-- Issue #55 is implemented on `dev`: marginal-yield backoff now pauses outbound discovery without pausing eligible scoring; zero-result acquisition is split into search, classification, registration, and scan stages; and eligible local-employer hypotheses receive a bounded selection slot without bypassing learned weighting or cooldowns.
-- Issue #56 is implemented on `dev`: Job Scout cooldown is explicitly module-local; market expansion reserves room for official metros, core cities, and counties; Durham is reachable from the configured Greensboro market; generic employer-landscape searches cover the expanded geography; and regional names are learned as provenance-bearing public-search hypotheses rather than hard-coded location facts.
+- Responsibility/requirement evidence is primary. Listed title is a weak clue. Domain relationship remains `direct > adjacent > transferable > mismatch`.
+- Opening location, company-presence evidence, and discovery-strategy market evidence remain separate concepts.
+- Public-source safety remains unchanged: no authenticated LinkedIn/job-board crawling, CAPTCHA circumvention, stealth automation, unattended applications, or automated outreach.
 - Coding-agent token conservation is a primary engineering concern. Use `scripts/agent_context.py` and progressive context loading instead of repository-wide rereads.
 
-## Accepted Issue #47 behavior
+## Active slice: Issue #57
 
-The first manager-owned Model Lab slice is now accepted:
+Issue **#57: Stratify Job Scout market exploration after regional live gate** remains open on runtime evidence, not CI alone.
 
-- Schema v11 adds local Model Lab settings, benchmark corpus, exploration-session history, and benchmark-result history without replacing production provider evidence.
-- Eligible completed model-blind request/result pairs can be harvested lazily and idempotently from durable queue history, including after restart.
-- Capture is opt-out capable at both request and module level. Retained prompts/results redact credential-like values while preserving replay-critical JSON schemas and task/contract provenance.
-- A selected installed model can be exercised through an explicit manager-owned experimental execution path.
-- Experimental execution bypasses production `TaskModelEvidence` recording and does not alter the manager's production loaded-model state.
-- Exploration is bounded by explicit wall-clock duration and attempt budget.
-- Replay refuses admission while production LLM work is queued or claimed, so Model Lab cannot preempt normal module work.
-- The manager API/UI exposes installed models, empirical production task evidence, corpus state, exploration state, benchmark outcomes, and production queue state.
-- Automatic model installation/removal, external benchmark ingestion, pairwise review, and automatic production-router promotion remain deferred.
+Accepted behavior accumulated through this slice:
 
-PR #48 exact-head validation before merge:
+1. Current market-query revisions are preferred over stale persisted variants when eligible, and distinct markets are sampled before repeating another angle for the same market.
+2. Regional-reference capacity and company deepening remain bounded protected paths.
+3. Public civic reference pages are cacheable/retry-aware; success, challenge, transient failure, and invalid evidence have distinct cooldown behavior.
+4. Bounded employer extraction supports accountable HTML/JSON evidence and public PDF/CSV/TSV/JSON/XLSX directory attachments.
+5. Extracted names become provenance-bearing `local_employer_deepen` hypotheses only. They do not become company/location truth until ordinary official-career discovery resolves them.
+6. Reference selection is intent-aware: explicit `major/top/largest/leading employers`, employer/business/company directory/list signals, and supported employer documents compete before generic civic authority. The two-reference acquisition bound remains unchanged.
+7. No named city or employer production rule has been added. Volvo Group and Wolfspeed are representative runtime probes only.
 
-- head `8119e5cf577fa1f1d19ce8afe7fdbf4740ac864d`;
-- CI run `34502474954` / #250: green;
-- Python: 192 passed, 0 failed;
-- desktop-web: green;
-- desktop-rust: green;
-- Windows package run `34502474968` / #134: green;
-- packaged backend health, Job Scout workspace route, managed module runtime smoke, NSIS build, output verification, and artifact upload: green.
+### Runtime evidence to date
 
-## Completed slice: Issue #51
+The `0.12.12` gate proved the attachment path itself is safe and bounded: Durham/core-market discovery executed, regional-alias evidence executed, PDFs were fetched/parsed/reused from cache, and scoring stayed healthy. The parsed Chapel Hill policy PDF and Danville economic-development budget PDF correctly yielded zero employer candidates because neither was an employer directory. Volvo Group had already been reached through the ordinary official-career path; Wolfspeed remained absent.
 
-Issue **#51: Make Job Scout run budgets explicit and local discovery learning converge** is implemented in `0.12.5`.
+SQLite inspection of that gate exposed a general source-selection defect: generic `.gov` pages could consume both civic-reference slots while an explicit employer-list result in the same result set was skipped. `0.12.13` corrected selection generically by ranking employer-directory intent before authority and added deterministic fictional tests.
 
-The Issue #49 observation demonstrated two related blockers to a trustworthy unattended soak:
+The next 15-minute run, `aa6a3579-6b34-4642-885e-20473a8270b3`, executed on `0.12.13` and was operationally healthy:
 
-1. A duration-only live-run request silently inherits the generic manager defaults of 500 outbound requests and 100 LLM calls. The 30-minute test therefore stopped after about 21 minutes on request-budget exhaustion, and its terminal batch observed 515 requests against the capped 500-request ledger.
-2. Location attribution is truthful, but learning is not converging quickly enough. All 366 location-conditioned strategies retained zero conditioned openings, yet distinct strategy/query identities prevented that repeated evidence from producing a downweighted family or visible reallocation during the run.
+- status `succeeded`, terminal reason `admission_draining`, planned wind-down reached;
+- 155 requests and 30 LLM calls, without budget exhaustion;
+- 23/23 full-score attempts succeeded with zero failures;
+- 23 current-window `local_employer` strategies executed, including Durham-Chapel Hill market work;
+- 16 civic references were inspected, with 16 cache hits and 12 retry-deferred references;
+- zero employer candidates were created;
+- all attachment counters were zero;
+- no `local_employer_deepen` strategy executed during that run.
 
-Implemented correction:
+That report could not diagnose the source-selection result because per-attempt `reference_selection_evidence`, `employer_reference_evidence`, and `attachment_reference_evidence` were durable in the attempt ledger but absent from the final live report. Another manual SQLite inspection would have been required.
 
-1. Add `--max-requests` and `--max-llm-calls` to `scripts/run_job_scout_live.py` and send them in the session `resource_policy`.
-2. Echo and persist every effective run ceiling at startup: duration, outbound requests, LLM calls, and full-score limit.
-3. Make terminal output/reporting distinguish duration completion, request exhaustion, and LLM exhaustion without requiring checkpoint archaeology.
-4. Move request admission ahead of fetch execution, or provide equivalent accounting that never exceeds the declared request ceiling under bounded concurrency.
-5. Define a stable, durable source/query/location hypothesis-family identity and accumulate equivalent-strategy evidence there.
-6. Let repeated zero local-opening yield lower future family allocation while maintaining bounded exploration and separately preserving employer/source discovery value.
-7. Surface family attempts, conditioned yield, learned weight, and allocation changes in the discovery audit and durable report.
+### 0.12.14 diagnostic hardening
 
-Do not encode Greensboro, particular roles, employers, or observed false positives as correction rules. The tool must generalize from outcome evidence. A truthful zero-result market remains acceptable; the required behavior is inspectable convergence and reallocation, not a manufactured minimum count.
+`0.12.14` fixes that observability gap without changing acquisition behavior:
 
-### Live-gate evidence
+- the discovery audit exposes a bounded recent `reference_attempt_evidence` stream;
+- each row carries run/attempt/strategy/cycle identity, hypothesis family, location, anchor, status, relevant acquisition counters, reference-selection ranking, employer-reference evidence, and attachment evidence;
+- only attempts containing reference evidence are included;
+- output is bounded, and the live runner already embeds the discovery audit;
+- deterministic fictional coverage proves run attribution, evidence retention, bounded output, and omission of unrelated attempts.
 
-The rerun declared 900 seconds, 1,000 requests, 100 LLM calls, and 25 full scores before work started. It completed 43 cycles across 25 waves, consumed and observed exactly 157 requests with zero overrun, used 41 LLM calls, completed 25 full and 58 provisional scores, and retained 58 additional opportunity observations. Manager wind-down began normally near the end of the window and the module stopped explicitly on `admission_draining`.
+Implementation commits:
 
-All 169 attempted location-conditioned families still had zero conditioned opening yield. Eighty-seven were now durably `deprioritized` or `negative`, including the repeatedly attempted Greensboro/source families. The Greensboro coverage gap remained open, confirming that self-correction changed allocation evidence without manufacturing a local success.
+- `80a107d0f4cbeb3dd9a5e3def43faeb173778443` — expose bounded reference-attempt evidence;
+- `a3d621079d29286441bd06e38eb34107db494786` — deterministic audit regression test;
+- `ca24a9e6d9855791674a0e02f8d5055d57adf379` — align version to `0.12.14`.
 
-## Completed slice: Issue #53
+## Next gate
 
-Issue **#53: Make Job Scout soak completion and convergence truthful** is implemented in `0.12.6` from the evidence produced by run `646a7392-9f77-4420-b9b9-842173473b1e`.
-
-The correction remains general and evidence-driven:
-
-1. `admission_draining` and `admission_closed` mean the module completed its authorized active-work phase successfully; the report separately records `planned_wind_down_reached` and `session_deadline_reached`.
-2. `full_score_limit` is a success target. `full_score_failure_limit` bounds failed provider/schema attempts, and checkpoints/reporting preserve attempts, successes, failures, and whether the target was met.
-3. Discovery accumulates durable eight-cycle marginal-yield windows. A request-spending window with no new company, career source, or opportunity increments a consecutive low-yield counter and triggers exponential backoff capped at 15 minutes. Any material durable yield resets the consecutive counter; normal exploration selection remains unchanged.
-4. The query portfolio adds `local_employer` experiments using evidence-derived company archetypes and configured local-market aliases on broad public web search. These persist companies and career surfaces without making a local opening claim.
-5. Live reports retain effective configuration even when inherited from the workspace, summarize request/result/opportunity efficiency, and group local evidence by location, source domain, and hypothesis family.
-
-## Live acceptance evidence
-
-The 15-minute live acceptance ran as:
+After exact-head CI is green, rerun the standard explicit-budget acceptance:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\run_job_scout_live.py `
@@ -111,127 +81,47 @@ The 15-minute live acceptance ran as:
   --score-failure-limit 10
 ```
 
-Run `f0214cd8-0151-4f38-bbdb-cc5f4096bd79` passed the Issue #53 gate:
+The next uploaded `run-*.json` should be sufficient by itself. Inspect `discovery_audit.reference_attempt_evidence` filtered to the current run ID and answer, in order:
 
-- status `succeeded`, terminal reason `admission_draining`, `duration_completed=true`, `planned_wind_down_reached=true`, and `session_deadline_reached=false`;
-- 48 requests consumed and observed, zero request overrun, and 24 LLM calls;
-- 15 cycles and 15 waves with one 30-second `low_marginal_yield` backoff, supported by an eight-cycle window containing 29 requests, 32 attempts, and zero new companies, career sources, or opportunities;
-- 10 successful full scores from 15 attempts, five failures, target 25, failure ceiling 10, and truthful `target_met=false` at wind-down;
-- effective configuration persisted with Greensboro, NC, six target titles, the public-board set, work-arrangement preference, score target, and failure ceiling;
-- 213 location families summarized across 793 attempts with zero conditioned yield and 139 downweighted families; three `local_employer` groups were attempted once each and retained as neutral evidence.
+1. Which civic references ranked highest and were selected?
+2. Were selected references inspected, cache hits, challenged, or retry-deferred?
+3. Did a selected page expose supported directory attachments?
+4. Did HTML/JSON/attachment parsing produce valid employer candidates with provenance?
+5. Did any resulting `local_employer_deepen` hypothesis execute and resolve an ordinary official career surface?
+6. Did discovery/scoring remain productive and request/LLM accounting remain exact?
 
-No local opening was manufactured, and the short run found no additional opportunity. That is a truthful saturated-market result, not a gate failure.
+If no valid directory-derived employer is produced, treat the evidence as a general source-capability or extraction-quality diagnosis. Do not add Wolfspeed, Durham, Volvo, or any other named production rule.
 
-## Completed slice: Issue #55
+## Known follow-up evidence
 
-Issue **#55: Keep Job Scout scoring productive during discovery backoff** is implemented in `0.12.7` from the evidence produced by the second four-hour soak, run `6ada5efb-c281-429f-ab01-58ef4d62afc2`.
+Persisted historical `local_employer_deepen` strategies include some weak HTML-extraction artifacts that look like section headings rather than employer names. They predate the current run and were not exercised by the `0.12.13` acceptance. Do not mix that debt into the current selector diagnosis without fresh current-run evidence. If the new audit proves high-intent pages are selected and inspected but base HTML extraction creates structural headings, harden candidate structure generically with fictional tests.
 
-That run was operationally healthy but spent about 8,090 seconds—roughly 62% of active time—in 13 whole-worker discovery backoffs. It completed 96/100 successful scores despite consuming only 331/5,000 requests. Its 416 discovery attempts reported zero raw results examined, and only three were `local_employer` attempts.
-
-Implemented correction:
-
-1. A low-yield window persists `discovery_backoff_until` and `backoff_scope=discovery`; it no longer sleeps the entire orchestration loop.
-2. Eligible scoring continues during discovery cooldown. Once no score is eligible, the worker waits in short bounded intervals without issuing another discovery cycle.
-3. Durable coverage and the live runner report now distinguish completed/failed search requests, raw returned results, eligible results, registered sources, and attempted/completed source scans.
-4. Strategy selection preserves one bounded slot for an eligible evidence-derived `local_employer` hypothesis alongside company deepening. It remains subject to normal cooldown and learned family weighting.
-5. Strategy API rows expose top-level hypothesis family, source domain, and location as well as the full dimensions object, eliminating ambiguity when comparing individual and grouped audit evidence.
-
-The correction remains evidence-driven. It does not exclude roles, employers, or locations and does not manufacture local yield.
-
-## Completed slice: Issue #56
-
-Issue **#56: Broaden Job Scout labor-market and employer discovery** is implemented in `0.12.8`.
-
-The prior local strategy portfolio was technically radius-aware but let the nearest small places consume its bounded alias allowance. The correction now reserves representative slots for official nearby CBSAs, resolves their named core cities against Gazetteer records, and then adds bounded counties and nearby places. This makes Durham and the Durham-Chapel Hill market reachable from Greensboro through public geographic evidence rather than a special-case city list.
-
-The portfolio seeds generic employer/career landscape searches for those evidence-derived markets. Public reference probes use official metro labels to discover regional organization names from result titles and URLs; candidates are stored only as ordinary search hypotheses with provenance and normal learned weighting. They cannot establish an opening location or company presence by themselves.
-
-The production location-aware loop now carries acquisition-stage counters all the way into durable coverage, including learned regional aliases. A two-module runtime test proves that a Job Scout backoff checkpoint does not prevent another module from claiming and completing its own eligible work.
-
-## Current slice: Issue #57
-
-Issue **#57: Stratify Job Scout market exploration after regional live gate** is implemented in `0.12.9`, with the representative-employer runtime gate still open. Selection now prefers the current evidence-query revision over stale persisted variants, samples distinct markets before repeating an alternate query for the same market, and reserves regional-reference capacity without displacing company deepening. Employer landscape pages support bounded heading/list/table extraction, and attempt evidence records every inspected or failed civic URL plus its candidate count.
-
-Run `3e358fd2-7249-4fd7-94d3-1a1b8872fc19` completed ten minutes with 81 requests, 16 public searches, 149 returned results, 26 eligible results, 51 completed scans, 18 companies, 21 sources, two retained roles, seven inspected civic pages, and six learned regional aliases. The learned aliases included Piedmont Triad, Research Triangle, and Central Pines with public provenance. No employer candidates were extracted, and Volvo Group/Wolfspeed remained absent.
-
-Run `6dd77d7c-8eec-4424-905f-b2943103f527` then confirmed current-revision allocation starts with Greensboro, learned four aliases, and added ten companies and eleven sources in five minutes. Its evidence exposed a second persisted-history bug that allowed the other Greensboro angle to run before the next market; the final `0.12.9` selection logic and regression test correct that behavior.
-
-The follow-up acquisition hardening is implemented in `0.12.11`. Public civic reference documents are durably cached by canonical URL: successful evidence is reusable for 24 hours, challenges cool down for one hour, and transient/HTTP failures retry after 15 minutes. Deferred references are identified before allocation so they cannot consume the two-page acquisition slot, and cache hits do not consume outbound reference allowance. Attempt evidence distinguishes fresh, cached, and retry-deferred pages and reports content type, cache hits, and deferred counts.
-
-Employer extraction now accepts bounded public JSON directories and schema.org JSON-LD `Organization`, `Corporation`, and `LocalBusiness` evidence in addition to the existing heading/list/table path. Extracted names remain provenance-bearing `local_employer_deepen` hypotheses; they do not become company or location truth until ordinary search reaches an official career surface. No named-company rule was added.
-
-Run `cf93ae1a-4958-4dee-9959-5fe671cf4eda` exercised `0.12.11` for the standard 15-minute window and stopped successfully during planned admission draining. It consumed exactly 175 requests and 33 LLM calls, completed 21/21 full scores with no failures, executed 26 public searches, examined 240 returned results, inspected 13 civic references, and added 12 companies, 12 career sources, and 37 postings. It refreshed Volvo Group's official Greensboro career surface with current-run provenance. Durham/core-metro strategies also ran and found official Google, PowerSecure, and SAS career surfaces, but Wolfspeed remained absent.
-
-The run initially reported two employer candidates. Durable evidence showed both were the Greensboro Chamber itself, extracted from page-publisher schema.org metadata rather than an employer list. The post-gate correction now requires schema.org organizations to appear inside an `ItemList` or explicit employer/company field. This is an evidence-structure constraint, not a named exclusion; the two zero-yield hypotheses remain available to normal learning/downweighting. After correction, the run contains zero valid directory-derived employers. It also exposed one PDF economic-development reference, which is cached and identified by content type but not parsed.
-
-## Completed slice: Issue #58
-
-Issue **#58: Repair strict-schema model output before fallback** is implemented in `0.12.10`. The Ollama adapter now performs full JSON Schema validation inside its bounded repair loop instead of accepting any object/list and leaving the first contract check to the manager. Missing fields, invalid enums/types, scalar roots, malformed JSON, and exhausted repairs have deterministic coverage. Repair prompts include only a safe validator and JSON path; provider telemetry continues to retain no generated content.
-
-The provider grammar now retains constraints demonstrated to work on the installed Ollama runtime: numeric ranges, minimum string length, and array bounds. Nested `maxLength` remains manager-enforced because the runtime returned HTTP 400 while compiling that grammar. The fit response contract also caps qualifications at the eight items already specified by its prompt and post-processing.
-
-The seven-minute gate, run `e284029f-b796-4fd6-8b0e-6b9c3222f1f5`, stopped successfully on planned admission draining with exact accounting. It completed 5/5 full scores with zero failures, consumed 44/500 requests and 9/60 LLM calls, and learned four regional aliases while scoring. All five fit calls exhausted Gemma's single repair before falling back; all five then succeeded on the first Qwen response. General reflection calls remained on Gemma and succeeded after bounded repair. Structured completion is no longer the immediate blocker; ranking evidence quality should be evaluated separately from schema reliability.
-
-### Remaining runtime acceptance criteria
-
-Volvo Group now passes the representative-employer check; Wolfspeed remains open. The next acquisition slice should follow discovered reference links and parse bounded public directory attachments, beginning with PDFs and tabular downloads identified through inspected civic pages. Preserve canonical-URL caching, provenance, content-type telemetry, and retry cooldowns. Use Wolfspeed in Durham only as a runtime acceptance probe; do not add an employer allowlist or named query.
-
-### Next Job Scout gate
-
-Implement bounded civic-directory attachment discovery and parsing, with deterministic fictional fixtures for PDF/tabular extraction, link provenance, cache reuse, unsupported content types, and retry cooldown. Then repeat the 15-minute explicit-budget acceptance and require a valid directory-derived employer hypothesis plus a general official-career path to the remaining Wolfspeed/Durham probe. A miss remains source-capability evidence, not permission for a named rule.
+The earlier planned-wind-down durability note also remains open: the durable discovery-session aggregate can trail the final attempt ledger by one terminal cycle. The attempt ledger preserves the event, but final-cycle aggregate coverage should eventually flush before termination.
 
 ## Staged next slice: Issue #54 Code Shop foundation
 
-- Code Shop is accepted as the permanent display name with stable module ID and storage namespace `code_shop`.
-- GitHub is the project-identity and repository-metadata source of truth. The manager discovers repositories through its connector; users select projects and link machine-local checkout folders.
-- The checkout link must remain inside an approved root and registered checkout, and its Git remote must match the selected GitHub repository before local execution is admitted.
-- Unattended external engineering actions require the intersection of manager-verified official-module trust, declared capability, explicit user project `allow`, durable task attribution, scope checks, and manager risk approval.
-- User-supplied modules cannot receive that autonomous authority. Deployment, credential/secret mutation, destructive Git, irreversible data changes, and equivalently high-risk actions remain prohibited or human-gated.
-- The privileged execution host is manager-owned and capability-specific; Code Shop never receives generic unrestricted shell/filesystem access.
-- The first slice is additive contracts, persistence, minimal APIs, module registration, a deterministic execution adapter, and boundary tests. It does not enable production GitHub writes or shell execution.
-- Work directly on `dev`; do not create a feature branch or PR under the current user directive. Keep Issue #54 current and push coherent validated commits.
+Code Shop remains staged behind the active Job Scout acceptance work. The accepted architecture contract is `refs/planning/code-shop-foundation.md`. GitHub remains project identity/metadata authority; local checkout access must stay inside approved roots and match the selected repository remote; unattended engineering authority is capability-specific and manager-owned; user-supplied modules never receive generic autonomous shell/filesystem authority.
 
-Architecture contract: `refs/planning/code-shop-foundation.md`.
-
-For implementation re-entry, start with:
+For Code Shop re-entry when explicitly resumed:
 
 ```powershell
 python scripts/agent_context.py --focus "code shop project registry authority execution host escalation" --issue 54
 ```
 
-Read the generated packet, Issue #54, and `refs/planning/code-shop-foundation.md`. Preserve the existing module supervisor, session/queue, provider-neutral routing, and Model Lab evidence boundaries.
-
 ## Deferred follow-up
 
-- Automatic model installation and separately opt-in automatic removal belong to later Model Lab slices.
-- External/public benchmark ingestion and blinded pairwise A/B review remain later Model Lab work.
-- People enrichment remains deferred; preserve seams but do not build a CRM inside Job Scout.
-- Firecrawl is not a core dependency while local parsing, caching, and source-health tracking cover the need.
-- Do not export career prompts, benchmark prompts, results, or traces to LangSmith by default.
+- automatic model installation and separately opt-in removal belong to later Model Lab slices;
+- external/public benchmark ingestion and blinded pairwise A/B review remain later Model Lab work;
+- people enrichment remains deferred;
+- Firecrawl is not a core dependency while local parsing/caching/source-health tracking cover the responsibility;
+- do not export career prompts, benchmark prompts, results, or traces to LangSmith by default.
 
-## Do not reopen without new evidence
+## Re-entry
 
-- Company-first discovery and the double-diamond loop.
-- Source-aware query portfolios, query linting, explicit coverage gaps, and convergence semantics from Issue #43.
-- Qualification-importance semantics from Issue #45: employer-side weight is independent of candidate fit, duplicates cannot inflate evidence, and factual gates remain separate.
-- Manager-owned provider/session/queue boundaries; modules remain model-blind.
-- Model Lab production/experimental evidence isolation from Issue #47.
-- `gemma3:4b` as the current Job Scout default local evaluator.
-- Separate discovery-learning and opportunity-ranking feedback loops.
-- Responsibility/requirement evidence is primary; domain ordering remains `direct > adjacent > transferable > mismatch`.
-- Deterministic, explainable location semantics from Issue #40.
-- Public-source safety: no authenticated LinkedIn/job-board crawling, CAPTCHA circumvention, stealth automation, unattended applications, or automated outreach.
-
-## Coding-agent reset path
-
-For Issue #56 runtime acceptance and the next ranking-quality slice, start with:
+For the active Issue #57 runtime gate:
 
 ```powershell
-python scripts/agent_context.py --focus "job scout regional market employer discovery and ranking evidence quality" --issue 56
+python scripts/agent_context.py --focus "job scout intent-aware civic references attachment provenance live acceptance" --issue 57
 ```
 
-Read the generated packet and Issue #56 first. Run the documented 15-minute live gate and inspect its durable report before changing behavior. Preserve the accepted manager/module boundary, exploration floor, and location-evidence separation. If acquisition passes, continue with general false domain/responsibility evidence contracts and corrective evaluation rather than title or company blacklists.
-
-## Validation boundary
-
-Issue #56 has deterministic coverage for representative market expansion, evidence-derived employer and regional-alias hypotheses, production acquisition counters, and cross-module progress during Job Scout backoff. The 15-minute live acceptance remains the required runtime gate for real-source reach to the representative employers and learned regional terminology.
+Read the generated packet and Issue #57 first. Do not reread repository history. The runtime report, current handoff, and directly relevant discovery files are the authoritative starting set.
