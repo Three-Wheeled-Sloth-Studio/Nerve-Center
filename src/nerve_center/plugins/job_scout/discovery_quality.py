@@ -11,6 +11,7 @@ from sqlalchemy import select
 from nerve_center.discovery.models import SourceHealth
 from nerve_center.persistence.models import DiscoverySourceModel, JobProvenanceModel
 from nerve_center.plugins.job_scout.discovery_learning import (
+    MARKET_REFERENCE_QUERY_REVISION,
     CompanyDiscoveryEvidenceModel,
     DiscoverySessionModel,
     DiscoveryStrategyModel,
@@ -363,7 +364,13 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
             }
         ][:18]
         for market_rank, alias in enumerate(representative):
-            for anchor in ("major employers", "company headquarters"):
+            for anchor in (
+                "major employers",
+                "largest employers",
+                "top employers",
+                "employer directory",
+                "company headquarters",
+            ):
                 self.learning.ensure_strategy(
                     {
                         "kind": "public_search",
@@ -376,7 +383,7 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
                         "market_kind": alias.kind,
                         "market_distance_miles": f"{alias.distance_miles:.1f}",
                         "market_rank": str(market_rank),
-                        "query_revision": "market_reference_v4",
+                        "query_revision": MARKET_REFERENCE_QUERY_REVISION,
                     },
                     origin="public_market_landscape",
                 )
@@ -392,7 +399,7 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
                         "market_kind": alias.kind,
                         "market_distance_miles": f"{alias.distance_miles:.1f}",
                         "market_rank": str(market_rank),
-                        "query_revision": "market_reference_v4",
+                        "query_revision": MARKET_REFERENCE_QUERY_REVISION,
                     },
                     origin="public_regional_alias_probe",
                 )

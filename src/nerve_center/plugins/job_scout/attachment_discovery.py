@@ -50,11 +50,25 @@ _ATTACHMENT_COUNTERS = (
     "attachment_employer_candidates_extracted",
 )
 _SUPPORTED_REFERENCE_SUFFIXES = {".pdf", ".csv", ".tsv", ".json", ".xlsx"}
+MAX_CIVIC_REFERENCE_CANDIDATES = 6
 _STRONG_EMPLOYER_INTENT = re.compile(
     r"\b(?:major|top|largest|leading)\s+employers?\b|"
     r"\bemployers?\s+(?:directory|list|listing)\b|"
     r"\b(?:directory|list|listing)\s+of\s+employers?\b|"
     r"\b(?:business|company)\s+(?:directory|list|listing)\b",
+    re.IGNORECASE,
+)
+_CIVIC_SELF_EMPLOYMENT = re.compile(
+    r"\b(?:employment opportunities|government jobs?|municipal jobs?|"
+    r"human resources|careers?)\b",
+    re.IGNORECASE,
+)
+_EMPLOYER_LANDSCAPE_SIGNAL = re.compile(
+    r"\b(?:local|regional|area|largest|major|top|leading)\s+"
+    r"(?:employers?|companies?|business(?:es)?)\b|"
+    r"\b(?:employer|business|company)\s+(?:directory|list|listing)\b|"
+    r"\bcompany headquarters\b|\b(?:existing|target|key) industries\b|"
+    r"\bworkforce (?:overview|profile|development)\b",
     re.IGNORECASE,
 )
 
@@ -66,9 +80,14 @@ def _empty_attachment_counters() -> dict[str, int]:
 class _IntentAwareReferenceAdapter:
     """Preselect bounded civic references by employer-directory intent."""
 
-    def __init__(self, delegate: Any, *, reference_limit: int = 2) -> None:
+    def __init__(
+        self,
+        delegate: Any,
+        *,
+        candidate_limit: int = MAX_CIVIC_REFERENCE_CANDIDATES,
+    ) -> None:
         self.delegate = delegate
-        self.reference_limit = reference_limit
+        self.candidate_limit = candidate_limit
         self.raw_result_count = 0
         self.selection_evidence: list[dict[str, Any]] = []
 
@@ -76,12 +95,14 @@ class _IntentAwareReferenceAdapter:
         return await self.delegate.search(query)
 
     async def search_references(self, query: str) -> list[SearchResult]:
-        method = getattr(self.delegate, "search_references", self.delegate.search)
+        method = getattr(self.delegate, "search_references", None)
+        if method is None:
+            method = self.delegate.search
         results = list(await method(query))
         self.raw_result_count = len(results)
         selected, evidence = _prioritize_civic_reference_results(
             results,
-            reference_limit=self.reference_limit,
+            reference_limit=self.candidate_limit,
         )
         self.selection_evidence = evidence
         return selected
@@ -95,6 +116,15 @@ class _IntentAwareReferenceAdapter:
     def reference_cache_status(self, url: str) -> str:
         method = getattr(self.delegate, "reference_cache_status", None)
         return method(url) if method is not None else "miss"
+
+    def rank_civic_references(
+        self,
+        results: list[SearchResult],
+    ) -> list[SearchResult]:
+        return sorted(results, key=_reference_intent_rank)
+
+    def is_civic_reference_eligible(self, result: SearchResult) -> bool:
+        return _is_civic_reference_candidate(result)
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self.delegate, name)
@@ -413,28 +443,32 @@ def _prioritize_civic_reference_results(
     civic = [
         item
         for item in results
-        if item.classification is UrlClassification.OTHER
-        and _is_civic_reference_candidate(item)
+        if item.classification is UrlClassification.OTHER and _is_civic_authority(item)
     ]
-    ranked = sorted(civic, key=_reference_intent_rank)
+    eligible = [item for item in civic if _is_civic_reference_candidate(item)]
+    rejected = [item for item in civic if item not in eligible]
+    ranked = sorted(eligible, key=_reference_intent_rank)
     selected = ranked[: max(reference_limit, 0)]
     civic_ids = {id(item) for item in civic}
     non_civic = [item for item in results if id(item) not in civic_ids]
     selected_ids = {id(item) for item in selected}
     evidence: list[dict[str, Any]] = []
-    for item in ranked[:8]:
+    for item in [*ranked, *rejected][:8]:
         intent_tier, authority_tier, _url = _reference_intent_rank(item)
+        is_eligible = item in eligible
         evidence.append(
             {
                 "url": item.url,
                 "title": item.title[:300],
                 "selected": id(item) in selected_ids,
+                "eligible": is_eligible,
+                "rejection_reason": "" if is_eligible else "civic_self_employment",
                 "intent_tier": intent_tier,
                 "authority_tier": authority_tier,
                 "supported_document": _supported_reference_document(item.url),
             }
         )
-    return [*selected, *non_civic], evidence
+    return [*selected, *rejected, *non_civic], evidence
 
 
 def _reference_intent_rank(result: SearchResult) -> tuple[int, int, str]:
@@ -476,12 +510,33 @@ def _reference_intent_rank(result: SearchResult) -> tuple[int, int, str]:
 
 
 def _is_civic_reference_candidate(result: SearchResult) -> bool:
+    if not _is_civic_authority(result):
+        return False
+    evidence_text = _reference_evidence_text(result)
+    return not (
+        _CIVIC_SELF_EMPLOYMENT.search(evidence_text)
+        and not _EMPLOYER_LANDSCAPE_SIGNAL.search(evidence_text)
+    )
+
+
+def _is_civic_authority(result: SearchResult) -> bool:
     domain = (urlsplit(str(result.url)).hostname or "").casefold()
     compact = re.sub(r"[^a-z]", "", domain)
     return domain.endswith((".gov", ".org")) or any(
         marker in compact
         for marker in ("economicdevelopment", "chamber", "partnership", "council")
     )
+
+
+def _reference_evidence_text(result: SearchResult) -> str:
+    parsed = urlsplit(str(result.url))
+    return " ".join(
+        (
+            str(result.title),
+            str(result.snippet),
+            parsed.path.replace("-", " ").replace("_", " "),
+        )
+    ).casefold()
 
 
 def _supported_reference_document(url: str) -> bool:

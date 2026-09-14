@@ -1,3 +1,3 @@
 """Nerve Center local orchestration platform."""
 
-__version__ = "0.12.14"
+__version__ = "0.12.15"

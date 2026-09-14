@@ -233,6 +233,7 @@ def test_efficiency_summary_exposes_scoring_independent_marginal_pacing() -> Non
             "reference_pages_inspected": 0,
             "reference_cache_hits": 0,
             "reference_fetches_deferred": 0,
+            "reference_network_fetches_attempted": 0,
             "employer_candidates_discovered": 0,
         },
     }

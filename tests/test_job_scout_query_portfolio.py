@@ -164,12 +164,25 @@ def test_market_strategies_cover_employment_centers_and_region_alias_probes(
     assert durham.dimensions["market_kind"] == "metro_core"
     assert durham.dimensions["market_distance_miles"] == "50.0"
     assert durham.dimensions["market_rank"] == "1"
-    assert durham.dimensions["query_revision"] == "market_reference_v4"
+    assert durham.dimensions["query_revision"] == "market_reference_v5"
     landscape_query = compile_strategy_query(durham.dimensions)
     assert landscape_query.source_path == "broad_web_reference"
-    assert landscape_query.query == (
-        "Durham NC major employers chamber economic development"
-    )
+    assert landscape_query.query == "Durham NC major employers"
+    assert "chamber" not in landscape_query.query
+    assert "economic development" not in landscape_query.query
+    local_queries = {
+        item.dimensions["anchor"]: compile_strategy_query(item.dimensions).query
+        for item in strategies
+        if item.dimensions.get("hypothesis_family") == "local_employer"
+        and item.dimensions.get("location") == "Durham, NC"
+    }
+    assert local_queries == {
+        "major employers": "Durham NC major employers",
+        "largest employers": "Durham NC largest employers",
+        "top employers": "Durham NC top employers",
+        "employer directory": "Durham NC employer directory",
+        "company headquarters": "Durham NC company headquarters",
+    }
     assert [item.dimensions["anchor"] for item in probes] == [
         "Durham-Chapel Hill, NC"
     ]

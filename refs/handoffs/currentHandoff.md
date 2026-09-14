@@ -10,7 +10,7 @@ tags: [nerve-center, handoff]
 ## Current state
 
 - Work directly on `dev`; do not create a feature branch or PR unless explicitly requested.
-- Application version is `0.12.14`.
+- Application version is `0.12.15`.
 - Accepted green implementation baseline before this documentation refresh: `fd6bc92838999ff144d9f5ec7369995fb340de4a`.
 - CI run `34884321473` / #274 is green: refs/OKF, agent context, Ruff, packaging dry-run, 241 Python tests, desktop-web, and desktop-rust/Tauri shell.
 - The manager/module boundary, durable work sessions/queue, provider-neutral local LLM routing, Windows desktop/package baseline, career-evidence profile, company-first Job Scout discovery, scoring/application tracking, durable discovery learning, and Model Lab foundation are accepted.
@@ -34,6 +34,7 @@ Accepted behavior accumulated through this slice:
 6. Reference ranking is intent-aware: explicit `major/top/largest/leading employers`, employer/business/company directory/list signals, and supported employer documents rank ahead of generic civic authority. The acquired-reference bound remains two.
 7. `0.12.14` exposes bounded reference-attempt evidence in the discovery audit so live reports can explain selection, inspection, cooldown, attachment parsing, and candidate extraction without SQLite archaeology.
 8. No named city or employer production rule has been added. Volvo Group and Wolfspeed are representative runtime probes only.
+9. `0.12.15` makes local-employer queries intent-pure, excludes civic self-employment pages that lack employer-landscape evidence, preserves a six-candidate ranked civic fallback pool behind hard two-inspection/three-network-fetch caps, and scopes live reference-attempt evidence by `run_id`.
 
 ## Latest runtime gate: 0.12.14
 
@@ -91,38 +92,35 @@ The latest report's bounded `reference_attempt_evidence` contains 64 rows: 20 fr
 
 Each row carries `run_id`, so the data is not corrupt, but a live-run report should expose the current run directly or accept an explicit run filter. Do not make future acceptance reviewers manually separate recent historical rows.
 
-## Next implementation slice
+## Completed implementation slice: 0.12.15
 
-Keep the work generic and bounded. Do **not** add named employer/city exceptions.
+The generic, bounded source-acquisition correction is implemented. No named employer/city exceptions were added.
 
 1. **Intent-pure local-employer queries**
-   - Stop using authority terms as mandatory query tail for `major employers`.
-   - Prefer a bounded employer-list vocabulary such as `major employers`, `largest employers`, `top employers`, and employer/business directory semantics.
+   - Authority terms are no longer mandatory query tails for `major employers`.
+   - The deterministic vocabulary is `major employers`, `largest employers`, `top employers`, `employer directory`, and `company headquarters`.
    - Authority remains a post-search rank/provenance dimension, not a required search term.
    - If multiple query variants are added, keep them deterministic, bounded, and represented in strategy identity/revision so learning stays attributable.
 
 2. **Civic-reference eligibility/ranking hardening**
-   - For employer-landscape extraction, down-rank or exclude obvious civic self-employment/HR pages such as `Employment Opportunities`, municipal jobs, or careers pages when they do not also contain business/employer-landscape signals.
+   - Obvious civic self-employment/HR pages are excluded when they do not also contain business/employer-landscape signals.
    - Preserve direct employer career results on the normal discovery path.
 
 3. **Bounded fallback after deferred/invalid references**
-   - Keep a small ranked civic candidate pool larger than the two acquired-reference limit.
-   - Preserve `<=2` successfully acquired/inspected references per attempt.
-   - Add an explicit network-attempt ceiling so challenge/failure fallback cannot exceed the intended request budget.
+   - The selector preserves up to six ranked civic candidates.
+   - The loop preserves `<=2` successfully acquired/inspected references and `<=3` network fetch attempts per attempt.
    - Cached `retry_deferred`/invalid candidates may fall through without consuming an acquired-reference slot.
 
-4. **Run-scope live reference evidence**
-   - Make `reference_attempt_evidence` current-run by default for the live audit, or accept/pass an explicit `run_id` filter.
+4. **Run-scoped live reference evidence**
+   - The discovery-audit endpoint accepts `run_id`, and the live runner always passes its current run ID.
    - Preserve the bounded diagnostic shape and row-level run identity.
 
-5. **Deterministic fictional regression tests**
-   - a high-intent employer-list query does not require generic authority vocabulary;
-   - generic government HR pages do not win employer-landscape reference selection;
-   - a retry-deferred first candidate falls through to a lower-ranked eligible candidate without exceeding acquired/network caps;
-   - live audit evidence for a run excludes other runs;
-   - no named employer, city, or representative-probe logic appears in production code.
+5. **Deterministic regression coverage**
+   - Query intent, civic eligibility, truthful raw result telemetry, deferred/invalid fallback, acquired/network caps, and cross-run audit exclusion are covered.
 
-## Runtime acceptance after the slice
+The local validation baseline is 244 passing Python tests plus clean Ruff and diff checks. Exact-head CI and the runtime gate remain to be recorded.
+
+## Next action: runtime acceptance
 
 Use the standard explicit-budget 15-minute run:
 
@@ -175,7 +173,7 @@ python scripts/agent_context.py --focus "code shop project registry authority ex
 For the active Issue #57 source-acquisition slice:
 
 ```powershell
-python scripts/agent_context.py --focus "job scout local employer reference query intent fallback cooldown run scoped audit" --issue 57
+python scripts/agent_context.py --focus "job scout 0.12.15 employer reference live acceptance" --issue 57
 ```
 
 Read the generated packet, Issue #57, this handoff, and only the directly relevant query/reference files. Do not reread repository history. The authoritative runtime evidence is run `dcee77be-53c7-416a-be7c-b518f2240378`; the local report itself remains outside the public repository.

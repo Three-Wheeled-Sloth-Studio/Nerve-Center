@@ -109,6 +109,7 @@ def _progress_counts(values: dict[str, Any]) -> tuple[tuple[str, int], ...]:
         ("regional_aliases_discovered", "region_aliases"),
         ("reference_cache_hits", "reference_cache_hits"),
         ("reference_fetches_deferred", "reference_deferred"),
+        ("reference_network_fetches_attempted", "reference_fetches"),
         ("employer_candidates_discovered", "employer_candidates"),
         ("source_scans_completed", "scans_ok"),
         ("results_examined", "results"),
@@ -279,6 +280,7 @@ def _efficiency_summary(checkpoint: dict[str, Any]) -> dict[str, Any]:
                 "reference_pages_inspected",
                 "reference_cache_hits",
                 "reference_fetches_deferred",
+                "reference_network_fetches_attempted",
                 "employer_candidates_discovered",
             )
         },
@@ -712,7 +714,9 @@ def run(args: argparse.Namespace) -> int:
                 args.endpoint, "/api/v1/modules/job_scout/discovery/strategies"
             )
             discovery_audit = request_json(
-                args.endpoint, "/api/v1/modules/job_scout/discovery/audit"
+                args.endpoint,
+                "/api/v1/modules/job_scout/discovery/audit"
+                f"?run_id={urllib.parse.quote(run_id, safe='')}",
             )
             strategy_families = discovery_audit.get("strategy_families") or []
             reflections = request_json(

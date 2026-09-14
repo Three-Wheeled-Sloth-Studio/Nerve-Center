@@ -44,6 +44,7 @@ _REFERENCE_STAGE_COUNTERS = (
     "reference_pages_inspected",
     "reference_cache_hits",
     "reference_fetches_deferred",
+    "reference_network_fetches_attempted",
     "employer_candidates_discovered",
     "attachment_links_discovered",
     "attachment_fetches_attempted",
@@ -130,21 +131,25 @@ def install_job_scout(
 def _recent_reference_attempt_evidence(
     learning: DiscoveryQualityRepository,
     *,
+    run_id: str | None = None,
     limit: int = 64,
 ) -> list[dict[str, object]]:
-    """Return bounded recent reference-selection diagnostics for live-run audit."""
+    """Return bounded reference diagnostics, optionally scoped to one run."""
 
     scan_limit = max(limit * 4, 64)
     evidence: list[dict[str, object]] = []
     with learning.database.session() as session:
+        statement = select(
+            StrategyAttemptModel,
+            DiscoveryStrategyModel,
+        ).join(
+            DiscoveryStrategyModel,
+            StrategyAttemptModel.strategy_id == DiscoveryStrategyModel.id,
+        )
+        if run_id is not None:
+            statement = statement.where(StrategyAttemptModel.run_id == run_id)
         rows = session.execute(
-            select(StrategyAttemptModel, DiscoveryStrategyModel)
-            .join(
-                DiscoveryStrategyModel,
-                StrategyAttemptModel.strategy_id == DiscoveryStrategyModel.id,
-            )
-            .order_by(StrategyAttemptModel.finished_at.desc())
-            .limit(scan_limit)
+            statement.order_by(StrategyAttemptModel.finished_at.desc()).limit(scan_limit)
         ).all()
         for attempt, strategy in rows:
             detail = attempt.detail if isinstance(attempt.detail, dict) else {}
@@ -228,10 +233,11 @@ def _register_discovery_learning_routes(
         return rows
 
     @application.get("/api/v1/modules/job_scout/discovery/audit")
-    def get_discovery_audit() -> dict[str, object]:
+    def get_discovery_audit(run_id: str | None = None) -> dict[str, object]:
         audit = dict(learning.discovery_audit())
         audit["reference_attempt_evidence"] = _recent_reference_attempt_evidence(
-            learning
+            learning,
+            run_id=run_id,
         )
         return audit
 

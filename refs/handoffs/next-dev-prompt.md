@@ -1,7 +1,7 @@
 ---
 type: Development Prompt
 title: Next Development Prompt
-description: Ready-to-use prompt for the bounded Job Scout employer-reference source-acquisition correction.
+description: Ready-to-use prompt for the Job Scout 0.12.15 employer-reference live gate.
 status: stable
 tags: [nerve-center, handoff, job-scout, discovery, live-test]
 ---
@@ -17,7 +17,9 @@ Start from the latest clean `dev` head. The accepted green implementation baseli
 
 `fd6bc92838999ff144d9f5ec7369995fb340de4a`
 
-Nerve Center version is `0.12.14`.
+Nerve Center version is `0.12.15`.
+
+The source-acquisition correction is implemented and deterministically green locally. Do not repeat that implementation slice. The immediate next step is exact-head CI followed by the explicit-budget 15-minute live acceptance run below.
 
 The active tracking issue is **#57: Stratify Job Scout market exploration after regional live gate**. Leave it open until runtime acceptance is satisfied.
 
@@ -28,7 +30,7 @@ Do not reread repository history.
 First run:
 
 ```powershell
-python scripts/agent_context.py --focus "job scout local employer reference query intent fallback cooldown run scoped audit" --issue 57
+python scripts/agent_context.py --focus "job scout 0.12.15 employer reference live acceptance" --issue 57
 ```
 
 Treat that generated packet as derived orientation, not source of truth. Read at minimum:
@@ -101,13 +103,13 @@ A bounded fallback pool can improve useful acquisition without increasing the ac
 
 `_recent_reference_attempt_evidence()` is bounded by recency, not by `run_id`. Rows are attributable, but live acceptance should not require manual filtering across previous runs.
 
-## Implement this bounded slice
+## Implemented bounded slice — do not repeat
 
 ### 1. Make local-employer queries intent-pure
 
-For `major employers`, stop requiring generic authority terms like `chamber economic development` in the query.
+`major employers` no longer requires generic authority terms like `chamber economic development` in the query.
 
-Use a small deterministic employer-list vocabulary, for example concepts equivalent to:
+The current deterministic employer-list vocabulary is:
 
 - `major employers`
 - `largest employers`
@@ -120,13 +122,13 @@ Authority remains part of reference rank/provenance after retrieval.
 
 ### 2. Harden civic-reference eligibility
 
-For employer-landscape extraction, generically down-rank or exclude obvious civic self-employment/HR results such as municipal `Employment Opportunities`, jobs, or careers pages unless the result also carries clear employer/business landscape intent.
+Employer-landscape extraction excludes obvious civic self-employment/HR results unless the result also carries clear employer/business landscape intent.
 
 Do not suppress direct employer career results; those remain ordinary discovery inputs.
 
 ### 3. Add bounded fallback after deferred/invalid references
 
-Preserve more than two ranked civic *candidates* while keeping hard execution bounds:
+The implementation preserves up to six ranked civic *candidates* with hard execution bounds:
 
 - maximum 2 successfully acquired/inspected references per attempt;
 - explicit maximum network reference-fetch attempts per attempt;
@@ -137,13 +139,13 @@ Do not weaken cache/cooldown semantics and do not retry challenged sources early
 
 ### 4. Run-scope reference attempt evidence
 
-Make the live discovery audit expose current-run `reference_attempt_evidence` by default, or add/pass an explicit `run_id` filter.
+The live runner passes its current `run_id` to the discovery audit, which filters evidence before applying its bounded output limit.
 
 Preserve bounded output and row-level `run_id` for auditability.
 
 ### 5. Add deterministic fictional tests
 
-At minimum prove:
+Regression tests prove:
 
 - employer-list query compilation does not require generic authority vocabulary;
 - a generic government HR/employment page cannot outrank an actual employer-landscape reference;
@@ -162,11 +164,11 @@ At minimum prove:
 - Do not retune scoring or model selection in this slice; the latest run had 20/20 successful full scores.
 - Keep coding-agent context use bounded and token-efficient.
 
-## Validation
+## Completed deterministic validation
 
-Run normal repository verification and exact-head CI. Preserve generated OKF indexes when handoff metadata changes.
+The local baseline is 244 passing Python tests plus clean Ruff and diff checks. Run exact-head CI and preserve generated OKF indexes when handoff metadata changes.
 
-After deterministic validation, update:
+After exact-head CI and then after the live gate, update:
 
 - `refs/handoffs/currentHandoff.md`
 - `refs/handoffs/next-dev-prompt.md`
@@ -176,7 +178,7 @@ Do not close Issue #57 yet.
 
 ## Next live gate
 
-After the code is green, request the same explicit-budget local rerun:
+After exact-head CI is green, run the same explicit-budget local rerun:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\run_job_scout_live.py `

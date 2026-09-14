@@ -255,6 +255,7 @@ DEFAULT_COVERAGE: dict[str, Any] = {
     "reference_pages_inspected": 0,
     "reference_cache_hits": 0,
     "reference_fetches_deferred": 0,
+    "reference_network_fetches_attempted": 0,
     "employer_candidates_discovered": 0,
     "results_examined": 0,
     "companies_discovered": 0,
@@ -266,6 +267,8 @@ DEFAULT_COVERAGE: dict[str, Any] = {
     "reflection_hypotheses": 0,
     "provider_warnings": [],
 }
+
+MARKET_REFERENCE_QUERY_REVISION = "market_reference_v5"
 
 
 _FEEDBACK_MAGNITUDE = {
@@ -393,6 +396,23 @@ class JobScoutDiscoveryRepository:
                 and item.dimensions.get("company_id") not in blocked_companies
                 and item.dimensions.get("source_id") not in blocked_sources
             ]
+            has_current_market_reference = any(
+                item.dimensions.get("hypothesis_family") == "local_employer"
+                and item.dimensions.get("query_revision")
+                == MARKET_REFERENCE_QUERY_REVISION
+                for item in candidates
+            )
+            if has_current_market_reference:
+                candidates = [
+                    item
+                    for item in candidates
+                    if not (
+                        item.dimensions.get("hypothesis_family") == "local_employer"
+                        and item.dimensions.get("query_revision")
+                        and item.dimensions.get("query_revision")
+                        != MARKET_REFERENCE_QUERY_REVISION
+                    )
+                ]
             if not candidates:
                 return []
             count = min(limit, len(candidates))
@@ -453,14 +473,14 @@ class JobScoutDiscoveryRepository:
                     for item in models
                     if item.dimensions.get("hypothesis_family") == "local_employer"
                     and item.dimensions.get("query_revision")
-                    == "market_reference_v4"
+                    == MARKET_REFERENCE_QUERY_REVISION
                 ]
                 revised_local_candidates = [
                     item
                     for item in candidates
                     if item.dimensions.get("hypothesis_family") == "local_employer"
                     and item.dimensions.get("query_revision")
-                    == "market_reference_v4"
+                    == MARKET_REFERENCE_QUERY_REVISION
                 ]
                 local_pool = revised_local_candidates or [
                     item

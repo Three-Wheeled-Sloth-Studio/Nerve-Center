@@ -231,16 +231,15 @@ def compile_strategy_query(
             True,
         )
 
-    if (
-        dimensions.get("hypothesis_family") == "local_employer"
-        and anchor.casefold() in {"major employers", "company headquarters"}
-    ):
+    if dimensions.get("hypothesis_family") == "local_employer" and anchor.casefold() in {
+        "major employers",
+        "largest employers",
+        "top employers",
+        "employer directory",
+        "company headquarters",
+    }:
         market_terms = _market_search_terms(location)
-        tail = (
-            "major employers chamber economic development"
-            if anchor.casefold() == "major employers"
-            else "company headquarters careers"
-        )
+        tail = anchor.casefold()
         return CompiledQuery(
             " ".join(clean_list([market_terms, tail])),
             "broad_web_reference",

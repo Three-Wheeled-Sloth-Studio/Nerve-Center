@@ -24,6 +24,7 @@ from nerve_center.persistence.discovery import (
 from nerve_center.plugins.job_scout.configuration import JobScoutCoordinator
 from nerve_center.plugins.job_scout.discovery_learning import JobScoutDiscoveryRepository
 from nerve_center.plugins.job_scout.discovery_loop import (
+    MAX_REFERENCE_NETWORK_FETCH_ATTEMPTS,
     JobScoutDiscoveryLoop,
     _extract_employer_landscape_names,
     _extract_regional_alias_evidence,
@@ -498,12 +499,18 @@ def test_deferred_reference_does_not_displace_an_eligible_directory(
 
         async def search_references(self, _query: str) -> list[SearchResult]:
             return [
+                SearchResult(
+                    title="Invalid",
+                    url="https://0-invalid.example.gov/employers",
+                ),
                 SearchResult(title="Deferred", url="https://a.example.gov/employers"),
                 SearchResult(title="First", url="https://b.example.gov/employers"),
                 SearchResult(title="Second", url="https://c.example.gov/employers"),
             ]
 
         def reference_cache_status(self, url: str) -> str:
+            if "invalid.example" in url:
+                return "invalid"
             return "retry_deferred" if "a.example" in url else "miss"
 
         async def fetch_reference(self, url: str) -> str:
@@ -537,6 +544,66 @@ def test_deferred_reference_does_not_displace_an_eligible_directory(
     assert requests == 3
     assert outcome.detail["stages"]["reference_fetches_deferred"] == 1
     assert outcome.detail["stages"]["reference_pages_inspected"] == 2
+    assert any(
+        item["status"] == "invalid"
+        for item in outcome.detail["stages"]["employer_reference_evidence"]
+    )
+
+
+def test_reference_network_failures_fall_through_only_to_explicit_cap(
+    tmp_path: Path,
+) -> None:
+    class FailingReferenceSearch:
+        fetched: list[str] = []
+
+        async def search(self, query: str) -> list[SearchResult]:
+            return await self.search_references(query)
+
+        async def search_references(self, _query: str) -> list[SearchResult]:
+            return [
+                SearchResult(
+                    title=f"Employer directory {index}",
+                    url=f"https://region-{index}.example.gov/employers",
+                )
+                for index in range(6)
+            ]
+
+        def reference_cache_status(self, _url: str) -> str:
+            return "miss"
+
+        async def fetch_reference(self, url: str) -> str:
+            self.fetched.append(url)
+            raise SearchChallengeError("synthetic reference challenge")
+
+    search = FailingReferenceSearch()
+    loop, learning, *_rest = _build_loop(
+        tmp_path,
+        search=search,  # type: ignore[arg-type]
+        strategies_per_cycle=1,
+    )
+    landscape = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer",
+            "anchor": "major employers",
+            "location": "Example, NC",
+            "source_domain": "web",
+        },
+        origin="fixture",
+    )
+
+    outcome, requests, _warnings = asyncio.run(loop._execute_public_search(landscape))
+
+    stages = outcome.detail["stages"]
+    assert len(search.fetched) == MAX_REFERENCE_NETWORK_FETCH_ATTEMPTS
+    assert requests == 1 + MAX_REFERENCE_NETWORK_FETCH_ATTEMPTS
+    assert stages["reference_network_fetches_attempted"] == (
+        MAX_REFERENCE_NETWORK_FETCH_ATTEMPTS
+    )
+    assert sum(
+        item["status"] == "network_fetch_cap"
+        for item in stages["employer_reference_evidence"]
+    ) == 3
 
 
 def test_regional_alias_probe_creates_learned_role_searches(tmp_path: Path) -> None:

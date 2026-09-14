@@ -216,7 +216,7 @@ def test_market_exploration_prefers_current_query_revision(tmp_path: Path) -> No
             "location": "Current Market, NC",
             "source_domain": "web",
             "market_rank": "1",
-            "query_revision": "market_reference_v4",
+            "query_revision": "market_reference_v5",
         },
         origin="market",
     )
@@ -238,7 +238,7 @@ def test_current_market_attempt_moves_selection_to_next_market(tmp_path: Path) -
             "location": "First Market, NC",
             "source_domain": "web",
             "market_rank": "0",
-            "query_revision": "market_reference_v4",
+            "query_revision": "market_reference_v5",
         },
         origin="market",
     )
@@ -250,7 +250,7 @@ def test_current_market_attempt_moves_selection_to_next_market(tmp_path: Path) -
             "location": "First Market, NC",
             "source_domain": "web",
             "market_rank": "0",
-            "query_revision": "market_reference_v4",
+            "query_revision": "market_reference_v5",
         },
         origin="market",
     )
@@ -262,7 +262,7 @@ def test_current_market_attempt_moves_selection_to_next_market(tmp_path: Path) -
             "location": "Second Market, NC",
             "source_domain": "web",
             "market_rank": "1",
-            "query_revision": "market_reference_v4",
+            "query_revision": "market_reference_v5",
         },
         origin="market",
     )

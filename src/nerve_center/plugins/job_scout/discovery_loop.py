@@ -91,6 +91,9 @@ class _RequestAllowanceExhausted(RuntimeError):
     pass
 
 
+MAX_REFERENCE_NETWORK_FETCH_ATTEMPTS = 3
+
+
 class PublicCareerSurfaceResolver:
     """Inspect one public employer career page for ATS and sitemap surfaces."""
 
@@ -329,6 +332,7 @@ class JobScoutDiscoveryLoop:
             "reference_pages_inspected": 0,
             "reference_cache_hits": 0,
             "reference_fetches_deferred": 0,
+            "reference_network_fetches_attempted": 0,
             "employer_candidates_discovered": 0,
             "results_examined": 0,
             "companies_discovered": 0,
@@ -383,6 +387,7 @@ class JobScoutDiscoveryLoop:
                     "reference_pages_inspected",
                     "reference_cache_hits",
                     "reference_fetches_deferred",
+                    "reference_network_fetches_attempted",
                     "employer_candidates_discovered",
                 ):
                     increments[key] += max(int(stages.get(key, 0)), 0)
@@ -738,17 +743,31 @@ class JobScoutDiscoveryLoop:
         reference_pages_inspected = 0
         reference_cache_hits = 0
         reference_fetches_deferred = 0
+        reference_network_fetches_attempted = 0
         reference_evidence: list[dict[str, Any]] = []
         if strategy.dimensions.get("hypothesis_family") == "local_employer":
             fetch_reference = getattr(self.search_adapter, "fetch_reference", None)
-            reference_results = sorted(
-                (
-                    item
-                    for item in inspected_results
-                    if item.classification is UrlClassification.OTHER
-                    and _is_civic_reference_result(item)
-                ),
-                key=_civic_reference_rank,
+            reference_eligible = getattr(
+                self.search_adapter,
+                "is_civic_reference_eligible",
+                None,
+            )
+            reference_results = [
+                item
+                for item in inspected_results
+                if item.classification is UrlClassification.OTHER
+                and _is_civic_reference_result(item)
+                and (reference_eligible is None or reference_eligible(item))
+            ]
+            rank_references = getattr(
+                self.search_adapter,
+                "rank_civic_references",
+                None,
+            )
+            reference_results = (
+                rank_references(reference_results)
+                if rank_references is not None
+                else sorted(reference_results, key=_civic_reference_rank)
             )
             references_acquired = 0
             for result in reference_results:
@@ -764,21 +783,41 @@ class JobScoutDiscoveryLoop:
                     if cache_status_method is not None
                     else "miss"
                 )
-                if cache_status == "retry_deferred":
-                    reference_fetches_deferred += 1
+                if cache_status in {"retry_deferred", "invalid"}:
+                    reference_fetches_deferred += int(cache_status == "retry_deferred")
                     reference_evidence.append(
                         {
                             "url": result.url,
-                            "status": "retry_deferred",
+                            "status": cache_status,
+                            "candidate_count": 0,
+                        }
+                    )
+                    continue
+                if cache_status != "hit" and (
+                    reference_network_fetches_attempted
+                    >= MAX_REFERENCE_NETWORK_FETCH_ATTEMPTS
+                ):
+                    reference_evidence.append(
+                        {
+                            "url": result.url,
+                            "status": "network_fetch_cap",
                             "candidate_count": 0,
                         }
                     )
                     continue
                 if cache_status != "hit" and allowance.exhausted:
-                    break
+                    reference_evidence.append(
+                        {
+                            "url": result.url,
+                            "status": "request_budget_exhausted",
+                            "candidate_count": 0,
+                        }
+                    )
+                    continue
                 try:
                     if cache_status != "hit":
                         allowance.reserve()
+                        reference_network_fetches_attempted += 1
                     fetched = await fetch_reference(result.url)
                 except (RuntimeError, SearchChallengeError) as error:
                     warnings.append(str(error))
@@ -931,6 +970,9 @@ class JobScoutDiscoveryLoop:
                         "reference_pages_inspected": reference_pages_inspected,
                         "reference_cache_hits": reference_cache_hits,
                         "reference_fetches_deferred": reference_fetches_deferred,
+                        "reference_network_fetches_attempted": (
+                            reference_network_fetches_attempted
+                        ),
                         "employer_candidates_discovered": employer_candidates,
                         "employer_reference_evidence": reference_evidence,
                     },

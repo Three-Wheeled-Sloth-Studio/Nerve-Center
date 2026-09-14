@@ -69,8 +69,30 @@ def test_reference_attempt_evidence_is_bounded_and_run_attributed(tmp_path: Path
         "expand",
         StrategyOutcome(detail={"stages": {"search_results_returned": 2}}),
     )
+    learning.record_attempt(
+        "run-historical-reference",
+        6,
+        strategy.id,
+        "expand",
+        StrategyOutcome(
+            detail={
+                "stages": {
+                    "reference_selection_evidence": [
+                        {
+                            "url": "https://historical.example.org/employers",
+                            "selected": True,
+                        }
+                    ]
+                }
+            }
+        ),
+    )
 
-    rows = _recent_reference_attempt_evidence(learning, limit=1)
+    rows = _recent_reference_attempt_evidence(
+        learning,
+        run_id="run-reference",
+        limit=64,
+    )
 
     assert len(rows) == 1
     row = rows[0]
