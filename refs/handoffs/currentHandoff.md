@@ -11,7 +11,7 @@ tags: [nerve-center, handoff]
 
 - `dev` is the accepted integration branch. The current user directive is to work directly on `dev` and not create feature branches.
 - Accepted `dev` entering Issue #56 is `a211c076ccca`.
-- Application version is `0.12.9`.
+- Application version is `0.12.10`.
 - The manager/module boundary, durable work sessions and queue, provider-neutral LLM manager, Windows desktop/package baseline, career evidence profile, company-first Job Scout discovery, scoring, application tracking, durable discovery learning, and first Model Lab foundation are accepted.
 - Job Scout remains an iterative market-research loop: `expand -> converge -> deepen -> reflect -> re-expand`. Discovery optimizes recall; ranking/scoring provides precision.
 - Issue #34 continuous-work/liveness is complete. The accepted 900-second run completed 89 cycles across 20 waves, retained 121 opportunities from 49 companies and 70 career sources, created 212 provisional scores, completed 3/3 bounded full analyses, continued through added and empty reflections, and stopped explicitly on request-budget exhaustion.
@@ -156,7 +156,15 @@ Run `3e358fd2-7249-4fd7-94d3-1a1b8872fc19` completed ten minutes with 81 request
 
 Run `6dd77d7c-8eec-4424-905f-b2943103f527` then confirmed current-revision allocation starts with Greensboro, learned four aliases, and added ten companies and eleven sources in five minutes. Its evidence exposed a second persisted-history bug that allowed the other Greensboro angle to run before the next market; the final `0.12.9` selection logic and regression test correct that behavior.
 
-The next Job Scout acquisition slice should integrate a bounded, cacheable structured-public-employer source or retryable civic-directory path. It must keep provenance/cooldowns inspectable and use Volvo Group in Greensboro and Wolfspeed in Durham only as runtime acceptance checks, never production rules. A separate scoring-quality slice is also now urgent: both local models produced repeated schema/invalid-response failures, and the two confirmation runs completed 0/8 and 0/4 full scores respectively.
+The next Job Scout acquisition slice should integrate a bounded, cacheable structured-public-employer source or retryable civic-directory path. It must keep provenance/cooldowns inspectable and use Volvo Group in Greensboro and Wolfspeed in Durham only as runtime acceptance checks, never production rules. At this checkpoint both local models also produced repeated schema/invalid-response failures and the two confirmation runs completed 0/8 and 0/4 full scores; Issue #58 below resolves that completion blocker.
+
+## Completed slice: Issue #58
+
+Issue **#58: Repair strict-schema model output before fallback** is implemented in `0.12.10`. The Ollama adapter now performs full JSON Schema validation inside its bounded repair loop instead of accepting any object/list and leaving the first contract check to the manager. Missing fields, invalid enums/types, scalar roots, malformed JSON, and exhausted repairs have deterministic coverage. Repair prompts include only a safe validator and JSON path; provider telemetry continues to retain no generated content.
+
+The provider grammar now retains constraints demonstrated to work on the installed Ollama runtime: numeric ranges, minimum string length, and array bounds. Nested `maxLength` remains manager-enforced because the runtime returned HTTP 400 while compiling that grammar. The fit response contract also caps qualifications at the eight items already specified by its prompt and post-processing.
+
+The seven-minute gate, run `e284029f-b796-4fd6-8b0e-6b9c3222f1f5`, stopped successfully on planned admission draining with exact accounting. It completed 5/5 full scores with zero failures, consumed 44/500 requests and 9/60 LLM calls, and learned four regional aliases while scoring. All five fit calls exhausted Gemma's single repair before falling back; all five then succeeded on the first Qwen response. General reflection calls remained on Gemma and succeeded after bounded repair. Structured completion is no longer the immediate blocker; ranking evidence quality should be evaluated separately from schema reliability.
 
 ### Remaining runtime acceptance criteria
 

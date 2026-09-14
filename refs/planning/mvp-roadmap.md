@@ -9,7 +9,7 @@ tags: [nerve-center, planning, roadmap]
 
 > Product intent and non-negotiable boundaries are defined in `refs/planning/product-requirements-document.md`. This roadmap orders implementation; it does not redefine the product.
 
-## Accepted baseline through 0.12.9
+## Accepted baseline through 0.12.10
 
 The repository contains a working local API, durable SQLite foundation, manager-owned scheduling and work queues, provider-neutral local LLM routing, the Job Scout reference workflow, a Tauri/React desktop shell, Windows packaging/runtime bootstrap, an iterative company-first discovery/scoring loop, and the first manager-owned Model Lab foundation.
 
@@ -248,7 +248,15 @@ Issue **#57: Stratify Job Scout market exploration after regional live gate** is
 
 Live run `3e358fd2-7249-4fd7-94d3-1a1b8872fc19` discovered six provenance-bearing aliases, including Piedmont Triad, Research Triangle, and Central Pines, while inspecting seven civic pages. It retained two roles and added 18 companies, but extracted zero employer candidates and did not reach Volvo Group or Wolfspeed. A subsequent five-minute confirmation, run `6dd77d7c-8eec-4424-905f-b2943103f527`, proved the revised Greensboro market query was admitted first, learned four regional aliases, and added ten companies plus eleven sources. It also exposed that same-market query variants were still consecutive; `0.12.9` corrects that persisted-history defect and has deterministic coverage for the reset.
 
-The next acquisition slice must add a standards-compliant, cacheable path for structured public employer directories or retryable civic employer pages, preserving source provenance and normal cooldown behavior. It must rerun the representative Volvo Group/Wolfspeed check without named-company rules. Separately, local fit scoring remains unreliable: the confirmation completed zero full scores and schema/invalid-response failures persisted under both `gemma3:4b` and the `qwen2.5:7b-instruct` fallback. That requires a focused structured-output contract/evaluation slice rather than more retries.
+The next acquisition slice must add a standards-compliant, cacheable path for structured public employer directories or retryable civic employer pages, preserving source provenance and normal cooldown behavior. It must rerun the representative Volvo Group/Wolfspeed check without named-company rules. At this checkpoint local fit scoring was also unreliable: the confirmation completed zero full scores and schema/invalid-response failures persisted under both configured models. Issue #58 below resolves that completion blocker.
+
+## Manager-owned structured-output repair (implemented)
+
+Issue **#58: Repair strict-schema model output before fallback** is implemented in `0.12.10`. The generic Ollama adapter now validates each decoded object against the complete manager-supplied JSON Schema. A schema-invalid result receives one bounded same-model repair with a safe validator/path hint; generated values are not persisted in that diagnostic. Only repair exhaustion returns control to manager fallback, preserving `gemma3:4b` as the primary model and `qwen2.5:7b-instruct` as the strict-schema fallback.
+
+The Ollama grammar receives the empirically supported numeric, minimum-length, and array-size constraints while manager validation remains authoritative for the full contract. Maximum string length is intentionally omitted from the provider grammar because the installed Ollama runtime rejects nested schemas containing `maxLength`; the manager still enforces it after generation. Job-fit output is bounded to the eight qualifications already required by the scoring prompt and deterministic post-processing.
+
+Live run `e284029f-b796-4fd6-8b0e-6b9c3222f1f5` passed the short scoring gate with 5/5 successful full scores, zero scoring failures, 44/500 requests, and 9/60 LLM calls. Each fit request tried and repaired Gemma first, then succeeded on Qwen without a Qwen repair; general discovery reflections remained on Gemma and succeeded after its bounded repair. This replaces the prior 0/8 and 0/4 evidence and makes the remaining structured-scoring work a quality-evaluation concern rather than a basic completion blocker.
 
 ## Code Shop second reference-module foundation (staged)
 

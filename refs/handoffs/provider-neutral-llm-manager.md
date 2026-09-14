@@ -102,3 +102,9 @@ Implement Increment 12, Model Lab:
 3. Add bounded exploration scheduling outside module priority.
 4. Add historical request replay and blinded pairwise review.
 5. Surface catalog, evidence, and exploration controls in a manager-owned Model Lab UI.
+
+## Structured repair hardening (0.12.10)
+
+Issue #58 moved full JSON Schema validation into the Ollama adapter's existing bounded repair loop. A decoded object/list that violates the requested contract now receives one same-model repair before manager fallback. The repair hint contains only the failed validator and JSON path, never a generated value. Manager routing remains primary Gemma, strict-schema fallback Qwen, and module-blind.
+
+The installed Ollama runtime accepts numeric bounds, `minLength`, and array-size constraints in the grammar but rejects the nested fit schema when `maxLength` is present. The compatibility projection therefore omits only that unsupported keyword while manager validation continues to enforce the complete original schema. Run `e284029f-b796-4fd6-8b0e-6b9c3222f1f5` completed 5/5 full Job Scout scores with zero failures under this contract.

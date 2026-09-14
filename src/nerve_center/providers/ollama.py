@@ -11,6 +11,8 @@ from typing import Any
 from uuid import uuid4
 
 import httpx
+from jsonschema import Draft202012Validator, SchemaError
+from jsonschema import ValidationError as JsonSchemaValidationError
 from pydantic import BaseModel, ValidationError
 
 from nerve_center.providers.base import (
@@ -213,6 +215,15 @@ class OllamaProvider:
         prompt_eval_count: int | None = None
         eval_count: int | None = None
         compatible_schema = _ollama_schema(output_schema)
+        try:
+            Draft202012Validator.check_schema(output_schema)
+        except SchemaError as schema_error:
+            raise ProviderError(
+                self.name,
+                "INVALID_OUTPUT_SCHEMA",
+                "The requested structured-output schema is invalid.",
+            ) from schema_error
+        validator = Draft202012Validator(output_schema)
         grounded_prompt = (
             f"{user_prompt.rstrip()}\n\n"
             "Return only data matching this JSON schema:\n"
@@ -260,17 +271,35 @@ class OllamaProvider:
                         )
                         error.__cause__ = decode_error
                     else:
-                        if isinstance(value, (dict, list)):
-                            break
-                        error = ProviderError(
-                            self.name,
-                            "INVALID_RESPONSE",
-                            "Ollama returned a scalar instead of structured JSON.",
-                        )
+                        if not isinstance(value, (dict, list)):
+                            error = ProviderError(
+                                self.name,
+                                "INVALID_RESPONSE",
+                                "Ollama returned a scalar instead of structured JSON.",
+                            )
+                        else:
+                            try:
+                                validator.validate(value)
+                                break
+                            except JsonSchemaValidationError as validation_error:
+                                error = ProviderError(
+                                    self.name,
+                                    "SCHEMA_VALIDATION_FAILED",
+                                    (
+                                        "Ollama returned structured JSON outside the "
+                                        "required contract. "
+                                        f"{_safe_failure_hint(validation_error)}"
+                                    ),
+                                )
+                                error.__cause__ = validation_error
                 if retry_count >= self.max_retries:
                     raise error
                 retry_count += 1
-                body = _repair_body(body, output_text)
+                body = _repair_body(
+                    body,
+                    output_text,
+                    failure_hint=_safe_failure_hint(error.__cause__),
+                )
                 await asyncio.sleep(0.2 * retry_count)
             status = "succeeded"
             metadata = ProviderCallMetadata(
@@ -419,6 +448,11 @@ def _ollama_schema(schema: dict[str, Any]) -> dict[str, Any]:
         "enum",
         "anyOf",
         "additionalProperties",
+        "minimum",
+        "maximum",
+        "minLength",
+        "minItems",
+        "maxItems",
     }
 
     def simplify(value: object) -> object:
@@ -466,7 +500,12 @@ def _decode_json_output(value: str) -> object:
         return decoded
 
 
-def _repair_body(body: dict[str, Any], invalid_output: str) -> dict[str, Any]:
+def _repair_body(
+    body: dict[str, Any],
+    invalid_output: str,
+    *,
+    failure_hint: str | None = None,
+) -> dict[str, Any]:
     """Ask the same local model to repair one malformed structured response."""
 
     messages = list(body.get("messages") or [])
@@ -478,11 +517,24 @@ def _repair_body(body: dict[str, Any], invalid_output: str) -> dict[str, Any]:
                 "content": (
                     "The previous response was incomplete or invalid. Return one complete JSON "
                     "value matching the required schema, with no markdown or explanation."
+                    + (f" Structural failure: {failure_hint}" if failure_hint else "")
                 ),
             },
         ]
     )
     return {**body, "messages": messages}
+
+
+def _safe_failure_hint(error: BaseException | None) -> str | None:
+    """Describe a schema failure without retaining model-generated values."""
+
+    if not isinstance(error, JsonSchemaValidationError):
+        return None
+    path = "$"
+    for part in error.absolute_path:
+        path += f"[{part}]" if isinstance(part, int) else f".{part}"
+    validator = str(error.validator or "schema")
+    return f"validator '{validator}' failed at {path}."
 
 
 def _parse_datetime(value: object) -> datetime | None:

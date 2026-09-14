@@ -215,7 +215,7 @@ class ExtractedQualificationAssessment(BaseModel):
 
 
 class FitAnalysisResponse(BaseModel):
-    qualifications: list[ExtractedQualificationAssessment]
+    qualifications: list[ExtractedQualificationAssessment] = Field(max_length=8)
     seniority_score: float = Field(ge=0, le=100)
     domain_score: float = Field(ge=0, le=100)
     leadership_score: float = Field(ge=0, le=100)

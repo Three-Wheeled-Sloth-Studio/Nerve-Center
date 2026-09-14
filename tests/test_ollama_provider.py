@@ -2,11 +2,12 @@ import asyncio
 import json
 
 import httpx
+import pytest
 from pydantic import BaseModel
 
 from nerve_center.providers.base import ProviderCallMetadata
 from nerve_center.providers.errors import ProviderError
-from nerve_center.providers.ollama import OllamaProvider
+from nerve_center.providers.ollama import OllamaProvider, _ollama_schema
 
 
 class ExampleResponse(BaseModel):
@@ -20,6 +21,27 @@ class CaptureTelemetry:
 
     def record(self, metadata: ProviderCallMetadata) -> None:
         self.items.append(metadata)
+
+
+def test_ollama_schema_retains_supported_bounds_and_drops_max_length() -> None:
+    schema = _ollama_schema(
+        {
+            "type": "object",
+            "properties": {
+                "score": {"type": "number", "minimum": 0, "maximum": 1},
+                "items": {"type": "array", "minItems": 1, "maxItems": 8},
+                "label": {"type": "string", "minLength": 1, "maxLength": 100},
+            },
+        }
+    )
+
+    assert schema["properties"]["score"] == {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1,
+    }
+    assert schema["properties"]["items"]["maxItems"] == 8
+    assert schema["properties"]["label"] == {"type": "string", "minLength": 1}
 
 
 def test_lists_models_and_parses_details() -> None:
@@ -124,6 +146,11 @@ def test_generates_model_blind_json_contract() -> None:
         payload = json.loads(request.content)
         assert payload["model"] == "qwen3:8b"
         assert payload["format"]["required"] == ["score"]
+        assert payload["format"]["properties"]["score"] == {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+        }
         return httpx.Response(
             200,
             json={"message": {"content": '{"score":88}'}, "eval_count": 5},
@@ -138,7 +165,9 @@ def test_generates_model_blind_json_contract() -> None:
             user_prompt="user",
             output_schema={
                 "type": "object",
-                "properties": {"score": {"type": "integer"}},
+                "properties": {
+                    "score": {"type": "integer", "minimum": 0, "maximum": 100}
+                },
                 "required": ["score"],
             },
             contract_version="example-v1",
@@ -209,3 +238,116 @@ def test_model_blind_json_retries_one_invalid_structured_response() -> None:
     assert calls == 2
     assert result.value == {"score": 88}
     assert result.metadata.retry_count == 1
+
+
+@pytest.mark.parametrize(
+    ("invalid", "validator"),
+    [
+        ('{"label":"missing score"}', "required"),
+        ('{"score":"high"}', "type"),
+        ('{"score":50,"status":"maybe"}', "enum"),
+    ],
+)
+def test_model_blind_json_repairs_schema_invalid_objects(
+    invalid: str,
+    validator: str,
+) -> None:
+    calls = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        payload = json.loads(request.content)
+        if calls == 2:
+            repair_prompt = payload["messages"][-1]["content"]
+            assert f"validator '{validator}'" in repair_prompt
+            assert invalid not in repair_prompt
+        content = invalid if calls == 1 else '{"score":88,"status":"accepted"}'
+        return httpx.Response(200, json={"message": {"content": content}})
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    provider = OllamaProvider(client=client, max_retries=1)
+    result = asyncio.run(
+        provider.generate_json(
+            model="qwen2.5:7b-instruct",
+            system_prompt="system",
+            user_prompt="user",
+            output_schema={
+                "type": "object",
+                "properties": {
+                    "score": {"type": "integer"},
+                    "status": {"type": "string", "enum": ["accepted", "rejected"]},
+                },
+                "required": ["score", "status"],
+                "additionalProperties": False,
+            },
+            contract_version="example-v1",
+        )
+    )
+    asyncio.run(client.aclose())
+
+    assert calls == 2
+    assert result.value == {"score": 88, "status": "accepted"}
+    assert result.metadata.retry_count == 1
+
+
+def test_model_blind_json_reports_exhausted_schema_repair() -> None:
+    telemetry = CaptureTelemetry()
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"message": {"content": '{"score":"bad"}'}})
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    provider = OllamaProvider(client=client, telemetry=telemetry, max_retries=1)
+    with pytest.raises(ProviderError) as caught:
+        asyncio.run(
+            provider.generate_json(
+                model="qwen2.5:7b-instruct",
+                system_prompt="system",
+                user_prompt="user",
+                output_schema={
+                    "type": "object",
+                    "properties": {"score": {"type": "integer"}},
+                    "required": ["score"],
+                },
+                contract_version="example-v1",
+            )
+        )
+    asyncio.run(client.aclose())
+
+    assert caught.value.code == "SCHEMA_VALIDATION_FAILED"
+    assert caught.value.retry_count == 1
+    assert telemetry.items[0].error_code == "SCHEMA_VALIDATION_FAILED"
+    assert telemetry.items[0].retry_count == 1
+
+
+def test_model_blind_json_rejects_scalar_then_repairs() -> None:
+    calls = 0
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        content = '42' if calls == 1 else '{"score":42}'
+        return httpx.Response(200, json={"message": {"content": content}})
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    provider = OllamaProvider(client=client, max_retries=1)
+    result = asyncio.run(
+        provider.generate_json(
+            model="gemma3:4b",
+            system_prompt="system",
+            user_prompt="user",
+            output_schema={
+                "type": "object",
+                "properties": {
+                    "score": {"type": "integer", "minimum": 0, "maximum": 100}
+                },
+                "required": ["score"],
+            },
+            contract_version="example-v1",
+        )
+    )
+    asyncio.run(client.aclose())
+
+    assert calls == 2
+    assert result.value == {"score": 42}
