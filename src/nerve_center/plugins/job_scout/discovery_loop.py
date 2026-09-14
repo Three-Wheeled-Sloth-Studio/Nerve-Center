@@ -841,6 +841,7 @@ class JobScoutDiscoveryLoop:
                 reference_evidence.append(
                     {
                         "url": document.url,
+                        "requested_url": result.url,
                         "status": "inspected",
                         "candidate_count": len(candidates),
                         "cache_status": document.cache_status,

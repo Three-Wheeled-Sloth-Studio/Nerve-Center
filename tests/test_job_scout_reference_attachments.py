@@ -410,6 +410,27 @@ class _AttachmentReferenceSearch:
         )
 
 
+class _ExtensionlessPdfReferenceSearch(_AttachmentReferenceSearch):
+    def __init__(self, content: bytes) -> None:
+        super().__init__("")
+        self.reference_url = "https://region.example.gov/employer-report"
+        self.final_url = "https://region.example.gov/document/view/42"
+        self.content = content
+
+    async def search_references(self, _query: str) -> list[SearchResult]:
+        return [SearchResult(title="Largest Employers", url=self.reference_url)]
+
+    async def fetch_reference(self, url: str) -> ReferenceDocument:
+        assert url == self.reference_url
+        return ReferenceDocument(
+            url=self.final_url,
+            text="",
+            content_type="application/pdf",
+            cache_status="hit",
+            content=self.content,
+        )
+
+
 class _FixtureAttachmentFetcher:
     def __init__(
         self,
@@ -552,6 +573,69 @@ def test_deferred_attachment_skips_to_eligible_and_remains_hypothesis(
     assert hypotheses[0].dimensions["employer_evidence_extraction_method"] == (
         "delimited_employer_field"
     )
+
+
+def test_extensionless_pdf_reference_reuses_response_in_document_parser(
+    tmp_path: Path,
+) -> None:
+    search = _ExtensionlessPdfReferenceSearch(
+        _pdf_bytes(
+            [
+                "Regional Workforce Brief",
+                "Largest Employers",
+                "Employer Employees",
+                "Fictional Beacon Works 900",
+                "Imaginary River Systems 700",
+                "Contact",
+            ]
+        )
+    )
+    attachments = _FixtureAttachmentFetcher({}, {})
+    loop, learning, companies = _build_attachment_loop(
+        tmp_path,
+        search=search,
+        attachments=attachments,
+    )
+    asyncio.run(loop.prepare("run-extensionless-pdf"))
+    landscape = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer",
+            "anchor": "major employers",
+            "location": "Example, NC",
+            "source_domain": "web",
+        },
+        origin="fixture",
+    )
+
+    outcome, requests, _warnings = asyncio.run(
+        loop._execute_public_search(landscape)
+    )
+
+    stages = outcome.detail["stages"]
+    hypotheses = [
+        item
+        for item in learning.list_strategies()
+        if item.dimensions.get("hypothesis_family") == "local_employer_deepen"
+    ]
+    assert requests == 1
+    assert attachments.calls == []
+    assert stages["attachment_fetches_attempted"] == 0
+    assert stages["attachment_documents_parsed"] == 1
+    assert stages["attachment_employer_candidates_extracted"] == 2
+    assert len(companies.list()) == 0
+    assert {item.dimensions["anchor"] for item in hypotheses} == {
+        "Fictional Beacon Works",
+        "Imaginary River Systems",
+    }
+    evidence = stages["attachment_reference_evidence"]
+    assert evidence[0]["parent_page_url"] == search.reference_url
+    assert evidence[0]["attachment_url"] == search.final_url
+    assert evidence[0]["content_type"] == "application/pdf"
+    assert evidence[0]["status"] == "parsed"
+    reference = stages["employer_reference_evidence"][0]
+    assert reference["requested_url"] == search.reference_url
+    assert reference["url"] == search.final_url
 
 
 def test_attachment_request_cap_and_candidate_limit_hold_in_discovery(tmp_path: Path) -> None:

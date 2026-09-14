@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import re
 from dataclasses import dataclass
 from datetime import timedelta
@@ -14,7 +15,11 @@ from urllib.parse import parse_qs, quote_plus, urlsplit
 import httpx
 from pydantic import BaseModel, ConfigDict
 
-from nerve_center.discovery.fetching import DomainRequestGate, HttpFetcher
+from nerve_center.discovery.fetching import (
+    DomainRequestGate,
+    HttpFetcher,
+    ResponseTooLargeError,
+)
 from nerve_center.discovery.normalization import canonicalize_url
 from nerve_center.persistence.discovery import SearchCacheRepository
 
@@ -51,6 +56,10 @@ class ReferenceDocument:
     text: str
     content_type: str
     cache_status: str
+    content: bytes = b""
+
+
+MAX_PUBLIC_REFERENCE_BYTES = 4_000_000
 
 
 class SearchAdapter(Protocol):
@@ -84,6 +93,14 @@ class _PublicSearchResultParser(HTMLParser):
         self.anchors.append((self._href, " ".join("".join(self._parts).split())))
         self._href = None
         self._parts = []
+
+
+def _is_supported_binary_reference(content_type: str) -> bool:
+    mime = content_type.split(";", 1)[0].strip().casefold()
+    return mime in {
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    }
 
 
 class PublicWebSearchAdapter:
@@ -136,11 +153,17 @@ class PublicWebSearchAdapter:
                     str(cached.get("message") or "Public reference is cooling down.")
                 )
             if status == "succeeded":
+                encoded = str(cached.get("content_b64") or "")
+                try:
+                    content = base64.b64decode(encoded, validate=True) if encoded else b""
+                except (ValueError, TypeError):
+                    content = b""
                 return ReferenceDocument(
                     url=str(cached.get("url") or canonical_url),
                     text=str(cached.get("text") or ""),
                     content_type=str(cached.get("content_type") or ""),
                     cache_status="hit",
+                    content=content,
                 )
 
         try:
@@ -151,7 +174,17 @@ class PublicWebSearchAdapter:
                         "application/json,text/html,application/xhtml+xml;q=0.9,*/*;q=0.5"
                     )
                 },
+                max_bytes=MAX_PUBLIC_REFERENCE_BYTES,
             )
+        except ResponseTooLargeError as error:
+            message = "Public reference exceeded the bounded response-size limit."
+            self.cache.put(
+                cache_provider,
+                canonical_url,
+                {"status": "failed", "message": message},
+                ttl=timedelta(days=1),
+            )
+            raise SearchChallengeError(message) from error
         except httpx.RequestError as error:
             message = "The public reference page could not be reached; retry later."
             self.cache.put(
@@ -183,11 +216,18 @@ class PublicWebSearchAdapter:
                 ttl=timedelta(minutes=15),
             )
             raise SearchChallengeError(message)
+        content_type = response.headers.get("content-type", "")
+        binary_content = (
+            response.content
+            if _is_supported_binary_reference(content_type)
+            else b""
+        )
         document = ReferenceDocument(
             url=response.url,
-            text=response.text[:2_000_000],
-            content_type=response.headers.get("content-type", ""),
+            text="" if binary_content else response.text[:2_000_000],
+            content_type=content_type,
             cache_status="miss",
+            content=binary_content,
         )
         self.cache.put(
             cache_provider,
@@ -197,6 +237,11 @@ class PublicWebSearchAdapter:
                 "url": document.url,
                 "text": document.text,
                 "content_type": document.content_type,
+                "content_b64": (
+                    base64.b64encode(binary_content).decode("ascii")
+                    if binary_content
+                    else ""
+                ),
             },
             ttl=timedelta(days=1),
         )

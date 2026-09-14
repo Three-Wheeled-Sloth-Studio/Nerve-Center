@@ -15,6 +15,7 @@ from nerve_center.discovery.models import (
 )
 from nerve_center.discovery.plugin import JobDiscoveryTaskPlugin
 from nerve_center.discovery.search import (
+    MAX_PUBLIC_REFERENCE_BYTES,
     PlaywrightSearchAdapter,
     PublicWebSearchAdapter,
     ReferenceDocument,
@@ -250,6 +251,47 @@ def test_public_reference_fetch_is_durably_cached(tmp_path: Path) -> None:
     assert second.cache_status == "hit"
     assert second.text == first.text
     assert calls == 1
+
+
+def test_extensionless_binary_reference_is_bounded_and_cached(tmp_path: Path) -> None:
+    database = Database(Settings(data_dir=tmp_path / "runtime"))
+    database.initialize()
+    calls: list[dict[str, object]] = []
+    content = b"%PDF-fictional-directory"
+
+    class FakeFetcher:
+        async def get(self, url: str, **kwargs: object) -> FetchResponse:
+            calls.append(kwargs)
+            return FetchResponse(
+                url="https://data.example.gov/document/view/42",
+                status_code=200,
+                text="",
+                headers={"content-type": "application/pdf"},
+                challenged=False,
+                throttled=False,
+                content=content,
+            )
+
+    cache = SearchCacheRepository(database)
+    first_adapter = PublicWebSearchAdapter(cache, fetcher=FakeFetcher())  # type: ignore[arg-type]
+    first = asyncio.run(
+        first_adapter.fetch_reference("https://data.example.gov/employer-report")
+    )
+    second_adapter = PublicWebSearchAdapter(cache, fetcher=FakeFetcher())  # type: ignore[arg-type]
+    second = asyncio.run(
+        second_adapter.fetch_reference("https://data.example.gov/employer-report")
+    )
+
+    assert first.content == content
+    assert second.content == content
+    assert second.cache_status == "hit"
+    assert second.url == "https://data.example.gov/document/view/42"
+    assert calls == [{
+        "headers": {
+            "Accept": "application/json,text/html,application/xhtml+xml;q=0.9,*/*;q=0.5"
+        },
+        "max_bytes": MAX_PUBLIC_REFERENCE_BYTES,
+    }]
 
 
 def test_public_reference_challenge_is_persistently_cooled_down(tmp_path: Path) -> None:

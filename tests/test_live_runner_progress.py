@@ -1,6 +1,8 @@
 import runpy
 from pathlib import Path
 
+import pytest
+
 _SCRIPT = runpy.run_path(
     str(Path(__file__).parents[1] / "scripts" / "run_job_scout_live.py")
 )
@@ -165,6 +167,71 @@ def test_monitor_submits_explicit_resource_policy(tmp_path, monkeypatch):
         "max_requests": 1200,
         "max_llm_calls": 75,
     }
+
+
+def test_monitor_tolerates_bounded_transient_status_timeout(
+    tmp_path, monkeypatch, capsys,
+):
+    monitor = _SCRIPT["monitor_session"]
+    run_calls = 0
+
+    def request(_endpoint, path, method="GET", payload=None):
+        nonlocal run_calls
+        if path.startswith("/api/v1/sessions?"):
+            return [{
+                "id": "session",
+                "status": "running",
+                "module_run_ids": {"job_scout": "run"},
+            }]
+        if path == "/api/v1/runs/run":
+            run_calls += 1
+            if run_calls == 1:
+                raise TimeoutError("fixture timeout")
+            return {
+                "status": "partial",
+                "checkpoint": {"terminal_reason": "no_work"},
+            }
+        raise AssertionError(path)
+
+    monkeypatch.setitem(monitor.__globals__, "request_json", request)
+    report = {}
+    final, _run_id = monitor(
+        "http://fixture", 1, 0, tmp_path / "report.json", report
+    )
+
+    assert final["status"] == "partial"
+    assert report["monitoring"] == {
+        "status_poll_timeouts": 1,
+        "consecutive_status_poll_timeouts": 0,
+        "consecutive_timeout_limit": 3,
+        "last_error": "",
+    }
+    assert "status poll timeout | consecutive=1 | limit=3" in capsys.readouterr().out
+
+
+def test_monitor_fails_after_consecutive_status_timeout_limit(
+    tmp_path, monkeypatch,
+):
+    monitor = _SCRIPT["monitor_session"]
+
+    def request(_endpoint, path, method="GET", payload=None):
+        if path.startswith("/api/v1/sessions?"):
+            return [{
+                "id": "session",
+                "status": "running",
+                "module_run_ids": {"job_scout": "run"},
+            }]
+        if path == "/api/v1/runs/run":
+            raise TimeoutError("fixture timeout")
+        raise AssertionError(path)
+
+    monkeypatch.setitem(monitor.__globals__, "request_json", request)
+    report = {}
+    with pytest.raises(RuntimeError, match="consecutive timeout limit"):
+        monitor("http://fixture", 1, 0, tmp_path / "report.json", report)
+
+    assert report["monitoring"]["status_poll_timeouts"] == 4
+    assert report["monitoring"]["consecutive_status_poll_timeouts"] == 4
 
 
 def test_workspace_configuration_preserves_effective_market_and_failure_limit(

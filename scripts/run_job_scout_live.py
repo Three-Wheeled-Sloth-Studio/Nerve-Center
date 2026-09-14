@@ -28,6 +28,7 @@ from nerve_center.scoring.fit import FIT_ANALYSIS_CONTRACT_VERSION
 
 TERMINAL_STATUSES = {"succeeded", "partial", "failed", "cancelled"}
 HEARTBEAT_SECONDS = 60.0
+MAX_CONSECUTIVE_STATUS_POLL_TIMEOUTS = 3
 
 
 def print_progress(message: str) -> None:
@@ -463,8 +464,40 @@ def monitor_session(
     remaining_seconds = _remaining_session_seconds(session, duration_seconds)
     deadline = time.monotonic() + remaining_seconds + 180
     final: dict[str, Any] | None = None
+    consecutive_status_poll_timeouts = 0
+    total_status_poll_timeouts = 0
     while time.monotonic() < deadline:
-        run = request_json(endpoint, f"/api/v1/runs/{run_id}")
+        try:
+            run = request_json(endpoint, f"/api/v1/runs/{run_id}")
+        except TimeoutError as error:
+            consecutive_status_poll_timeouts += 1
+            total_status_poll_timeouts += 1
+            report["monitoring"] = {
+                "status_poll_timeouts": total_status_poll_timeouts,
+                "consecutive_status_poll_timeouts": consecutive_status_poll_timeouts,
+                "consecutive_timeout_limit": MAX_CONSECUTIVE_STATUS_POLL_TIMEOUTS,
+                "last_error": str(error) or "timed out",
+            }
+            write_report(report_path, report)
+            print_progress(
+                "status poll timeout"
+                f" | consecutive={consecutive_status_poll_timeouts}"
+                f" | limit={MAX_CONSECUTIVE_STATUS_POLL_TIMEOUTS}"
+            )
+            if consecutive_status_poll_timeouts > MAX_CONSECUTIVE_STATUS_POLL_TIMEOUTS:
+                raise RuntimeError(
+                    "Job Scout status polling exceeded the consecutive timeout limit."
+                ) from error
+            time.sleep(poll_seconds)
+            continue
+        consecutive_status_poll_timeouts = 0
+        if total_status_poll_timeouts:
+            report["monitoring"] = {
+                "status_poll_timeouts": total_status_poll_timeouts,
+                "consecutive_status_poll_timeouts": 0,
+                "consecutive_timeout_limit": MAX_CONSECUTIVE_STATUS_POLL_TIMEOUTS,
+                "last_error": "",
+            }
         observed_at = datetime.now().astimezone().isoformat()
         report["run"] = {
             "status": run.get("status"),

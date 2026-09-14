@@ -385,9 +385,10 @@ def test_local_employer_landscape_creates_evidence_backed_deepening_searches(
     assert outcome.detail["stages"]["reference_pages_inspected"] == 1
     assert outcome.detail["stages"]["employer_candidates_discovered"] == 1
     assert outcome.detail["stages"]["employer_reference_evidence"] == [
-        {
-            "url": "https://region.example.gov/employers",
-            "status": "inspected",
+            {
+                "url": "https://region.example.gov/employers",
+                "requested_url": "https://region.example.gov/employers",
+                "status": "inspected",
             "candidate_count": 1,
             "cache_status": "unavailable",
             "content_type": "text/html",

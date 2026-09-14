@@ -160,6 +160,7 @@ def test_market_strategies_cover_employment_centers_and_region_alias_probes(
         for item in strategies
         if item.dimensions.get("hypothesis_family") == "local_employer"
         and item.dimensions.get("location") == "Durham, NC"
+        and item.dimensions.get("anchor") == "major employers"
     )
     assert durham.dimensions["market_kind"] == "metro_core"
     assert durham.dimensions["market_distance_miles"] == "50.0"

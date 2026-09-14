@@ -223,7 +223,9 @@ class AttachmentAwareJobScoutDiscoveryLoop(LocationAwareJobScoutDiscoveryLoop):
         for reference in references:
             if not isinstance(reference, dict) or reference.get("status") != "inspected":
                 continue
-            parent_url = str(reference.get("url") or "").strip()
+            parent_url = str(
+                reference.get("requested_url") or reference.get("url") or ""
+            ).strip()
             if not parent_url:
                 continue
             parent = await _cached_parent_document(self.search_adapter, parent_url)
@@ -232,7 +234,7 @@ class AttachmentAwareJobScoutDiscoveryLoop(LocationAwareJobScoutDiscoveryLoop):
             format_name = infer_document_format(parent.url, parent.content_type)
             if format_name in {"pdf", "csv", "tsv", "json", "xlsx"}:
                 direct = AttachmentLink(
-                    parent_url=parent.url,
+                    parent_url=parent_url,
                     url=parent.url,
                     link_text="",
                     hinted_content_type=parent.content_type,
@@ -308,10 +310,15 @@ class AttachmentAwareJobScoutDiscoveryLoop(LocationAwareJobScoutDiscoveryLoop):
                 )
                 continue
 
-            if direct_reference and link.format_hint in {"csv", "tsv", "json"}:
+            reusable_content = parent.content or (
+                parent.text.encode("utf-8", errors="replace")
+                if link.format_hint in {"csv", "tsv", "json"}
+                else b""
+            )
+            if direct_reference and reusable_content:
                 document = DirectoryDocument(
                     url=parent.url,
-                    content=parent.text.encode("utf-8", errors="replace"),
+                    content=reusable_content,
                     text=parent.text,
                     content_type=parent.content_type,
                     cache_status=parent.cache_status,
