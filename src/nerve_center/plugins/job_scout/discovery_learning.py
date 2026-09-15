@@ -542,7 +542,7 @@ class JobScoutDiscoveryRepository:
                         if item.dimensions.get("hypothesis_family")
                         == "local_employer_deepen"
                         and item.dimensions.get("employer_evidence_authority")
-                        == "civic"
+                        in {"civic", "civic_attachment"}
                     ),
                     key=lambda item: (
                         deepen_market_attempts.get(_normalized_market(item), 0),

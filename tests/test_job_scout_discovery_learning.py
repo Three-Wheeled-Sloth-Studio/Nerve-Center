@@ -121,6 +121,48 @@ def test_strategy_selection_reserves_local_employer_exploration_capacity(
     assert local.id in selected_ids
 
 
+def test_strategy_selection_reserves_civic_attachment_employer_deepening(
+    tmp_path: Path,
+) -> None:
+    learning = JobScoutDiscoveryRepository(_database(tmp_path))
+    for index in range(12):
+        learning.ensure_strategy(
+            {"kind": "public_search", "anchor": f"product {index}"},
+            origin="profile",
+            base_weight=4.0,
+        )
+    learning.ensure_strategy(
+        {"kind": "company_revisit", "company_id": "company-1"},
+        origin="known_company",
+    )
+    learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer",
+            "anchor": "major employers",
+            "location": "Greensboro, NC",
+            "source_domain": "web",
+        },
+        origin="market",
+    )
+    attachment_employer = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer_deepen",
+            "anchor": "Atlas Lantern Works",
+            "location": "Greensboro, NC",
+            "source_domain": "web",
+            "employer_evidence_authority": "civic_attachment",
+        },
+        origin="public_employer_attachment_evidence",
+        base_weight=0.2,
+    )
+
+    selected = learning.select_strategies("run-1", limit=4, exploration_floor=0.25)
+
+    assert attachment_employer.id in {item.id for item in selected}
+
+
 def test_market_exploration_covers_distinct_locations_and_regional_probe(
     tmp_path: Path,
 ) -> None:
