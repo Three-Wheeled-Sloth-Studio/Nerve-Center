@@ -183,6 +183,52 @@ def test_strategy_selection_reserves_civic_attachment_employer_deepening(
     assert attachment_employer.id in {item.id for item in selected}
 
 
+def test_strategy_selection_deduplicates_civic_employer_query_across_markets(
+    tmp_path: Path,
+) -> None:
+    learning = JobScoutDiscoveryRepository(_database(tmp_path))
+    for index in range(8):
+        learning.ensure_strategy(
+            {"kind": "public_search", "anchor": f"product {index}"},
+            origin="profile",
+        )
+    first = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer_deepen",
+            "anchor": "ExampleMobility",
+            "location": "First City, NC",
+            "source_domain": "web",
+            "employer_evidence_authority": "civic_attachment",
+        },
+        origin="public_employer_attachment_evidence",
+    )
+    duplicate = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer_deepen",
+            "anchor": "Example Mobility",
+            "location": "First Metro Area",
+            "source_domain": "web",
+            "employer_evidence_authority": "civic",
+        },
+        origin="public_employer_landscape_evidence",
+    )
+
+    selected = learning.select_strategies("run-1", limit=4, exploration_floor=0.25)
+    selected_ids = {item.id for item in selected}
+
+    assert first.id in selected_ids
+    assert duplicate.id not in selected_ids
+
+    learning.record_attempt("run-1", 1, first.id, "deepen", StrategyOutcome())
+    selected_again = learning.select_strategies(
+        "run-1", limit=4, exploration_floor=0.25
+    )
+
+    assert duplicate.id not in {item.id for item in selected_again}
+
+
 def test_market_exploration_covers_distinct_locations_and_regional_probe(
     tmp_path: Path,
 ) -> None:

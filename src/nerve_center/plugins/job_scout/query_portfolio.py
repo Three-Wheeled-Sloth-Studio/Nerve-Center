@@ -292,6 +292,38 @@ def compile_strategy_query(
     )
 
 
+def compile_employer_deepening_queries(
+    dimensions: dict[str, str],
+    *,
+    evidence_terms: Iterable[str] = (),
+) -> tuple[CompiledQuery, ...]:
+    """Return the bounded canonical-career query sequence for one employer hypothesis."""
+
+    primary = compile_strategy_query(dimensions, evidence_terms=evidence_terms)
+    if (
+        not primary.valid
+        or dimensions.get("hypothesis_family") != "local_employer_deepen"
+    ):
+        return (primary,)
+    anchor = " ".join(dimensions.get("anchor", "").split()).strip()
+    search_anchor = re.sub(r"(?<=[a-z])(?=[A-Z])", " ", anchor)
+    search_anchor = " ".join(search_anchor.split())
+    variants = (
+        primary.query,
+        f'"{search_anchor}" official careers',
+        f'"{search_anchor}" employment opportunities',
+    )
+    return tuple(
+        CompiledQuery(
+            query,
+            primary.source_path,
+            primary.warnings,
+            True,
+        )
+        for query in clean_list(variants)
+    )
+
+
 def _market_search_terms(value: str) -> str:
     terms = re.sub(r"\b(?:metro|micro)\s+area\b", "", value, flags=re.IGNORECASE)
     terms = re.sub(r"[^A-Za-z0-9]+", " ", terms)

@@ -13,17 +13,21 @@ from nerve_center.discovery.models import (
     SourceKind,
     WorkArrangement,
 )
+from nerve_center.discovery.search import SearchResult, UrlClassification
 from nerve_center.persistence.database import Database
 from nerve_center.persistence.discovery import CompanyRepository
 from nerve_center.plugins.job_scout.discovery_learning import StrategyOutcome
+from nerve_center.plugins.job_scout.discovery_loop import _RequestAllowance
 from nerve_center.plugins.job_scout.discovery_quality import (
     DiscoveryQualityRepository,
     SourceAwareJobScoutDiscoveryLoop,
+    _CompiledQueryAdapter,
 )
 from nerve_center.plugins.job_scout.market import MarketAlias
 from nerve_center.plugins.job_scout.query_portfolio import (
     build_coverage_gap_profile,
     build_query_portfolio,
+    compile_employer_deepening_queries,
     compile_strategy_query,
     source_capabilities,
 )
@@ -214,6 +218,64 @@ def test_local_employer_deepening_resolves_career_surface_before_location() -> N
     assert "Greensboro" not in compiled.query
     assert "jobs careers" not in compiled.query
     assert "location_deferred_to_employer_validation" in compiled.warnings
+
+
+def test_local_employer_deepening_has_bounded_canonical_career_failbacks() -> None:
+    queries = compile_employer_deepening_queries(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer_deepen",
+            "anchor": "ExampleMobility",
+            "location": "First Market, NC",
+            "source_domain": "web",
+        }
+    )
+
+    assert [item.query for item in queries] == [
+        '"Example Mobility" careers',
+        '"Example Mobility" official careers',
+        '"Example Mobility" employment opportunities',
+    ]
+
+
+def test_employer_query_failback_stops_at_first_direct_career_result() -> None:
+    class Search:
+        async def search(self, query: str) -> list[SearchResult]:
+            if query.endswith('" careers'):
+                return [
+                    SearchResult(
+                        title="Example jobs on a board",
+                        url="https://jobs.example.net/example",
+                        classification=UrlClassification.MAJOR_JOB_BOARD,
+                    )
+                ]
+            return [
+                SearchResult(
+                    title="Example Mobility Careers",
+                    url="https://example.test/careers",
+                    classification=UrlClassification.COMPANY_CAREER,
+                )
+            ]
+
+    allowance = _RequestAllowance(limit=3)
+    allowance.reserve()
+    adapter = _CompiledQueryAdapter(
+        Search(),
+        ('"Example Mobility" careers', '"Example Mobility" official careers'),
+        allowance,
+    )
+
+    results = asyncio.run(adapter.search("ignored"))
+
+    assert results[0].url == "https://example.test/careers"
+    assert adapter.queries_attempted == [
+        '"Example Mobility" careers',
+        '"Example Mobility" official careers',
+    ]
+    assert adapter.search_requests_completed == 2
+    assert adapter.failbacks_used == 1
+    assert adapter.failback_reason == "empty_or_no_direct_employer_result"
+    assert allowance.used == 2
 
 
 def test_query_linter_rejects_contradictions_and_unsupported_requirements() -> None:

@@ -9,6 +9,11 @@ from typing import Any
 from sqlalchemy import select
 
 from nerve_center.discovery.models import SourceHealth
+from nerve_center.discovery.search import (
+    SearchChallengeError,
+    SearchResult,
+    UrlClassification,
+)
 from nerve_center.persistence.models import DiscoverySourceModel, JobProvenanceModel
 from nerve_center.plugins.job_scout.discovery_learning import (
     MARKET_REFERENCE_QUERY_REVISION,
@@ -31,6 +36,7 @@ from nerve_center.plugins.job_scout.query_portfolio import (
     STRUCTURED_SOURCE_KINDS,
     build_coverage_gap_profile,
     build_query_portfolio,
+    compile_employer_deepening_queries,
     compile_strategy_query,
 )
 from nerve_center.plugins.job_scout.settings import clean_list
@@ -424,6 +430,7 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
         strategy: Any,
         allowance: _RequestAllowance | None = None,
     ) -> tuple[StrategyOutcome, int, list[str]]:
+        allowance = allowance or _RequestAllowance()
         configuration = self.coordinator.store.load()
         evidence_terms = [
             *configuration.target_titles,
@@ -454,10 +461,16 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
             )
 
         original_adapter = self.search_adapter
-        self.search_adapter = _CompiledQueryAdapter(
-            original_adapter,
-            compiled.query,
+        query_sequence = compile_employer_deepening_queries(
+            strategy.dimensions,
+            evidence_terms=evidence_terms,
         )
+        compiled_adapter = _CompiledQueryAdapter(
+            original_adapter,
+            tuple(item.query for item in query_sequence),
+            allowance,
+        )
+        self.search_adapter = compiled_adapter
         try:
             outcome, requests, warnings = await super()._execute_public_search(
                 strategy,
@@ -465,19 +478,30 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
             )
         finally:
             self.search_adapter = original_adapter
+        stages = dict(outcome.detail.get("stages", {}))
+        if compiled_adapter.search_requests_completed:
+            stages["search_requests_completed"] = (
+                compiled_adapter.search_requests_completed
+            )
+        stages["employer_query_failbacks"] = compiled_adapter.failbacks_used
         detail = {
             **outcome.detail,
             "query": compiled.query,
+            "queries_attempted": compiled_adapter.queries_attempted,
+            "query_failback_reason": compiled_adapter.failback_reason,
             "hypothesis_family": strategy.dimensions.get(
                 "hypothesis_family", "legacy"
             ),
             "source_path": compiled.source_path,
-            "warnings": clean_list([*compiled.warnings, *warnings]),
+            "warnings": clean_list(
+                [*compiled.warnings, *warnings, *compiled_adapter.warnings]
+            ),
+            "stages": stages,
         }
         return (
             replace(outcome, detail=detail),
             requests,
-            clean_list([*compiled.warnings, *warnings]),
+            clean_list([*compiled.warnings, *warnings, *compiled_adapter.warnings]),
         )
 
     def deterministic_reflection(self, run_id: str, cycle: int) -> dict[str, Any]:
@@ -670,16 +694,66 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
 class _CompiledQueryAdapter:
     """Run one compiled query without duplicating accepted deepening logic."""
 
-    def __init__(self, delegate: Any, query: str) -> None:
+    def __init__(
+        self,
+        delegate: Any,
+        queries: tuple[str, ...],
+        allowance: _RequestAllowance,
+    ) -> None:
         self.delegate = delegate
-        self.query = query
+        self.queries = queries
+        self.allowance = allowance
+        self.queries_attempted: list[str] = []
+        self.search_requests_completed = 0
+        self.failbacks_used = 0
+        self.failback_reason = ""
+        self.warnings: list[str] = []
 
     async def search(self, _legacy_query: str) -> Any:
-        return await self.delegate.search(self.query)
+        combined: list[SearchResult] = []
+        seen: set[str] = set()
+        for index, query in enumerate(self.queries):
+            if index:
+                if self.allowance.exhausted:
+                    self.warnings.append("employer query failback request budget exhausted")
+                    break
+                self.allowance.reserve()
+                self.failbacks_used += 1
+            self.queries_attempted.append(query)
+            try:
+                results = await self.delegate.search(query)
+            except (RuntimeError, SearchChallengeError) as error:
+                if index == 0:
+                    raise
+                self.warnings.append(f"employer query failback deferred: {error}")
+                break
+            self.search_requests_completed += 1
+            direct_results = [
+                item for item in results if _is_direct_employer_result(item)
+            ]
+            if direct_results:
+                ordered = [*direct_results, *combined, *results]
+                combined = []
+                seen = set()
+            else:
+                ordered = list(results)
+            for item in ordered:
+                if item.url in seen:
+                    continue
+                seen.add(item.url)
+                combined.append(item)
+            if direct_results or len(self.queries) == 1:
+                break
+            if not self.failback_reason:
+                self.failback_reason = "empty_or_no_direct_employer_result"
+        return combined
 
     async def search_references(self, _legacy_query: str) -> Any:
         method = getattr(self.delegate, "search_references", self.delegate.search)
-        return await method(self.query)
+        self.queries_attempted.append(self.queries[0])
+        results = await method(self.queries[0])
+        self.search_requests_completed += 1
+        return results
 
     async def fetch_reference(self, url: str) -> Any:
         method = getattr(self.delegate, "fetch_reference", None)
@@ -690,6 +764,15 @@ class _CompiledQueryAdapter:
     def reference_cache_status(self, url: str) -> str:
         method = getattr(self.delegate, "reference_cache_status", None)
         return method(url) if method is not None else "miss"
+
+
+def _is_direct_employer_result(result: SearchResult) -> bool:
+    return result.classification in {
+        UrlClassification.GREENHOUSE,
+        UrlClassification.LEVER,
+        UrlClassification.ASHBY,
+        UrlClassification.COMPANY_CAREER,
+    }
 
 
 def _quality_reflection_schema() -> dict[str, Any]:

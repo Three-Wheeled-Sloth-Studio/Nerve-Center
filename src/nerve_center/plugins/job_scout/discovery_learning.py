@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
@@ -373,6 +374,7 @@ class JobScoutDiscoveryRepository:
                 ).all()
             )
             models = session.scalars(select(DiscoveryStrategyModel)).all()
+            canonical_employer_ids = _canonical_employer_deepening_ids(models)
             family_weights = {
                 item.id: item.learned_weight for item in _strategy_family_snapshots(models)
             }
@@ -394,6 +396,11 @@ class JobScoutDiscoveryRepository:
                 )
                 and item.dimensions.get("company_id") not in blocked_companies
                 and item.dimensions.get("source_id") not in blocked_sources
+                and (
+                    item.dimensions.get("hypothesis_family")
+                    != "local_employer_deepen"
+                    or item.id in canonical_employer_ids
+                )
             ]
             has_current_market_reference = any(
                 item.dimensions.get("hypothesis_family") == "local_employer"
@@ -1008,6 +1015,29 @@ def _family_learned_weight(
         target = sum(member_weights) / len(member_weights) if member_weights else 1.0
     health_penalty = min((challenge_count * 0.08 + failure_count * 0.04) / attempts, 0.4)
     return _clamp(target - health_penalty, 0.2, 4.0)
+
+
+def _canonical_employer_deepening_ids(
+    models: list[DiscoveryStrategyModel],
+) -> set[str]:
+    """Choose one durable strategy per canonical employer search identity."""
+
+    canonical: dict[str, DiscoveryStrategyModel] = {}
+    for model in models:
+        if model.dimensions.get("hypothesis_family") != "local_employer_deepen":
+            continue
+        anchor = str(model.dimensions.get("anchor", "")).strip()
+        anchor = re.sub(r"(?<=[a-z])(?=[A-Z])", " ", anchor)
+        identity = re.sub(r"[^a-z0-9]+", " ", anchor.casefold()).strip()
+        if not identity:
+            continue
+        existing = canonical.get(identity)
+        if existing is None or (model.created_at, model.id) < (
+            existing.created_at,
+            existing.id,
+        ):
+            canonical[identity] = model
+    return {item.id for item in canonical.values()}
 
 
 def _strategy_snapshot(model: DiscoveryStrategyModel) -> DiscoveryStrategySnapshot:
