@@ -10,7 +10,7 @@ tags: [nerve-center, handoff]
 ## Current state
 
 - Work directly on `dev`; do not create a feature branch or PR unless explicitly requested.
-- Application version is `0.12.22`.
+- Application version is `0.12.26`.
 - Issue #57 remains open. Do not close it until an overnight/current-run audit shows civic-derived employer deepening reaching normal company/career discovery.
 - Job Scout remains an iterative market-research loop: `expand -> converge -> deepen -> reflect -> re-expand`. Discovery optimizes recall; ranking/scoring provides precision.
 - Extracted employer names are hypotheses only. They must pass through ordinary public search and official-career resolution before becoming durable company/location evidence.
@@ -33,6 +33,9 @@ The accepted behavior now includes:
 11. direct-career and sitemap URL qualification uses discrete route evidence rather than substring matches such as `career-advice` or `job-interview`;
 12. sitemap child registration defaults to 50 and is hard-capped at 250; source-only expansion without postings is down-weighted rather than rewarded.
 13. durable search-cache rows are reclassified through current URL policy before use, so stale classifications cannot recreate rejected editorial sources.
+14. employer-career resolution uses a bounded three-query sequence (`careers`, `official careers`, `employment opportunities`) only when earlier results contain no direct employer/ATS surface;
+15. all public-search strategies are deduplicated by compiled `(source_path, query)` identity while their raw civic/OCR provenance rows remain durable;
+16. tenant-keyed shared career-portal listing routes remain aggregator evidence, and aggregator-only companies are excluded from employer revisit scheduling.
 
 OCR is generic and structural. It requires employer-list heading evidence plus monotonic ranked rows. OCR output becomes `local_employer_deepen` work; it does not directly create companies.
 
@@ -45,9 +48,12 @@ OCR is generic and structural. It requires employer-list heading evidence plus m
 - `4f2bceb`: bounded migration of persisted combined-authority hypotheses (`0.12.19`).
 - `ef8d61b`: location-free canonical employer career resolution and OCR word-boundary repair (`0.12.20`).
 - `bf461c2`: discrete job-route qualification, bounded sitemap expansion, and posting-conditioned learning (`0.12.21`).
-- Current working slice: authoritative cache-result reclassification (`0.12.22`).
-- CI `34984865125` is green for `bf461c2`, including Python, desktop web, and desktop Rust.
-- Local validation is green: 255 Python tests, Ruff, case-collision, OKF index, refs, agent-context, and desktop web. Local Rust validation remains blocked by the machine's Visual Studio installation missing `excpt.h`; exact-head CI covers desktop Rust successfully.
+- `8877970`: authoritative cached-result reclassification (`0.12.22`).
+- `33f5d3e`: bounded canonical employer-career query failback (`0.12.23`).
+- `a41dce0`: compiled civic-employer query deduplication (`0.12.24`).
+- `c24b44b`: generic shared-portal classification and aggregator-only revisit exclusion (`0.12.25`).
+- `12ed92d`: compiled-query deduplication across all public-search revisions and provenance (`0.12.26`).
+- Local validation is green: 262 Python tests, Ruff, case-collision, refs, agent-context, and desktop web. Local Rust validation remains blocked by the machine's Visual Studio installation missing `excpt.h`; exact-head CI covers desktop Rust successfully.
 - The self-contained Windows backend builds and passes health, workspace, and module-runtime smoke tests. OCR increases the backend executable to about 155.8 MiB.
 
 ## Runtime evidence
@@ -64,11 +70,19 @@ Run `1c68afd8-26d1-4f40-9fee-bfe35e67cfef` (`0.12.20`) immediately exercised cor
 
 The exact false RippleMatch graph was removed after a recoverable database backup: one company, 251 sources, 250 revisit strategies, two scans, and four evidence rows; it contained no jobs, provenance, or enrichment. A second evidence-defined quarantine disabled 746 historical sitemap-created JSON-LD sources that had neither discrete job-route evidence nor job provenance, and lowered their revisit strategies. No source with job provenance was touched.
 
-Run `41270b53-6af3-475c-a528-5363016a1655` was the bounded `0.12.21` post-cleanup verification gate. It confirmed proportional source counts and posting-conditioned down-weighting, but also proved cached result classifications could bypass the new URL policy and recreate the rejected editorial company. It was stopped early; `0.12.22` makes classification authoritative when cache rows are consumed. Run a fresh bounded gate before another overnight soak.
+Run `41270b53-6af3-475c-a528-5363016a1655` was the bounded `0.12.21` post-cleanup verification gate. It confirmed proportional source counts and posting-conditioned down-weighting, but also proved cached result classifications could bypass the new URL policy and recreate the rejected editorial company. It was stopped early; `0.12.22` made classification authoritative when cache rows are consumed.
+
+Run `4633fbac-4c77-46cc-9411-cafd4b3915f8` (`0.12.22`) reached planned `admission_draining` with 50 requests, 13 LLM calls, 8/8 successful full scores, 16 searches, 132 results, two companies, two career sources, and four postings. Source growth stayed proportional and the stale RippleMatch result remained rejected. The result also identified weak chamber/directory identity resolution.
+
+Run `1dc9b888-dfb7-4067-affe-b764446f5e0c` (`0.12.23`) reached planned wind-down with 47 requests, 24 LLM calls, 14/14 successful scores, 11 searches, 110 results, and no new companies or sources. Its 11 search attempts compiled to only eight unique queries, which led to compiled-query canonicalization.
+
+Run `4d882157-ae48-477a-9139-aed0a2281816` (`0.12.24`) was stopped after a false shared career-portal company revisit expanded 50 sources with zero postings. Audit proved the full false graph had 304 sources, 303 revisit strategies, 46 scans, and zero jobs/provenance. It was removed after backup `nerve-center.pre-shared-portal-cleanup.20260915-154117.sqlite3`; foreign-key validation was clean. No named portal rule was added: `0.12.25` recognizes the generic tenant listing/print route shape and refuses employer revisit when a company's sources are aggregator-only.
+
+Run `78b7e242-8aee-450f-a373-5f73600f8326` (`0.12.26`) is the final bounded gate. It reached planned `admission_draining` with 59 requests, seven LLM calls, 5/5 successful full scores, 10 searches, 90 results, 38 successful source scans, 124 postings inspected, five retained roles, 12 evidence-backed employer hypotheses, and five career sources. All 10 public queries were unique, the shared-portal company remained absent, and source growth stayed proportional to posting yield.
 
 ## Overnight checkpoint
 
-After a fresh `0.12.22` verification gate confirms proportional source growth, posting-conditioned down-weighting, and cache-policy enforcement, use these explicit overnight budgets:
+The bounded `0.12.26` gate passed. The repository and cleaned runtime are ready for an isolated overnight session with these explicit budgets:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\run_job_scout_live.py `
@@ -83,22 +97,22 @@ The 500 LLM-call value is a run-specific safety ceiling, not a general product i
 
 ## Next bounded slice
 
-Review the `0.12.22` verification report and Issue #57 audit before changing behavior:
+Run the isolated overnight session, then audit the current run before changing behavior:
 
-1. Did source counts remain proportional, with no sitemap article/image amplification?
-2. Did source-only zero-posting attempts lose weight?
-3. Did planned wind-down complete, with transient poll failures bounded and recovered?
-4. Which civic-derived employer hypotheses returned only aggregators or duplicate location-free queries?
-5. Can canonical employer identity/query failback improve official-career resolution without named employer rules?
+1. confirm `local_employer_deepen` strategies execute after their normal cooldown and inspect `queries_attempted`, `query_failback_reason`, and `employer_query_failbacks`;
+2. verify civic/OCR hypotheses resolve plausible official employer or ATS career surfaces rather than shared portals/directories;
+3. confirm compiled public queries remain unique within the run and source growth remains proportional to posting yield;
+4. inspect retained local roles and employer/location evidence, including Volvo/Wolfspeed-class local employers, without adding named rules;
+5. keep Issue #57 open unless current-run evidence proves the employer-hypothesis path end to end.
 
-The next quality slice is generic employer identity resolution: deduplicate civic hypotheses that compile to the same employer query across city/metro aliases, and add a bounded evidence-driven query failback when the first result set is aggregator-only or empty. Preserve raw civic/OCR provenance and downstream location validation. Do not tune scoring unless runtime evidence identifies scoring as the blocker.
+Do not tune scoring unless the overnight artifact identifies scoring as the blocker. If employer fallbacks execute but still return only weak results, the next bounded slice should improve canonical employer-domain evidence, not add company or aggregator exceptions.
 
 Code Shop Issue #54 remains staged behind this acceptance work. Its contract is `refs/planning/code-shop-foundation.md`.
 
 ## Re-entry
 
 ```powershell
-python scripts/agent_context.py --focus "job scout employer identity query failback deduplication" --issue 57
+python scripts/agent_context.py --focus "job scout overnight employer fallback official career audit" --issue 57
 ```
 
-Read the generated packet, this handoff, the newest Issue #57 comments, the overnight report, and only directly relevant scheduler/reference files.
+Read the generated packet, this handoff, the newest Issue #57 comments, the overnight report, and only directly relevant query/learning files.
