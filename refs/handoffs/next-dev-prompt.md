@@ -1,213 +1,43 @@
 ---
 type: Development Prompt
 title: Next Development Prompt
-description: Ready-to-use prompt for extensionless reference documents and resilient live-run polling.
+description: Ready-to-use prompt for the Job Scout overnight employer-deepening audit.
 status: stable
 tags: [nerve-center, handoff, job-scout, discovery, live-test]
 ---
 # Next Development Prompt
 
-Continue implementation in:
+Continue Issue #57 directly on `dev`. Do not create a feature branch or PR, and do not close the issue yet.
 
-`https://github.com/Three-Wheeled-Sloth-Studio/Nerve-Center`
-
-Work directly on `dev`. Do not create a feature branch or PR unless explicitly requested.
-
-Start from the latest clean `dev` head. The accepted green implementation baseline is:
-
-`66e41e7dc9557a2f1f0e5cb8f977578abc1c9586`
-
-Nerve Center version is `0.12.15`.
-
-The source-acquisition correction is implemented and green in CI run `34888748787`. Its live behavior is validated, but run `d3ab2a98-0650-4c48-8ba7-1e70117e4a26` exposed an extensionless-document routing gap and a transient live-runner polling failure. Implement only that next bounded slice.
-
-The active tracking issue is **#57: Stratify Job Scout market exploration after regional live gate**. Leave it open until runtime acceptance is satisfied.
-
-## Start with bounded re-entry
-
-Do not reread repository history.
-
-First run:
+Start with:
 
 ```powershell
-python scripts/agent_context.py --focus "job scout extensionless reference document content type runner poll timeout" --issue 57
+python scripts/agent_context.py --focus "job scout overnight civic employer deepening audit" --issue 57
 ```
 
-Treat that generated packet as derived orientation, not source of truth. Read at minimum:
+Use the packet-first/progressive-loading rules in `AGENTS.md`. Read `refs/handoffs/currentHandoff.md`, the newest Issue #57 comments, the overnight report, and only directly relevant scheduler/reference files. Do not reread repository history.
 
-1. `refs/handoffs/currentHandoff.md`
-2. Issue #57 and its newest runtime comment
-3. `src/nerve_center/plugins/job_scout/query_portfolio.py`
-4. `src/nerve_center/plugins/job_scout/attachment_discovery.py`
-5. only the relevant reference-acquisition section of `src/nerve_center/plugins/job_scout/discovery_loop.py`
-6. `src/nerve_center/plugins/job_scout/bootstrap.py`
-7. directly relevant deterministic tests
+Current application version is `0.12.19`. The completed implementation routes extensionless supported documents, performs bounded local OCR for image-only ranked employer PDFs, persists extracted names as hypotheses only, normalizes civic authority versus attachment medium, migrates old combined evidence rows, and reserves scheduler capacity for those hypotheses.
 
-Do not reload unrelated scoring, UI, Model Lab, packaging, or repository history unless a failing test makes it necessary.
+The official High Point image-only employer PDF produced 12 durable hypotheses through generic OCR structure, including `Volvo Group North America`. No named employer or location production rule was added.
 
-## Latest runtime evidence
-
-Authoritative live run:
-
-`dcee77be-53c7-416a-be7c-b518f2240378`
-
-Runtime was operationally healthy:
-
-- version `0.12.14`;
-- status `succeeded` via planned `admission_draining`;
-- 92 requests and 30 LLM calls; neither budget exhausted;
-- 20/20 full scores completed with zero failures;
-- 20 public searches, 200 returned results, 56 eligible/registered sources;
-- 15 civic reference pages inspected, 14 cache hits, 8 retry-deferred references;
-- 2 cached attachment documents parsed, 0 invalid;
-- 0 employer candidates and no current-run `local_employer_deepen` execution.
-
-Filter live reference evidence to this run ID. The report currently includes 64 recent rows spanning three runs: 20 current rows plus 23 from `aa6a3579-6b34-4642-885e-20473a8270b3` and 21 from `4b5ad2ea-df90-4237-8d62-e45ec7f1216c`.
-
-The 20 current-run local-employer attempts split evenly between `major employers` and `company headquarters` across Durham-Chapel Hill, Mount Airy, Danville, Sanford, Winston-Salem, and Martinsville market aliases/core places.
-
-Current-run civic acquisition:
-
-- 23 references selected;
-- 15 inspected;
-- 8 retry-deferred;
-- `major employers`: 20 selected, 12 inspected, 8 deferred;
-- `company headquarters`: 3 selected/inspected;
-- zero extracted employer candidates.
-
-## Diagnosis
-
-The selector is now observable and the parser is behaving safely. The remaining blocker is generic source acquisition quality.
-
-### Query dilution
-
-`compile_strategy_query()` currently emits this local-employer query for the `major employers` anchor:
-
-`<market> major employers chamber economic development`
-
-The current run overwhelmingly returned generic economic-development/chamber pages, usually intent tier 3. Authority should remain a post-search ranking/provenance signal instead of mandatory query vocabulary.
-
-Prior-run evidence proves the intent ranker works when a high-intent result exists: `Major Employers - Durham Economic Development` ranked at intent tier 0, but that source was `retry_deferred`.
-
-### Poor civic references for `company headquarters`
-
-Municipal `Employment Opportunities`/HR pages are being admitted as civic employer-landscape references. They are legitimate pages but not useful evidence about local companies. Direct employer career pages must remain untouched on the ordinary non-civic path.
-
-### Deferred-reference fallback is artificially narrow
-
-`_IntentAwareReferenceAdapter` returns only the top two civic candidates plus non-civic results. The base reference loop already skips `retry_deferred` references before incrementing `references_acquired`, but cannot inspect a third civic candidate because preselection removed it.
-
-A bounded fallback pool can improve useful acquisition without increasing the acquired-reference cap, but add an explicit network-attempt ceiling so challenges/failures cannot create unbounded work.
-
-### Audit needs run scoping
-
-`_recent_reference_attempt_evidence()` is bounded by recency, not by `run_id`. Rows are attributable, but live acceptance should not require manual filtering across previous runs.
-
-## Accepted bounded slice — do not repeat
-
-### 1. Make local-employer queries intent-pure
-
-`major employers` no longer requires generic authority terms like `chamber economic development` in the query.
-
-The current deterministic employer-list vocabulary is:
-
-- `major employers`
-- `largest employers`
-- `top employers`
-- employer/business directory/list evidence
-
-Keep variants bounded and attributable. If strategy dimensions/revision must change so durable learning does not conflate old and new query behavior, do that generically.
-
-Authority remains part of reference rank/provenance after retrieval.
-
-### 2. Harden civic-reference eligibility
-
-Employer-landscape extraction excludes obvious civic self-employment/HR results unless the result also carries clear employer/business landscape intent.
-
-Do not suppress direct employer career results; those remain ordinary discovery inputs.
-
-### 3. Add bounded fallback after deferred/invalid references
-
-The implementation preserves up to six ranked civic *candidates* with hard execution bounds:
-
-- maximum 2 successfully acquired/inspected references per attempt;
-- explicit maximum network reference-fetch attempts per attempt;
-- cached `retry_deferred`/invalid candidates do not consume the acquired-reference slot;
-- fallback may continue to the next ranked eligible civic candidate only while caps allow.
-
-Do not weaken cache/cooldown semantics and do not retry challenged sources early.
-
-### 4. Run-scope reference attempt evidence
-
-The live runner passes its current `run_id` to the discovery audit, which filters evidence before applying its bounded output limit.
-
-Preserve bounded output and row-level `run_id` for auditability.
-
-### 5. Add deterministic fictional tests
-
-Regression tests prove:
-
-- employer-list query compilation does not require generic authority vocabulary;
-- a generic government HR/employment page cannot outrank an actual employer-landscape reference;
-- a retry-deferred first candidate falls through to a later eligible civic candidate without exceeding acquired-reference or network-attempt caps;
-- run-scoped audit evidence excludes attempts from other runs;
-- raw `search_results_returned` telemetry remains truthful;
-- no named city/employer rule is introduced.
-
-## Latest live result and next bounded implementation
-
-Run `d3ab2a98-0650-4c48-8ba7-1e70117e4a26` reached cycle 15 before one GET status poll timed out and caused the harness to cancel the managed run. Before cancellation it used 134 requests and 24 LLM calls; completed 15/15 searches and 15/15 full scores; retained 8 postings/6 roles; and recorded 15 reference-attempt rows, all scoped to this run.
-
-The accepted correction worked live: 11 tier-0 references were selected, 11 pages were inspected, 9 references were retry-deferred, 12 network fetches were counted, deferred references fell through, and one candidate truthfully stopped at `network_fetch_cap`.
-
-Implement only these follow-ups:
-
-1. Route a fetched reference through the existing supported-document parser when its normalized response `Content-Type` is supported, even if the URL lacks a file suffix. The live run saw extensionless `application/pdf` responses logged as inspected pages with no attachment evidence.
-2. Add a fictional extensionless-PDF regression proving attachment evidence and candidate extraction use the existing bounds, cache, and provenance path.
-3. Make live-run status monitoring tolerate a small bounded number of transient GET timeouts without cancelling a healthy managed run. Keep an explicit consecutive-timeout ceiling and truthful terminal reporting.
-4. Repeat the explicit-budget 15-minute gate after deterministic validation and exact-head CI.
-
-## Preserve these constraints
-
-- No Wolfspeed, Volvo, Durham, Greensboro, or other named entity logic in production behavior.
-- Responsibility/requirement-first opportunity fit and `direct > adjacent > transferable > mismatch` domain scoring remain untouched.
-- Keep LinkedIn and authenticated job-board safety boundaries unchanged.
-- Extracted employer names become `local_employer_deepen` hypotheses only; they never become company/location truth directly.
-- Official-career resolution remains the path from employer hypothesis to durable company/source evidence.
-- Do not retune scoring or model selection in this slice; the interrupted latest run had 15/15 successful completed full scores.
-- Keep coding-agent context use bounded and token-efficient.
-
-## Accepted baseline validation
-
-The baseline is 244 passing Python tests plus clean Ruff, refs, diff, desktop-web, and GitHub desktop-rust checks. Preserve generated OKF indexes when handoff metadata changes.
-
-After exact-head CI and then after the live gate, update:
-
-- `refs/handoffs/currentHandoff.md`
-- `refs/handoffs/next-dev-prompt.md`
-- Issue #57 with exact commits/SHA, tests, and CI evidence
-
-Do not close Issue #57 yet.
-
-## Live gate after the next implementation
-
-Run the same explicit-budget local rerun:
+Run or review this explicit overnight soak:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\run_job_scout_live.py `
-  --duration-seconds 900 `
-  --max-requests 1000 `
-  --max-llm-calls 150 `
-  --score-limit 25 `
-  --score-failure-limit 10
+  --duration-seconds 28800 `
+  --max-requests 3000 `
+  --max-llm-calls 500 `
+  --score-limit 100 `
+  --score-failure-limit 20
 ```
 
-Acceptance should require the report itself to show:
+Do not run process-level tests or packaging smoke concurrently with the soak.
 
-1. current-run-only reference attempt evidence;
-2. at least one high-intent employer-list/directory reference selected and inspected, or truthfully deferred with bounded fallback;
-3. valid employer names create provenance-bearing `local_employer_deepen` hypotheses when the source actually contains such names;
-4. at least one valid deepening hypothesis reaches ordinary official-career discovery when available;
-5. request/LLM accounting and scoring remain healthy.
+Audit current-run evidence for civic/OCR extraction and provenance; `local_employer_deepen` execution; ordinary public-search and official-career resolution; evidence-driven correction of weak hypotheses; wave-to-wave growth; exact budgets; scoring health; polling recovery; and planned wind-down.
 
-Representative companies remain observational probes only. Their individual presence or absence is not a production rule.
+If no civic-derived deepening attempt executes, add bounded selected-strategy-family telemetry and correct scheduler starvation generically. If attempts execute but valid employers do not resolve, inspect their query/result evidence and improve the generic employer-deepening path. Do not retune scoring unless runtime evidence identifies scoring as the blocker.
+
+Preserve all public-source safety boundaries, the `gemma3:4b` general model plus schema-failure fallback to `qwen2.5:7b-instruct`, and the rule that extracted names are hypotheses rather than company truth.
+
+After the audit, update both handoffs and Issue #57 with the exact run ID, head SHA, CI run, budgets, counts, and next evidence-backed slice.
