@@ -148,12 +148,37 @@ class AttachmentAwareJobScoutDiscoveryLoop(LocationAwareJobScoutDiscoveryLoop):
         self._attachment_cycle_totals: dict[str, int] | None = None
 
     async def prepare(self, run_id: str) -> dict[str, object]:
+        self._migrate_attachment_authority_hypotheses()
         prepared = await super().prepare(run_id)
         persisted = _persist_attachment_coverage(self.learning, run_id)
         return {
             **prepared,
             "coverage": {**dict(prepared.get("coverage") or {}), **persisted},
         }
+
+    def _migrate_attachment_authority_hypotheses(self) -> None:
+        """Preserve old attachment hypotheses under the split authority/medium contract."""
+
+        migrated = 0
+        limit = MAX_ATTACHMENT_CANDIDATES_PER_REFERENCE * MAX_CIVIC_REFERENCE_CANDIDATES
+        for strategy in self.learning.list_strategies():
+            if migrated >= limit:
+                break
+            if (
+                strategy.dimensions.get("hypothesis_family") != "local_employer_deepen"
+                or strategy.dimensions.get("employer_evidence_authority")
+                != "civic_attachment"
+            ):
+                continue
+            dimensions = dict(strategy.dimensions)
+            dimensions["employer_evidence_authority"] = "civic"
+            dimensions["employer_evidence_medium"] = "attachment"
+            self.learning.ensure_strategy(
+                dimensions,
+                origin=strategy.origin,
+                base_weight=strategy.learned_weight,
+            )
+            migrated += 1
 
     async def cycle(
         self,

@@ -695,6 +695,38 @@ def test_extensionless_pdf_reference_reuses_response_in_document_parser(
     assert reference["url"] == search.final_url
 
 
+def test_prepare_migrates_combined_civic_attachment_authority(tmp_path: Path) -> None:
+    search = _AttachmentReferenceSearch("")
+    attachments = _FixtureAttachmentFetcher({}, {})
+    loop, learning, _companies = _build_attachment_loop(
+        tmp_path,
+        search=search,
+        attachments=attachments,
+    )
+    learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer_deepen",
+            "anchor": "Fictional Circuit Works",
+            "location": "Example, NC",
+            "source_domain": "web",
+            "employer_evidence_authority": "civic_attachment",
+        },
+        origin="public_employer_attachment_evidence",
+    )
+
+    asyncio.run(loop.prepare("run-migrate-attachment-authority"))
+
+    migrated = [
+        item
+        for item in learning.list_strategies()
+        if item.dimensions.get("anchor") == "Fictional Circuit Works"
+        and item.dimensions.get("employer_evidence_authority") == "civic"
+    ]
+    assert len(migrated) == 1
+    assert migrated[0].dimensions["employer_evidence_medium"] == "attachment"
+
+
 def test_attachment_request_cap_and_candidate_limit_hold_in_discovery(tmp_path: Path) -> None:
     links = [f"https://region.example.gov/files/employers-{index}.csv" for index in range(4)]
     html = "<h2>Major Employers</h2>" + "".join(
