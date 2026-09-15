@@ -622,6 +622,8 @@ def test_deferred_attachment_skips_to_eligible_and_remains_hypothesis(
     assert hypotheses[0].dimensions["employer_evidence_extraction_method"] == (
         "delimited_employer_field"
     )
+    assert hypotheses[0].dimensions["employer_evidence_authority"] == "civic"
+    assert hypotheses[0].dimensions["employer_evidence_medium"] == "attachment"
 
 
 def test_extensionless_pdf_reference_reuses_response_in_document_parser(
@@ -676,6 +678,12 @@ def test_extensionless_pdf_reference_reuses_response_in_document_parser(
     assert {item.dimensions["anchor"] for item in hypotheses} == {
         "Fictional Beacon Works",
         "Imaginary River Systems",
+    }
+    assert {item.dimensions["employer_evidence_authority"] for item in hypotheses} == {
+        "civic"
+    }
+    assert {item.dimensions["employer_evidence_medium"] for item in hypotheses} == {
+        "attachment"
     }
     evidence = stages["attachment_reference_evidence"]
     assert evidence[0]["parent_page_url"] == search.reference_url
