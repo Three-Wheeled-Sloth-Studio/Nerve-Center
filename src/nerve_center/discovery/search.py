@@ -266,7 +266,10 @@ class PublicWebSearchAdapter:
                     str(cached.get("message") or "Public search is cooling down after a challenge.")
                 )
             if cached.get("status") == "succeeded":
-                return [SearchResult.model_validate(item) for item in cached.get("results", [])]
+                return _rehydrate_cached_results(
+                    cached.get("results", []),
+                    include_other=include_other,
+                )
 
         search_url = (
             "https://builtin.com/jobs"
@@ -387,7 +390,10 @@ class PlaywrightSearchAdapter:
                     str(cached.get("message") or "Search is cooling down after a challenge.")
                 )
             if cached.get("status") == "succeeded":
-                return [SearchResult.model_validate(item) for item in cached.get("results", [])]
+                return _rehydrate_cached_results(
+                    cached.get("results", []),
+                    include_other=False,
+                )
         try:
             from playwright.async_api import async_playwright
         except ImportError as error:
@@ -538,3 +544,22 @@ def classify_discovered_url(value: str) -> UrlClassification:
     if has_job_route_evidence(value):
         return UrlClassification.COMPANY_CAREER
     return UrlClassification.OTHER
+
+
+def _rehydrate_cached_results(
+    values: object,
+    *,
+    include_other: bool,
+) -> list[SearchResult]:
+    """Apply current URL policy when reading durable search-cache rows."""
+
+    if not isinstance(values, list):
+        return []
+    results: list[SearchResult] = []
+    for value in values:
+        result = SearchResult.model_validate(value)
+        classification = classify_discovered_url(result.url)
+        if classification is UrlClassification.OTHER and not include_other:
+            continue
+        results.append(result.model_copy(update={"classification": classification}))
+    return results

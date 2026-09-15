@@ -211,6 +211,36 @@ def test_public_search_discovers_supported_result_pages(tmp_path: Path) -> None:
     )
 
 
+def test_cached_search_results_are_reclassified_by_current_url_policy(
+    tmp_path: Path,
+) -> None:
+    database = Database(Settings(data_dir=tmp_path / "runtime"))
+    database.initialize()
+    cache = SearchCacheRepository(database)
+    query = "Durham NC company headquarters"
+    cached_result = {
+        "title": "Companies headquartered in the Carolinas",
+        "url": "https://example.com/career-advice/companies-in-the-carolinas",
+        "classification": "company_career",
+        "domain": "example.com",
+    }
+    cache.put(
+        "duckduckgo_html:25:hiring",
+        query,
+        {"status": "succeeded", "results": [cached_result]},
+    )
+    cache.put(
+        "duckduckgo_html:25:references",
+        query,
+        {"status": "succeeded", "results": [cached_result]},
+    )
+    adapter = PublicWebSearchAdapter(cache)
+
+    assert asyncio.run(adapter.search(query)) == []
+    references = asyncio.run(adapter.search_references(query))
+    assert references[0].classification is UrlClassification.OTHER
+
+
 def test_public_reference_search_retains_non_job_evidence(tmp_path: Path) -> None:
     database = Database(Settings(data_dir=tmp_path / "runtime"))
     database.initialize()
