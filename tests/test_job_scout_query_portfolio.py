@@ -195,6 +195,27 @@ def test_market_strategies_cover_employment_centers_and_region_alias_probes(
     assert all("wolfspeed" not in str(item.dimensions).casefold() for item in strategies)
 
 
+def test_local_employer_deepening_resolves_career_surface_before_location() -> None:
+    compiled = compile_strategy_query(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer_deepen",
+            "anchor": "Atrium Health Wake ForestBaptist HighPoint Medical Center",
+            "location": "Greensboro-High Point, NC Metro Area",
+            "source_domain": "web",
+        }
+    )
+
+    assert compiled.valid is True
+    assert compiled.source_path == "broad_web"
+    assert compiled.query == (
+        '"Atrium Health Wake Forest Baptist High Point Medical Center" careers'
+    )
+    assert "Greensboro" not in compiled.query
+    assert "jobs careers" not in compiled.query
+    assert "location_deferred_to_employer_validation" in compiled.warnings
+
+
 def test_query_linter_rejects_contradictions_and_unsupported_requirements() -> None:
     contradictory = compile_strategy_query(
         {

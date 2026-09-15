@@ -247,6 +247,23 @@ def compile_strategy_query(
             True,
         )
 
+    if dimensions.get("hypothesis_family") == "local_employer_deepen":
+        # Civic evidence has already established that this employer belongs in the
+        # market. Resolve the employer's canonical career surface globally first;
+        # putting the market in this query over-selects local aggregator pages.
+        # Repair a common OCR boundary loss for search only while retaining the
+        # original evidence text and provenance on the strategy.
+        search_anchor = re.sub(r"(?<=[a-z])(?=[A-Z])", " ", anchor)
+        search_anchor = " ".join(search_anchor.split())
+        if location:
+            warnings.append("location_deferred_to_employer_validation")
+        return CompiledQuery(
+            f'"{search_anchor}" careers',
+            "broad_web",
+            tuple(clean_list(warnings)),
+            True,
+        )
+
     parts: list[str] = []
     if anchor:
         parts.append(f'"{anchor}"')
