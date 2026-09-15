@@ -171,6 +171,12 @@ def test_google_result_normalization_rejects_internal_links() -> None:
     assert classify_discovered_url("https://wellfound.com/jobs/123") is (
         UrlClassification.MAJOR_JOB_BOARD
     )
+    assert classify_discovered_url(
+        "https://public-careers.example/careers/sample-city/jobs/newprint/4871657"
+    ) is UrlClassification.MAJOR_JOB_BOARD
+    assert classify_discovered_url(
+        "https://public-careers.example/careers/sample-city/jobs/4871657"
+    ) is UrlClassification.MAJOR_JOB_BOARD
 
 
 def test_public_search_discovers_supported_result_pages(tmp_path: Path) -> None:

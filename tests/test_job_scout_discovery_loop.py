@@ -174,6 +174,44 @@ def _build_loop(
     return loop, learning, companies, sources, jobs, coordinator
 
 
+def test_shared_portal_company_is_not_seeded_for_employer_revisit(
+    tmp_path: Path,
+) -> None:
+    loop, learning, companies, sources, *_rest = _build_loop(
+        tmp_path,
+        search=_FixtureSearch(),
+    )
+    company = companies.upsert(
+        Company(
+            id="shared-portal",
+            canonical_name="Shared Portal",
+            domain="public-careers.example",
+        )
+    )
+    sources.upsert(
+        DiscoverySource(
+            id="portal-listing",
+            company_id=company.id,
+            name="Tenant listing",
+            kind=SourceKind.JSON_LD,
+            acquisition_class=AcquisitionClass.PUBLIC_HTML_ALLOWED,
+            base_url="https://public-careers.example/careers/sample-city/jobs/123",
+            configuration={
+                "direct_employer_source": False,
+                "source_role": "aggregator_listing",
+            },
+            parser_version="fixture-v1",
+        )
+    )
+
+    loop._seed_known_company_strategies()
+
+    assert all(
+        item.dimensions.get("company_id") != company.id
+        for item in learning.list_strategies()
+    )
+
+
 def test_company_first_cycle_persists_company_source_sitemap_and_opening(
     tmp_path: Path,
 ) -> None:

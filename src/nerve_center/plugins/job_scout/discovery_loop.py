@@ -604,8 +604,14 @@ class JobScoutDiscoveryLoop:
             _clean_domain(item)
             for item in self.coordinator.store.load().public_job_boards
         }
+        sources = self.sources.list()
         for company in self.companies.list():
             if company.domain in board_domains:
+                continue
+            company_sources = [item for item in sources if item.company_id == company.id]
+            if company_sources and not any(
+                _is_employer_source(item) for item in company_sources
+            ):
                 continue
             self.learning.ensure_strategy(
                 {"kind": "company_revisit", "company_id": company.id},

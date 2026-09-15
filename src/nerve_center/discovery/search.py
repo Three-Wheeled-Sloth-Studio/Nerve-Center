@@ -541,6 +541,17 @@ def classify_discovered_url(value: str) -> UrlClassification:
         )
     ):
         return UrlClassification.MAJOR_JOB_BOARD
+    route = [item.casefold() for item in split.path.split("/") if item]
+    if (
+        len(route) >= 4
+        and route[0] == "careers"
+        and route[2] == "jobs"
+        and (route[3] == "newprint" or route[3].isdigit())
+    ):
+        # Tenant-keyed listing/print routes identify a shared career portal,
+        # not the portal host as the employer. Keep these on the aggregator
+        # discovery path so their hiring organization can be resolved later.
+        return UrlClassification.MAJOR_JOB_BOARD
     if has_job_route_evidence(value):
         return UrlClassification.COMPANY_CAREER
     return UrlClassification.OTHER

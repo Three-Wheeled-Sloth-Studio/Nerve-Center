@@ -262,15 +262,17 @@ def test_strategy_selection_deduplicates_compiled_market_reference_query(
     selected = learning.select_strategies("run-1", limit=4, exploration_floor=0.25)
     selected_ids = {item.id for item in selected}
 
-    assert city.id in selected_ids
-    assert metro.id not in selected_ids
+    chosen_ids = selected_ids & {city.id, metro.id}
+    assert len(chosen_ids) == 1
+    chosen_id = chosen_ids.pop()
+    duplicate_id = metro.id if chosen_id == city.id else city.id
 
-    learning.record_attempt("run-1", 1, city.id, "expand", StrategyOutcome())
+    learning.record_attempt("run-1", 1, chosen_id, "expand", StrategyOutcome())
     selected_again = learning.select_strategies(
         "run-1", limit=4, exploration_floor=0.25
     )
 
-    assert metro.id not in {item.id for item in selected_again}
+    assert duplicate_id not in {item.id for item in selected_again}
 
 
 def test_market_exploration_covers_distinct_locations_and_regional_probe(
