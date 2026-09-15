@@ -40,6 +40,8 @@ def build_command() -> list[str]:
         "pydantic",
         "--collect-submodules",
         "sqlalchemy",
+        "--collect-all",
+        "rapidocr_onnxruntime",
         str(ENTRY_POINT),
     ]
 

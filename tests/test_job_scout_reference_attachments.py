@@ -10,6 +10,7 @@ import pytest
 from pypdf import PdfWriter
 from reportlab.pdfgen import canvas
 
+import nerve_center.plugins.job_scout.reference_attachments as reference_attachments
 from nerve_center.config import Settings
 from nerve_center.discovery.fetching import (
     DomainRequestGate,
@@ -116,6 +117,54 @@ def test_pdf_employer_section_extracts_only_bounded_directory_names() -> None:
     assert parsed.extraction_method == "pdf_text_employer_section"
     assert parsed.candidates == ("Atlas Lantern Works", "Cedar Signal Labs")
     assert parsed.units_inspected == 1
+
+
+def test_image_only_pdf_uses_bounded_ranked_ocr_fallback(monkeypatch) -> None:
+    buffer = io.BytesIO()
+    writer = PdfWriter()
+    writer.add_blank_page(width=612, height=792)
+    writer.write(buffer)
+    content = buffer.getvalue()
+    calls: list[tuple[int, int]] = []
+
+    def fake_ocr(raw: bytes, pages: int, limit: int) -> tuple[list[str], int]:
+        assert raw == content
+        calls.append((pages, limit))
+        return ["Atlas Lantern Works", "Cedar Signal Labs"], 1
+
+    monkeypatch.setattr(reference_attachments, "_ocr_pdf_ranked_employers", fake_ocr)
+    parsed = parse_directory_document(
+        _document("https://civic.example/employers", content, "application/pdf")
+    )
+
+    assert calls == [(1, MAX_ATTACHMENT_CANDIDATES_PER_REFERENCE)]
+    assert parsed.status == "parsed"
+    assert parsed.extraction_method == "pdf_ocr_ranked_employers"
+    assert parsed.candidates == ("Atlas Lantern Works", "Cedar Signal Labs")
+    assert parsed.units_inspected == 1
+
+
+def test_ranked_ocr_candidates_require_employer_heading_and_row_geometry() -> None:
+    def row(text: str, x: float, y: float) -> list[object]:
+        return [[[x, y], [x + 100, y], [x + 100, y + 20], [x, y + 20]], text, 0.99]
+
+    detections = [
+        row("Largest Employers", 400, 100),
+        row("01. Atlas Lantern Works", 400, 200),
+        row("manufacturing", 700, 200),
+        row("1,250", 900, 200),
+        row("02.", 400, 260),
+        row("Cedar Signal Labs", 440, 260),
+        row("software", 700, 260),
+        row("875", 900, 260),
+    ]
+
+    assert reference_attachments._ranked_ocr_candidates(
+        detections, page_width=1_000, limit=12
+    ) == ["Atlas Lantern Works", "Cedar Signal Labs"]
+    assert reference_attachments._ranked_ocr_candidates(
+        detections[1:], page_width=1_000, limit=12
+    ) == []
 
 
 def test_csv_json_and_xlsx_require_explicit_employer_structure() -> None:

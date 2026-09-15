@@ -9,7 +9,9 @@ import json
 import re
 from dataclasses import dataclass
 from datetime import timedelta
+from functools import lru_cache
 from html.parser import HTMLParser
+from typing import Any
 from urllib.parse import urljoin, urlsplit
 from xml.etree import ElementTree
 from zipfile import BadZipFile, ZipFile
@@ -28,6 +30,8 @@ MAX_ATTACHMENT_FETCHES_PER_REFERENCE = 2
 MAX_ATTACHMENT_DOCUMENTS_PER_REFERENCE = 3
 MAX_ATTACHMENT_CANDIDATES_PER_REFERENCE = 12
 MAX_PDF_PAGES = 8
+MAX_OCR_PDF_PAGES = 4
+MAX_OCR_PAGE_LONG_EDGE = 1_600
 MAX_TABULAR_ROWS = 500
 MAX_JSON_NODES = 2_000
 MAX_XLSX_UNCOMPRESSED_BYTES = 12_000_000
@@ -72,6 +76,8 @@ _STOP_HEADING = re.compile(
     r"^(?:contact|resources?|about|news|events?|staff|leadership|footer)$",
     re.IGNORECASE,
 )
+_OCR_RANKED_NAME = re.compile(r"^\s*(\d{1,3})\s*[.)]\s*(.*?)\s*$")
+_OCR_RANK_ONLY = re.compile(r"^\s*(\d{1,3})\s*[.)]?\s*$")
 
 
 @dataclass(frozen=True, slots=True)
@@ -417,13 +423,148 @@ def _parse_pdf(content: bytes, limit: int) -> DirectoryParseResult:
             status="invalid",
             detail=f"Malformed PDF: {type(error).__name__}",
         )
-    candidates = _extract_employer_section_lines("\n".join(parts), limit)
+    extracted_text = "\n".join(parts)
+    candidates = _extract_employer_section_lines(extracted_text, limit)
+    if candidates or len(_clean_text(extracted_text)) >= 40:
+        return DirectoryParseResult(
+            candidates=tuple(candidates),
+            extraction_method="pdf_text_employer_section",
+            status="parsed",
+            units_inspected=pages,
+        )
+    try:
+        candidates, ocr_pages = _ocr_pdf_ranked_employers(content, pages, limit)
+    except Exception as error:
+        return DirectoryParseResult(
+            extraction_method="pdf_ocr_ranked_employers",
+            status="parsed",
+            units_inspected=pages,
+            detail=f"Image-only PDF OCR failed: {type(error).__name__}",
+        )
     return DirectoryParseResult(
         candidates=tuple(candidates),
-        extraction_method="pdf_text_employer_section",
+        extraction_method="pdf_ocr_ranked_employers",
         status="parsed",
-        units_inspected=pages,
+        units_inspected=ocr_pages,
     )
+
+
+def _ocr_pdf_ranked_employers(
+    content: bytes,
+    pages: int,
+    limit: int,
+) -> tuple[list[str], int]:
+    """OCR a bounded image-only PDF and retain only structurally ranked employer rows."""
+
+    import pypdfium2 as pdfium
+
+    document = pdfium.PdfDocument(content)
+    candidates: list[str] = []
+    seen: set[str] = set()
+    page_limit = min(pages, MAX_OCR_PDF_PAGES)
+    inspected = 0
+    try:
+        for page_index in range(page_limit):
+            page = document[page_index]
+            try:
+                inspected += 1
+                width, height = page.get_size()
+                scale = min(2.0, MAX_OCR_PAGE_LONG_EDGE / max(width, height, 1))
+                image = page.render(scale=max(scale, 0.5)).to_numpy()
+                detections, _ = _ocr_engine()(image)
+                for candidate in _ranked_ocr_candidates(
+                    detections or [],
+                    page_width=float(image.shape[1]),
+                    limit=limit - len(candidates),
+                ):
+                    _append_candidate(candidates, seen, candidate, limit)
+                    if len(candidates) >= limit:
+                        break
+            finally:
+                page.close()
+            if len(candidates) >= limit:
+                break
+    finally:
+        document.close()
+    return candidates, inspected
+
+
+@lru_cache(maxsize=1)
+def _ocr_engine() -> Any:
+    from rapidocr_onnxruntime import RapidOCR
+
+    return RapidOCR()
+
+
+def _ranked_ocr_candidates(
+    detections: list[Any],
+    *,
+    page_width: float,
+    limit: int,
+) -> list[str]:
+    """Recover employer names from OCR boxes only when a ranked employer table is visible."""
+
+    rows: list[tuple[float, float, str]] = []
+    for detection in detections:
+        if not isinstance(detection, (list, tuple)) or len(detection) < 2:
+            continue
+        box, raw_text = detection[0], detection[1]
+        if not isinstance(box, (list, tuple)) or not box:
+            continue
+        try:
+            left = min(float(point[0]) for point in box)
+            center_y = sum(float(point[1]) for point in box) / len(box)
+        except (IndexError, TypeError, ValueError, ZeroDivisionError):
+            continue
+        text = _clean_text(str(raw_text or ""))
+        if text:
+            rows.append((center_y, left, text))
+    rows.sort(key=lambda item: (item[0], item[1]))
+    if not _EMPLOYER_HEADING.search(" ".join(text for _, _, text in rows)):
+        return []
+
+    markers: list[tuple[int, float, float, str]] = []
+    last_rank = 0
+    marker_left: float | None = None
+    for center_y, left, text in rows:
+        match = _OCR_RANKED_NAME.match(text)
+        standalone = _OCR_RANK_ONLY.match(text) if match is None else None
+        selected = match or standalone
+        if selected is None:
+            continue
+        rank = int(selected.group(1))
+        name = match.group(2) if match is not None else ""
+        if not 1 <= rank <= 100 or rank <= last_rank or rank > last_rank + 10:
+            continue
+        if marker_left is None:
+            if not name or rank > 10:
+                continue
+            marker_left = left
+        elif abs(left - marker_left) > page_width * 0.08:
+            continue
+        markers.append((rank, center_y, left, name))
+        last_rank = rank
+
+    candidates: list[str] = []
+    for index, (_, center_y, left, name) in enumerate(markers):
+        next_y = markers[index + 1][1] if index + 1 < len(markers) else float("inf")
+        parts = [name.strip(" -")]
+        for row_y, row_left, text in rows:
+            if not center_y - 5 <= row_y < next_y - 5:
+                continue
+            if not left + page_width * 0.015 <= row_left <= left + page_width * 0.15:
+                continue
+            if _OCR_RANKED_NAME.match(text) or _OCR_RANK_ONLY.match(text):
+                continue
+            if re.fullmatch(r'[\d,."]+', text):
+                continue
+            parts.append(text.strip(" -"))
+        candidate = _clean_text(" ".join(part for part in parts if part))
+        if candidate:
+            candidates.append(candidate)
+        if len(candidates) >= max(0, limit):
+            break
+    return candidates
 
 
 def _parse_delimited(
