@@ -373,7 +373,7 @@ class JobScoutDiscoveryRepository:
                 ).all()
             )
             models = session.scalars(select(DiscoveryStrategyModel)).all()
-            canonical_employer_ids = _canonical_employer_search_ids(models)
+            canonical_public_search_ids = _canonical_public_search_ids(models)
             family_weights = {
                 item.id: item.learned_weight for item in _strategy_family_snapshots(models)
             }
@@ -396,9 +396,8 @@ class JobScoutDiscoveryRepository:
                 and item.dimensions.get("company_id") not in blocked_companies
                 and item.dimensions.get("source_id") not in blocked_sources
                 and (
-                    item.dimensions.get("hypothesis_family")
-                    not in {"local_employer", "local_employer_deepen"}
-                    or item.id in canonical_employer_ids
+                    item.dimensions.get("kind") != "public_search"
+                    or item.id in canonical_public_search_ids
                 )
             ]
             has_current_market_reference = any(
@@ -1016,22 +1015,21 @@ def _family_learned_weight(
     return _clamp(target - health_penalty, 0.2, 4.0)
 
 
-def _canonical_employer_search_ids(
+def _canonical_public_search_ids(
     models: list[DiscoveryStrategyModel],
 ) -> set[str]:
-    """Choose one durable strategy per compiled civic-employer query."""
+    """Choose one durable strategy per source path and compiled public query."""
 
     from nerve_center.plugins.job_scout.query_portfolio import compile_strategy_query
 
     canonical: dict[tuple[str, str], DiscoveryStrategyModel] = {}
+    retained: set[str] = set()
     for model in models:
-        if model.dimensions.get("hypothesis_family") not in {
-            "local_employer",
-            "local_employer_deepen",
-        }:
+        if model.dimensions.get("kind") != "public_search":
             continue
         compiled = compile_strategy_query(dict(model.dimensions))
         if not compiled.valid:
+            retained.add(model.id)
             continue
         identity = (compiled.source_path, compiled.query.casefold())
         existing = canonical.get(identity)
@@ -1040,7 +1038,7 @@ def _canonical_employer_search_ids(
             existing.id,
         ):
             canonical[identity] = model
-    return {item.id for item in canonical.values()}
+    return {*retained, *(item.id for item in canonical.values())}
 
 
 def _strategy_snapshot(model: DiscoveryStrategyModel) -> DiscoveryStrategySnapshot:

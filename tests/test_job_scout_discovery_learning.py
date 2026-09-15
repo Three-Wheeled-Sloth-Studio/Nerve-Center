@@ -275,6 +275,34 @@ def test_strategy_selection_deduplicates_compiled_market_reference_query(
     assert duplicate_id not in {item.id for item in selected_again}
 
 
+def test_strategy_selection_deduplicates_query_across_revision_provenance(
+    tmp_path: Path,
+) -> None:
+    learning = JobScoutDiscoveryRepository(_database(tmp_path))
+    for index in range(8):
+        learning.ensure_strategy(
+            {"kind": "public_search", "anchor": f"product {index}"},
+            origin="profile",
+        )
+    probes = [
+        learning.ensure_strategy(
+            {
+                "kind": "public_search",
+                "hypothesis_family": "regional_alias_probe",
+                "anchor": "Example, NC Metro Area",
+                "source_domain": "web",
+                "query_revision": revision,
+            },
+            origin="public_regional_alias_probe",
+        )
+        for revision in ("reference-v1", "reference-v2")
+    ]
+
+    selected = learning.select_strategies("run-1", limit=4, exploration_floor=0.25)
+
+    assert len({item.id for item in selected} & {item.id for item in probes}) == 1
+
+
 def test_market_exploration_covers_distinct_locations_and_regional_probe(
     tmp_path: Path,
 ) -> None:
