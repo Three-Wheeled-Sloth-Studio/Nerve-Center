@@ -229,6 +229,50 @@ def test_strategy_selection_deduplicates_civic_employer_query_across_markets(
     assert duplicate.id not in {item.id for item in selected_again}
 
 
+def test_strategy_selection_deduplicates_compiled_market_reference_query(
+    tmp_path: Path,
+) -> None:
+    learning = JobScoutDiscoveryRepository(_database(tmp_path))
+    for index in range(8):
+        learning.ensure_strategy(
+            {"kind": "public_search", "anchor": f"product {index}"},
+            origin="profile",
+        )
+    city = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer",
+            "anchor": "company headquarters",
+            "location": "Example, NC",
+            "source_domain": "web",
+        },
+        origin="public_market_landscape",
+    )
+    metro = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer",
+            "anchor": "company headquarters",
+            "location": "Example, NC Metro Area",
+            "source_domain": "web",
+        },
+        origin="public_market_landscape",
+    )
+
+    selected = learning.select_strategies("run-1", limit=4, exploration_floor=0.25)
+    selected_ids = {item.id for item in selected}
+
+    assert city.id in selected_ids
+    assert metro.id not in selected_ids
+
+    learning.record_attempt("run-1", 1, city.id, "expand", StrategyOutcome())
+    selected_again = learning.select_strategies(
+        "run-1", limit=4, exploration_floor=0.25
+    )
+
+    assert metro.id not in {item.id for item in selected_again}
+
+
 def test_market_exploration_covers_distinct_locations_and_regional_probe(
     tmp_path: Path,
 ) -> None:

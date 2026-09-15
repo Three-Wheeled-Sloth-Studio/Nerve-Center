@@ -5,7 +5,6 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
@@ -374,7 +373,7 @@ class JobScoutDiscoveryRepository:
                 ).all()
             )
             models = session.scalars(select(DiscoveryStrategyModel)).all()
-            canonical_employer_ids = _canonical_employer_deepening_ids(models)
+            canonical_employer_ids = _canonical_employer_search_ids(models)
             family_weights = {
                 item.id: item.learned_weight for item in _strategy_family_snapshots(models)
             }
@@ -398,7 +397,7 @@ class JobScoutDiscoveryRepository:
                 and item.dimensions.get("source_id") not in blocked_sources
                 and (
                     item.dimensions.get("hypothesis_family")
-                    != "local_employer_deepen"
+                    not in {"local_employer", "local_employer_deepen"}
                     or item.id in canonical_employer_ids
                 )
             ]
@@ -1017,20 +1016,24 @@ def _family_learned_weight(
     return _clamp(target - health_penalty, 0.2, 4.0)
 
 
-def _canonical_employer_deepening_ids(
+def _canonical_employer_search_ids(
     models: list[DiscoveryStrategyModel],
 ) -> set[str]:
-    """Choose one durable strategy per canonical employer search identity."""
+    """Choose one durable strategy per compiled civic-employer query."""
 
-    canonical: dict[str, DiscoveryStrategyModel] = {}
+    from nerve_center.plugins.job_scout.query_portfolio import compile_strategy_query
+
+    canonical: dict[tuple[str, str], DiscoveryStrategyModel] = {}
     for model in models:
-        if model.dimensions.get("hypothesis_family") != "local_employer_deepen":
+        if model.dimensions.get("hypothesis_family") not in {
+            "local_employer",
+            "local_employer_deepen",
+        }:
             continue
-        anchor = str(model.dimensions.get("anchor", "")).strip()
-        anchor = re.sub(r"(?<=[a-z])(?=[A-Z])", " ", anchor)
-        identity = re.sub(r"[^a-z0-9]+", " ", anchor.casefold()).strip()
-        if not identity:
+        compiled = compile_strategy_query(dict(model.dimensions))
+        if not compiled.valid:
             continue
+        identity = (compiled.source_path, compiled.query.casefold())
         existing = canonical.get(identity)
         if existing is None or (model.created_at, model.id) < (
             existing.created_at,

@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from collections.abc import Iterable
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 from nerve_center.discovery.models import (
@@ -12,9 +13,13 @@ from nerve_center.discovery.models import (
     NormalizedJobOpening,
     SourceKind,
 )
-from nerve_center.plugins.job_scout.discovery_learning import DiscoveryStrategySnapshot
 from nerve_center.plugins.job_scout.settings import clean_list
 from nerve_center.scoring.location import opening_matches_market
+
+if TYPE_CHECKING:
+    from nerve_center.plugins.job_scout.discovery_learning import (
+        DiscoveryStrategySnapshot,
+    )
 
 GENERIC_TITLE_TERMS = {
     "chief",
