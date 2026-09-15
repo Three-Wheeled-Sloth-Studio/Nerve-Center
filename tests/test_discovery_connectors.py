@@ -356,6 +356,9 @@ def test_sitemap_returns_only_likely_job_urls() -> None:
       <url><loc>https://example.com/about</loc></url>
       <url><loc>https://example.com/careers/product-manager</loc></url>
       <url><loc>https://example.com/jobs/data-lead</loc></url>
+      <url><loc>https://example.com/career-advice/job-interview-tips</loc></url>
+      <url><loc>https://cdn.example.com/Job-interview-in-person.jpeg</loc></url>
+      <url><loc>https://example.com/sitemaps/jobs-1.xml</loc></url>
     </urlset>"""
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -371,5 +374,8 @@ def test_sitemap_returns_only_likely_job_urls() -> None:
     )
     asyncio.run(client.aclose())
 
-    assert len(result.discovered_urls) == 2
-    assert all("about" not in item for item in result.discovered_urls)
+    assert result.discovered_urls == [
+        "https://example.com/careers/product-manager",
+        "https://example.com/jobs/data-lead",
+        "https://example.com/sitemaps/jobs-1.xml",
+    ]

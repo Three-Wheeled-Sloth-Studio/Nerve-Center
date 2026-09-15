@@ -198,7 +198,7 @@ def test_company_first_cycle_persists_company_source_sitemap_and_opening(
 
     assert prepared["location_aliases"] == 2
     assert cycle.strategies_attempted == 2
-    assert cycle.useful_yield == 4
+    assert cycle.useful_yield == 2
     assert cycle.openings_found == 1
     assert len(companies.list()) == 1
     company = companies.list()[0]

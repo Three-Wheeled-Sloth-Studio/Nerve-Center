@@ -7,7 +7,7 @@ import html
 import re
 from datetime import UTC, datetime
 from html.parser import HTMLParser
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, unquote, urlencode, urlsplit, urlunsplit
 from uuid import NAMESPACE_URL, uuid5
 
 from nerve_center.discovery.models import WorkArrangement
@@ -48,6 +48,29 @@ _WEAK_IDENTITY_DOMAINS = {
     "ziprecruiter.com",
 }
 _WHITESPACE = re.compile(r"\s+")
+_JOB_ROUTE_SEGMENTS = {
+    "career",
+    "careers",
+    "employment",
+    "job",
+    "jobs",
+    "opening",
+    "openings",
+    "opportunities",
+    "position",
+    "positions",
+    "vacancies",
+    "vacancy",
+}
+_NON_DOCUMENT_SUFFIXES = {
+    ".avif",
+    ".gif",
+    ".jpeg",
+    ".jpg",
+    ".png",
+    ".svg",
+    ".webp",
+}
 
 
 class _TextExtractor(HTMLParser):
@@ -110,6 +133,27 @@ def canonicalize_url(value: str) -> str:
 def canonical_domain(value: str) -> str:
     hostname = (urlsplit(value if "://" in value else f"https://{value}").hostname or "").lower()
     return hostname.removeprefix("www.")
+
+
+def has_job_route_evidence(value: str) -> bool:
+    """Return whether a URL has a discrete job/career route segment.
+
+    Segment evidence avoids promoting editorial slugs such as ``career-advice``
+    or ``job-interview`` merely because they contain a broad keyword.
+    """
+
+    path = unquote(urlsplit(value).path).casefold()
+    if any(path.endswith(suffix) for suffix in _NON_DOCUMENT_SUFFIXES):
+        return False
+    segments = [item for item in path.split("/") if item]
+    if any(item in _JOB_ROUTE_SEGMENTS for item in segments):
+        return True
+    if path.endswith(".xml"):
+        filename_tokens = {
+            item for item in re.split(r"[^a-z]+", segments[-1] if segments else "") if item
+        }
+        return bool(filename_tokens & _JOB_ROUTE_SEGMENTS)
+    return False
 
 
 def is_third_party_identity_domain(value: str) -> bool:

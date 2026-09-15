@@ -73,6 +73,26 @@ def test_strategy_identity_weighting_and_exploration_floor_are_durable(tmp_path:
     assert saved.learned_weight == productive.learned_weight
 
 
+def test_source_count_without_posting_yield_is_not_rewarded(tmp_path: Path) -> None:
+    learning = JobScoutDiscoveryRepository(_database(tmp_path))
+    strategy = learning.ensure_strategy(
+        {"kind": "company_revisit", "company_id": "editorial-site"},
+        origin="fixture",
+        base_weight=1.45,
+    )
+
+    result = learning.record_attempt(
+        "run-1",
+        1,
+        strategy.id,
+        "deepen",
+        StrategyOutcome(career_sources_resolved=250),
+    )
+
+    assert result.learned_weight < strategy.learned_weight
+    assert result.last_productive_at is None
+
+
 def test_strategy_selection_reserves_company_deepening_capacity(tmp_path: Path) -> None:
     learning = JobScoutDiscoveryRepository(_database(tmp_path))
     for index in range(8):

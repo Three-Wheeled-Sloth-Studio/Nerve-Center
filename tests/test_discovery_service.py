@@ -100,6 +100,25 @@ def test_service_scans_source_and_persists_job(tmp_path: Path) -> None:
     assert sources.get("source-1").last_success_at is not None
 
 
+def test_sitemap_child_registration_has_a_small_default_ceiling(tmp_path: Path) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"jobs": []}, request=request)
+
+    service, sources, _jobs, client = _setup(tmp_path, handler)
+    parent = sources.get("source-1").model_copy(
+        update={"kind": SourceKind.SITEMAP, "configuration": {}}
+    )
+    sources.upsert(parent)
+
+    service._register_sitemap_urls(  # noqa: SLF001
+        parent,
+        [f"https://example.com/jobs/{index}" for index in range(80)],
+    )
+    asyncio.run(client.aclose())
+
+    assert len(sources.list()) == 51
+
+
 def test_plugin_checkpoints_and_consumes_request_budget(tmp_path: Path) -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, json={"jobs": []})
@@ -137,6 +156,12 @@ def test_google_result_normalization_rejects_internal_links() -> None:
     assert classify_discovered_url("https://acme.com/careers/product") is (
         UrlClassification.COMPANY_CAREER
     )
+    assert classify_discovered_url(
+        "https://example.com/career-advice/companies-in-the-carolinas"
+    ) is UrlClassification.OTHER
+    assert classify_discovered_url(
+        "https://example.com/insights/job-interview-tips"
+    ) is UrlClassification.OTHER
     assert classify_discovered_url("https://www.linkedin.com/jobs/view/1") is (
         UrlClassification.LINKEDIN
     )

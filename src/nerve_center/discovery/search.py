@@ -20,7 +20,7 @@ from nerve_center.discovery.fetching import (
     HttpFetcher,
     ResponseTooLargeError,
 )
-from nerve_center.discovery.normalization import canonicalize_url
+from nerve_center.discovery.normalization import canonicalize_url, has_job_route_evidence
 from nerve_center.persistence.discovery import SearchCacheRepository
 
 
@@ -514,7 +514,6 @@ def normalize_public_search_result_url(value: str) -> str | None:
 def classify_discovered_url(value: str) -> UrlClassification:
     split = urlsplit(value)
     domain = (split.hostname or "").casefold().removeprefix("www.")
-    path = split.path.casefold()
     if domain.endswith("greenhouse.io"):
         return UrlClassification.GREENHOUSE
     if domain.endswith("lever.co"):
@@ -536,6 +535,6 @@ def classify_discovered_url(value: str) -> UrlClassification:
         )
     ):
         return UrlClassification.MAJOR_JOB_BOARD
-    if any(token in path for token in ("/career", "/careers", "/job", "/jobs")):
+    if has_job_route_evidence(value):
         return UrlClassification.COMPANY_CAREER
     return UrlClassification.OTHER

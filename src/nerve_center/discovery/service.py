@@ -188,8 +188,8 @@ class DiscoveryService:
 
     def _register_sitemap_urls(self, source: DiscoverySource, urls: list[str]) -> None:
         maximum = min(
-            max(int(source.configuration.get("auto_register_limit") or 250), 1),
-            5000,
+            max(int(source.configuration.get("auto_register_limit") or 50), 1),
+            250,
         )
         interval = max(int(source.configuration.get("page_scan_interval_minutes") or 1440), 60)
         for url in urls[:maximum]:

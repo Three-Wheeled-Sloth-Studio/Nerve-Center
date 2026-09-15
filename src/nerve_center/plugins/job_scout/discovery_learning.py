@@ -227,7 +227,6 @@ class StrategyOutcome:
     def useful_yield(self) -> int:
         return (
             self.companies_discovered
-            + self.career_sources_resolved
             + self.opportunities_retained
         )
 
@@ -1089,9 +1088,14 @@ def _strategy_ids_for_job(session: Any, job_id: str) -> set[str]:
 
 
 def _attempt_target_weight(outcome: StrategyOutcome) -> float:
+    source_value = (
+        min(outcome.career_sources_resolved, 4) * 0.1
+        if outcome.postings_inspected > 0
+        else 0.0
+    )
     useful = (
         outcome.opportunities_retained * 0.8
-        + outcome.career_sources_resolved * 0.5
+        + source_value
         + outcome.companies_discovered * 0.35
         + min(outcome.postings_inspected, 25) * 0.02
     )

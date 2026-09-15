@@ -12,9 +12,7 @@ from nerve_center.discovery.models import (
     DiscoverySource,
     ScanStatus,
 )
-from nerve_center.discovery.normalization import canonicalize_url
-
-_JOB_HINTS = ("job", "jobs", "career", "careers", "position", "opening", "vacancy")
+from nerve_center.discovery.normalization import canonicalize_url, has_job_route_evidence
 
 
 class SitemapConnector:
@@ -61,8 +59,7 @@ class SitemapConnector:
             if element.tag.rsplit("}", 1)[-1].casefold() != "loc" or not element.text:
                 continue
             url = canonicalize_url(urljoin(response.url, element.text.strip()))
-            lowered = url.casefold()
-            if any(hint in lowered for hint in _JOB_HINTS) and url not in urls:
+            if has_job_route_evidence(url) and url not in urls:
                 urls.append(url)
             if len(urls) >= max_urls:
                 break
