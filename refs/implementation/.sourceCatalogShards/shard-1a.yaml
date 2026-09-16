@@ -1,0 +1,530 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: 1a
+  files:
+  - path: tests/test_job_scout_query_portfolio.py
+    analysis_version: 1
+    language: python
+    content_hash: d3008db86bdb94935fdcf359510b5dedb0fe5076
+    dependencies:
+    - asyncio
+    - nerve_center.config
+    - nerve_center.discovery.models
+    - nerve_center.discovery.search
+    - nerve_center.persistence.database
+    - nerve_center.persistence.discovery
+    - nerve_center.plugins.job_scout.discovery_learning
+    - nerve_center.plugins.job_scout.discovery_loop
+    - nerve_center.plugins.job_scout.discovery_quality
+    - nerve_center.plugins.job_scout.market
+    - nerve_center.plugins.job_scout.query_portfolio
+    - nerve_center.plugins.job_scout.settings
+    - pathlib
+    - types
+    provides:
+    - _database
+    - test_portfolio_compiles_materially_distinct_source_aware_families
+    - test_bounded_portfolio_rotates_starting_market_across_source_buckets
+    - test_market_strategies_cover_employment_centers_and_region_alias_probes
+    - test_local_employer_deepening_resolves_career_surface_before_location
+    - test_local_employer_deepening_has_bounded_canonical_career_failbacks
+    - test_employer_query_failback_stops_at_first_direct_career_result
+    - test_employer_query_failback_stops_at_first_direct_career_result.Search.search
+    - test_query_linter_rejects_contradictions_and_unsupported_requirements
+    - _NoNetworkSearch.__init__
+    - _NoNetworkSearch.search
+    - _ConfigStore.load
+    - _Coordinator.__init__
+    - _Coordinator._discover_keywords
+    - test_invalid_strategy_is_rejected_before_network_request
+    - test_cross_strategy_convergence_promotes_deepening_not_fit
+    - test_strategy_attempt_audit_records_weight_movement
+    - test_structured_refresh_gets_one_time_initial_preference
+    - test_due_structured_source_is_preferred_through_real_seeding_path
+    - test_unhealthy_structured_source_gets_no_initial_priority_bonus
+    - test_coverage_gaps_are_explicit_and_bounded
+    - test_reflection_work_is_explicitly_gap_driven
+    symbols:
+    - name: _database
+      kind: function
+      line_start: 37
+      line_end: 40
+      signature: '_database(tmp_path: Path) -> Database'
+      inputs:
+      - 'tmp_path: Path'
+      output: Database
+      dependencies:
+      - Database
+      - Settings
+      - database.initialize
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/database.py
+        symbol: Database.initialize
+    - name: test_portfolio_compiles_materially_distinct_source_aware_families
+      kind: function
+      line_start: 43
+      line_end: 108
+      signature: test_portfolio_compiles_materially_distinct_source_aware_families() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - all
+      - build_query_portfolio
+      - compile_strategy_query
+      - item.query.casefold
+      - len
+      - local_employer.query.casefold
+      - next
+      - source_capabilities
+      - zip
+      - '{''direct_role'', ''adjacent_role'', ''seniority_variant'', ''local_employer''}.issubset'
+      - '{''web'', ''indeed.com'', ''job-boards.greenhouse.io'', ''jobs.lever.co''}.issubset'
+      parser: python-ast
+      dependency_targets:
+      - &id001
+        path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: build_query_portfolio
+      - &id002
+        path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: compile_strategy_query
+      - path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: source_capabilities
+    - name: test_bounded_portfolio_rotates_starting_market_across_source_buckets
+      kind: function
+      line_start: 111
+      line_end: 124
+      signature: test_bounded_portfolio_rotates_starting_market_across_source_buckets() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - any
+      - build_query_portfolio
+      - item.get
+      - len
+      - range
+      parser: python-ast
+      dependency_targets:
+      - *id001
+    - name: test_market_strategies_cover_employment_centers_and_region_alias_probes
+      kind: function
+      line_start: 127
+      line_end: 199
+      signature: 'test_market_strategies_cover_employment_centers_and_region_alias_probes(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - DiscoveryQualityRepository
+      - MarketAlias
+      - _database
+      - all
+      - compile_strategy_query
+      - item.dimensions.get
+      - learning.list_strategies
+      - loop._seed_market_strategies
+      - next
+      - object.__new__
+      - str
+      - str(item.dimensions).casefold
+      - '{''Greensboro, NC'', ''Durham, NC''}.issubset'
+      parser: python-ast
+      dependency_targets:
+      - &id003
+        path: tests/test_applications.py
+        symbol: _database
+      - &id004
+        path: tests/test_discovery_persistence.py
+        symbol: _database
+      - &id005
+        path: tests/test_job_scout_discovery_learning.py
+        symbol: _database
+      - &id006
+        path: tests/test_job_scout_query_portfolio.py
+        symbol: _database
+      - *id002
+      - &id011
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.list_strategies
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._seed_market_strategies
+      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: SourceAwareJobScoutDiscoveryLoop._seed_market_strategies
+    - name: test_local_employer_deepening_resolves_career_surface_before_location
+      kind: function
+      line_start: 202
+      line_end: 220
+      signature: test_local_employer_deepening_resolves_career_surface_before_location() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - compile_strategy_query
+      parser: python-ast
+      dependency_targets:
+      - *id002
+    - name: test_local_employer_deepening_has_bounded_canonical_career_failbacks
+      kind: function
+      line_start: 223
+      line_end: 238
+      signature: test_local_employer_deepening_has_bounded_canonical_career_failbacks() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - compile_employer_deepening_queries
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: compile_employer_deepening_queries
+    - name: test_employer_query_failback_stops_at_first_direct_career_result
+      kind: function
+      line_start: 241
+      line_end: 278
+      signature: test_employer_query_failback_stops_at_first_direct_career_result() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - Search
+      - SearchResult
+      - _CompiledQueryAdapter
+      - _RequestAllowance
+      - adapter.search
+      - allowance.reserve
+      - asyncio.run
+      - query.endswith
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _RequestAllowance.reserve
+    - name: test_employer_query_failback_stops_at_first_direct_career_result.Search.search
+      kind: method
+      line_start: 243
+      line_end: 258
+      signature: 'test_employer_query_failback_stops_at_first_direct_career_result.Search.search(self, query: str) -> list[SearchResult]'
+      inputs:
+      - self
+      - 'query: str'
+      output: list[SearchResult]
+      dependencies:
+      - SearchResult
+      - query.endswith
+      parser: python-ast
+      dependency_targets: []
+    - name: test_query_linter_rejects_contradictions_and_unsupported_requirements
+      kind: function
+      line_start: 281
+      line_end: 310
+      signature: test_query_linter_rejects_contradictions_and_unsupported_requirements() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - compile_strategy_query
+      parser: python-ast
+      dependency_targets:
+      - *id002
+    - name: _NoNetworkSearch.__init__
+      kind: method
+      line_start: 314
+      line_end: 315
+      signature: _NoNetworkSearch.__init__(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: _NoNetworkSearch.search
+      kind: method
+      line_start: 317
+      line_end: 319
+      signature: '_NoNetworkSearch.search(self, _query: str) -> list[object]'
+      inputs:
+      - self
+      - '_query: str'
+      output: list[object]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: _ConfigStore.load
+      kind: method
+      line_start: 323
+      line_end: 330
+      signature: _ConfigStore.load(self) -> JobScoutConfiguration
+      inputs:
+      - self
+      output: JobScoutConfiguration
+      dependencies:
+      - JobScoutConfiguration
+      parser: python-ast
+      dependency_targets: []
+    - name: _Coordinator.__init__
+      kind: method
+      line_start: 334
+      line_end: 335
+      signature: _Coordinator.__init__(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies:
+      - _ConfigStore
+      parser: python-ast
+      dependency_targets: []
+    - name: _Coordinator._discover_keywords
+      kind: method
+      line_start: 337
+      line_end: 338
+      signature: '_Coordinator._discover_keywords(self, _configuration: JobScoutConfiguration) -> SimpleNamespace'
+      inputs:
+      - self
+      - '_configuration: JobScoutConfiguration'
+      output: SimpleNamespace
+      dependencies:
+      - SimpleNamespace
+      parser: python-ast
+      dependency_targets: []
+    - name: test_invalid_strategy_is_rejected_before_network_request
+      kind: function
+      line_start: 341
+      line_end: 359
+      signature: test_invalid_strategy_is_rejected_before_network_request() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - SimpleNamespace
+      - _Coordinator
+      - _NoNetworkSearch
+      - asyncio.run
+      - loop._execute_public_search
+      - object.__new__
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/attachment_discovery.py
+        symbol: AttachmentAwareJobScoutDiscoveryLoop._execute_public_search
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._execute_public_search
+      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: SourceAwareJobScoutDiscoveryLoop._execute_public_search
+    - name: test_cross_strategy_convergence_promotes_deepening_not_fit
+      kind: function
+      line_start: 362
+      line_end: 393
+      signature: 'test_cross_strategy_convergence_promotes_deepening_not_fit(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Company
+      - CompanyRepository
+      - CompanyRepository(database).upsert
+      - DiscoveryQualityRepository
+      - _database
+      - learning.ensure_strategy
+      - learning.get_strategy
+      - learning.record_company_evidence
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/discovery.py
+        symbol: CompanyRepository.upsert
+      - path: src/nerve_center/persistence/discovery.py
+        symbol: DiscoverySourceRepository.upsert
+      - path: src/nerve_center/persistence/discovery.py
+        symbol: JobOpeningRepository.upsert
+      - path: src/nerve_center/persistence/scoring.py
+        symbol: ScoringRuleRepository.upsert
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+      - &id007
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.ensure_strategy
+      - &id008
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.get_strategy
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.record_company_evidence
+      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: DiscoveryQualityRepository.record_company_evidence
+    - name: test_strategy_attempt_audit_records_weight_movement
+      kind: function
+      line_start: 396
+      line_end: 431
+      signature: 'test_strategy_attempt_audit_records_weight_movement(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - DiscoveryQualityRepository
+      - StrategyOutcome
+      - _database
+      - learning.discovery_audit
+      - learning.ensure_strategy
+      - learning.record_attempt
+      - next
+      - round
+      parser: python-ast
+      dependency_targets:
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: DiscoveryQualityRepository.discovery_audit
+      - *id007
+      - &id009
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.record_attempt
+      - &id010
+        path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: DiscoveryQualityRepository.record_attempt
+    - name: test_structured_refresh_gets_one_time_initial_preference
+      kind: function
+      line_start: 434
+      line_end: 448
+      signature: 'test_structured_refresh_gets_one_time_initial_preference(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - DiscoveryQualityRepository
+      - StrategyOutcome
+      - _database
+      - learning.ensure_strategy
+      - learning.get_strategy
+      - learning.promote_initial_structured_refresh
+      - learning.record_attempt
+      parser: python-ast
+      dependency_targets:
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: DiscoveryQualityRepository.promote_initial_structured_refresh
+      - *id009
+      - *id010
+    - name: test_due_structured_source_is_preferred_through_real_seeding_path
+      kind: function
+      line_start: 451
+      line_end: 473
+      signature: 'test_due_structured_source_is_preferred_through_real_seeding_path(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - DiscoveryQualityRepository
+      - DiscoverySource
+      - SimpleNamespace
+      - _database
+      - item.dimensions.get
+      - learning.list_strategies
+      - loop._seed_due_source_strategies
+      - next
+      - object.__new__
+      parser: python-ast
+      dependency_targets:
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+      - *id011
+      - &id012
+        path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._seed_due_source_strategies
+      - &id013
+        path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: SourceAwareJobScoutDiscoveryLoop._seed_due_source_strategies
+    - name: test_unhealthy_structured_source_gets_no_initial_priority_bonus
+      kind: function
+      line_start: 476
+      line_end: 499
+      signature: 'test_unhealthy_structured_source_gets_no_initial_priority_bonus(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - DiscoveryQualityRepository
+      - DiscoverySource
+      - SimpleNamespace
+      - _database
+      - item.dimensions.get
+      - learning.list_strategies
+      - loop._seed_due_source_strategies
+      - next
+      - object.__new__
+      parser: python-ast
+      dependency_targets:
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+      - *id011
+      - *id012
+      - *id013
+    - name: test_coverage_gaps_are_explicit_and_bounded
+      kind: function
+      line_start: 502
+      line_end: 560
+      signature: 'test_coverage_gaps_are_explicit_and_bounded(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - DiscoveryQualityRepository
+      - DiscoverySource
+      - JobProvenance
+      - NormalizedJobOpening
+      - StrategyOutcome
+      - _database
+      - build_coverage_gap_profile
+      - learning.ensure_strategy
+      - learning.list_strategies
+      - learning.record_attempt
+      parser: python-ast
+      dependency_targets:
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+      - path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: build_coverage_gap_profile
+      - *id007
+      - *id011
+      - *id009
+      - *id010
+    - name: test_reflection_work_is_explicitly_gap_driven
+      kind: function
+      line_start: 563
+      line_end: 581
+      signature: 'test_reflection_work_is_explicitly_gap_driven(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - DiscoveryQualityRepository
+      - SimpleNamespace
+      - _Coordinator
+      - _database
+      - learning.session
+      - learning.update_session
+      - loop.reflection_work_request
+      - object.__new__
+      parser: python-ast
+      dependency_targets:
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+      - path: src/nerve_center/persistence/database.py
+        symbol: Database.session
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.session
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.update_session
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop.reflection_work_request
+      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: SourceAwareJobScoutDiscoveryLoop.reflection_work_request

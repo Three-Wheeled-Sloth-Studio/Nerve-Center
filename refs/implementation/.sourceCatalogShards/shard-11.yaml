@@ -1,0 +1,1463 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: '11'
+  files:
+  - path: src/nerve_center/persistence/work_queue.py
+    analysis_version: 1
+    language: python
+    content_hash: 52989aa71df71fd3df17d040a2f0867227b9f6a4
+    dependencies:
+    - __future__
+    - datetime
+    - nerve_center.domain.work_queue
+    - nerve_center.persistence.database
+    - nerve_center.persistence.models
+    - sqlalchemy
+    - sqlalchemy.orm
+    - typing
+    - uuid
+    provides:
+    - WorkQueueRepository.__init__
+    - WorkQueueRepository.submit
+    - WorkQueueRepository.get
+    - WorkQueueRepository.find_by_idempotency
+    - WorkQueueRepository.list_requests
+    - WorkQueueRepository.pending_count
+    - WorkQueueRepository.status_counts
+    - WorkQueueRepository.average_attempt_seconds
+    - WorkQueueRepository.claim_next
+    - WorkQueueRepository.complete
+    - WorkQueueRepository.fail
+    - WorkQueueRepository.attempts
+    - WorkQueueRepository.deliver_results
+    - WorkQueueRepository.acknowledge
+    - WorkQueueRepository.cancel
+    - WorkQueueRepository.recover_claimed
+    - WorkQueueRepository.retry
+    - WorkQueueRepository.reprioritize
+    - WorkQueueRepository._request
+    - WorkQueueRepository._attempt
+    - _request_snapshot
+    - _attempt_snapshot
+    - _result_snapshot
+    - _utc
+    - _restore_utc
+    - _required_utc
+    symbols:
+    - name: WorkQueueRepository.__init__
+      kind: method
+      line_start: 40
+      line_end: 41
+      signature: 'WorkQueueRepository.__init__(self, database: Database) -> None'
+      inputs:
+      - self
+      - 'database: Database'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: WorkQueueRepository.submit
+      kind: method
+      line_start: 43
+      line_end: 81
+      signature: 'WorkQueueRepository.submit(self, spec: WorkRequestSpec, now: datetime | None) -> tuple[WorkRequestSnapshot,
+        bool]'
+      inputs:
+      - self
+      - 'spec: WorkRequestSpec'
+      - 'now: datetime | None'
+      output: tuple[WorkRequestSnapshot, bool]
+      dependencies:
+      - WorkRequestModel
+      - _request_snapshot
+      - _utc
+      - dict
+      - select
+      - select(WorkRequestModel).where
+      - self.database.session
+      - session.add
+      - session.flush
+      - session.scalar
+      - str
+      - uuid4
+      parser: python-ast
+      dependency_targets:
+      - &id001
+        path: src/nerve_center/persistence/work_queue.py
+        symbol: _request_snapshot
+      - &id004
+        path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager.select
+      - &id002
+        path: src/nerve_center/persistence/database.py
+        symbol: Database.session
+      - &id003
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.session
+      - &id005
+        path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _extract_structured_employer_names.add
+      - &id006
+        path: scripts/agent_context.py
+        symbol: _markdown_blocks.flush
+    - name: WorkQueueRepository.get
+      kind: method
+      line_start: 83
+      line_end: 85
+      signature: 'WorkQueueRepository.get(self, request_id: str) -> WorkRequestSnapshot'
+      inputs:
+      - self
+      - 'request_id: str'
+      output: WorkRequestSnapshot
+      dependencies:
+      - _request_snapshot
+      - self._request
+      - self.database.session
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - &id007
+        path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository._request
+      - &id008
+        path: src/nerve_center/runtime/client.py
+        symbol: ModuleRuntimeClient._request
+      - *id002
+      - *id003
+    - name: WorkQueueRepository.find_by_idempotency
+      kind: method
+      line_start: 87
+      line_end: 97
+      signature: 'WorkQueueRepository.find_by_idempotency(self, module_id: str, idempotency_key: str) -> WorkRequestSnapshot
+        | None'
+      inputs:
+      - self
+      - 'module_id: str'
+      - 'idempotency_key: str'
+      output: WorkRequestSnapshot | None
+      dependencies:
+      - _request_snapshot
+      - select
+      - select(WorkRequestModel).where
+      - self.database.session
+      - session.scalar
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id004
+      - *id002
+      - *id003
+    - name: WorkQueueRepository.list_requests
+      kind: method
+      line_start: 99
+      line_end: 113
+      signature: 'WorkQueueRepository.list_requests(self, module_id: str | None, status: WorkRequestStatus | None, limit:
+        int) -> list[WorkRequestSnapshot]'
+      inputs:
+      - self
+      - 'module_id: str | None'
+      - 'status: WorkRequestStatus | None'
+      - 'limit: int'
+      output: list[WorkRequestSnapshot]
+      dependencies:
+      - WorkRequestModel.created_at.desc
+      - _request_snapshot
+      - select
+      - self.database.session
+      - session.scalars
+      - session.scalars(statement).all
+      - statement.order_by
+      - statement.order_by(WorkRequestModel.created_at.desc()).limit
+      - statement.where
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id004
+      - *id002
+      - *id003
+    - name: WorkQueueRepository.pending_count
+      kind: method
+      line_start: 115
+      line_end: 122
+      signature: 'WorkQueueRepository.pending_count(self, module_id: str | None) -> int'
+      inputs:
+      - self
+      - 'module_id: str | None'
+      output: int
+      dependencies:
+      - WorkRequestModel.status.in_
+      - func.count
+      - int
+      - select
+      - select(func.count()).select_from
+      - select(func.count()).select_from(WorkRequestModel).where
+      - self.database.session
+      - session.scalar
+      - statement.where
+      parser: python-ast
+      dependency_targets:
+      - *id004
+      - *id002
+      - *id003
+    - name: WorkQueueRepository.status_counts
+      kind: method
+      line_start: 124
+      line_end: 131
+      signature: 'WorkQueueRepository.status_counts(self, module_id: str | None) -> dict[str, int]'
+      inputs:
+      - self
+      - 'module_id: str | None'
+      output: dict[str, int]
+      dependencies:
+      - func.count
+      - int
+      - select
+      - select(WorkRequestModel.status, func.count()).group_by
+      - self.database.session
+      - session.execute
+      - statement.where
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id004
+      - *id002
+      - *id003
+      - path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager.execute
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.execute
+      - path: tests/test_scheduler.py
+        symbol: test_tick_starts_due_fixed_run.execute
+    - name: WorkQueueRepository.average_attempt_seconds
+      kind: method
+      line_start: 133
+      line_end: 143
+      signature: WorkQueueRepository.average_attempt_seconds(self) -> float | None
+      inputs:
+      - self
+      output: float | None
+      dependencies:
+      - (_required_utc(item.completed_at) - _required_utc(item.claimed_at)).total_seconds
+      - WorkAttemptModel.completed_at.is_not
+      - _required_utc
+      - len
+      - select
+      - select(WorkAttemptModel).where
+      - self.database.session
+      - session.scalars
+      - session.scalars(select(WorkAttemptModel).where(WorkAttemptModel.completed_at.is_not(None))).all
+      - sum
+      parser: python-ast
+      dependency_targets:
+      - &id012
+        path: src/nerve_center/persistence/work_queue.py
+        symbol: _required_utc
+      - *id004
+      - *id002
+      - *id003
+    - name: WorkQueueRepository.claim_next
+      kind: method
+      line_start: 145
+      line_end: 195
+      signature: 'WorkQueueRepository.claim_next(self, worker_id: str, work_classes: tuple[str, ...] | None, routing_scores:
+        dict[str, float] | None, now: datetime | None) -> WorkAttemptSnapshot | None'
+      inputs:
+      - self
+      - 'worker_id: str'
+      - 'work_classes: tuple[str, ...] | None'
+      - 'routing_scores: dict[str, float] | None'
+      - 'now: datetime | None'
+      output: WorkAttemptSnapshot | None
+      dependencies:
+      - (WorkRequestModel.task_priority + routing_score).desc
+      - WorkAttemptModel
+      - WorkRequestModel.created_at.asc
+      - WorkRequestModel.module_priority.desc
+      - WorkRequestModel.work_class.in_
+      - _attempt_snapshot
+      - _utc
+      - case
+      - literal
+      - select
+      - select(WorkRequestModel).where
+      - self.database.session
+      - session.add
+      - session.flush
+      - session.scalar
+      - statement.order_by
+      - statement.order_by(WorkRequestModel.module_priority.desc(), (WorkRequestModel.task_priority + routing_score).desc(),
+        WorkRequestModel.created_at.asc()).limit
+      - statement.where
+      - str
+      - uuid4
+      parser: python-ast
+      dependency_targets:
+      - &id010
+        path: src/nerve_center/persistence/work_queue.py
+        symbol: _attempt_snapshot
+      - *id004
+      - *id002
+      - *id003
+      - *id005
+      - *id006
+    - name: WorkQueueRepository.complete
+      kind: method
+      line_start: 197
+      line_end: 227
+      signature: 'WorkQueueRepository.complete(self, attempt_id: str, payload: dict[str, Any], now: datetime | None) -> WorkResultSnapshot'
+      inputs:
+      - self
+      - 'attempt_id: str'
+      - 'payload: dict[str, Any]'
+      - 'now: datetime | None'
+      output: WorkResultSnapshot
+      dependencies:
+      - WorkAttemptStatus
+      - WorkQueueConflictError
+      - WorkResultModel
+      - _result_snapshot
+      - _utc
+      - dict
+      - self._attempt
+      - self._request
+      - self.database.session
+      - session.add
+      - session.flush
+      - str
+      - uuid4
+      parser: python-ast
+      dependency_targets:
+      - &id011
+        path: src/nerve_center/persistence/work_queue.py
+        symbol: _result_snapshot
+      - &id009
+        path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository._attempt
+      - *id007
+      - *id008
+      - *id002
+      - *id003
+      - *id005
+      - *id006
+    - name: WorkQueueRepository.fail
+      kind: method
+      line_start: 229
+      line_end: 257
+      signature: 'WorkQueueRepository.fail(self, attempt_id: str, error_code: str, detail: dict[str, Any] | None, retry_delay_seconds:
+        float, now: datetime | None) -> WorkRequestSnapshot'
+      inputs:
+      - self
+      - 'attempt_id: str'
+      - 'error_code: str'
+      - 'detail: dict[str, Any] | None'
+      - 'retry_delay_seconds: float'
+      - 'now: datetime | None'
+      output: WorkRequestSnapshot
+      dependencies:
+      - WorkAttemptStatus
+      - WorkQueueConflictError
+      - _request_snapshot
+      - _utc
+      - dict
+      - max
+      - self._attempt
+      - self._request
+      - self.database.session
+      - session.flush
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id009
+      - *id007
+      - *id008
+      - *id002
+      - *id003
+      - *id006
+    - name: WorkQueueRepository.attempts
+      kind: method
+      line_start: 259
+      line_end: 267
+      signature: 'WorkQueueRepository.attempts(self, request_id: str) -> list[WorkAttemptSnapshot]'
+      inputs:
+      - self
+      - 'request_id: str'
+      output: list[WorkAttemptSnapshot]
+      dependencies:
+      - _attempt_snapshot
+      - select
+      - select(WorkAttemptModel).where
+      - select(WorkAttemptModel).where(WorkAttemptModel.request_id == request_id).order_by
+      - self.database.session
+      - self.get
+      - session.scalars
+      - session.scalars(select(WorkAttemptModel).where(WorkAttemptModel.request_id == request_id).order_by(WorkAttemptModel.number)).all
+      parser: python-ast
+      dependency_targets:
+      - *id010
+      - *id004
+      - *id002
+      - *id003
+    - name: WorkQueueRepository.deliver_results
+      kind: method
+      line_start: 269
+      line_end: 286
+      signature: 'WorkQueueRepository.deliver_results(self, module_id: str, now: datetime | None) -> list[WorkResultSnapshot]'
+      inputs:
+      - self
+      - 'module_id: str'
+      - 'now: datetime | None'
+      output: list[WorkResultSnapshot]
+      dependencies:
+      - WorkResultModel.acknowledged_at.is_
+      - _result_snapshot
+      - _utc
+      - select
+      - select(WorkResultModel).where
+      - select(WorkResultModel).where(WorkResultModel.module_id == module_id, WorkResultModel.acknowledged_at.is_(None)).order_by
+      - self.database.session
+      - session.flush
+      - session.scalars
+      - session.scalars(select(WorkResultModel).where(WorkResultModel.module_id == module_id, WorkResultModel.acknowledged_at.is_(None)).order_by(WorkResultModel.created_at)).all
+      parser: python-ast
+      dependency_targets:
+      - *id011
+      - *id004
+      - *id002
+      - *id003
+      - *id006
+    - name: WorkQueueRepository.acknowledge
+      kind: method
+      line_start: 288
+      line_end: 304
+      signature: 'WorkQueueRepository.acknowledge(self, result_id: str, module_id: str, now: datetime | None) -> WorkResultSnapshot'
+      inputs:
+      - self
+      - 'result_id: str'
+      - 'module_id: str'
+      - 'now: datetime | None'
+      output: WorkResultSnapshot
+      dependencies:
+      - WorkQueueConflictError
+      - WorkResultNotFoundError
+      - _result_snapshot
+      - _utc
+      - self._request
+      - self.database.session
+      - session.flush
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - *id011
+      - *id007
+      - *id008
+      - *id002
+      - *id003
+      - *id006
+    - name: WorkQueueRepository.cancel
+      kind: method
+      line_start: 306
+      line_end: 326
+      signature: 'WorkQueueRepository.cancel(self, request_id: str, now: datetime | None) -> WorkRequestSnapshot'
+      inputs:
+      - self
+      - 'request_id: str'
+      - 'now: datetime | None'
+      output: WorkRequestSnapshot
+      dependencies:
+      - WorkRequestStatus
+      - _request_snapshot
+      - _utc
+      - select
+      - select(WorkAttemptModel).where
+      - self._request
+      - self.database.session
+      - session.flush
+      - session.scalar
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id004
+      - *id007
+      - *id008
+      - *id002
+      - *id003
+      - *id006
+    - name: WorkQueueRepository.recover_claimed
+      kind: method
+      line_start: 328
+      line_end: 355
+      signature: 'WorkQueueRepository.recover_claimed(self, now: datetime | None) -> list[WorkRequestSnapshot]'
+      inputs:
+      - self
+      - 'now: datetime | None'
+      output: list[WorkRequestSnapshot]
+      dependencies:
+      - _request_snapshot
+      - _utc
+      - recovered.append
+      - select
+      - select(WorkAttemptModel).where
+      - select(WorkRequestModel).where
+      - self.database.session
+      - session.flush
+      - session.scalar
+      - session.scalars
+      - session.scalars(select(WorkRequestModel).where(WorkRequestModel.status == WorkRequestStatus.CLAIMED.value)).all
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - path: src/nerve_center/persistence/scoring.py
+        symbol: OpportunityScoreRepository.append
+      - *id004
+      - *id002
+      - *id003
+      - *id006
+    - name: WorkQueueRepository.retry
+      kind: method
+      line_start: 357
+      line_end: 372
+      signature: 'WorkQueueRepository.retry(self, request_id: str, now: datetime | None) -> WorkRequestSnapshot'
+      inputs:
+      - self
+      - 'request_id: str'
+      - 'now: datetime | None'
+      output: WorkRequestSnapshot
+      dependencies:
+      - WorkQueueConflictError
+      - _request_snapshot
+      - _utc
+      - self._request
+      - self.database.session
+      - session.flush
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id007
+      - *id008
+      - *id002
+      - *id003
+      - *id006
+    - name: WorkQueueRepository.reprioritize
+      kind: method
+      line_start: 374
+      line_end: 387
+      signature: 'WorkQueueRepository.reprioritize(self, request_id: str, task_priority: int, now: datetime | None) -> WorkRequestSnapshot'
+      inputs:
+      - self
+      - 'request_id: str'
+      - 'task_priority: int'
+      - 'now: datetime | None'
+      output: WorkRequestSnapshot
+      dependencies:
+      - ValueError
+      - WorkQueueConflictError
+      - _request_snapshot
+      - _utc
+      - self._request
+      - self.database.session
+      - session.flush
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id007
+      - *id008
+      - *id002
+      - *id003
+      - *id006
+    - name: WorkQueueRepository._request
+      kind: method
+      line_start: 390
+      line_end: 394
+      signature: 'WorkQueueRepository._request(session: Session, request_id: str) -> WorkRequestModel'
+      inputs:
+      - 'session: Session'
+      - 'request_id: str'
+      output: WorkRequestModel
+      dependencies:
+      - WorkRequestNotFoundError
+      - session.get
+      parser: python-ast
+      dependency_targets: []
+    - name: WorkQueueRepository._attempt
+      kind: method
+      line_start: 397
+      line_end: 401
+      signature: 'WorkQueueRepository._attempt(session: Session, attempt_id: str) -> WorkAttemptModel'
+      inputs:
+      - 'session: Session'
+      - 'attempt_id: str'
+      output: WorkAttemptModel
+      dependencies:
+      - WorkAttemptNotFoundError
+      - session.get
+      parser: python-ast
+      dependency_targets: []
+    - name: _request_snapshot
+      kind: function
+      line_start: 404
+      line_end: 427
+      signature: '_request_snapshot(model: WorkRequestModel) -> WorkRequestSnapshot'
+      inputs:
+      - 'model: WorkRequestModel'
+      output: WorkRequestSnapshot
+      dependencies:
+      - WorkClass
+      - WorkRequestSnapshot
+      - WorkRequestStatus
+      - _required_utc
+      - _restore_utc
+      - dict
+      parser: python-ast
+      dependency_targets:
+      - *id012
+      - &id013
+        path: src/nerve_center/persistence/runs.py
+        symbol: _restore_utc
+      - &id014
+        path: src/nerve_center/persistence/sessions.py
+        symbol: _restore_utc
+      - &id015
+        path: src/nerve_center/persistence/work_queue.py
+        symbol: _restore_utc
+    - name: _attempt_snapshot
+      kind: function
+      line_start: 430
+      line_end: 441
+      signature: '_attempt_snapshot(model: WorkAttemptModel) -> WorkAttemptSnapshot'
+      inputs:
+      - 'model: WorkAttemptModel'
+      output: WorkAttemptSnapshot
+      dependencies:
+      - WorkAttemptSnapshot
+      - WorkAttemptStatus
+      - _required_utc
+      - _restore_utc
+      - dict
+      parser: python-ast
+      dependency_targets:
+      - *id012
+      - *id013
+      - *id014
+      - *id015
+    - name: _result_snapshot
+      kind: function
+      line_start: 444
+      line_end: 455
+      signature: '_result_snapshot(model: WorkResultModel) -> WorkResultSnapshot'
+      inputs:
+      - 'model: WorkResultModel'
+      output: WorkResultSnapshot
+      dependencies:
+      - WorkResultSnapshot
+      - _required_utc
+      - _restore_utc
+      - dict
+      parser: python-ast
+      dependency_targets:
+      - *id012
+      - *id013
+      - *id014
+      - *id015
+    - name: _utc
+      kind: function
+      line_start: 458
+      line_end: 462
+      signature: '_utc(value: datetime | None) -> datetime'
+      inputs:
+      - 'value: datetime | None'
+      output: datetime
+      dependencies:
+      - ValueError
+      - current.astimezone
+      - current.utcoffset
+      - datetime.now
+      parser: python-ast
+      dependency_targets: []
+    - name: _restore_utc
+      kind: function
+      line_start: 465
+      line_end: 470
+      signature: '_restore_utc(value: datetime | None) -> datetime | None'
+      inputs:
+      - 'value: datetime | None'
+      output: datetime | None
+      dependencies:
+      - value.astimezone
+      - value.replace
+      - value.utcoffset
+      parser: python-ast
+      dependency_targets: []
+    - name: _required_utc
+      kind: function
+      line_start: 473
+      line_end: 477
+      signature: '_required_utc(value: datetime | None) -> datetime'
+      inputs:
+      - 'value: datetime | None'
+      output: datetime
+      dependencies:
+      - ValueError
+      - _restore_utc
+      parser: python-ast
+      dependency_targets:
+      - *id013
+      - *id014
+      - *id015
+  - path: src/nerve_center/runtime/supervisor.py
+    analysis_version: 1
+    language: python
+    content_hash: dd96d53092edc080744c2b3e255f3bfb0fb6d4fc
+    dependencies:
+    - __future__
+    - asyncio
+    - collections.abc
+    - dataclasses
+    - datetime
+    - nerve_center.config
+    - nerve_center.domain.module
+    - nerve_center.domain.module_runtime
+    - nerve_center.domain.task
+    - nerve_center.domain.work_queue
+    - os
+    - secrets
+    - subprocess
+    - sys
+    - typing
+    provides:
+    - ModuleOperationBridge.invoke
+    - ModuleWorkQueue.submit
+    - ModuleWorkQueue.status
+    - ModuleWorkQueue.deliver_results
+    - ModuleWorkQueue.acknowledge
+    - ModuleSupervisor.__init__
+    - ModuleSupervisor.register
+    - ModuleSupervisor.set_session_control_resolver
+    - ModuleSupervisor.set_work_queue
+    - ModuleSupervisor.report
+    - ModuleSupervisor.authorize
+    - ModuleSupervisor.execute
+    - ModuleSupervisor.next_assignment
+    - ModuleSupervisor.control
+    - ModuleSupervisor.module_control
+    - ModuleSupervisor.checkpoint
+    - ModuleSupervisor.consume_resource
+    - ModuleSupervisor.invoke
+    - ModuleSupervisor.submit_work
+    - ModuleSupervisor.deliver_results
+    - ModuleSupervisor.acknowledge_result
+    - ModuleSupervisor.complete
+    - ModuleSupervisor.heartbeat
+    - ModuleSupervisor.stop
+    - ModuleSupervisor.shutdown
+    - ModuleSupervisor._ensure_started
+    - ModuleSupervisor._watch_process
+    - ModuleSupervisor._command
+    - ModuleSupervisor._pending
+    - ModuleSupervisor._session
+    - ModuleSupervisor._session_policy
+    - ModuleSupervisor._queue_limits
+    - ModuleSupervisor._updated_report
+    symbols:
+    - name: ModuleOperationBridge.invoke
+      kind: method
+      line_start: 34
+      line_end: 34
+      signature: 'ModuleOperationBridge.invoke(self, operation: str, payload: Mapping[str, Any]) -> dict[str, Any]'
+      inputs:
+      - self
+      - 'operation: str'
+      - 'payload: Mapping[str, Any]'
+      output: dict[str, Any]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ModuleWorkQueue.submit
+      kind: method
+      line_start: 38
+      line_end: 38
+      signature: 'ModuleWorkQueue.submit(self, spec: WorkRequestSpec) -> WorkRequestSnapshot'
+      inputs:
+      - self
+      - 'spec: WorkRequestSpec'
+      output: WorkRequestSnapshot
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ModuleWorkQueue.status
+      kind: method
+      line_start: 40
+      line_end: 40
+      signature: 'ModuleWorkQueue.status(self, module_id: str | None) -> QueueStatusSnapshot'
+      inputs:
+      - self
+      - 'module_id: str | None'
+      output: QueueStatusSnapshot
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ModuleWorkQueue.deliver_results
+      kind: method
+      line_start: 42
+      line_end: 42
+      signature: 'ModuleWorkQueue.deliver_results(self, module_id: str) -> list[WorkResultSnapshot]'
+      inputs:
+      - self
+      - 'module_id: str'
+      output: list[WorkResultSnapshot]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ModuleWorkQueue.acknowledge
+      kind: method
+      line_start: 44
+      line_end: 51
+      signature: 'ModuleWorkQueue.acknowledge(self, result_id: str, module_id: str, accepted: bool | None, disposition_reason:
+        str | None) -> WorkResultSnapshot'
+      inputs:
+      - self
+      - 'result_id: str'
+      - 'module_id: str'
+      - 'accepted: bool | None'
+      - 'disposition_reason: str | None'
+      output: WorkResultSnapshot
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ModuleSupervisor.__init__
+      kind: method
+      line_start: 85
+      line_end: 95
+      signature: 'ModuleSupervisor.__init__(self, settings: Settings, process_factory: Callable[..., Awaitable[asyncio.subprocess.Process]]
+        | None, session_control: Callable[[str], Mapping[str, Any]] | None) -> None'
+      inputs:
+      - self
+      - 'settings: Settings'
+      - 'process_factory: Callable[..., Awaitable[asyncio.subprocess.Process]] | None'
+      - 'session_control: Callable[[str], Mapping[str, Any]] | None'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ModuleSupervisor.register
+      kind: method
+      line_start: 97
+      line_end: 109
+      signature: 'ModuleSupervisor.register(self, manifest: ModuleManifest, bridge: ModuleOperationBridge) -> None'
+      inputs:
+      - self
+      - 'manifest: ModuleManifest'
+      - 'bridge: ModuleOperationBridge'
+      output: None
+      dependencies:
+      - ModuleRuntimeReport
+      - ValueError
+      - _ModuleSession
+      - secrets.token_urlsafe
+      parser: python-ast
+      dependency_targets: []
+    - name: ModuleSupervisor.set_session_control_resolver
+      kind: method
+      line_start: 111
+      line_end: 114
+      signature: 'ModuleSupervisor.set_session_control_resolver(self, resolver: Callable[[str], Mapping[str, Any]]) -> None'
+      inputs:
+      - self
+      - 'resolver: Callable[[str], Mapping[str, Any]]'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ModuleSupervisor.set_work_queue
+      kind: method
+      line_start: 116
+      line_end: 117
+      signature: 'ModuleSupervisor.set_work_queue(self, work_queue: ModuleWorkQueue) -> None'
+      inputs:
+      - self
+      - 'work_queue: ModuleWorkQueue'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ModuleSupervisor.report
+      kind: method
+      line_start: 119
+      line_end: 148
+      signature: 'ModuleSupervisor.report(self, module_id: str) -> ModuleRuntimeReport'
+      inputs:
+      - self
+      - 'module_id: str'
+      output: ModuleRuntimeReport
+      dependencies:
+      - (datetime.now(UTC) - report.last_heartbeat_at).total_seconds
+      - datetime.now
+      - self._session
+      - self._updated_report
+      - self._work_queue.status
+      parser: python-ast
+      dependency_targets:
+      - &id016
+        path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor._session
+      - &id017
+        path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor._updated_report
+      - &id026
+        path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleWorkQueue.status
+      - &id027
+        path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.status
+    - name: ModuleSupervisor.authorize
+      kind: method
+      line_start: 150
+      line_end: 152
+      signature: 'ModuleSupervisor.authorize(self, module_id: str, token: str) -> None'
+      inputs:
+      - self
+      - 'module_id: str'
+      - 'token: str'
+      output: None
+      dependencies:
+      - ModuleRuntimeAuthorizationError
+      - secrets.compare_digest
+      - self._session
+      parser: python-ast
+      dependency_targets:
+      - *id016
+    - name: ModuleSupervisor.execute
+      kind: method
+      line_start: 154
+      line_end: 207
+      signature: 'ModuleSupervisor.execute(self, module_id: str, task_id: str, context: TaskContext, priority: int) -> TaskResult'
+      inputs:
+      - self
+      - 'module_id: str'
+      - 'task_id: str'
+      - 'context: TaskContext'
+      - 'priority: int'
+      output: TaskResult
+      dependencies:
+      - ModuleRunAssignment
+      - _PendingRun
+      - asyncio.Lock
+      - asyncio.get_running_loop
+      - dict
+      - loop.create_future
+      - self._ensure_started
+      - self._queue_limits
+      - self._session
+      - self._session_policy
+      - self._updated_report
+      - self.settings.module_data_dir
+      - str
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor._ensure_started
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor._queue_limits
+      - *id016
+      - &id018
+        path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor._session_policy
+      - *id017
+      - &id021
+        path: src/nerve_center/config.py
+        symbol: Settings.module_data_dir
+    - name: ModuleSupervisor.next_assignment
+      kind: method
+      line_start: 209
+      line_end: 215
+      signature: 'ModuleSupervisor.next_assignment(self, module_id: str, token: str) -> dict[str, Any] | None'
+      inputs:
+      - self
+      - 'module_id: str'
+      - 'token: str'
+      output: dict[str, Any] | None
+      dependencies:
+      - pending.assignment.to_dict
+      - self._session
+      - self.authorize
+      parser: python-ast
+      dependency_targets:
+      - &id028
+        path: src/nerve_center/domain/module.py
+        symbol: ModuleManifest.to_dict
+      - &id029
+        path: src/nerve_center/domain/module_runtime.py
+        symbol: ModuleRuntimeReport.to_dict
+      - &id030
+        path: src/nerve_center/domain/module_runtime.py
+        symbol: ModuleRunAssignment.to_dict
+      - &id031
+        path: src/nerve_center/domain/session.py
+        symbol: RecurrenceRule.to_dict
+      - *id016
+      - &id019
+        path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.authorize
+    - name: ModuleSupervisor.control
+      kind: method
+      line_start: 217
+      line_end: 230
+      signature: 'ModuleSupervisor.control(self, module_id: str, token: str, run_id: str) -> dict[str, Any]'
+      inputs:
+      - self
+      - 'module_id: str'
+      - 'token: str'
+      - 'run_id: str'
+      output: dict[str, Any]
+      dependencies:
+      - pending.context.cancellation_requested
+      - self._pending
+      - self._session
+      - self._session_policy
+      - self.authorize
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService._execute.cancellation_requested
+      - &id020
+        path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor._pending
+      - *id016
+      - *id018
+      - *id019
+    - name: ModuleSupervisor.module_control
+      kind: method
+      line_start: 232
+      line_end: 234
+      signature: 'ModuleSupervisor.module_control(self, module_id: str, token: str) -> dict[str, bool]'
+      inputs:
+      - self
+      - 'module_id: str'
+      - 'token: str'
+      output: dict[str, bool]
+      dependencies:
+      - self._session
+      - self.authorize
+      parser: python-ast
+      dependency_targets:
+      - *id016
+      - *id019
+    - name: ModuleSupervisor.checkpoint
+      kind: method
+      line_start: 236
+      line_end: 244
+      signature: 'ModuleSupervisor.checkpoint(self, module_id: str, token: str, run_id: str, value: Mapping[str, Any]) ->
+        None'
+      inputs:
+      - self
+      - 'module_id: str'
+      - 'token: str'
+      - 'run_id: str'
+      - 'value: Mapping[str, Any]'
+      output: None
+      dependencies:
+      - self._pending
+      - self._pending(self._session(module_id), run_id).context.save_checkpoint
+      - self._session
+      - self.authorize
+      parser: python-ast
+      dependency_targets:
+      - *id020
+      - path: src/nerve_center/persistence/runs.py
+        symbol: RunRepository.save_checkpoint
+      - path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService._execute.save_checkpoint
+      - *id016
+      - *id019
+    - name: ModuleSupervisor.consume_resource
+      kind: method
+      line_start: 246
+      line_end: 262
+      signature: 'ModuleSupervisor.consume_resource(self, module_id: str, token: str, run_id: str, resource: str, count: int)
+        -> dict[str, int]'
+      inputs:
+      - self
+      - 'module_id: str'
+      - 'token: str'
+      - 'run_id: str'
+      - 'resource: str'
+      - 'count: int'
+      output: dict[str, int]
+      dependencies:
+      - ValueError
+      - self._pending
+      - self._session
+      - self.authorize
+      - tracker.consume_llm_call
+      - tracker.consume_request
+      parser: python-ast
+      dependency_targets:
+      - *id020
+      - *id016
+      - *id019
+      - path: src/nerve_center/domain/budget.py
+        symbol: ResourceBudgetTracker.consume_llm_call
+      - path: src/nerve_center/domain/budget.py
+        symbol: ResourceBudgetTracker.consume_request
+    - name: ModuleSupervisor.invoke
+      kind: method
+      line_start: 264
+      line_end: 275
+      signature: 'ModuleSupervisor.invoke(self, module_id: str, token: str, run_id: str, operation: str, payload: Mapping[str,
+        Any]) -> dict[str, Any]'
+      inputs:
+      - self
+      - 'module_id: str'
+      - 'token: str'
+      - 'run_id: str'
+      - 'operation: str'
+      - 'payload: Mapping[str, Any]'
+      output: dict[str, Any]
+      dependencies:
+      - self._pending
+      - self._session
+      - self.authorize
+      parser: python-ast
+      dependency_targets:
+      - *id020
+      - *id016
+      - *id019
+    - name: ModuleSupervisor.submit_work
+      kind: method
+      line_start: 277
+      line_end: 305
+      signature: 'ModuleSupervisor.submit_work(self, module_id: str, token: str, run_id: str, request: Mapping[str, Any])
+        -> dict[str, Any]'
+      inputs:
+      - self
+      - 'module_id: str'
+      - 'token: str'
+      - 'run_id: str'
+      - 'request: Mapping[str, Any]'
+      output: dict[str, Any]
+      dependencies:
+      - ModuleRuntimeConflictError
+      - WorkClass
+      - WorkRequestSpec
+      - asdict
+      - dict
+      - int
+      - request.get
+      - self._pending
+      - self._session
+      - self._work_queue.submit
+      - self.authorize
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id020
+      - *id016
+      - *id019
+    - name: ModuleSupervisor.deliver_results
+      kind: method
+      line_start: 307
+      line_end: 311
+      signature: 'ModuleSupervisor.deliver_results(self, module_id: str, token: str) -> list[dict[str, Any]]'
+      inputs:
+      - self
+      - 'module_id: str'
+      - 'token: str'
+      output: list[dict[str, Any]]
+      dependencies:
+      - ModuleRuntimeConflictError
+      - asdict
+      - self.authorize
+      parser: python-ast
+      dependency_targets:
+      - *id019
+    - name: ModuleSupervisor.acknowledge_result
+      kind: method
+      line_start: 313
+      line_end: 332
+      signature: 'ModuleSupervisor.acknowledge_result(self, module_id: str, token: str, result_id: str, accepted: bool | None,
+        disposition_reason: str | None) -> dict[str, Any]'
+      inputs:
+      - self
+      - 'module_id: str'
+      - 'token: str'
+      - 'result_id: str'
+      - 'accepted: bool | None'
+      - 'disposition_reason: str | None'
+      output: dict[str, Any]
+      dependencies:
+      - ModuleRuntimeConflictError
+      - asdict
+      - self._work_queue.acknowledge
+      - self.authorize
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.acknowledge
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleWorkQueue.acknowledge
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.acknowledge
+      - *id019
+    - name: ModuleSupervisor.complete
+      kind: method
+      line_start: 334
+      line_end: 352
+      signature: 'ModuleSupervisor.complete(self, module_id: str, token: str, run_id: str, result: TaskResult) -> None'
+      inputs:
+      - self
+      - 'module_id: str'
+      - 'token: str'
+      - 'run_id: str'
+      - 'result: TaskResult'
+      output: None
+      dependencies:
+      - pending.completion.done
+      - pending.completion.set_result
+      - self._pending
+      - self._session
+      - self._updated_report
+      - self.authorize
+      parser: python-ast
+      dependency_targets:
+      - *id020
+      - *id016
+      - *id017
+      - *id019
+    - name: ModuleSupervisor.heartbeat
+      kind: method
+      line_start: 354
+      line_end: 378
+      signature: 'ModuleSupervisor.heartbeat(self, module_id: str, token: str, status: ModuleRuntimeStatus, activity: str,
+        deterministic_backlog: int, pending_llm_requests: int, queue_pressure: float, reason: str | None) -> ModuleRuntimeReport'
+      inputs:
+      - self
+      - 'module_id: str'
+      - 'token: str'
+      - 'status: ModuleRuntimeStatus'
+      - 'activity: str'
+      - 'deterministic_backlog: int'
+      - 'pending_llm_requests: int'
+      - 'queue_pressure: float'
+      - 'reason: str | None'
+      output: ModuleRuntimeReport
+      dependencies:
+      - self._session
+      - self._updated_report
+      - self.authorize
+      parser: python-ast
+      dependency_targets:
+      - *id016
+      - *id017
+      - *id019
+    - name: ModuleSupervisor.stop
+      kind: method
+      line_start: 380
+      line_end: 417
+      signature: 'ModuleSupervisor.stop(self, module_id: str, timeout_seconds: float) -> None'
+      inputs:
+      - self
+      - 'module_id: str'
+      - 'timeout_seconds: float'
+      output: None
+      dependencies:
+      - TaskResult
+      - asyncio.gather
+      - asyncio.wait_for
+      - process.kill
+      - process.terminate
+      - process.wait
+      - self._session
+      - self._updated_report
+      - session.pending.completion.done
+      - session.pending.completion.set_result
+      - session.process_log.close
+      - session.process_monitor.cancel
+      parser: python-ast
+      dependency_targets:
+      - path: tests/test_module_runtime.py
+        symbol: StubProcess.kill
+      - path: tests/test_module_runtime.py
+        symbol: StubProcess.terminate
+      - &id023
+        path: src/nerve_center/discovery/fetching.py
+        symbol: DomainRequestGate.wait
+      - &id024
+        path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService.wait
+      - &id025
+        path: tests/test_module_runtime.py
+        symbol: StubProcess.wait
+      - *id016
+      - *id017
+      - &id022
+        path: src/nerve_center/runtime/client.py
+        symbol: ModuleRuntimeClient.close
+      - path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.cancel
+      - path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService.cancel
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.cancel
+    - name: ModuleSupervisor.shutdown
+      kind: method
+      line_start: 419
+      line_end: 420
+      signature: ModuleSupervisor.shutdown(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies:
+      - asyncio.gather
+      - self.stop
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.stop
+      - path: src/nerve_center/scheduler/service.py
+        symbol: SchedulerService.stop
+    - name: ModuleSupervisor._ensure_started
+      kind: method
+      line_start: 422
+      line_end: 463
+      signature: 'ModuleSupervisor._ensure_started(self, session: _ModuleSession) -> None'
+      inputs:
+      - self
+      - 'session: _ModuleSession'
+      output: None
+      dependencies:
+      - asyncio.create_task
+      - asyncio.gather
+      - data_dir.mkdir
+      - environment.update
+      - log_path.open
+      - os.environ.copy
+      - self._command
+      - self._process_factory
+      - self._updated_report
+      - self._watch_process
+      - self.settings.module_data_dir
+      - session.process_log.close
+      - str
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor._command
+      - *id017
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor._watch_process
+      - *id021
+      - *id022
+    - name: ModuleSupervisor._watch_process
+      kind: method
+      line_start: 465
+      line_end: 483
+      signature: 'ModuleSupervisor._watch_process(self, session: _ModuleSession) -> None'
+      inputs:
+      - self
+      - 'session: _ModuleSession'
+      output: None
+      dependencies:
+      - RuntimeError
+      - process.wait
+      - self._updated_report
+      - session.pending.completion.done
+      - session.pending.completion.set_exception
+      parser: python-ast
+      dependency_targets:
+      - *id023
+      - *id024
+      - *id025
+      - *id017
+    - name: ModuleSupervisor._command
+      kind: method
+      line_start: 486
+      line_end: 491
+      signature: 'ModuleSupervisor._command(manifest: ModuleManifest) -> list[str]'
+      inputs:
+      - 'manifest: ModuleManifest'
+      output: list[str]
+      dependencies:
+      - ValueError
+      - getattr
+      parser: python-ast
+      dependency_targets: []
+    - name: ModuleSupervisor._pending
+      kind: method
+      line_start: 494
+      line_end: 497
+      signature: 'ModuleSupervisor._pending(session: _ModuleSession, run_id: str) -> _PendingRun'
+      inputs:
+      - 'session: _ModuleSession'
+      - 'run_id: str'
+      output: _PendingRun
+      dependencies:
+      - ModuleRuntimeConflictError
+      parser: python-ast
+      dependency_targets: []
+    - name: ModuleSupervisor._session
+      kind: method
+      line_start: 499
+      line_end: 503
+      signature: 'ModuleSupervisor._session(self, module_id: str) -> _ModuleSession'
+      inputs:
+      - self
+      - 'module_id: str'
+      output: _ModuleSession
+      dependencies:
+      - KeyError
+      parser: python-ast
+      dependency_targets: []
+    - name: ModuleSupervisor._session_policy
+      kind: method
+      line_start: 505
+      line_end: 514
+      signature: 'ModuleSupervisor._session_policy(self, session_id: str | None) -> Mapping[str, Any]'
+      inputs:
+      - self
+      - 'session_id: str | None'
+      output: Mapping[str, Any]
+      dependencies:
+      - self._session_control
+      parser: python-ast
+      dependency_targets: []
+    - name: ModuleSupervisor._queue_limits
+      kind: method
+      line_start: 516
+      line_end: 520
+      signature: 'ModuleSupervisor._queue_limits(self, module_id: str) -> dict[str, int]'
+      inputs:
+      - self
+      - 'module_id: str'
+      output: dict[str, int]
+      dependencies:
+      - self._work_queue.status
+      parser: python-ast
+      dependency_targets:
+      - *id026
+      - *id027
+    - name: ModuleSupervisor._updated_report
+      kind: method
+      line_start: 523
+      line_end: 536
+      signature: 'ModuleSupervisor._updated_report(session: _ModuleSession, status: ModuleRuntimeStatus, activity: str, touch_heartbeat:
+        bool, **changes: Any) -> ModuleRuntimeReport'
+      inputs:
+      - 'session: _ModuleSession'
+      - 'status: ModuleRuntimeStatus'
+      - 'activity: str'
+      - 'touch_heartbeat: bool'
+      - '**changes: Any'
+      output: ModuleRuntimeReport
+      dependencies:
+      - ModuleRuntimeReport
+      - current.to_dict
+      - datetime.now
+      - values.update
+      parser: python-ast
+      dependency_targets:
+      - *id028
+      - *id029
+      - *id030
+      - *id031

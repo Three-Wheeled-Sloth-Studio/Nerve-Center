@@ -1,0 +1,1573 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: 1d
+  files:
+  - path: desktop/src/locationFilter.js
+    analysis_version: 1
+    language: javascript
+    content_hash: b67a279b6167f181b1e13a98643572d8456c337d
+    dependencies: []
+    provides:
+    - opportunityLocationScope
+    - matchesLocationFilter
+    - countLocationScopes
+    symbols:
+    - name: opportunityLocationScope
+      kind: function
+      line_start: 2
+      line_end: 5
+      signature: opportunityLocationScope(item)
+      inputs:
+      - item
+      output: unspecified
+      dependencies: []
+      parser: javascript-pattern
+      dependency_targets: []
+    - name: matchesLocationFilter
+      kind: function
+      line_start: 6
+      line_end: 12
+      signature: matchesLocationFilter(item, filter)
+      inputs:
+      - item
+      - filter
+      output: unspecified
+      dependencies:
+      - opportunityLocationScope
+      parser: javascript-pattern
+      dependency_targets:
+      - &id001
+        path: desktop/src/locationFilter.js
+        symbol: opportunityLocationScope
+    - name: countLocationScopes
+      kind: function
+      line_start: 13
+      line_end: 22
+      signature: countLocationScopes(items)
+      inputs:
+      - items
+      output: unspecified
+      dependencies:
+      - opportunityLocationScope
+      parser: javascript-pattern
+      dependency_targets:
+      - *id001
+  - path: src/nerve_center/domain/__init__.py
+    analysis_version: 1
+    language: python
+    content_hash: f0557073f38b570588b3fb6a4b9857d76b7e6daf
+    dependencies: []
+    provides: []
+    symbols: []
+  - path: src/nerve_center/model_lab/service.py
+    analysis_version: 1
+    language: python
+    content_hash: b6bfedd6ee1e6450c6bc1acea5577e034d7976a4
+    dependencies:
+    - __future__
+    - contextlib
+    - dataclasses
+    - hashlib
+    - json
+    - jsonschema
+    - nerve_center.persistence.model_lab
+    - nerve_center.persistence.providers
+    - nerve_center.providers.base
+    - nerve_center.providers.errors
+    - nerve_center.providers.manager
+    - nerve_center.scheduler.work_queue
+    - re
+    - typing
+    provides:
+    - ModelLabService.__init__
+    - ModelLabService.settings
+    - ModelLabService.update_settings
+    - ModelLabService.harvest
+    - ModelLabService.overview
+    - ModelLabService.start_exploration
+    - ModelLabService.replay
+    - ModelLabService._require_enabled
+    - _fingerprint
+    - _safe_requirements
+    - _redact_value
+    - _redact_text
+    - _optional_str
+    - _settings_dict
+    - _corpus_summary
+    symbols:
+    - name: ModelLabService.__init__
+      kind: method
+      line_start: 45
+      line_end: 55
+      signature: 'ModelLabService.__init__(self, repository: ModelLabRepository, evidence: ModelEvidenceRepository, providers:
+        ProviderManager | None, queue: WorkQueueService) -> None'
+      inputs:
+      - self
+      - 'repository: ModelLabRepository'
+      - 'evidence: ModelEvidenceRepository'
+      - 'providers: ProviderManager | None'
+      - 'queue: WorkQueueService'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ModelLabService.settings
+      kind: method
+      line_start: 57
+      line_end: 58
+      signature: ModelLabService.settings(self) -> ModelLabSettingsSnapshot
+      inputs:
+      - self
+      output: ModelLabSettingsSnapshot
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ModelLabService.update_settings
+      kind: method
+      line_start: 60
+      line_end: 71
+      signature: 'ModelLabService.update_settings(self, enabled: bool, capture_enabled: bool, excluded_modules: list[str])
+        -> ModelLabSettingsSnapshot'
+      inputs:
+      - self
+      - 'enabled: bool'
+      - 'capture_enabled: bool'
+      - 'excluded_modules: list[str]'
+      output: ModelLabSettingsSnapshot
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ModelLabService.harvest
+      kind: method
+      line_start: 73
+      line_end: 133
+      signature: ModelLabService.harvest(self) -> int
+      inputs:
+      - self
+      output: int
+      dependencies:
+      - _fingerprint
+      - _optional_str
+      - _redact_text
+      - _redact_value
+      - _safe_requirements
+      - dict
+      - int
+      - isinstance
+      - item.payload.get
+      - item.requirements.get
+      - item.result_payload.get
+      - manager_metadata.get
+      - self.repository.add_corpus
+      - self.repository.completed_llm_work
+      - self.repository.settings
+      - set
+      - str
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/model_lab/service.py
+        symbol: _fingerprint
+      - path: src/nerve_center/model_lab/service.py
+        symbol: _optional_str
+      - &id009
+        path: src/nerve_center/model_lab/service.py
+        symbol: _redact_text
+      - &id004
+        path: src/nerve_center/model_lab/service.py
+        symbol: _redact_value
+      - path: src/nerve_center/model_lab/service.py
+        symbol: _safe_requirements
+      - path: src/nerve_center/persistence/model_lab.py
+        symbol: ModelLabRepository.add_corpus
+      - path: src/nerve_center/persistence/model_lab.py
+        symbol: ModelLabRepository.completed_llm_work
+      - &id002
+        path: src/nerve_center/model_lab/service.py
+        symbol: ModelLabService.settings
+      - &id003
+        path: src/nerve_center/persistence/model_lab.py
+        symbol: ModelLabRepository.settings
+    - name: ModelLabService.overview
+      kind: method
+      line_start: 135
+      line_end: 158
+      signature: ModelLabService.overview(self) -> dict[str, Any]
+      inputs:
+      - self
+      output: dict[str, Any]
+      dependencies:
+      - _corpus_summary
+      - _settings_dict
+      - asdict
+      - self.evidence.list_models
+      - self.evidence.task_evidence
+      - self.harvest
+      - self.providers.list_models
+      - self.queue.status
+      - self.repository.active_session
+      - self.repository.corpus_count
+      - self.repository.latest_session
+      - self.repository.list_corpus
+      - self.repository.list_results
+      - self.repository.settings
+      - self.repository.task_ids
+      - suppress
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/model_lab/service.py
+        symbol: _corpus_summary
+      - path: src/nerve_center/model_lab/service.py
+        symbol: _settings_dict
+      - path: src/nerve_center/persistence/providers.py
+        symbol: ModelEvidenceRepository.task_evidence
+      - path: src/nerve_center/model_lab/service.py
+        symbol: ModelLabService.harvest
+      - &id006
+        path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleWorkQueue.status
+      - &id007
+        path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.status
+      - &id008
+        path: src/nerve_center/persistence/model_lab.py
+        symbol: ModelLabRepository.active_session
+      - path: src/nerve_center/persistence/model_lab.py
+        symbol: ModelLabRepository.corpus_count
+      - path: src/nerve_center/persistence/model_lab.py
+        symbol: ModelLabRepository.latest_session
+      - path: src/nerve_center/persistence/model_lab.py
+        symbol: ModelLabRepository.list_corpus
+      - path: src/nerve_center/persistence/model_lab.py
+        symbol: ModelLabRepository.list_results
+      - *id002
+      - *id003
+      - path: src/nerve_center/persistence/model_lab.py
+        symbol: ModelLabRepository.task_ids
+    - name: ModelLabService.start_exploration
+      kind: method
+      line_start: 160
+      line_end: 164
+      signature: 'ModelLabService.start_exploration(self, duration_seconds: int, max_attempts: int) -> ModelLabSessionSnapshot'
+      inputs:
+      - self
+      - 'duration_seconds: int'
+      - 'max_attempts: int'
+      output: ModelLabSessionSnapshot
+      dependencies:
+      - self._require_enabled
+      - self.repository.start_session
+      parser: python-ast
+      dependency_targets:
+      - &id005
+        path: src/nerve_center/model_lab/service.py
+        symbol: ModelLabService._require_enabled
+      - path: src/nerve_center/api/app.py
+        symbol: create_app.start_session
+      - path: src/nerve_center/model_lab/api.py
+        symbol: register_model_lab_routes.start_session
+      - path: src/nerve_center/persistence/model_lab.py
+        symbol: ModelLabRepository.start_session
+    - name: ModelLabService.replay
+      kind: method
+      line_start: 166
+      line_end: 237
+      signature: 'ModelLabService.replay(self, corpus_id: str, provider: str, model: str) -> BenchmarkResultSnapshot'
+      inputs:
+      - self
+      - 'corpus_id: str'
+      - 'provider: str'
+      - 'model: str'
+      output: BenchmarkResultSnapshot
+      dependencies:
+      - ModelBlindRequest
+      - ModelLabBusyError
+      - ModelLabDisabledError
+      - ValueError
+      - _redact_value
+      - self._require_enabled
+      - self.providers.execute_specific
+      - self.queue.status
+      - self.repository.active_session
+      - self.repository.consume_attempt
+      - self.repository.get_corpus
+      - self.repository.record_result
+      - validate
+      parser: python-ast
+      dependency_targets:
+      - *id004
+      - *id005
+      - path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager.execute_specific
+      - *id006
+      - *id007
+      - *id008
+      - path: src/nerve_center/persistence/model_lab.py
+        symbol: ModelLabRepository.consume_attempt
+      - path: src/nerve_center/persistence/model_lab.py
+        symbol: ModelLabRepository.get_corpus
+      - path: src/nerve_center/persistence/model_lab.py
+        symbol: ModelLabRepository.record_result
+      - path: src/nerve_center/domain/module.py
+        symbol: ModuleManifest.validate
+    - name: ModelLabService._require_enabled
+      kind: method
+      line_start: 239
+      line_end: 241
+      signature: ModelLabService._require_enabled(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies:
+      - ModelLabDisabledError
+      - self.repository.settings
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+    - name: _fingerprint
+      kind: function
+      line_start: 244
+      line_end: 265
+      signature: '_fingerprint(module_id: str, task_id: str, contract_version: str, system_prompt: str, user_prompt: str,
+        output_schema: dict[str, Any]) -> str'
+      inputs:
+      - 'module_id: str'
+      - 'task_id: str'
+      - 'contract_version: str'
+      - 'system_prompt: str'
+      - 'user_prompt: str'
+      - 'output_schema: dict[str, Any]'
+      output: str
+      dependencies:
+      - canonical.encode
+      - hashlib.sha256
+      - hashlib.sha256(canonical.encode('utf-8')).hexdigest
+      - json.dumps
+      parser: python-ast
+      dependency_targets: []
+    - name: _safe_requirements
+      kind: function
+      line_start: 268
+      line_end: 273
+      signature: '_safe_requirements(requirements: dict[str, Any]) -> dict[str, Any]'
+      inputs:
+      - 'requirements: dict[str, Any]'
+      output: dict[str, Any]
+      dependencies:
+      - _SECRET_KEY.search
+      - _redact_value
+      - requirements.items
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id004
+    - name: _redact_value
+      kind: function
+      line_start: 276
+      line_end: 292
+      signature: '_redact_value(value: Any) -> Any'
+      inputs:
+      - 'value: Any'
+      output: Any
+      dependencies:
+      - _SECRET_KEY.search
+      - _redact_text
+      - isinstance
+      - str
+      - value.items
+      parser: python-ast
+      dependency_targets:
+      - *id009
+    - name: _redact_text
+      kind: function
+      line_start: 295
+      line_end: 299
+      signature: '_redact_text(value: str) -> str'
+      inputs:
+      - 'value: str'
+      output: str
+      dependencies:
+      - _BEARER.sub
+      - _SECRET_ASSIGNMENT.sub
+      - match.group
+      parser: python-ast
+      dependency_targets: []
+    - name: _optional_str
+      kind: function
+      line_start: 302
+      line_end: 303
+      signature: '_optional_str(value: Any) -> str | None'
+      inputs:
+      - 'value: Any'
+      output: str | None
+      dependencies:
+      - isinstance
+      parser: python-ast
+      dependency_targets: []
+    - name: _settings_dict
+      kind: function
+      line_start: 306
+      line_end: 312
+      signature: '_settings_dict(settings: ModelLabSettingsSnapshot) -> dict[str, Any]'
+      inputs:
+      - 'settings: ModelLabSettingsSnapshot'
+      output: dict[str, Any]
+      dependencies:
+      - list
+      parser: python-ast
+      dependency_targets: []
+    - name: _corpus_summary
+      kind: function
+      line_start: 315
+      line_end: 324
+      signature: '_corpus_summary(item: BenchmarkCorpusItem) -> dict[str, Any]'
+      inputs:
+      - 'item: BenchmarkCorpusItem'
+      output: dict[str, Any]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/persistence/models.py
+    analysis_version: 1
+    language: python
+    content_hash: a12b2ce4791fbcff76c3b3fe00f0cb7d92a29bd9
+    dependencies:
+    - __future__
+    - datetime
+    - sqlalchemy
+    - sqlalchemy.orm
+    - typing
+    provides: []
+    symbols: []
+  - path: src/nerve_center/plugins/job_scout/manifest.py
+    analysis_version: 1
+    language: python
+    content_hash: 34b4f5886b3250a2cd916c1377534495109146e5
+    dependencies:
+    - nerve_center
+    - nerve_center.domain.module
+    provides:
+    - job_scout_manifest
+    symbols:
+    - name: job_scout_manifest
+      kind: function
+      line_start: 17
+      line_end: 127
+      signature: job_scout_manifest() -> ModuleManifest
+      inputs: []
+      output: ModuleManifest
+      dependencies:
+      - ModuleCompatibility
+      - ModuleLaunchDefinition
+      - ModuleManifest
+      - ModulePermission
+      - ModuleTaskDeclaration
+      - ModuleUiContribution
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/providers/errors.py
+    analysis_version: 1
+    language: python
+    content_hash: 8a6ec0e70814db0d1cec18e9bf2c39237402593f
+    dependencies:
+    - __future__
+    - dataclasses
+    provides:
+    - ProviderError.__post_init__
+    - ProviderError.as_dict
+    symbols:
+    - name: ProviderError.__post_init__
+      kind: method
+      line_start: 20
+      line_end: 21
+      signature: ProviderError.__post_init__(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies:
+      - RuntimeError.__init__
+      parser: python-ast
+      dependency_targets: []
+    - name: ProviderError.as_dict
+      kind: method
+      line_start: 23
+      line_end: 30
+      signature: ProviderError.as_dict(self) -> dict[str, str | int | bool | None]
+      inputs:
+      - self
+      output: dict[str, str | int | bool | None]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/providers/ollama.py
+    analysis_version: 1
+    language: python
+    content_hash: 74bdd9b4f309a9dd6cad6c7764f08a4eca5a4263
+    dependencies:
+    - __future__
+    - asyncio
+    - contextlib
+    - datetime
+    - httpx
+    - json
+    - jsonschema
+    - nerve_center.providers.base
+    - nerve_center.providers.errors
+    - pydantic
+    - time
+    - typing
+    - uuid
+    provides:
+    - OllamaProvider.__init__
+    - OllamaProvider.list_models
+    - OllamaProvider.generate_structured
+    - OllamaProvider.generate_json
+    - OllamaProvider._send
+    - OllamaProvider._json_object
+    - OllamaProvider._metadata
+    - _ollama_schema
+    - _ollama_schema.simplify
+    - _decode_json_output
+    - _repair_body
+    - _safe_failure_hint
+    - _parse_datetime
+    - _optional_string
+    - _optional_int
+    symbols:
+    - name: OllamaProvider.__init__
+      kind: method
+      line_start: 33
+      line_end: 46
+      signature: 'OllamaProvider.__init__(self, base_url: str, timeout_seconds: float, telemetry: ProviderTelemetry | None,
+        client: httpx.AsyncClient | None, max_retries: int) -> None'
+      inputs:
+      - self
+      - 'base_url: str'
+      - 'timeout_seconds: float'
+      - 'telemetry: ProviderTelemetry | None'
+      - 'client: httpx.AsyncClient | None'
+      - 'max_retries: int'
+      output: None
+      dependencies:
+      - NullProviderTelemetry
+      - base_url.rstrip
+      parser: python-ast
+      dependency_targets: []
+    - name: OllamaProvider.list_models
+      kind: method
+      line_start: 48
+      line_end: 79
+      signature: OllamaProvider.list_models(self) -> list[ProviderModel]
+      inputs:
+      - self
+      output: list[ProviderModel]
+      dependencies:
+      - ProviderError
+      - ProviderModel
+      - _optional_int
+      - _optional_string
+      - _parse_datetime
+      - details.get
+      - isinstance
+      - item.get
+      - payload.get
+      - result.append
+      - self._json_object
+      - self._send
+      - str
+      - str(item.get('model') or item.get('name') or '').strip
+      parser: python-ast
+      dependency_targets:
+      - &id010
+        path: src/nerve_center/providers/ollama.py
+        symbol: _optional_int
+      - path: src/nerve_center/providers/ollama.py
+        symbol: _optional_string
+      - path: src/nerve_center/providers/ollama.py
+        symbol: _parse_datetime
+      - path: src/nerve_center/persistence/scoring.py
+        symbol: OpportunityScoreRepository.append
+      - &id011
+        path: src/nerve_center/providers/ollama.py
+        symbol: OllamaProvider._json_object
+      - &id012
+        path: src/nerve_center/providers/ollama.py
+        symbol: OllamaProvider._send
+    - name: OllamaProvider.generate_structured
+      kind: method
+      line_start: 81
+      line_end: 197
+      signature: 'OllamaProvider.generate_structured(self, model: str, system_prompt: str, user_prompt: str, response_type:
+        type[TResponse], contract_version: str) -> StructuredGenerationResult[TResponse]'
+      inputs:
+      - self
+      - 'model: str'
+      - 'system_prompt: str'
+      - 'user_prompt: str'
+      - 'response_type: type[TResponse]'
+      - 'contract_version: str'
+      output: StructuredGenerationResult[TResponse]
+      dependencies:
+      - ProviderError
+      - StructuredGenerationResult
+      - _decode_json_output
+      - _ollama_schema
+      - _optional_int
+      - _repair_body
+      - asyncio.sleep
+      - datetime.now
+      - isinstance
+      - json.dumps
+      - len
+      - max
+      - message.get
+      - payload.get
+      - perf_counter
+      - response_type.model_json_schema
+      - response_type.model_validate
+      - round
+      - self._json_object
+      - self._metadata
+      - self._send
+      - self.telemetry.record
+      - str
+      - user_prompt.rstrip
+      parser: python-ast
+      dependency_targets:
+      - &id013
+        path: src/nerve_center/providers/ollama.py
+        symbol: _decode_json_output
+      - &id014
+        path: src/nerve_center/providers/ollama.py
+        symbol: _ollama_schema
+      - *id010
+      - &id015
+        path: src/nerve_center/providers/ollama.py
+        symbol: _repair_body
+      - *id011
+      - path: src/nerve_center/providers/ollama.py
+        symbol: OllamaProvider._metadata
+      - *id012
+      - &id016
+        path: src/nerve_center/persistence/providers.py
+        symbol: ProviderCallRepository.record
+      - &id017
+        path: src/nerve_center/providers/base.py
+        symbol: ProviderTelemetry.record
+      - &id018
+        path: src/nerve_center/providers/base.py
+        symbol: NullProviderTelemetry.record
+      - &id019
+        path: tests/test_ollama_provider.py
+        symbol: CaptureTelemetry.record
+    - name: OllamaProvider.generate_json
+      kind: method
+      line_start: 199
+      line_end: 348
+      signature: 'OllamaProvider.generate_json(self, model: str, system_prompt: str, user_prompt: str, output_schema: dict[str,
+        Any], contract_version: str) -> JsonGenerationResult'
+      inputs:
+      - self
+      - 'model: str'
+      - 'system_prompt: str'
+      - 'user_prompt: str'
+      - 'output_schema: dict[str, Any]'
+      - 'contract_version: str'
+      output: JsonGenerationResult
+      dependencies:
+      - Draft202012Validator
+      - Draft202012Validator.check_schema
+      - JsonGenerationResult
+      - ProviderCallMetadata
+      - ProviderError
+      - _decode_json_output
+      - _ollama_schema
+      - _optional_int
+      - _repair_body
+      - _safe_failure_hint
+      - asyncio.sleep
+      - datetime.now
+      - isinstance
+      - json.dumps
+      - len
+      - max
+      - message.get
+      - payload.get
+      - perf_counter
+      - round
+      - self._json_object
+      - self._send
+      - self.telemetry.record
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id013
+      - *id014
+      - *id010
+      - *id015
+      - path: src/nerve_center/providers/ollama.py
+        symbol: _safe_failure_hint
+      - *id011
+      - *id012
+      - *id016
+      - *id017
+      - *id018
+      - *id019
+    - name: OllamaProvider._send
+      kind: method
+      line_start: 350
+      line_end: 389
+      signature: 'OllamaProvider._send(self, method: str, path: str, **kwargs: Any) -> httpx.Response'
+      inputs:
+      - self
+      - 'method: str'
+      - 'path: str'
+      - '**kwargs: Any'
+      output: httpx.Response
+      dependencies:
+      - ProviderError
+      - client.aclose
+      - client.request
+      - httpx.AsyncClient
+      - isinstance
+      - payload.get
+      - response.json
+      - suppress
+      parser: python-ast
+      dependency_targets: []
+    - name: OllamaProvider._json_object
+      kind: method
+      line_start: 391
+      line_end: 402
+      signature: 'OllamaProvider._json_object(self, response: httpx.Response) -> dict[str, Any]'
+      inputs:
+      - self
+      - 'response: httpx.Response'
+      output: dict[str, Any]
+      dependencies:
+      - ProviderError
+      - isinstance
+      - response.json
+      parser: python-ast
+      dependency_targets: []
+    - name: OllamaProvider._metadata
+      kind: method
+      line_start: 404
+      line_end: 436
+      signature: 'OllamaProvider._metadata(self, request_id: str, model: str, contract_version: str, response_type: type[BaseModel],
+        started_at: datetime, started: float, status: str, error_code: str | None, retry_count: int, input_char_count: int,
+        output_char_count: int, prompt_eval_count: int | None, eval_count: int | None) -> ProviderCallMetadata'
+      inputs:
+      - self
+      - 'request_id: str'
+      - 'model: str'
+      - 'contract_version: str'
+      - 'response_type: type[BaseModel]'
+      - 'started_at: datetime'
+      - 'started: float'
+      - 'status: str'
+      - 'error_code: str | None'
+      - 'retry_count: int'
+      - 'input_char_count: int'
+      - 'output_char_count: int'
+      - 'prompt_eval_count: int | None'
+      - 'eval_count: int | None'
+      output: ProviderCallMetadata
+      dependencies:
+      - ProviderCallMetadata
+      - max
+      - perf_counter
+      - round
+      parser: python-ast
+      dependency_targets: []
+    - name: _ollama_schema
+      kind: function
+      line_start: 439
+      line_end: 477
+      signature: '_ollama_schema(schema: dict[str, Any]) -> dict[str, Any]'
+      inputs:
+      - 'schema: dict[str, Any]'
+      output: dict[str, Any]
+      dependencies:
+      - definitions.get
+      - isinstance
+      - item.items
+      - reference.removeprefix
+      - reference.startswith
+      - schema.get
+      - simplify
+      - value.get
+      - value.items
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/providers/ollama.py
+        symbol: _ollama_schema.simplify
+    - name: _ollama_schema.simplify
+      kind: function
+      line_start: 458
+      line_end: 474
+      signature: '_ollama_schema.simplify(value: object) -> object'
+      inputs:
+      - 'value: object'
+      output: object
+      dependencies:
+      - definitions.get
+      - isinstance
+      - item.items
+      - reference.removeprefix
+      - reference.startswith
+      - value.get
+      - value.items
+      parser: python-ast
+      dependency_targets: []
+    - name: _decode_json_output
+      kind: function
+      line_start: 480
+      line_end: 500
+      signature: '_decode_json_output(value: str) -> object'
+      inputs:
+      - 'value: str'
+      output: object
+      dependencies:
+      - ValueError
+      - json.JSONDecoder
+      - json.JSONDecoder().raw_decode
+      - json.loads
+      - min
+      - text.endswith
+      - text.find
+      - text.startswith
+      - text[:-3].rstrip
+      - value.strip
+      parser: python-ast
+      dependency_targets: []
+    - name: _repair_body
+      kind: function
+      line_start: 503
+      line_end: 525
+      signature: '_repair_body(body: dict[str, Any], invalid_output: str, failure_hint: str | None) -> dict[str, Any]'
+      inputs:
+      - 'body: dict[str, Any]'
+      - 'invalid_output: str'
+      - 'failure_hint: str | None'
+      output: dict[str, Any]
+      dependencies:
+      - body.get
+      - list
+      - messages.extend
+      parser: python-ast
+      dependency_targets: []
+    - name: _safe_failure_hint
+      kind: function
+      line_start: 528
+      line_end: 537
+      signature: '_safe_failure_hint(error: BaseException | None) -> str | None'
+      inputs:
+      - 'error: BaseException | None'
+      output: str | None
+      dependencies:
+      - isinstance
+      - str
+      parser: python-ast
+      dependency_targets: []
+    - name: _parse_datetime
+      kind: function
+      line_start: 540
+      line_end: 546
+      signature: '_parse_datetime(value: object) -> datetime | None'
+      inputs:
+      - 'value: object'
+      output: datetime | None
+      dependencies:
+      - datetime.fromisoformat
+      - isinstance
+      - value.replace
+      parser: python-ast
+      dependency_targets: []
+    - name: _optional_string
+      kind: function
+      line_start: 549
+      line_end: 550
+      signature: '_optional_string(value: object) -> str | None'
+      inputs:
+      - 'value: object'
+      output: str | None
+      dependencies:
+      - str
+      parser: python-ast
+      dependency_targets: []
+    - name: _optional_int
+      kind: function
+      line_start: 553
+      line_end: 554
+      signature: '_optional_int(value: object) -> int | None'
+      inputs:
+      - 'value: object'
+      output: int | None
+      dependencies:
+      - isinstance
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/runtime/api.py
+    analysis_version: 1
+    language: python
+    content_hash: da6042ac35d7cb94621afece54c03fb9fba09d4a
+    dependencies:
+    - __future__
+    - fastapi
+    - nerve_center.domain.module_runtime
+    - nerve_center.domain.task
+    - nerve_center.domain.work_queue
+    - nerve_center.runtime.supervisor
+    - pydantic
+    - typing
+    provides:
+    - register_runtime_routes
+    - register_runtime_routes.token
+    - register_runtime_routes.translate
+    - register_runtime_routes.heartbeat
+    - register_runtime_routes.next_work
+    - register_runtime_routes.module_control
+    - register_runtime_routes.control
+    - register_runtime_routes.checkpoint
+    - register_runtime_routes.consume_resource
+    - register_runtime_routes.invoke
+    - register_runtime_routes.submit_work
+    - register_runtime_routes.results
+    - register_runtime_routes.acknowledge_result
+    - register_runtime_routes.complete
+    symbols:
+    - name: register_runtime_routes
+      kind: function
+      line_start: 66
+      line_end: 230
+      signature: 'register_runtime_routes(application: FastAPI, supervisor: ModuleSupervisor) -> None'
+      inputs:
+      - 'application: FastAPI'
+      - 'supervisor: ModuleSupervisor'
+      output: None
+      dependencies:
+      - APIRouter
+      - HTTPException
+      - Header
+      - TaskResult
+      - application.include_router
+      - authorization.partition
+      - isinstance
+      - report.to_dict
+      - request.model_dump
+      - router.get
+      - router.post
+      - scheme.casefold
+      - str
+      - supervisor.acknowledge_result
+      - supervisor.checkpoint
+      - supervisor.complete
+      - supervisor.consume_resource
+      - supervisor.control
+      - supervisor.deliver_results
+      - supervisor.heartbeat
+      - supervisor.invoke
+      - supervisor.module_control
+      - supervisor.next_assignment
+      - supervisor.submit_work
+      parser: python-ast
+      dependency_targets:
+      - &id020
+        path: src/nerve_center/domain/module.py
+        symbol: ModuleManifest.to_dict
+      - &id021
+        path: src/nerve_center/domain/module_runtime.py
+        symbol: ModuleRuntimeReport.to_dict
+      - &id022
+        path: src/nerve_center/domain/module_runtime.py
+        symbol: ModuleRunAssignment.to_dict
+      - &id023
+        path: src/nerve_center/domain/session.py
+        symbol: RecurrenceRule.to_dict
+      - path: src/nerve_center/runtime/api.py
+        symbol: register_runtime_routes.acknowledge_result
+      - path: src/nerve_center/runtime/client.py
+        symbol: ModuleRuntimeClient.acknowledge_result
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.acknowledge_result
+      - path: tests/test_job_scout_continuous_session.py
+        symbol: Client.acknowledge_result
+      - path: src/nerve_center/runtime/api.py
+        symbol: register_runtime_routes.consume_resource
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.consume_resource
+      - &id027
+        path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.deliver_results
+      - &id028
+        path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleWorkQueue.deliver_results
+      - &id029
+        path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.deliver_results
+      - &id030
+        path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.deliver_results
+      - path: src/nerve_center/runtime/api.py
+        symbol: register_runtime_routes.heartbeat
+      - path: src/nerve_center/runtime/client.py
+        symbol: ModuleRuntimeClient.heartbeat
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.heartbeat
+      - path: tests/test_job_scout_continuous_session.py
+        symbol: Client.heartbeat
+      - path: src/nerve_center/runtime/api.py
+        symbol: register_runtime_routes.module_control
+      - path: src/nerve_center/runtime/client.py
+        symbol: ModuleRuntimeClient.module_control
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.module_control
+      - &id024
+        path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.next_assignment
+      - path: src/nerve_center/runtime/api.py
+        symbol: register_runtime_routes.submit_work
+      - path: src/nerve_center/runtime/client.py
+        symbol: ModuleRuntimeClient.submit_work
+    - name: register_runtime_routes.token
+      kind: function
+      line_start: 69
+      line_end: 73
+      signature: 'register_runtime_routes.token(authorization: str) -> str'
+      inputs:
+      - 'authorization: str'
+      output: str
+      dependencies:
+      - HTTPException
+      - Header
+      - authorization.partition
+      - scheme.casefold
+      parser: python-ast
+      dependency_targets: []
+    - name: register_runtime_routes.translate
+      kind: function
+      line_start: 75
+      line_end: 80
+      signature: 'register_runtime_routes.translate(error: Exception) -> HTTPException'
+      inputs:
+      - 'error: Exception'
+      output: HTTPException
+      dependencies:
+      - HTTPException
+      - isinstance
+      - str
+      parser: python-ast
+      dependency_targets: []
+    - name: register_runtime_routes.heartbeat
+      kind: function
+      line_start: 83
+      line_end: 96
+      signature: 'register_runtime_routes.heartbeat(module_id: str, request: HeartbeatRequest, authorization: str) -> dict[str,
+        Any]'
+      inputs:
+      - 'module_id: str'
+      - 'request: HeartbeatRequest'
+      - 'authorization: str'
+      output: dict[str, Any]
+      dependencies:
+      - Header
+      - report.to_dict
+      - request.model_dump
+      - router.post
+      - token
+      - translate
+      parser: python-ast
+      dependency_targets:
+      - *id020
+      - *id021
+      - *id022
+      - *id023
+      - &id025
+        path: src/nerve_center/runtime/api.py
+        symbol: register_runtime_routes.token
+      - &id026
+        path: src/nerve_center/runtime/api.py
+        symbol: register_runtime_routes.translate
+    - name: register_runtime_routes.next_work
+      kind: function
+      line_start: 99
+      line_end: 103
+      signature: 'register_runtime_routes.next_work(module_id: str, authorization: str) -> Any'
+      inputs:
+      - 'module_id: str'
+      - 'authorization: str'
+      output: Any
+      dependencies:
+      - Header
+      - router.get
+      - supervisor.next_assignment
+      - token
+      - translate
+      parser: python-ast
+      dependency_targets:
+      - *id024
+      - *id025
+      - *id026
+    - name: register_runtime_routes.module_control
+      kind: function
+      line_start: 106
+      line_end: 110
+      signature: 'register_runtime_routes.module_control(module_id: str, authorization: str) -> Any'
+      inputs:
+      - 'module_id: str'
+      - 'authorization: str'
+      output: Any
+      dependencies:
+      - Header
+      - router.get
+      - token
+      - translate
+      parser: python-ast
+      dependency_targets:
+      - *id025
+      - *id026
+    - name: register_runtime_routes.control
+      kind: function
+      line_start: 113
+      line_end: 117
+      signature: 'register_runtime_routes.control(module_id: str, run_id: str, authorization: str) -> Any'
+      inputs:
+      - 'module_id: str'
+      - 'run_id: str'
+      - 'authorization: str'
+      output: Any
+      dependencies:
+      - Header
+      - router.get
+      - token
+      - translate
+      parser: python-ast
+      dependency_targets:
+      - *id025
+      - *id026
+    - name: register_runtime_routes.checkpoint
+      kind: function
+      line_start: 120
+      line_end: 129
+      signature: 'register_runtime_routes.checkpoint(module_id: str, run_id: str, request: CheckpointRequest, authorization:
+        str) -> None'
+      inputs:
+      - 'module_id: str'
+      - 'run_id: str'
+      - 'request: CheckpointRequest'
+      - 'authorization: str'
+      output: None
+      dependencies:
+      - Header
+      - router.post
+      - token
+      - translate
+      parser: python-ast
+      dependency_targets:
+      - *id025
+      - *id026
+    - name: register_runtime_routes.consume_resource
+      kind: function
+      line_start: 132
+      line_end: 147
+      signature: 'register_runtime_routes.consume_resource(module_id: str, run_id: str, request: ResourceConsumptionRequest,
+        authorization: str) -> dict[str, int]'
+      inputs:
+      - 'module_id: str'
+      - 'run_id: str'
+      - 'request: ResourceConsumptionRequest'
+      - 'authorization: str'
+      output: dict[str, int]
+      dependencies:
+      - Header
+      - router.post
+      - token
+      - translate
+      parser: python-ast
+      dependency_targets:
+      - *id025
+      - *id026
+    - name: register_runtime_routes.invoke
+      kind: function
+      line_start: 150
+      line_end: 165
+      signature: 'register_runtime_routes.invoke(module_id: str, run_id: str, request: OperationRequest, authorization: str)
+        -> dict[str, Any]'
+      inputs:
+      - 'module_id: str'
+      - 'run_id: str'
+      - 'request: OperationRequest'
+      - 'authorization: str'
+      output: dict[str, Any]
+      dependencies:
+      - Header
+      - router.post
+      - token
+      - translate
+      parser: python-ast
+      dependency_targets:
+      - *id025
+      - *id026
+    - name: register_runtime_routes.submit_work
+      kind: function
+      line_start: 168
+      line_end: 182
+      signature: 'register_runtime_routes.submit_work(module_id: str, run_id: str, request: WorkSubmissionRequest, authorization:
+        str) -> dict[str, Any]'
+      inputs:
+      - 'module_id: str'
+      - 'run_id: str'
+      - 'request: WorkSubmissionRequest'
+      - 'authorization: str'
+      output: dict[str, Any]
+      dependencies:
+      - Header
+      - request.model_dump
+      - router.post
+      - token
+      - translate
+      parser: python-ast
+      dependency_targets:
+      - *id025
+      - *id026
+    - name: register_runtime_routes.results
+      kind: function
+      line_start: 185
+      line_end: 189
+      signature: 'register_runtime_routes.results(module_id: str, authorization: str) -> Any'
+      inputs:
+      - 'module_id: str'
+      - 'authorization: str'
+      output: Any
+      dependencies:
+      - Header
+      - router.get
+      - supervisor.deliver_results
+      - token
+      - translate
+      parser: python-ast
+      dependency_targets:
+      - *id027
+      - *id028
+      - *id029
+      - *id030
+      - *id025
+      - *id026
+    - name: register_runtime_routes.acknowledge_result
+      kind: function
+      line_start: 192
+      line_end: 207
+      signature: 'register_runtime_routes.acknowledge_result(module_id: str, result_id: str, request: ResultDispositionRequest
+        | None, authorization: str) -> dict[str, Any]'
+      inputs:
+      - 'module_id: str'
+      - 'result_id: str'
+      - 'request: ResultDispositionRequest | None'
+      - 'authorization: str'
+      output: dict[str, Any]
+      dependencies:
+      - Header
+      - router.post
+      - token
+      - translate
+      parser: python-ast
+      dependency_targets:
+      - *id025
+      - *id026
+    - name: register_runtime_routes.complete
+      kind: function
+      line_start: 210
+      line_end: 228
+      signature: 'register_runtime_routes.complete(module_id: str, run_id: str, request: CompletionRequest, authorization:
+        str) -> None'
+      inputs:
+      - 'module_id: str'
+      - 'run_id: str'
+      - 'request: CompletionRequest'
+      - 'authorization: str'
+      output: None
+      dependencies:
+      - Header
+      - TaskResult
+      - router.post
+      - token
+      - translate
+      parser: python-ast
+      dependency_targets:
+      - *id025
+      - *id026
+  - path: tests/test_discovery_api.py
+    analysis_version: 1
+    language: python
+    content_hash: 8222c5c04cdba2b286e91d80b3b6aed4633d63db
+    dependencies:
+    - asyncio
+    - fastapi
+    - fastapi.testclient
+    - httpx
+    - nerve_center.config
+    - nerve_center.discovery.api
+    - nerve_center.discovery.fetching
+    - nerve_center.discovery.service
+    - nerve_center.persistence.database
+    - nerve_center.persistence.discovery
+    - pathlib
+    provides:
+    - test_discovery_api_registers_scans_and_lists_jobs
+    - test_discovery_api_registers_scans_and_lists_jobs.handler
+    symbols:
+    - name: test_discovery_api_registers_scans_and_lists_jobs
+      kind: function
+      line_start: 20
+      line_end: 82
+      signature: 'test_discovery_api_registers_scans_and_lists_jobs(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - CompanyRepository
+      - Database
+      - DiscoveryService
+      - DiscoverySourceRepository
+      - FastAPI
+      - HttpFetcher
+      - JobOpeningRepository
+      - Settings
+      - TestClient
+      - api.get
+      - api.get('/api/v1/discovery/jobs').json
+      - api.get(f"/api/v1/discovery/sources/{source['id']}/scans").json
+      - api.post
+      - 'api.post(''/api/v1/discovery/companies'', json={''canonical_name'': ''Example Co'', ''domain'': ''example.com''}).json'
+      - 'api.post(''/api/v1/discovery/sources'', json={''company_id'': company[''id''], ''name'': ''Example Greenhouse'',
+        ''kind'': ''greenhouse'', ''acquisition_class'': ''official_api'', ''base_url'': ''https://boards.greenhouse.io/example'',
+        ''configuration'': {''board_token'': ''example''}, ''parser_version'': ''greenhouse-v1''}).json'
+      - api.post(f"/api/v1/discovery/sources/{source['id']}/scan").json
+      - asyncio.run
+      - client.aclose
+      - database.initialize
+      - httpx.AsyncClient
+      - httpx.MockTransport
+      - httpx.Response
+      - register_discovery_routes
+      parser: python-ast
+      dependency_targets:
+      - &id031
+        path: src/nerve_center/persistence/database.py
+        symbol: Database.initialize
+      - path: src/nerve_center/discovery/api.py
+        symbol: register_discovery_routes
+    - name: test_discovery_api_registers_scans_and_lists_jobs.handler
+      kind: function
+      line_start: 28
+      line_end: 42
+      signature: 'test_discovery_api_registers_scans_and_lists_jobs.handler(request: httpx.Request) -> httpx.Response'
+      inputs:
+      - 'request: httpx.Request'
+      output: httpx.Response
+      dependencies:
+      - httpx.Response
+      parser: python-ast
+      dependency_targets: []
+  - path: tests/test_discovery_overlap_audit.py
+    analysis_version: 1
+    language: python
+    content_hash: b2d8dd4892ceb717ada3a528045ee64db729be02
+    dependencies:
+    - nerve_center.config
+    - nerve_center.discovery.models
+    - nerve_center.persistence.database
+    - nerve_center.persistence.discovery
+    - nerve_center.plugins.job_scout.discovery_quality
+    - pathlib
+    provides:
+    - test_opening_overlap_is_derived_from_durable_source_provenance
+    symbols:
+    - name: test_opening_overlap_is_derived_from_durable_source_provenance
+      kind: function
+      line_start: 21
+      line_end: 86
+      signature: 'test_opening_overlap_is_derived_from_durable_source_provenance(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Company
+      - CompanyRepository
+      - Database
+      - DiscoveryQualityRepository
+      - DiscoverySource
+      - DiscoverySourceRepository
+      - JobOpeningRepository
+      - JobProvenance
+      - NormalizedJobOpening
+      - Settings
+      - companies.upsert
+      - database.initialize
+      - jobs.upsert
+      - learning.discovery_audit
+      - learning.ensure_strategy
+      - sources.upsert
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/discovery.py
+        symbol: CompanyRepository.upsert
+      - path: src/nerve_center/persistence/discovery.py
+        symbol: DiscoverySourceRepository.upsert
+      - path: src/nerve_center/persistence/discovery.py
+        symbol: JobOpeningRepository.upsert
+      - path: src/nerve_center/persistence/scoring.py
+        symbol: ScoringRuleRepository.upsert
+      - *id031
+      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: DiscoveryQualityRepository.discovery_audit
+      - &id032
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.ensure_strategy
+  - path: tests/test_job_scout_reference_audit.py
+    analysis_version: 1
+    language: python
+    content_hash: 087a91c3c5c493fc560ebb582bf2d067f9f328a4
+    dependencies:
+    - nerve_center.config
+    - nerve_center.persistence.database
+    - nerve_center.plugins.job_scout.bootstrap
+    - nerve_center.plugins.job_scout.discovery_learning
+    - nerve_center.plugins.job_scout.discovery_quality
+    - pathlib
+    provides:
+    - _learning
+    - test_reference_attempt_evidence_is_bounded_and_run_attributed
+    symbols:
+    - name: _learning
+      kind: function
+      line_start: 10
+      line_end: 13
+      signature: '_learning(tmp_path: Path) -> DiscoveryQualityRepository'
+      inputs:
+      - 'tmp_path: Path'
+      output: DiscoveryQualityRepository
+      dependencies:
+      - Database
+      - DiscoveryQualityRepository
+      - Settings
+      - database.initialize
+      parser: python-ast
+      dependency_targets:
+      - *id031
+    - name: test_reference_attempt_evidence_is_bounded_and_run_attributed
+      kind: function
+      line_start: 16
+      line_end: 113
+      signature: 'test_reference_attempt_evidence_is_bounded_and_run_attributed(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - StrategyOutcome
+      - _learning
+      - _recent_reference_attempt_evidence
+      - isinstance
+      - learning.ensure_strategy
+      - learning.record_attempt
+      - len
+      parser: python-ast
+      dependency_targets:
+      - path: tests/test_job_scout_reference_audit.py
+        symbol: _learning
+      - path: src/nerve_center/plugins/job_scout/bootstrap.py
+        symbol: _recent_reference_attempt_evidence
+      - *id032
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.record_attempt
+      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: DiscoveryQualityRepository.record_attempt
+  - path: tests/test_module_contracts.py
+    analysis_version: 1
+    language: python
+    content_hash: 814f2f58960302d713d7ea455bd13915850166fc
+    dependencies:
+    - dataclasses
+    - nerve_center.domain.module
+    - pytest
+    provides:
+    - manifest
+    - test_manifest_round_trips_through_persisted_payload
+    - test_manifest_rejects_task_outside_module_namespace
+    - test_manifest_rejects_unsupported_contract_version
+    symbols:
+    - name: manifest
+      kind: function
+      line_start: 18
+      line_end: 54
+      signature: manifest() -> ModuleManifest
+      inputs: []
+      output: ModuleManifest
+      dependencies:
+      - ModuleCompatibility
+      - ModuleLaunchDefinition
+      - ModuleManifest
+      - ModulePermission
+      - ModuleTaskDeclaration
+      - ModuleUiContribution
+      parser: python-ast
+      dependency_targets: []
+    - name: test_manifest_round_trips_through_persisted_payload
+      kind: function
+      line_start: 57
+      line_end: 65
+      signature: test_manifest_round_trips_through_persisted_payload() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - ModuleManifest.from_dict
+      - manifest
+      - original.to_dict
+      - restored.supports_core
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/domain/module.py
+        symbol: ModuleManifest.from_dict
+      - path: src/nerve_center/domain/session.py
+        symbol: RecurrenceRule.from_dict
+      - &id033
+        path: tests/test_module_contracts.py
+        symbol: manifest
+      - *id020
+      - *id021
+      - *id022
+      - *id023
+      - path: src/nerve_center/domain/module.py
+        symbol: ModuleManifest.supports_core
+    - name: test_manifest_rejects_task_outside_module_namespace
+      kind: function
+      line_start: 68
+      line_end: 79
+      signature: test_manifest_rejects_task_outside_module_namespace() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - ModuleTaskDeclaration
+      - manifest
+      - pytest.raises
+      - replace
+      parser: python-ast
+      dependency_targets:
+      - *id033
+    - name: test_manifest_rejects_unsupported_contract_version
+      kind: function
+      line_start: 82
+      line_end: 84
+      signature: test_manifest_rejects_unsupported_contract_version() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - manifest
+      - pytest.raises
+      - replace
+      parser: python-ast
+      dependency_targets:
+      - *id033

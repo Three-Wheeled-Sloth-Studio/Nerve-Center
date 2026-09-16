@@ -1,0 +1,605 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: 0b
+  files:
+  - path: desktop/src/locationFilter.d.ts
+    analysis_version: 1
+    language: typescript
+    content_hash: ca8a21e35413e31fb5e16c9ddfdefa003e689915
+    dependencies:
+    - ./types
+    provides: []
+    symbols: []
+  - path: src/nerve_center/plugins/job_scout/__init__.py
+    analysis_version: 1
+    language: python
+    content_hash: 03ee6c1bac5d0948d79895eae7217f2f1ee04761
+    dependencies: []
+    provides: []
+    symbols: []
+  - path: src/nerve_center/plugins/job_scout/bootstrap.py
+    analysis_version: 1
+    language: python
+    content_hash: 21637c2ae653c40fa07bfc2a37f73bfd7ed15bc0
+    dependencies:
+    - dataclasses
+    - fastapi
+    - nerve_center.applications.api
+    - nerve_center.config
+    - nerve_center.discovery.api
+    - nerve_center.discovery.service
+    - nerve_center.domain.module
+    - nerve_center.persistence.database
+    - nerve_center.persistence.discovery
+    - nerve_center.plugins.job_scout.attachment_discovery
+    - nerve_center.plugins.job_scout.configuration
+    - nerve_center.plugins.job_scout.discovery_learning
+    - nerve_center.plugins.job_scout.discovery_quality
+    - nerve_center.plugins.job_scout.manifest
+    - nerve_center.plugins.job_scout.runtime
+    - nerve_center.plugins.job_scout.uploads
+    - nerve_center.profile.api
+    - nerve_center.providers.base
+    - nerve_center.scoring.api
+    - sqlalchemy
+    provides:
+    - install_job_scout
+    - _recent_reference_attempt_evidence
+    - _register_discovery_learning_routes
+    - _register_discovery_learning_routes.list_discovery_strategies
+    - _register_discovery_learning_routes.get_discovery_audit
+    - _register_discovery_learning_routes.get_discovery_session
+    - _register_discovery_learning_routes.list_reflection_hypotheses
+    symbols:
+    - name: install_job_scout
+      kind: function
+      line_start: 65
+      line_end: 128
+      signature: 'install_job_scout(application: FastAPI, database: Database, settings: Settings, provider: StructuredProvider
+        | None) -> JobScoutModulePackage'
+      inputs:
+      - 'application: FastAPI'
+      - 'database: Database'
+      - 'settings: Settings'
+      - 'provider: StructuredProvider | None'
+      output: JobScoutModulePackage
+      dependencies:
+      - AttachmentAwareJobScoutDiscoveryLoop
+      - CompanyRepository
+      - DiscoveryQualityRepository
+      - DiscoveryService
+      - DiscoverySourceRepository
+      - JobOpeningRepository
+      - JobScoutModulePackage
+      - JobScoutOperationBridge
+      - _register_discovery_learning_routes
+      - coordinator.store.load
+      - job_scout_manifest
+      - register_application_routes
+      - register_discovery_routes
+      - register_job_scout_configuration_routes
+      - register_job_scout_upload_route
+      - register_profile_routes
+      - register_scoring_routes
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/bootstrap.py
+        symbol: _register_discovery_learning_routes
+      - path: src/nerve_center/plugins/job_scout/settings.py
+        symbol: JobScoutConfigurationStore.load
+      - path: tests/test_job_scout_query_portfolio.py
+        symbol: _ConfigStore.load
+      - path: src/nerve_center/plugins/job_scout/manifest.py
+        symbol: job_scout_manifest
+      - path: src/nerve_center/applications/api.py
+        symbol: register_application_routes
+      - path: src/nerve_center/discovery/api.py
+        symbol: register_discovery_routes
+      - path: src/nerve_center/plugins/job_scout/configuration.py
+        symbol: register_job_scout_configuration_routes
+      - path: src/nerve_center/plugins/job_scout/uploads.py
+        symbol: register_job_scout_upload_route
+      - path: src/nerve_center/profile/api.py
+        symbol: register_profile_routes
+      - path: src/nerve_center/scoring/api.py
+        symbol: register_scoring_routes
+    - name: _recent_reference_attempt_evidence
+      kind: function
+      line_start: 131
+      line_end: 186
+      signature: '_recent_reference_attempt_evidence(learning: DiscoveryQualityRepository, run_id: str | None, limit: int)
+        -> list[dict[str, object]]'
+      inputs:
+      - 'learning: DiscoveryQualityRepository'
+      - 'run_id: str | None'
+      - 'limit: int'
+      output: list[dict[str, object]]
+      dependencies:
+      - StrategyAttemptModel.finished_at.desc
+      - any
+      - detail.get
+      - dimensions.get
+      - evidence.append
+      - isinstance
+      - learning.database.session
+      - len
+      - max
+      - select
+      - select(StrategyAttemptModel, DiscoveryStrategyModel).join
+      - session.execute
+      - session.execute(statement.order_by(StrategyAttemptModel.finished_at.desc()).limit(scan_limit)).all
+      - stages.get
+      - statement.order_by
+      - statement.order_by(StrategyAttemptModel.finished_at.desc()).limit
+      - statement.where
+      parser: python-ast
+      dependency_targets:
+      - &id003
+        path: src/nerve_center/persistence/scoring.py
+        symbol: OpportunityScoreRepository.append
+      - &id001
+        path: src/nerve_center/persistence/database.py
+        symbol: Database.session
+      - &id002
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.session
+      - path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager.select
+      - path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager.execute
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.execute
+      - path: tests/test_scheduler.py
+        symbol: test_tick_starts_due_fixed_run.execute
+    - name: _register_discovery_learning_routes
+      kind: function
+      line_start: 189
+      line_end: 253
+      signature: '_register_discovery_learning_routes(application: FastAPI, learning: DiscoveryQualityRepository) -> None'
+      inputs:
+      - 'application: FastAPI'
+      - 'learning: DiscoveryQualityRepository'
+      output: None
+      dependencies:
+      - HTTPException
+      - _recent_reference_attempt_evidence
+      - application.get
+      - dict
+      - item.dimensions.get
+      - learning.discovery_audit
+      - learning.list_strategies
+      - learning.list_strategy_families
+      - learning.reflection_hypotheses
+      - learning.session
+      - rows.append
+      - str
+      parser: python-ast
+      dependency_targets:
+      - &id006
+        path: src/nerve_center/plugins/job_scout/bootstrap.py
+        symbol: _recent_reference_attempt_evidence
+      - &id007
+        path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: DiscoveryQualityRepository.discovery_audit
+      - &id004
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.list_strategies
+      - &id005
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.list_strategy_families
+      - &id008
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.reflection_hypotheses
+      - *id001
+      - *id002
+      - *id003
+    - name: _register_discovery_learning_routes.list_discovery_strategies
+      kind: function
+      line_start: 194
+      line_end: 233
+      signature: _register_discovery_learning_routes.list_discovery_strategies() -> list[dict[str, object]]
+      inputs: []
+      output: list[dict[str, object]]
+      dependencies:
+      - application.get
+      - item.dimensions.get
+      - learning.list_strategies
+      - learning.list_strategy_families
+      - rows.append
+      parser: python-ast
+      dependency_targets:
+      - *id004
+      - *id005
+      - *id003
+    - name: _register_discovery_learning_routes.get_discovery_audit
+      kind: function
+      line_start: 236
+      line_end: 242
+      signature: '_register_discovery_learning_routes.get_discovery_audit(run_id: str | None) -> dict[str, object]'
+      inputs:
+      - 'run_id: str | None'
+      output: dict[str, object]
+      dependencies:
+      - _recent_reference_attempt_evidence
+      - application.get
+      - dict
+      - learning.discovery_audit
+      parser: python-ast
+      dependency_targets:
+      - *id006
+      - *id007
+    - name: _register_discovery_learning_routes.get_discovery_session
+      kind: function
+      line_start: 245
+      line_end: 249
+      signature: '_register_discovery_learning_routes.get_discovery_session(run_id: str) -> object'
+      inputs:
+      - 'run_id: str'
+      output: object
+      dependencies:
+      - HTTPException
+      - application.get
+      - learning.session
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+    - name: _register_discovery_learning_routes.list_reflection_hypotheses
+      kind: function
+      line_start: 252
+      line_end: 253
+      signature: '_register_discovery_learning_routes.list_reflection_hypotheses(run_id: str) -> list[dict[str, object]]'
+      inputs:
+      - 'run_id: str'
+      output: list[dict[str, object]]
+      dependencies:
+      - application.get
+      - learning.reflection_hypotheses
+      parser: python-ast
+      dependency_targets:
+      - *id008
+  - path: src/nerve_center/providers/__init__.py
+    analysis_version: 1
+    language: python
+    content_hash: 0195b3f9c40530b00f4d97ad6f7525643226355e
+    dependencies:
+    - nerve_center.providers.ollama
+    provides: []
+    symbols: []
+  - path: src/nerve_center/scheduler/runner.py
+    analysis_version: 1
+    language: python
+    content_hash: 349fcb5e34a1f95bf5fdc5f949d78cfe387c18f5
+    dependencies:
+    - __future__
+    - asyncio
+    - collections.abc
+    - datetime
+    - nerve_center.domain.budget
+    - nerve_center.domain.module
+    - nerve_center.domain.run
+    - nerve_center.domain.task
+    - nerve_center.persistence.runs
+    - nerve_center.scheduler.registry
+    - typing
+    provides:
+    - RunnerService.__init__
+    - RunnerService.recover_interrupted
+    - RunnerService.start
+    - RunnerService.execute_now
+    - RunnerService.cancel
+    - RunnerService.wait
+    - RunnerService.shutdown
+    - RunnerService._prepare_start
+    - RunnerService._execute
+    - RunnerService._execute.cancellation_requested
+    - RunnerService._execute.save_checkpoint
+    - RunnerService._complete
+    symbols:
+    - name: RunnerService.__init__
+      kind: method
+      line_start: 24
+      line_end: 33
+      signature: 'RunnerService.__init__(self, repository: RunRepository, registry: TaskRegistry, module_lifecycle: Callable[[str],
+        ModuleLifecycleState] | None) -> None'
+      inputs:
+      - self
+      - 'repository: RunRepository'
+      - 'registry: TaskRegistry'
+      - 'module_lifecycle: Callable[[str], ModuleLifecycleState] | None'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: RunnerService.recover_interrupted
+      kind: method
+      line_start: 35
+      line_end: 36
+      signature: RunnerService.recover_interrupted(self) -> list[RunSnapshot]
+      inputs:
+      - self
+      output: list[RunSnapshot]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: RunnerService.start
+      kind: method
+      line_start: 38
+      line_end: 48
+      signature: 'RunnerService.start(self, run_id: str, now: datetime | None) -> RunSnapshot'
+      inputs:
+      - self
+      - 'run_id: str'
+      - 'now: datetime | None'
+      output: RunSnapshot
+      dependencies:
+      - asyncio.create_task
+      - self._active.pop
+      - self._execute
+      - self._prepare_start
+      - task.add_done_callback
+      parser: python-ast
+      dependency_targets:
+      - &id009
+        path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService._execute
+      - &id010
+        path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService._prepare_start
+    - name: RunnerService.execute_now
+      kind: method
+      line_start: 50
+      line_end: 54
+      signature: 'RunnerService.execute_now(self, run_id: str, now: datetime | None) -> RunSnapshot'
+      inputs:
+      - self
+      - 'run_id: str'
+      - 'now: datetime | None'
+      output: RunSnapshot
+      dependencies:
+      - self._execute
+      - self._prepare_start
+      parser: python-ast
+      dependency_targets:
+      - *id009
+      - *id010
+    - name: RunnerService.cancel
+      kind: method
+      line_start: 56
+      line_end: 57
+      signature: 'RunnerService.cancel(self, run_id: str) -> RunSnapshot'
+      inputs:
+      - self
+      - 'run_id: str'
+      output: RunSnapshot
+      dependencies:
+      - self.repository.request_cancel
+      parser: python-ast
+      dependency_targets:
+      - &id011
+        path: src/nerve_center/persistence/runs.py
+        symbol: RunRepository.request_cancel
+    - name: RunnerService.wait
+      kind: method
+      line_start: 59
+      line_end: 63
+      signature: 'RunnerService.wait(self, run_id: str) -> RunSnapshot'
+      inputs:
+      - self
+      - 'run_id: str'
+      output: RunSnapshot
+      dependencies:
+      - self._active.get
+      - self.repository.get
+      parser: python-ast
+      dependency_targets: []
+    - name: RunnerService.shutdown
+      kind: method
+      line_start: 65
+      line_end: 77
+      signature: 'RunnerService.shutdown(self, timeout_seconds: float) -> None'
+      inputs:
+      - self
+      - 'timeout_seconds: float'
+      output: None
+      dependencies:
+      - asyncio.gather
+      - asyncio.wait
+      - list
+      - self._active.items
+      - self.repository.request_cancel
+      - task.cancel
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/discovery/fetching.py
+        symbol: DomainRequestGate.wait
+      - path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService.wait
+      - path: tests/test_module_runtime.py
+        symbol: StubProcess.wait
+      - *id011
+      - path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.cancel
+      - path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService.cancel
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.cancel
+    - name: RunnerService._prepare_start
+      kind: method
+      line_start: 79
+      line_end: 133
+      signature: 'RunnerService._prepare_start(self, run_id: str, now: datetime | None) -> RunSnapshot'
+      inputs:
+      - self
+      - 'run_id: str'
+      - 'now: datetime | None'
+      output: RunSnapshot
+      dependencies:
+      - (now or datetime.now(UTC)).astimezone
+      - RunNotReadyError
+      - ValueError
+      - datetime.now
+      - self.module_lifecycle
+      - self.registry.module_for_task
+      - self.repository.get
+      - self.repository.request_cancel
+      - self.repository.transition
+      - snapshot.requested_starts_at.isoformat
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scheduler/registry.py
+        symbol: TaskRegistry.module_for_task
+      - *id011
+      - &id012
+        path: src/nerve_center/persistence/runs.py
+        symbol: RunRepository.transition
+    - name: RunnerService._execute
+      kind: method
+      line_start: 135
+      line_end: 197
+      signature: 'RunnerService._execute(self, run_id: str) -> RunSnapshot'
+      inputs:
+      - self
+      - 'run_id: str'
+      output: RunSnapshot
+      dependencies:
+      - (snapshot.deadline - datetime.now(UTC)).total_seconds
+      - ResourceBudget
+      - ResourceBudgetTracker
+      - ResourceUsage
+      - TaskContext
+      - ValueError
+      - asyncio.wait_for
+      - datetime.now
+      - dict
+      - error.resource.upper
+      - plugin.run
+      - self._complete
+      - self.registry.get
+      - self.repository.get
+      - self.repository.save_budget_usage
+      - self.repository.save_checkpoint
+      - self.repository.transition
+      - str
+      - type
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService._complete
+      - path: src/nerve_center/persistence/runs.py
+        symbol: RunRepository.save_budget_usage
+      - path: src/nerve_center/persistence/runs.py
+        symbol: RunRepository.save_checkpoint
+      - path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService._execute.save_checkpoint
+      - *id012
+    - name: RunnerService._execute.cancellation_requested
+      kind: method
+      line_start: 147
+      line_end: 148
+      signature: RunnerService._execute.cancellation_requested() -> bool
+      inputs: []
+      output: bool
+      dependencies:
+      - self.repository.get
+      parser: python-ast
+      dependency_targets: []
+    - name: RunnerService._execute.save_checkpoint
+      kind: method
+      line_start: 150
+      line_end: 151
+      signature: 'RunnerService._execute.save_checkpoint(value: Mapping[str, Any]) -> None'
+      inputs:
+      - 'value: Mapping[str, Any]'
+      output: None
+      dependencies:
+      - dict
+      parser: python-ast
+      dependency_targets: []
+    - name: RunnerService._complete
+      kind: method
+      line_start: 199
+      line_end: 211
+      signature: 'RunnerService._complete(self, run_id: str, result: TaskResult) -> RunSnapshot'
+      inputs:
+      - self
+      - 'run_id: str'
+      - 'result: TaskResult'
+      output: RunSnapshot
+      dependencies:
+      - dict
+      - self.repository.transition
+      parser: python-ast
+      dependency_targets:
+      - *id012
+  - path: tests/test_documents.py
+    analysis_version: 1
+    language: python
+    content_hash: 9811b64d353e815fd2e0089617aba4adf4fc5a8a
+    dependencies:
+    - docx
+    - nerve_center.profile.documents
+    - nerve_center.profile.models
+    - pathlib
+    - reportlab.pdfgen
+    provides:
+    - test_imports_text_and_markdown_without_copying
+    - test_imports_docx
+    - test_imports_pdf
+    symbols:
+    - name: test_imports_text_and_markdown_without_copying
+      kind: function
+      line_start: 10
+      line_end: 19
+      signature: 'test_imports_text_and_markdown_without_copying(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - import_source_document
+      - source.resolve
+      - source.write_text
+      - str
+      parser: python-ast
+      dependency_targets:
+      - &id013
+        path: src/nerve_center/profile/documents.py
+        symbol: import_source_document
+    - name: test_imports_docx
+      kind: function
+      line_start: 22
+      line_end: 32
+      signature: 'test_imports_docx(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Document
+      - document.add_paragraph
+      - document.save
+      - import_source_document
+      parser: python-ast
+      dependency_targets:
+      - *id013
+    - name: test_imports_pdf
+      kind: function
+      line_start: 35
+      line_end: 44
+      signature: 'test_imports_pdf(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - any
+      - canvas.Canvas
+      - import_source_document
+      - pdf.drawString
+      - pdf.save
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id013

@@ -1,0 +1,157 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: 0a
+  files:
+  - path: src/nerve_center/discovery/models.py
+    analysis_version: 1
+    language: python
+    content_hash: 70cf4eaaa64745a8d223a364b38836f0448d3710
+    dependencies:
+    - __future__
+    - datetime
+    - enum
+    - pydantic
+    - typing
+    provides: []
+    symbols: []
+  - path: src/nerve_center/domain/budget.py
+    analysis_version: 1
+    language: python
+    content_hash: 65a7254ca7c12d7063504cb15955d80063c8875d
+    dependencies:
+    - __future__
+    - asyncio
+    - collections.abc
+    - contextlib
+    - dataclasses
+    - threading
+    provides:
+    - BudgetExceededError.__init__
+    - ResourceBudget.__post_init__
+    - ResourceBudgetTracker.__init__
+    - ResourceBudgetTracker.usage
+    - ResourceBudgetTracker.consume_request
+    - ResourceBudgetTracker.consume_llm_call
+    - ResourceBudgetTracker.work_slot
+    - ResourceBudgetTracker._consume
+    symbols:
+    - name: BudgetExceededError.__init__
+      kind: method
+      line_start: 13
+      line_end: 16
+      signature: 'BudgetExceededError.__init__(self, resource: str, limit: int) -> None'
+      inputs:
+      - self
+      - 'resource: str'
+      - 'limit: int'
+      output: None
+      dependencies:
+      - super
+      parser: python-ast
+      dependency_targets: []
+    - name: ResourceBudget.__post_init__
+      kind: method
+      line_start: 25
+      line_end: 28
+      signature: ResourceBudget.__post_init__(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies:
+      - ValueError
+      - asdict
+      - asdict(self).items
+      parser: python-ast
+      dependency_targets: []
+    - name: ResourceBudgetTracker.__init__
+      kind: method
+      line_start: 38
+      line_end: 48
+      signature: 'ResourceBudgetTracker.__init__(self, budget: ResourceBudget, usage: ResourceUsage | None, on_change: Callable[[ResourceUsage],
+        None] | None) -> None'
+      inputs:
+      - self
+      - 'budget: ResourceBudget'
+      - 'usage: ResourceUsage | None'
+      - 'on_change: Callable[[ResourceUsage], None] | None'
+      output: None
+      dependencies:
+      - Lock
+      - ResourceUsage
+      - asyncio.Semaphore
+      parser: python-ast
+      dependency_targets: []
+    - name: ResourceBudgetTracker.usage
+      kind: method
+      line_start: 51
+      line_end: 53
+      signature: ResourceBudgetTracker.usage(self) -> ResourceUsage
+      inputs:
+      - self
+      output: ResourceUsage
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ResourceBudgetTracker.consume_request
+      kind: method
+      line_start: 55
+      line_end: 56
+      signature: 'ResourceBudgetTracker.consume_request(self, count: int) -> ResourceUsage'
+      inputs:
+      - self
+      - 'count: int'
+      output: ResourceUsage
+      dependencies:
+      - self._consume
+      parser: python-ast
+      dependency_targets:
+      - &id001
+        path: src/nerve_center/domain/budget.py
+        symbol: ResourceBudgetTracker._consume
+    - name: ResourceBudgetTracker.consume_llm_call
+      kind: method
+      line_start: 58
+      line_end: 59
+      signature: 'ResourceBudgetTracker.consume_llm_call(self, count: int) -> ResourceUsage'
+      inputs:
+      - self
+      - 'count: int'
+      output: ResourceUsage
+      dependencies:
+      - self._consume
+      parser: python-ast
+      dependency_targets:
+      - *id001
+    - name: ResourceBudgetTracker.work_slot
+      kind: method
+      line_start: 62
+      line_end: 64
+      signature: ResourceBudgetTracker.work_slot(self) -> AsyncIterator[None]
+      inputs:
+      - self
+      output: AsyncIterator[None]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ResourceBudgetTracker._consume
+      kind: method
+      line_start: 66
+      line_end: 79
+      signature: 'ResourceBudgetTracker._consume(self, resource: str, count: int, limit: int) -> ResourceUsage'
+      inputs:
+      - self
+      - 'resource: str'
+      - 'count: int'
+      - 'limit: int'
+      output: ResourceUsage
+      dependencies:
+      - BudgetExceededError
+      - ResourceUsage
+      - ValueError
+      - asdict
+      - getattr
+      - self._on_change
+      parser: python-ast
+      dependency_targets: []

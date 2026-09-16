@@ -1,0 +1,703 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: '02'
+  files:
+  - path: scripts/smoke_packaged_backend.py
+    analysis_version: 1
+    language: python
+    content_hash: 7817a2bd818d279df5dee564f22f21c8d8bc4f96
+    dependencies:
+    - __future__
+    - argparse
+    - json
+    - os
+    - pathlib
+    - shutil
+    - subprocess
+    - tempfile
+    - time
+    - urllib.error
+    - urllib.request
+    provides:
+    - read_health
+    - request_json
+    - smoke_job_scout_workspace
+    - smoke_module_runtime
+    - stop_process_tree
+    - remove_data_directory
+    - main
+    symbols:
+    - name: read_health
+      kind: function
+      line_start: 24
+      line_end: 31
+      signature: read_health() -> dict[str, object] | None
+      inputs: []
+      output: dict[str, object] | None
+      dependencies:
+      - json.loads
+      - response.read
+      - response.read().decode
+      - urllib.request.urlopen
+      parser: python-ast
+      dependency_targets: []
+    - name: request_json
+      kind: function
+      line_start: 34
+      line_end: 48
+      signature: 'request_json(path: str, method: str, payload: dict[str, object] | None) -> dict[str, object] | list[dict[str,
+        object]]'
+      inputs:
+      - 'path: str'
+      - 'method: str'
+      - 'payload: dict[str, object] | None'
+      output: dict[str, object] | list[dict[str, object]]
+      dependencies:
+      - json.dumps
+      - json.dumps(payload).encode
+      - json.loads
+      - raw.decode
+      - response.read
+      - urllib.request.Request
+      - urllib.request.urlopen
+      parser: python-ast
+      dependency_targets: []
+    - name: smoke_job_scout_workspace
+      kind: function
+      line_start: 51
+      line_end: 59
+      signature: smoke_job_scout_workspace() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - SystemExit
+      - isinstance
+      - print
+      - request_json
+      - sorted
+      - workspace.keys
+      parser: python-ast
+      dependency_targets:
+      - &id001
+        path: scripts/run_job_scout_live.py
+        symbol: request_json
+      - &id002
+        path: scripts/smoke_job_scout_live.py
+        symbol: request_json
+      - &id003
+        path: scripts/smoke_packaged_backend.py
+        symbol: request_json
+    - name: smoke_module_runtime
+      kind: function
+      line_start: 62
+      line_end: 104
+      signature: 'smoke_module_runtime(timeout: float) -> None'
+      inputs:
+      - 'timeout: float'
+      output: None
+      dependencies:
+      - SystemExit
+      - checkpoint.get
+      - created.get
+      - final.get
+      - isinstance
+      - module.get
+      - print
+      - request_json
+      - runtime.get
+      - time.monotonic
+      - time.sleep
+      - value.get
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+      - *id003
+    - name: stop_process_tree
+      kind: function
+      line_start: 107
+      line_end: 126
+      signature: 'stop_process_tree(process: subprocess.Popen[str]) -> None'
+      inputs:
+      - 'process: subprocess.Popen[str]'
+      output: None
+      dependencies:
+      - RuntimeError
+      - process.kill
+      - process.poll
+      - process.terminate
+      - process.wait
+      - shutil.which
+      - str
+      - subprocess.run
+      parser: python-ast
+      dependency_targets:
+      - path: tests/test_module_runtime.py
+        symbol: StubProcess.kill
+      - path: tests/test_module_runtime.py
+        symbol: StubProcess.terminate
+      - &id007
+        path: src/nerve_center/discovery/fetching.py
+        symbol: DomainRequestGate.wait
+      - &id008
+        path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService.wait
+      - &id009
+        path: tests/test_module_runtime.py
+        symbol: StubProcess.wait
+    - name: remove_data_directory
+      kind: function
+      line_start: 129
+      line_end: 140
+      signature: 'remove_data_directory(path: Path, timeout: float) -> None'
+      inputs:
+      - 'path: Path'
+      - 'timeout: float'
+      output: None
+      dependencies:
+      - shutil.rmtree
+      - time.monotonic
+      - time.sleep
+      parser: python-ast
+      dependency_targets: []
+    - name: main
+      kind: function
+      line_start: 143
+      line_end: 192
+      signature: main() -> int
+      inputs: []
+      output: int
+      dependencies:
+      - Path
+      - SystemExit
+      - argparse.ArgumentParser
+      - args.executable.resolve
+      - executable.is_file
+      - health.get
+      - os.environ.copy
+      - parser.add_argument
+      - parser.parse_args
+      - print
+      - process.poll
+      - process.stdout.read
+      - read_health
+      - remove_data_directory
+      - smoke_job_scout_workspace
+      - smoke_module_runtime
+      - stop_process_tree
+      - str
+      - subprocess.Popen
+      - tempfile.mkdtemp
+      - time.monotonic
+      - time.sleep
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/smoke_packaged_backend.py
+        symbol: read_health
+      - path: scripts/smoke_packaged_backend.py
+        symbol: remove_data_directory
+      - path: scripts/smoke_packaged_backend.py
+        symbol: smoke_job_scout_workspace
+      - path: scripts/smoke_packaged_backend.py
+        symbol: smoke_module_runtime
+      - path: scripts/smoke_packaged_backend.py
+        symbol: stop_process_tree
+  - path: src/nerve_center/model_lab/api.py
+    analysis_version: 1
+    language: python
+    content_hash: d4c5e1217decd535886206c7106cc06fbc6e892f
+    dependencies:
+    - __future__
+    - dataclasses
+    - fastapi
+    - nerve_center.model_lab.service
+    - pydantic
+    - typing
+    provides:
+    - register_model_lab_routes
+    - register_model_lab_routes.overview
+    - register_model_lab_routes.update_settings
+    - register_model_lab_routes.start_session
+    - register_model_lab_routes.replay
+    - _translate
+    symbols:
+    - name: register_model_lab_routes
+      kind: function
+      line_start: 34
+      line_end: 67
+      signature: 'register_model_lab_routes(application: FastAPI, service: ModelLabService) -> None'
+      inputs:
+      - 'application: FastAPI'
+      - 'service: ModelLabService'
+      output: None
+      dependencies:
+      - APIRouter
+      - _translate
+      - application.include_router
+      - asdict
+      - request.model_dump
+      - router.get
+      - router.post
+      - router.put
+      - service.overview
+      - service.replay
+      - service.start_exploration
+      - service.update_settings
+      parser: python-ast
+      dependency_targets:
+      - &id005
+        path: src/nerve_center/model_lab/api.py
+        symbol: _translate
+      - &id004
+        path: src/nerve_center/persistence/discovery.py
+        symbol: SearchCacheRepository.put
+      - path: src/nerve_center/model_lab/api.py
+        symbol: register_model_lab_routes.overview
+      - path: src/nerve_center/model_lab/service.py
+        symbol: ModelLabService.overview
+      - path: src/nerve_center/model_lab/api.py
+        symbol: register_model_lab_routes.replay
+      - path: src/nerve_center/model_lab/service.py
+        symbol: ModelLabService.replay
+      - &id006
+        path: src/nerve_center/model_lab/service.py
+        symbol: ModelLabService.start_exploration
+      - path: src/nerve_center/model_lab/api.py
+        symbol: register_model_lab_routes.update_settings
+      - path: src/nerve_center/model_lab/service.py
+        symbol: ModelLabService.update_settings
+      - path: src/nerve_center/persistence/model_lab.py
+        symbol: ModelLabRepository.update_settings
+    - name: register_model_lab_routes.overview
+      kind: function
+      line_start: 38
+      line_end: 39
+      signature: register_model_lab_routes.overview() -> dict[str, Any]
+      inputs: []
+      output: dict[str, Any]
+      dependencies:
+      - router.get
+      parser: python-ast
+      dependency_targets: []
+    - name: register_model_lab_routes.update_settings
+      kind: function
+      line_start: 42
+      line_end: 43
+      signature: 'register_model_lab_routes.update_settings(request: ModelLabSettingsRequest) -> dict[str, Any]'
+      inputs:
+      - 'request: ModelLabSettingsRequest'
+      output: dict[str, Any]
+      dependencies:
+      - asdict
+      - request.model_dump
+      - router.put
+      parser: python-ast
+      dependency_targets:
+      - *id004
+    - name: register_model_lab_routes.start_session
+      kind: function
+      line_start: 46
+      line_end: 50
+      signature: 'register_model_lab_routes.start_session(request: ModelLabSessionRequest) -> dict[str, Any]'
+      inputs:
+      - 'request: ModelLabSessionRequest'
+      output: dict[str, Any]
+      dependencies:
+      - _translate
+      - asdict
+      - request.model_dump
+      - router.post
+      - service.start_exploration
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+    - name: register_model_lab_routes.replay
+      kind: function
+      line_start: 53
+      line_end: 65
+      signature: 'register_model_lab_routes.replay(corpus_id: str, request: ModelLabReplayRequest) -> dict[str, Any]'
+      inputs:
+      - 'corpus_id: str'
+      - 'request: ModelLabReplayRequest'
+      output: dict[str, Any]
+      dependencies:
+      - _translate
+      - asdict
+      - router.post
+      parser: python-ast
+      dependency_targets:
+      - *id005
+    - name: _translate
+      kind: function
+      line_start: 70
+      line_end: 77
+      signature: '_translate(error: Exception) -> HTTPException'
+      inputs:
+      - 'error: Exception'
+      output: HTTPException
+      dependencies:
+      - HTTPException
+      - isinstance
+      - str
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/providers/base.py
+    analysis_version: 1
+    language: python
+    content_hash: 8574120edeafc4decfd2791e422b10090c6e3df6
+    dependencies:
+    - __future__
+    - datetime
+    - pydantic
+    - typing
+    provides:
+    - ProviderTelemetry.record
+    - NullProviderTelemetry.record
+    - StructuredProvider.list_models
+    - StructuredProvider.generate_structured
+    - JsonProvider.list_models
+    - JsonProvider.generate_json
+    symbols:
+    - name: ProviderTelemetry.record
+      kind: method
+      line_start: 67
+      line_end: 67
+      signature: 'ProviderTelemetry.record(self, metadata: ProviderCallMetadata) -> None'
+      inputs:
+      - self
+      - 'metadata: ProviderCallMetadata'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: NullProviderTelemetry.record
+      kind: method
+      line_start: 71
+      line_end: 72
+      signature: 'NullProviderTelemetry.record(self, metadata: ProviderCallMetadata) -> None'
+      inputs:
+      - self
+      - 'metadata: ProviderCallMetadata'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: StructuredProvider.list_models
+      kind: method
+      line_start: 78
+      line_end: 78
+      signature: StructuredProvider.list_models(self) -> list[ProviderModel]
+      inputs:
+      - self
+      output: list[ProviderModel]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: StructuredProvider.generate_structured
+      kind: method
+      line_start: 80
+      line_end: 88
+      signature: 'StructuredProvider.generate_structured(self, model: str, system_prompt: str, user_prompt: str, response_type:
+        type[TResponse], contract_version: str) -> StructuredGenerationResult[TResponse]'
+      inputs:
+      - self
+      - 'model: str'
+      - 'system_prompt: str'
+      - 'user_prompt: str'
+      - 'response_type: type[TResponse]'
+      - 'contract_version: str'
+      output: StructuredGenerationResult[TResponse]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: JsonProvider.list_models
+      kind: method
+      line_start: 95
+      line_end: 95
+      signature: JsonProvider.list_models(self) -> list[ProviderModel]
+      inputs:
+      - self
+      output: list[ProviderModel]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: JsonProvider.generate_json
+      kind: method
+      line_start: 97
+      line_end: 105
+      signature: 'JsonProvider.generate_json(self, model: str, system_prompt: str, user_prompt: str, output_schema: dict[str,
+        Any], contract_version: str) -> JsonGenerationResult'
+      inputs:
+      - self
+      - 'model: str'
+      - 'system_prompt: str'
+      - 'user_prompt: str'
+      - 'output_schema: dict[str, Any]'
+      - 'contract_version: str'
+      output: JsonGenerationResult
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/scheduler/registry.py
+    analysis_version: 1
+    language: python
+    content_hash: 768a1c3bd2a8cf5af9042f18ccf20b566adfd72f
+    dependencies:
+    - __future__
+    - builtins
+    - collections.abc
+    - nerve_center
+    - nerve_center.domain.module
+    - nerve_center.domain.task
+    provides:
+    - TaskRegistry.__init__
+    - TaskRegistry.register
+    - TaskRegistry.register_module
+    - TaskRegistry.get
+    - TaskRegistry.list
+    - TaskRegistry.list_modules
+    - TaskRegistry.get_module
+    - TaskRegistry.module_for_task
+    symbols:
+    - name: TaskRegistry.__init__
+      kind: method
+      line_start: 14
+      line_end: 18
+      signature: 'TaskRegistry.__init__(self, core_version: str) -> None'
+      inputs:
+      - self
+      - 'core_version: str'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: TaskRegistry.register
+      kind: method
+      line_start: 20
+      line_end: 24
+      signature: 'TaskRegistry.register(self, plugin: TaskPlugin) -> None'
+      inputs:
+      - self
+      - 'plugin: TaskPlugin'
+      output: None
+      dependencies:
+      - ValueError
+      parser: python-ast
+      dependency_targets: []
+    - name: TaskRegistry.register_module
+      kind: method
+      line_start: 26
+      line_end: 60
+      signature: 'TaskRegistry.register_module(self, manifest: ModuleManifest, plugins: Iterable[TaskPlugin]) -> None'
+      inputs:
+      - self
+      - 'manifest: ModuleManifest'
+      - 'plugins: Iterable[TaskPlugin]'
+      output: None
+      dependencies:
+      - ''', ''.join'
+      - ValueError
+      - list
+      - manifest.supports_core
+      - manifest.validate
+      - sorted
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/domain/module.py
+        symbol: ModuleManifest.supports_core
+      - path: src/nerve_center/domain/module.py
+        symbol: ModuleManifest.validate
+    - name: TaskRegistry.get
+      kind: method
+      line_start: 62
+      line_end: 66
+      signature: 'TaskRegistry.get(self, plugin_id: str) -> TaskPlugin'
+      inputs:
+      - self
+      - 'plugin_id: str'
+      output: TaskPlugin
+      dependencies:
+      - KeyError
+      parser: python-ast
+      dependency_targets: []
+    - name: TaskRegistry.list
+      kind: method
+      line_start: 68
+      line_end: 69
+      signature: TaskRegistry.list(self) -> list[TaskPlugin]
+      inputs:
+      - self
+      output: list[TaskPlugin]
+      dependencies:
+      - plugin.display_name.lower
+      - self._plugins.values
+      - sorted
+      parser: python-ast
+      dependency_targets: []
+    - name: TaskRegistry.list_modules
+      kind: method
+      line_start: 71
+      line_end: 72
+      signature: TaskRegistry.list_modules(self) -> builtins.list[ModuleManifest]
+      inputs:
+      - self
+      output: builtins.list[ModuleManifest]
+      dependencies:
+      - module.display_name.lower
+      - self._modules.values
+      - sorted
+      parser: python-ast
+      dependency_targets: []
+    - name: TaskRegistry.get_module
+      kind: method
+      line_start: 74
+      line_end: 78
+      signature: 'TaskRegistry.get_module(self, module_id: str) -> ModuleManifest'
+      inputs:
+      - self
+      - 'module_id: str'
+      output: ModuleManifest
+      dependencies:
+      - KeyError
+      parser: python-ast
+      dependency_targets: []
+    - name: TaskRegistry.module_for_task
+      kind: method
+      line_start: 80
+      line_end: 82
+      signature: 'TaskRegistry.module_for_task(self, task_id: str) -> ModuleManifest | None'
+      inputs:
+      - self
+      - 'task_id: str'
+      output: ModuleManifest | None
+      dependencies:
+      - self._modules.get
+      - self._task_modules.get
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/scheduler/service.py
+    analysis_version: 1
+    language: python
+    content_hash: b8265f4439fce043d1537a9f31e5303d73a2b093
+    dependencies:
+    - __future__
+    - asyncio
+    - collections.abc
+    - datetime
+    - nerve_center.domain.run
+    - nerve_center.persistence.runs
+    - nerve_center.scheduler.runner
+    provides:
+    - SchedulerService.__init__
+    - SchedulerService.start
+    - SchedulerService.stop
+    - SchedulerService.tick
+    - SchedulerService._run_loop
+    symbols:
+    - name: SchedulerService.__init__
+      kind: method
+      line_start: 15
+      line_end: 29
+      signature: 'SchedulerService.__init__(self, repository: RunRepository, runner: RunnerService, poll_seconds: float, session_tick:
+        Callable[[datetime], Awaitable[object]] | None, queue_tick: Callable[[], Awaitable[object]] | None) -> None'
+      inputs:
+      - self
+      - 'repository: RunRepository'
+      - 'runner: RunnerService'
+      - 'poll_seconds: float'
+      - 'session_tick: Callable[[datetime], Awaitable[object]] | None'
+      - 'queue_tick: Callable[[], Awaitable[object]] | None'
+      output: None
+      dependencies:
+      - asyncio.Event
+      parser: python-ast
+      dependency_targets: []
+    - name: SchedulerService.start
+      kind: method
+      line_start: 31
+      line_end: 34
+      signature: SchedulerService.start(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies:
+      - asyncio.create_task
+      - self._run_loop
+      - self._stop.clear
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scheduler/service.py
+        symbol: SchedulerService._run_loop
+    - name: SchedulerService.stop
+      kind: method
+      line_start: 36
+      line_end: 41
+      signature: SchedulerService.stop(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies:
+      - self._stop.set
+      parser: python-ast
+      dependency_targets: []
+    - name: SchedulerService.tick
+      kind: method
+      line_start: 43
+      line_end: 76
+      signature: 'SchedulerService.tick(self, now: datetime | None) -> list[RunSnapshot]'
+      inputs:
+      - self
+      - 'now: datetime | None'
+      output: list[RunSnapshot]
+      dependencies:
+      - (now or datetime.now(UTC)).astimezone
+      - changed.append
+      - datetime.now
+      - self.queue_tick
+      - self.repository.list_scheduled
+      - self.repository.transition
+      - self.runner.start
+      - self.session_tick
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/scoring.py
+        symbol: OpportunityScoreRepository.append
+      - path: src/nerve_center/persistence/runs.py
+        symbol: RunRepository.list_scheduled
+      - path: src/nerve_center/persistence/runs.py
+        symbol: RunRepository.transition
+      - path: src/nerve_center/persistence/sessions.py
+        symbol: SessionRepository.start
+      - path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService.start
+      - path: src/nerve_center/scheduler/service.py
+        symbol: SchedulerService.start
+      - path: src/nerve_center/scheduler/sessions.py
+        symbol: WorkSessionService.start
+    - name: SchedulerService._run_loop
+      kind: method
+      line_start: 78
+      line_end: 84
+      signature: SchedulerService._run_loop(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies:
+      - asyncio.wait_for
+      - self._stop.is_set
+      - self._stop.wait
+      - self.tick
+      parser: python-ast
+      dependency_targets:
+      - *id007
+      - *id008
+      - *id009
+      - path: src/nerve_center/scheduler/provider_worker.py
+        symbol: ProviderWorkExecutor.tick
+      - path: src/nerve_center/scheduler/service.py
+        symbol: SchedulerService.tick
+      - path: src/nerve_center/scheduler/sessions.py
+        symbol: WorkSessionService.tick

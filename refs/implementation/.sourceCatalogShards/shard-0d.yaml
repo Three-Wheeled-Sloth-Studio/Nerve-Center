@@ -1,0 +1,1445 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: 0d
+  files:
+  - path: desktop/src/api.ts
+    analysis_version: 1
+    language: typescript
+    content_hash: 37c9839a1cfdbd017c2798bcc23927d7bca9cc6a
+    dependencies:
+    - ./types
+    provides:
+    - getOpportunities
+    - updateApplication
+    - getRuns
+    - getSessions
+    - createDurationSession
+    - createFixedSession
+    - createRecurringSession
+    - emergencyStopSession
+    - getWorkRequests
+    - getQueueStatus
+    - cancelWorkRequest
+    - retryWorkRequest
+    - reprioritizeWorkRequest
+    - getModules
+    - setModuleLifecycle
+    - getRules
+    - createRule
+    - deleteRule
+    - decideHypothesis
+    - getScoringSettings
+    - saveScoringSettings
+    - getLocationPreferences
+    - saveLocationPreferences
+    - getJobScoutWorkspace
+    - getJobScoutDiscoveryAudit
+    - getModelLab
+    - saveJobScoutConfiguration
+    - loadJobScoutResume
+    - uploadJobScoutResume
+    - discoverJobScoutKeywords
+    - scanJobScout
+    symbols:
+    - name: getOpportunities
+      kind: function
+      line_start: 140
+      line_end: 144
+      signature: 'getOpportunities(sort: string, includeDismissed: boolean)'
+      inputs:
+      - 'sort: string'
+      - 'includeDismissed: boolean'
+      output: unspecified
+      dependencies:
+      - String
+      - URLSearchParams
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: updateApplication
+      kind: function
+      line_start: 145
+      line_end: 149
+      signature: 'updateApplication(jobId: string, status: ApplicationStatus)'
+      inputs:
+      - 'jobId: string'
+      - 'status: ApplicationStatus'
+      output: unspecified
+      dependencies:
+      - JSON.stringify
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: getRuns
+      kind: function
+      line_start: 150
+      line_end: 150
+      signature: getRuns()
+      inputs: []
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: getSessions
+      kind: function
+      line_start: 151
+      line_end: 151
+      signature: getSessions()
+      inputs: []
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: createDurationSession
+      kind: function
+      line_start: 152
+      line_end: 156
+      signature: 'createDurationSession(minutes: number)'
+      inputs:
+      - 'minutes: number'
+      output: unspecified
+      dependencies:
+      - JSON.stringify
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: createFixedSession
+      kind: function
+      line_start: 157
+      line_end: 162
+      signature: 'createFixedSession(startsAt: string, endsAt: string)'
+      inputs:
+      - 'startsAt: string'
+      - 'endsAt: string'
+      output: unspecified
+      dependencies:
+      - Date
+      - JSON.stringify
+      - toISOString
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: createRecurringSession
+      kind: function
+      line_start: 163
+      line_end: 163
+      signature: 'createRecurringSession(input: { timezone: string; localStartTime: string; durationMinutes: number })'
+      inputs:
+      - 'input: { timezone: string; localStartTime: string; durationMinutes: number }'
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: emergencyStopSession
+      kind: function
+      line_start: 174
+      line_end: 176
+      signature: 'emergencyStopSession(sessionId: string)'
+      inputs:
+      - 'sessionId: string'
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: getWorkRequests
+      kind: function
+      line_start: 177
+      line_end: 177
+      signature: getWorkRequests()
+      inputs: []
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: getQueueStatus
+      kind: function
+      line_start: 178
+      line_end: 178
+      signature: getQueueStatus()
+      inputs: []
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: cancelWorkRequest
+      kind: function
+      line_start: 179
+      line_end: 179
+      signature: 'cancelWorkRequest(id: string)'
+      inputs:
+      - 'id: string'
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: retryWorkRequest
+      kind: function
+      line_start: 180
+      line_end: 180
+      signature: 'retryWorkRequest(id: string)'
+      inputs:
+      - 'id: string'
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: reprioritizeWorkRequest
+      kind: function
+      line_start: 181
+      line_end: 185
+      signature: 'reprioritizeWorkRequest(id: string, taskPriority: number)'
+      inputs:
+      - 'id: string'
+      - 'taskPriority: number'
+      output: unspecified
+      dependencies:
+      - JSON.stringify
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: getModules
+      kind: function
+      line_start: 186
+      line_end: 186
+      signature: getModules()
+      inputs: []
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: setModuleLifecycle
+      kind: function
+      line_start: 187
+      line_end: 191
+      signature: 'setModuleLifecycle(moduleId: string, lifecycleState: ModuleLifecycleState)'
+      inputs:
+      - 'moduleId: string'
+      - 'lifecycleState: ModuleLifecycleState'
+      output: unspecified
+      dependencies:
+      - JSON.stringify
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: getRules
+      kind: function
+      line_start: 192
+      line_end: 192
+      signature: getRules()
+      inputs: []
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: createRule
+      kind: function
+      line_start: 193
+      line_end: 193
+      signature: 'createRule(input: { target: string; action: string; pattern: string; note?: string })'
+      inputs:
+      - 'input: { target: string; action: string; pattern: string; note?: string }'
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: deleteRule
+      kind: function
+      line_start: 196
+      line_end: 196
+      signature: 'deleteRule(id: string)'
+      inputs:
+      - 'id: string'
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: decideHypothesis
+      kind: function
+      line_start: 197
+      line_end: 201
+      signature: 'decideHypothesis(id: string, decision: <literal omitted>)'
+      inputs:
+      - 'id: string'
+      - 'decision: <literal omitted>'
+      output: unspecified
+      dependencies:
+      - JSON.stringify
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: getScoringSettings
+      kind: function
+      line_start: 202
+      line_end: 202
+      signature: getScoringSettings()
+      inputs: []
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: saveScoringSettings
+      kind: function
+      line_start: 203
+      line_end: 205
+      signature: 'saveScoringSettings(settings: Record<string, unknown>)'
+      inputs:
+      - 'settings: Record<string, unknown>'
+      output: unspecified
+      dependencies:
+      - JSON.stringify
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: getLocationPreferences
+      kind: function
+      line_start: 206
+      line_end: 206
+      signature: getLocationPreferences()
+      inputs: []
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: saveLocationPreferences
+      kind: function
+      line_start: 207
+      line_end: 209
+      signature: 'saveLocationPreferences(preferences: Record<string, unknown>)'
+      inputs:
+      - 'preferences: Record<string, unknown>'
+      output: unspecified
+      dependencies:
+      - JSON.stringify
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: getJobScoutWorkspace
+      kind: function
+      line_start: 210
+      line_end: 212
+      signature: getJobScoutWorkspace()
+      inputs: []
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: getJobScoutDiscoveryAudit
+      kind: function
+      line_start: 213
+      line_end: 215
+      signature: getJobScoutDiscoveryAudit()
+      inputs: []
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: getModelLab
+      kind: function
+      line_start: 216
+      line_end: 218
+      signature: getModelLab()
+      inputs: []
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: saveJobScoutConfiguration
+      kind: function
+      line_start: 219
+      line_end: 223
+      signature: 'saveJobScoutConfiguration(configuration: JobScoutConfiguration)'
+      inputs:
+      - 'configuration: JobScoutConfiguration'
+      output: unspecified
+      dependencies:
+      - JSON.stringify
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: loadJobScoutResume
+      kind: function
+      line_start: 224
+      line_end: 228
+      signature: 'loadJobScoutResume(path: string, analyzeResume: boolean)'
+      inputs:
+      - 'path: string'
+      - 'analyzeResume: boolean'
+      output: unspecified
+      dependencies:
+      - JSON.stringify
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: uploadJobScoutResume
+      kind: function
+      line_start: 229
+      line_end: 238
+      signature: 'uploadJobScoutResume(fileName: string, contentBase64: string, analyzeResume: boolean)'
+      inputs:
+      - 'fileName: string'
+      - 'contentBase64: string'
+      - 'analyzeResume: boolean'
+      output: unspecified
+      dependencies:
+      - JSON.stringify
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: discoverJobScoutKeywords
+      kind: function
+      line_start: 239
+      line_end: 241
+      signature: discoverJobScoutKeywords()
+      inputs: []
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: scanJobScout
+      kind: function
+      line_start: 242
+      line_end: 246
+      signature: 'scanJobScout(discoverSources: boolean)'
+      inputs:
+      - 'discoverSources: boolean'
+      output: unspecified
+      dependencies:
+      - JSON.stringify
+      parser: typescript-pattern
+      dependency_targets: []
+  - path: scripts/build_windows_backend.py
+    analysis_version: 1
+    language: python
+    content_hash: 2ea9239f087342859b917c5563a805756ffd0297
+    dependencies:
+    - __future__
+    - argparse
+    - os
+    - pathlib
+    - subprocess
+    - sys
+    provides:
+    - build_command
+    - main
+    symbols:
+    - name: build_command
+      kind: function
+      line_start: 18
+      line_end: 46
+      signature: build_command() -> list[str]
+      inputs: []
+      output: list[str]
+      dependencies:
+      - str
+      parser: python-ast
+      dependency_targets: []
+    - name: main
+      kind: function
+      line_start: 49
+      line_end: 85
+      signature: main() -> int
+      inputs: []
+      output: int
+      dependencies:
+      - DIST_DIR.mkdir
+      - ENTRY_POINT.is_file
+      - OUTPUT.exists
+      - OUTPUT.is_file
+      - OUTPUT.stat
+      - OUTPUT.unlink
+      - SystemExit
+      - WORK_DIR.mkdir
+      - argparse.ArgumentParser
+      - build_command
+      - parser.add_argument
+      - parser.parse_args
+      - print
+      - stale_spec.exists
+      - stale_spec.unlink
+      - subprocess.list2cmdline
+      - subprocess.run
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/build_windows_backend.py
+        symbol: build_command
+  - path: src/nerve_center/discovery/service.py
+    analysis_version: 1
+    language: python
+    content_hash: 13d565c081932b5354e6694eea80256fa092692f
+    dependencies:
+    - __future__
+    - collections.abc
+    - datetime
+    - httpx
+    - nerve_center.discovery.connectors
+    - nerve_center.discovery.connectors.base
+    - nerve_center.discovery.fetching
+    - nerve_center.discovery.models
+    - nerve_center.discovery.normalization
+    - nerve_center.persistence.discovery
+    - typing
+    provides:
+    - FetcherFactory.__call__
+    - ConnectorRegistry.__init__
+    - ConnectorRegistry.register
+    - ConnectorRegistry.get
+    - ConnectorRegistry.defaults
+    - DiscoveryService.__init__
+    - DiscoveryService.scan_source
+    - DiscoveryService.register_direct_career_url
+    - DiscoveryService._register_sitemap_urls
+    symbols:
+    - name: FetcherFactory.__call__
+      kind: method
+      line_start: 42
+      line_end: 45
+      signature: 'FetcherFactory.__call__(self, before_request: Callable[[], object] | None) -> HttpFetcher'
+      inputs:
+      - self
+      - 'before_request: Callable[[], object] | None'
+      output: HttpFetcher
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ConnectorRegistry.__init__
+      kind: method
+      line_start: 49
+      line_end: 50
+      signature: ConnectorRegistry.__init__(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ConnectorRegistry.register
+      kind: method
+      line_start: 52
+      line_end: 53
+      signature: 'ConnectorRegistry.register(self, kind: SourceKind, connector: JobSourceConnector) -> None'
+      inputs:
+      - self
+      - 'kind: SourceKind'
+      - 'connector: JobSourceConnector'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ConnectorRegistry.get
+      kind: method
+      line_start: 55
+      line_end: 59
+      signature: 'ConnectorRegistry.get(self, kind: SourceKind) -> JobSourceConnector'
+      inputs:
+      - self
+      - 'kind: SourceKind'
+      output: JobSourceConnector
+      dependencies:
+      - KeyError
+      parser: python-ast
+      dependency_targets: []
+    - name: ConnectorRegistry.defaults
+      kind: method
+      line_start: 62
+      line_end: 69
+      signature: ConnectorRegistry.defaults(cls) -> ConnectorRegistry
+      inputs:
+      - cls
+      output: ConnectorRegistry
+      dependencies:
+      - AshbyConnector
+      - GreenhouseConnector
+      - JsonLdJobConnector
+      - LeverConnector
+      - SitemapConnector
+      - cls
+      - registry.register
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/discovery/service.py
+        symbol: ConnectorRegistry.register
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.register
+      - path: src/nerve_center/scheduler/registry.py
+        symbol: TaskRegistry.register
+    - name: DiscoveryService.__init__
+      kind: method
+      line_start: 73
+      line_end: 92
+      signature: 'DiscoveryService.__init__(self, companies: CompanyRepository, sources: DiscoverySourceRepository, jobs:
+        JobOpeningRepository, connectors: ConnectorRegistry | None, fetcher_factory: FetcherFactory | None) -> None'
+      inputs:
+      - self
+      - 'companies: CompanyRepository'
+      - 'sources: DiscoverySourceRepository'
+      - 'jobs: JobOpeningRepository'
+      - 'connectors: ConnectorRegistry | None'
+      - 'fetcher_factory: FetcherFactory | None'
+      output: None
+      dependencies:
+      - ConnectorRegistry.defaults
+      - DomainRequestGate
+      - HttpFetcher
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/discovery/service.py
+        symbol: ConnectorRegistry.defaults
+    - name: DiscoveryService.scan_source
+      kind: method
+      line_start: 94
+      line_end: 155
+      signature: 'DiscoveryService.scan_source(self, source_id: str, before_request: Callable[[], object] | None) -> ConnectorScanResult'
+      inputs:
+      - self
+      - 'source_id: str'
+      - 'before_request: Callable[[], object] | None'
+      output: ConnectorScanResult
+      dependencies:
+      - Company
+      - ConnectorScanResult
+      - ValueError
+      - connector.scan
+      - datetime.now
+      - len
+      - self._register_sitemap_urls
+      - self.companies.get
+      - self.companies.upsert
+      - self.connectors.get
+      - self.fetcher_factory
+      - self.jobs.upsert
+      - self.sources.get
+      - self.sources.record_scan
+      - str
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/discovery/service.py
+        symbol: DiscoveryService._register_sitemap_urls
+      - &id001
+        path: src/nerve_center/persistence/discovery.py
+        symbol: CompanyRepository.upsert
+      - &id002
+        path: src/nerve_center/persistence/discovery.py
+        symbol: DiscoverySourceRepository.upsert
+      - &id003
+        path: src/nerve_center/persistence/discovery.py
+        symbol: JobOpeningRepository.upsert
+      - &id004
+        path: src/nerve_center/persistence/scoring.py
+        symbol: ScoringRuleRepository.upsert
+      - path: src/nerve_center/persistence/discovery.py
+        symbol: DiscoverySourceRepository.record_scan
+    - name: DiscoveryService.register_direct_career_url
+      kind: method
+      line_start: 157
+      line_end: 187
+      signature: 'DiscoveryService.register_direct_career_url(self, url: str, title: str) -> DiscoverySource'
+      inputs:
+      - self
+      - 'url: str'
+      - 'title: str'
+      output: DiscoverySource
+      dependencies:
+      - Company
+      - DiscoverySource
+      - ValueError
+      - canonical_domain
+      - canonicalize_url
+      - datetime.now
+      - self.companies.find_by_domain
+      - self.companies.upsert
+      - self.sources.upsert
+      - stable_company_id
+      - stable_source_id
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/discovery/normalization.py
+        symbol: canonical_domain
+      - path: src/nerve_center/discovery/normalization.py
+        symbol: canonicalize_url
+      - path: src/nerve_center/persistence/discovery.py
+        symbol: CompanyRepository.find_by_domain
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+      - path: src/nerve_center/discovery/normalization.py
+        symbol: stable_company_id
+      - &id005
+        path: src/nerve_center/discovery/normalization.py
+        symbol: stable_source_id
+    - name: DiscoveryService._register_sitemap_urls
+      kind: method
+      line_start: 189
+      line_end: 218
+      signature: 'DiscoveryService._register_sitemap_urls(self, source: DiscoverySource, urls: list[str]) -> None'
+      inputs:
+      - self
+      - 'source: DiscoverySource'
+      - 'urls: list[str]'
+      output: None
+      dependencies:
+      - DiscoverySource
+      - int
+      - max
+      - min
+      - self.sources.upsert
+      - source.configuration.get
+      - stable_source_id
+      - url.casefold
+      - url.casefold().endswith
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+      - *id005
+  - path: src/nerve_center/plugins/job_scout/query_portfolio.py
+    analysis_version: 1
+    language: python
+    content_hash: 6d346f928480bd63717daeb0c52a95c0b835e9cd
+    dependencies:
+    - __future__
+    - collections.abc
+    - dataclasses
+    - nerve_center.discovery.models
+    - nerve_center.plugins.job_scout.discovery_learning
+    - nerve_center.plugins.job_scout.settings
+    - nerve_center.scoring.location
+    - re
+    - typing
+    - urllib.parse
+    provides:
+    - source_capabilities
+    - build_query_portfolio
+    - compile_strategy_query
+    - compile_employer_deepening_queries
+    - _market_search_terms
+    - lint_query_dimensions
+    - build_coverage_gap_profile
+    - preferred_structured_source_ids
+    - _source_domain_observed
+    - _adjacent_anchors
+    - _seniority_variants
+    - _archetype_terms
+    - _seniority_levels
+    - _generic_anchor
+    - _split_terms
+    - _tokens
+    - _normalize_term
+    - _normalize_phrase
+    - _coverage_overlap
+    - _clean_domain
+    symbols:
+    - name: source_capabilities
+      kind: function
+      line_start: 73
+      line_end: 97
+      signature: 'source_capabilities(source_domain: str) -> SourceCapabilities'
+      inputs:
+      - 'source_domain: str'
+      output: SourceCapabilities
+      dependencies:
+      - SourceCapabilities
+      - _clean_domain
+      - any
+      - domain.endswith
+      parser: python-ast
+      dependency_targets:
+      - &id006
+        path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _clean_domain
+      - &id007
+        path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: _clean_domain
+    - name: build_query_portfolio
+      kind: function
+      line_start: 100
+      line_end: 205
+      signature: 'build_query_portfolio(target_titles: list[str], keywords: list[str], locations: list[str], source_domains:
+        list[str], limit: int) -> list[dict[str, str]]'
+      inputs:
+      - 'target_titles: list[str]'
+      - 'keywords: list[str]'
+      - 'locations: list[str]'
+      - 'source_domains: list[str]'
+      - 'limit: int'
+      output: list[dict[str, str]]
+      dependencies:
+      - ''' ''.join'
+      - _adjacent_anchors
+      - _archetype_terms
+      - _clean_domain
+      - _generic_anchor
+      - _seniority_variants
+      - _tokens
+      - bucket.append
+      - bucket.pop
+      - buckets.append
+      - clean_list
+      - compile_strategy_query
+      - compiled.query.casefold
+      - len
+      - remaining.append
+      - result.append
+      - seen_queries.add
+      - set
+      - source_capabilities
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: _adjacent_anchors
+      - path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: _archetype_terms
+      - *id006
+      - *id007
+      - &id010
+        path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: _generic_anchor
+      - path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: _seniority_variants
+      - &id013
+        path: src/nerve_center/persistence/scoring.py
+        symbol: OpportunityScoreRepository.append
+      - &id008
+        path: src/nerve_center/plugins/job_scout/settings.py
+        symbol: clean_list
+      - &id009
+        path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: compile_strategy_query
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _extract_structured_employer_names.add
+      - &id012
+        path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: source_capabilities
+    - name: compile_strategy_query
+      kind: function
+      line_start: 208
+      line_end: 297
+      signature: 'compile_strategy_query(dimensions: dict[str, str], evidence_terms: Iterable[str]) -> CompiledQuery'
+      inputs:
+      - 'dimensions: dict[str, str]'
+      - 'evidence_terms: Iterable[str]'
+      output: CompiledQuery
+      dependencies:
+      - ''' ''.join'
+      - ''' ''.join(clean_list(parts)).strip'
+      - ''' ''.join(dimensions.get(''anchor'', '''').split()).strip'
+      - ''' ''.join(dimensions.get(''employer_archetype'', '''').split()).strip'
+      - ''' ''.join(dimensions.get(''exclude'', '''').split()).strip'
+      - ''' ''.join(dimensions.get(''location'', '''').split()).strip'
+      - ''' ''.join(dimensions.get(''requirement'', '''').split()).strip'
+      - ''' ''.join(dimensions.get(''technology'', '''').split()).strip'
+      - CompiledQuery
+      - _clean_domain
+      - _market_search_terms
+      - _split_terms
+      - anchor.casefold
+      - bool
+      - clean_list
+      - dimensions.get
+      - dimensions.get('anchor', '').split
+      - dimensions.get('employer_archetype', '').split
+      - dimensions.get('exclude', '').split
+      - dimensions.get('location', '').split
+      - dimensions.get('requirement', '').split
+      - dimensions.get('technology', '').split
+      - f'site:{source_domain} {query}'.strip
+      - lint_query_dimensions
+      parser: python-ast
+      dependency_targets:
+      - *id006
+      - *id007
+      - path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: _market_search_terms
+      - &id011
+        path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: _split_terms
+      - *id008
+      - path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: lint_query_dimensions
+    - name: compile_employer_deepening_queries
+      kind: function
+      line_start: 300
+      line_end: 329
+      signature: 'compile_employer_deepening_queries(dimensions: dict[str, str], evidence_terms: Iterable[str]) -> tuple[CompiledQuery,
+        ...]'
+      inputs:
+      - 'dimensions: dict[str, str]'
+      - 'evidence_terms: Iterable[str]'
+      output: tuple[CompiledQuery, ...]
+      dependencies:
+      - ''' ''.join'
+      - ''' ''.join(dimensions.get(''anchor'', '''').split()).strip'
+      - CompiledQuery
+      - clean_list
+      - compile_strategy_query
+      - dimensions.get
+      - dimensions.get('anchor', '').split
+      - re.sub
+      - search_anchor.split
+      - tuple
+      parser: python-ast
+      dependency_targets:
+      - *id008
+      - *id009
+    - name: _market_search_terms
+      kind: function
+      line_start: 332
+      line_end: 335
+      signature: '_market_search_terms(value: str) -> str'
+      inputs:
+      - 'value: str'
+      output: str
+      dependencies:
+      - ''' ''.join'
+      - re.sub
+      - terms.split
+      parser: python-ast
+      dependency_targets: []
+    - name: lint_query_dimensions
+      kind: function
+      line_start: 338
+      line_end: 388
+      signature: 'lint_query_dimensions(dimensions: dict[str, str], evidence_terms: Iterable[str], capabilities: SourceCapabilities
+        | None) -> QueryLintResult'
+      inputs:
+      - 'dimensions: dict[str, str]'
+      - 'evidence_terms: Iterable[str]'
+      - 'capabilities: SourceCapabilities | None'
+      output: QueryLintResult
+      dependencies:
+      - ''' ''.join'
+      - ''' ''.join(dimensions.get(''anchor'', '''').split()).strip'
+      - QueryLintResult
+      - _generic_anchor
+      - _normalize_phrase
+      - _normalize_term
+      - _split_terms
+      - _tokens
+      - clean_list
+      - dimensions.get
+      - dimensions.get('anchor', '').split
+      - dimensions.get('location', '').strip
+      - dimensions.get(key, '').strip
+      - normalized_fields.count
+      - sorted
+      - source_capabilities
+      - str
+      - tuple
+      - warnings.append
+      - warnings.extend
+      parser: python-ast
+      dependency_targets:
+      - *id010
+      - &id014
+        path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: _normalize_phrase
+      - &id015
+        path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: _normalize_term
+      - *id011
+      - *id008
+      - *id012
+      - *id013
+    - name: build_coverage_gap_profile
+      kind: function
+      line_start: 391
+      line_end: 502
+      signature: 'build_coverage_gap_profile(target_titles: list[str], keywords: list[str], locations: list[str], remote_preference:
+        str, strategies: list[DiscoveryStrategySnapshot], openings: list[NormalizedJobOpening], sources: list[DiscoverySource])
+        -> dict[str, list[str]]'
+      inputs:
+      - 'target_titles: list[str]'
+      - 'keywords: list[str]'
+      - 'locations: list[str]'
+      - 'remote_preference: str'
+      - 'strategies: list[DiscoveryStrategySnapshot]'
+      - 'openings: list[NormalizedJobOpening]'
+      - 'sources: list[DiscoverySource]'
+      output: dict[str, list[str]]
+      dependencies:
+      - ''' ''.join'
+      - ''' ''.join((f''{item.title} {item.description}'' for item in openings)).casefold'
+      - _clean_domain
+      - _coverage_overlap
+      - _seniority_levels
+      - _source_domain_observed
+      - _tokens
+      - any
+      - clean_list
+      - gaps.items
+      - gaps['domain_capability'].append
+      - gaps['geography'].append
+      - gaps['role'].append
+      - gaps['work_arrangement'].append
+      - item.dimensions.get
+      - opening_matches_market
+      - remote_preference.strip
+      - remote_preference.strip().casefold
+      - useful.issubset
+      parser: python-ast
+      dependency_targets:
+      - *id006
+      - *id007
+      - path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: _coverage_overlap
+      - path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: _seniority_levels
+      - path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: _source_domain_observed
+      - *id008
+      - *id013
+      - path: src/nerve_center/scoring/location.py
+        symbol: opening_matches_market
+    - name: preferred_structured_source_ids
+      kind: function
+      line_start: 505
+      line_end: 510
+      signature: 'preferred_structured_source_ids(sources: list[DiscoverySource]) -> set[str]'
+      inputs:
+      - 'sources: list[DiscoverySource]'
+      output: set[str]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: _source_domain_observed
+      kind: function
+      line_start: 513
+      line_end: 523
+      signature: '_source_domain_observed(domain: str, sources: list[DiscoverySource]) -> bool'
+      inputs:
+      - 'domain: str'
+      - 'sources: list[DiscoverySource]'
+      output: bool
+      dependencies:
+      - _clean_domain
+      - any
+      - domain.endswith
+      parser: python-ast
+      dependency_targets:
+      - *id006
+      - *id007
+    - name: _adjacent_anchors
+      kind: function
+      line_start: 526
+      line_end: 547
+      signature: '_adjacent_anchors(target_titles: list[str], capability_terms: list[str]) -> list[str]'
+      inputs:
+      - 'target_titles: list[str]'
+      - 'capability_terms: list[str]'
+      output: list[str]
+      dependencies:
+      - ''' ''.join'
+      - clean_list
+      - item.casefold
+      - re.findall
+      - result.append
+      parser: python-ast
+      dependency_targets:
+      - *id008
+      - *id013
+    - name: _seniority_variants
+      kind: function
+      line_start: 550
+      line_end: 562
+      signature: '_seniority_variants(target_titles: list[str]) -> list[str]'
+      inputs:
+      - 'target_titles: list[str]'
+      output: list[str]
+      dependencies:
+      - ''' ''.join'
+      - clean_list
+      - item.casefold
+      - re.findall
+      - result.extend
+      parser: python-ast
+      dependency_targets:
+      - *id008
+    - name: _archetype_terms
+      kind: function
+      line_start: 565
+      line_end: 578
+      signature: '_archetype_terms(capability_terms: list[str]) -> list[str]'
+      inputs:
+      - 'capability_terms: list[str]'
+      output: list[str]
+      dependencies:
+      - _tokens
+      - clean_list
+      - result.append
+      parser: python-ast
+      dependency_targets:
+      - *id008
+      - *id013
+    - name: _seniority_levels
+      kind: function
+      line_start: 581
+      line_end: 595
+      signature: '_seniority_levels(value: str) -> list[str]'
+      inputs:
+      - 'value: str'
+      output: list[str]
+      dependencies:
+      - _normalize_phrase
+      - levels.append
+      parser: python-ast
+      dependency_targets:
+      - *id014
+      - *id013
+    - name: _generic_anchor
+      kind: function
+      line_start: 598
+      line_end: 600
+      signature: '_generic_anchor(value: str) -> bool'
+      inputs:
+      - 'value: str'
+      output: bool
+      dependencies:
+      - _tokens
+      - bool
+      - tokens.issubset
+      parser: python-ast
+      dependency_targets: []
+    - name: _split_terms
+      kind: function
+      line_start: 603
+      line_end: 604
+      signature: '_split_terms(value: str) -> list[str]'
+      inputs:
+      - 'value: str'
+      output: list[str]
+      dependencies:
+      - clean_list
+      - re.split
+      - value.strip
+      parser: python-ast
+      dependency_targets:
+      - *id008
+    - name: _tokens
+      kind: function
+      line_start: 607
+      line_end: 612
+      signature: '_tokens(value: str) -> set[str]'
+      inputs:
+      - 'value: str'
+      output: set[str]
+      dependencies:
+      - _normalize_term
+      - len
+      - re.findall
+      parser: python-ast
+      dependency_targets:
+      - *id015
+    - name: _normalize_term
+      kind: function
+      line_start: 615
+      line_end: 621
+      signature: '_normalize_term(value: str) -> str'
+      inputs:
+      - 'value: str'
+      output: str
+      dependencies:
+      - aliases.get
+      - re.sub
+      - value.casefold
+      parser: python-ast
+      dependency_targets: []
+    - name: _normalize_phrase
+      kind: function
+      line_start: 624
+      line_end: 625
+      signature: '_normalize_phrase(value: str) -> str'
+      inputs:
+      - 'value: str'
+      output: str
+      dependencies:
+      - ''' ''.join'
+      - re.findall
+      - value.casefold
+      parser: python-ast
+      dependency_targets: []
+    - name: _coverage_overlap
+      kind: function
+      line_start: 628
+      line_end: 629
+      signature: '_coverage_overlap(left: set[str], right: set[str]) -> float'
+      inputs:
+      - 'left: set[str]'
+      - 'right: set[str]'
+      output: float
+      dependencies:
+      - len
+      - max
+      parser: python-ast
+      dependency_targets: []
+    - name: _clean_domain
+      kind: function
+      line_start: 632
+      line_end: 637
+      signature: '_clean_domain(value: str) -> str'
+      inputs:
+      - 'value: str'
+      output: str
+      dependencies:
+      - (parsed.hostname or raw).removeprefix
+      - urlparse
+      - value.strip
+      - value.strip().casefold
+      parser: python-ast
+      dependency_targets: []
+  - path: tests/test_fit_importance_contract.py
+    analysis_version: 1
+    language: python
+    content_hash: 961bcd6d781bdd89c3851ab23b1cc18f9b94f81a
+    dependencies:
+    - nerve_center.discovery.models
+    - nerve_center.profile.models
+    - nerve_center.scoring.fit
+    - nerve_center.scoring.models
+    provides:
+    - _opening
+    - test_v7_analysis_normalizes_hint_and_duplicate_linkage
+    - test_v6_serialized_payload_loads_with_neutral_importance_defaults
+    symbols:
+    - name: _opening
+      kind: function
+      line_start: 13
+      line_end: 35
+      signature: _opening() -> NormalizedJobOpening
+      inputs: []
+      output: NormalizedJobOpening
+      dependencies:
+      - JobProvenance
+      - NormalizedJobOpening
+      parser: python-ast
+      dependency_targets: []
+    - name: test_v7_analysis_normalizes_hint_and_duplicate_linkage
+      kind: function
+      line_start: 38
+      line_end: 71
+      signature: test_v7_analysis_normalizes_hint_and_duplicate_linkage() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - CanonicalCareerProfile
+      - ExtractedQualificationAssessment
+      - FitAnalysisResponse
+      - _opening
+      - _validate_analysis
+      - any
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scoring/fit.py
+        symbol: _validate_analysis
+    - name: test_v6_serialized_payload_loads_with_neutral_importance_defaults
+      kind: function
+      line_start: 74
+      line_end: 97
+      signature: test_v6_serialized_payload_loads_with_neutral_importance_defaults() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - JobFitAnalysis.model_validate
+      parser: python-ast
+      dependency_targets: []
+  - path: tests/test_job_scout_reference_selection.py
+    analysis_version: 1
+    language: python
+    content_hash: e7c7a017876152f180bd3db923ade0c0e5efa98c
+    dependencies:
+    - asyncio
+    - nerve_center.discovery.search
+    - nerve_center.plugins.job_scout.attachment_discovery
+    provides:
+    - _result
+    - test_major_employer_reference_outranks_generic_government_pages
+    - test_supported_employer_document_outranks_generic_civic_page
+    - test_reference_preselection_preserves_non_civic_results_and_raw_order
+    - test_civic_self_employment_page_is_not_a_landscape_reference
+    - test_reference_adapter_preserves_ranked_fallback_pool_and_raw_count
+    - test_reference_adapter_preserves_ranked_fallback_pool_and_raw_count.Search.search_references
+    symbols:
+    - name: _result
+      kind: function
+      line_start: 11
+      line_end: 17
+      signature: '_result(title: str, url: str, snippet: str) -> SearchResult'
+      inputs:
+      - 'title: str'
+      - 'url: str'
+      - 'snippet: str'
+      output: SearchResult
+      dependencies:
+      - SearchResult
+      parser: python-ast
+      dependency_targets: []
+    - name: test_major_employer_reference_outranks_generic_government_pages
+      kind: function
+      line_start: 20
+      line_end: 44
+      signature: test_major_employer_reference_outranks_generic_government_pages() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - _prioritize_civic_reference_results
+      - _result
+      - len
+      parser: python-ast
+      dependency_targets:
+      - &id019
+        path: src/nerve_center/plugins/job_scout/attachment_discovery.py
+        symbol: _prioritize_civic_reference_results
+      - &id016
+        path: src/nerve_center/persistence/model_lab.py
+        symbol: _result
+      - &id017
+        path: tests/test_job_scout_reference_selection.py
+        symbol: _result
+      - &id018
+        path: tests/test_module_runtime.py
+        symbol: _result
+    - name: test_supported_employer_document_outranks_generic_civic_page
+      kind: function
+      line_start: 47
+      line_end: 57
+      signature: test_supported_employer_document_outranks_generic_civic_page() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - _reference_intent_rank
+      - _result
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/attachment_discovery.py
+        symbol: _reference_intent_rank
+      - *id016
+      - *id017
+      - *id018
+    - name: test_reference_preselection_preserves_non_civic_results_and_raw_order
+      kind: function
+      line_start: 60
+      line_end: 81
+      signature: test_reference_preselection_preserves_non_civic_results_and_raw_order() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - SearchResult
+      - _prioritize_civic_reference_results
+      - _result
+      parser: python-ast
+      dependency_targets:
+      - *id019
+      - *id016
+      - *id017
+      - *id018
+    - name: test_civic_self_employment_page_is_not_a_landscape_reference
+      kind: function
+      line_start: 84
+      line_end: 102
+      signature: test_civic_self_employment_page_is_not_a_landscape_reference() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - _prioritize_civic_reference_results
+      - _result
+      - next
+      parser: python-ast
+      dependency_targets:
+      - *id019
+      - *id016
+      - *id017
+      - *id018
+    - name: test_reference_adapter_preserves_ranked_fallback_pool_and_raw_count
+      kind: function
+      line_start: 105
+      line_end: 123
+      signature: test_reference_adapter_preserves_ranked_fallback_pool_and_raw_count() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - Search
+      - _IntentAwareReferenceAdapter
+      - _result
+      - adapter.search_references
+      - asyncio.run
+      - bool
+      - len
+      - range
+      - sum
+      parser: python-ast
+      dependency_targets:
+      - *id016
+      - *id017
+      - *id018
+    - name: test_reference_adapter_preserves_ranked_fallback_pool_and_raw_count.Search.search_references
+      kind: method
+      line_start: 115
+      line_end: 116
+      signature: 'test_reference_adapter_preserves_ranked_fallback_pool_and_raw_count.Search.search_references(self, _query:
+        str) -> list[SearchResult]'
+      inputs:
+      - self
+      - '_query: str'
+      output: list[SearchResult]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+  - path: tests/test_qualification_scoring.py
+    analysis_version: 1
+    language: python
+    content_hash: 0cdbda4dfd351c7493d3d21c1d94b2980b49d3da
+    dependencies:
+    - nerve_center.scoring.engine
+    - nerve_center.scoring.models
+    provides:
+    - _qualification
+    - _analysis
+    - test_fit_factor_exposes_weighted_inputs_and_central_match_ordering
+    symbols:
+    - name: _qualification
+      kind: function
+      line_start: 11
+      line_end: 26
+      signature: '_qualification(identifier: str, requirement: str, match: MatchLevel, weight: float) -> QualificationAssessment'
+      inputs:
+      - 'identifier: str'
+      - 'requirement: str'
+      - 'match: MatchLevel'
+      - 'weight: float'
+      output: QualificationAssessment
+      dependencies:
+      - QualificationAssessment
+      parser: python-ast
+      dependency_targets: []
+    - name: _analysis
+      kind: function
+      line_start: 29
+      line_end: 43
+      signature: '_analysis(qualifications: list[QualificationAssessment]) -> JobFitAnalysis'
+      inputs:
+      - 'qualifications: list[QualificationAssessment]'
+      output: JobFitAnalysis
+      dependencies:
+      - JobFitAnalysis
+      parser: python-ast
+      dependency_targets: []
+    - name: test_fit_factor_exposes_weighted_inputs_and_central_match_ordering
+      kind: function
+      line_start: 46
+      line_end: 84
+      signature: test_fit_factor_exposes_weighted_inputs_and_central_match_ordering() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - _analysis
+      - _fit_score
+      - _qualification
+      - central.model_copy
+      - item.model_copy
+      - next
+      - range
+      parser: python-ast
+      dependency_targets:
+      - path: tests/test_qualification_importance.py
+        symbol: _analysis
+      - path: tests/test_qualification_scoring.py
+        symbol: _analysis
+      - path: tests/test_scoring_engine.py
+        symbol: _analysis
+      - path: src/nerve_center/scoring/engine.py
+        symbol: _fit_score
+      - path: tests/test_qualification_importance.py
+        symbol: _qualification
+      - path: tests/test_qualification_scoring.py
+        symbol: _qualification

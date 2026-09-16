@@ -1,0 +1,1009 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: 08
+  files:
+  - path: desktop/src/types.ts
+    analysis_version: 1
+    language: typescript
+    content_hash: 95d0d35d24c007583513bba7632a7c322add3a2e
+    dependencies: []
+    provides: []
+    symbols: []
+  - path: src/nerve_center/scheduler/provider_worker.py
+    analysis_version: 1
+    language: python
+    content_hash: e8271ddd8b31f4f2ab1fed4cf5d2a8b54bbd2011
+    dependencies:
+    - __future__
+    - jsonschema
+    - nerve_center.domain.work_queue
+    - nerve_center.providers.base
+    - nerve_center.providers.errors
+    - nerve_center.providers.manager
+    - nerve_center.scheduler.work_queue
+    - typing
+    provides:
+    - ProviderWorkExecutor.__init__
+    - ProviderWorkExecutor.tick
+    - _model_request
+    symbols:
+    - name: ProviderWorkExecutor.__init__
+      kind: method
+      line_start: 21
+      line_end: 30
+      signature: 'ProviderWorkExecutor.__init__(self, queue: WorkQueueService, providers: ProviderManager, worker_id: str)
+        -> None'
+      inputs:
+      - self
+      - 'queue: WorkQueueService'
+      - 'providers: ProviderManager'
+      - 'worker_id: str'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ProviderWorkExecutor.tick
+      kind: method
+      line_start: 32
+      line_end: 112
+      signature: ProviderWorkExecutor.tick(self) -> WorkRequestSnapshot | None
+      inputs:
+      - self
+      output: WorkRequestSnapshot | None
+      dependencies:
+      - _model_request
+      - self.providers.evidence.record_outcome
+      - self.providers.execute
+      - self.providers.task_routing_scores
+      - self.queue.claim_next
+      - self.queue.complete
+      - self.queue.fail
+      - self.queue.get
+      - self.queue.list_requests
+      - str
+      - validate
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scheduler/provider_worker.py
+        symbol: _model_request
+      - path: src/nerve_center/persistence/providers.py
+        symbol: ModelEvidenceRepository.record_outcome
+      - path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager.execute
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.execute
+      - path: tests/test_scheduler.py
+        symbol: test_tick_starts_due_fixed_run.execute
+      - path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager.task_routing_scores
+      - path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.claim_next
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.claim_next
+      - path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.fail
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.fail
+      - path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.list_requests
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.list_requests
+      - path: src/nerve_center/domain/module.py
+        symbol: ModuleManifest.validate
+    - name: _model_request
+      kind: function
+      line_start: 115
+      line_end: 134
+      signature: '_model_request(request: WorkRequestSnapshot) -> ModelBlindRequest'
+      inputs:
+      - 'request: WorkRequestSnapshot'
+      output: ModelBlindRequest
+      dependencies:
+      - ModelBlindRequest
+      - ValueError
+      - dict
+      - isinstance
+      - request.payload.get
+      - requirements.get
+      - requirements.setdefault
+      - str
+      - system_prompt.strip
+      - user_prompt.strip
+      parser: python-ast
+      dependency_targets: []
+  - path: tests/test_discovery_connectors.py
+    analysis_version: 1
+    language: python
+    content_hash: 6d353a91b6d48640bded5a7585f77cf2e130bcf8
+    dependencies:
+    - asyncio
+    - httpx
+    - json
+    - nerve_center.discovery.connectors.ashby
+    - nerve_center.discovery.connectors.greenhouse
+    - nerve_center.discovery.connectors.json_ld
+    - nerve_center.discovery.connectors.lever
+    - nerve_center.discovery.connectors.sitemap
+    - nerve_center.discovery.fetching
+    - nerve_center.discovery.models
+    provides:
+    - _company
+    - _source
+    - test_greenhouse_normalizes_public_jobs
+    - test_greenhouse_normalizes_public_jobs.handler
+    - test_lever_paginates_and_normalizes
+    - test_lever_paginates_and_normalizes.handler
+    - test_ashby_public_postings_normalize_listed_roles
+    - test_ashby_public_postings_normalize_listed_roles.handler
+    - test_json_ld_extracts_nested_jobposting
+    - test_json_ld_extracts_nested_jobposting.handler
+    - test_json_ld_resolves_aggregator_hiring_organization_domain
+    - test_json_ld_resolves_aggregator_hiring_organization_domain.handler
+    - test_json_ld_does_not_treat_social_same_as_as_employer_domain
+    - test_json_ld_does_not_treat_social_same_as_as_employer_domain.handler
+    - test_json_ld_disambiguates_same_name_unresolved_hiring_organizations
+    - test_json_ld_disambiguates_same_name_unresolved_hiring_organizations.handler
+    - test_sitemap_returns_only_likely_job_urls
+    - test_sitemap_returns_only_likely_job_urls.handler
+    symbols:
+    - name: _company
+      kind: function
+      line_start: 21
+      line_end: 26
+      signature: _company() -> Company
+      inputs: []
+      output: Company
+      dependencies:
+      - Company
+      parser: python-ast
+      dependency_targets: []
+    - name: _source
+      kind: function
+      line_start: 29
+      line_end: 39
+      signature: '_source(kind: SourceKind, **configuration: object) -> DiscoverySource'
+      inputs:
+      - 'kind: SourceKind'
+      - '**configuration: object'
+      output: DiscoverySource
+      dependencies:
+      - DiscoverySource
+      parser: python-ast
+      dependency_targets: []
+    - name: test_greenhouse_normalizes_public_jobs
+      kind: function
+      line_start: 42
+      line_end: 79
+      signature: test_greenhouse_normalizes_public_jobs() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - GreenhouseConnector
+      - GreenhouseConnector().scan
+      - HttpFetcher
+      - _company
+      - _source
+      - asyncio.run
+      - client.aclose
+      - httpx.AsyncClient
+      - httpx.MockTransport
+      - httpx.Response
+      - request.url.path.endswith
+      parser: python-ast
+      dependency_targets:
+      - &id001
+        path: tests/test_discovery_connectors.py
+        symbol: _company
+      - &id002
+        path: tests/test_discovery_persistence.py
+        symbol: _company
+      - &id003
+        path: tests/test_discovery_connectors.py
+        symbol: _source
+      - &id004
+        path: tests/test_discovery_persistence.py
+        symbol: _source
+    - name: test_greenhouse_normalizes_public_jobs.handler
+      kind: function
+      line_start: 43
+      line_end: 62
+      signature: 'test_greenhouse_normalizes_public_jobs.handler(request: httpx.Request) -> httpx.Response'
+      inputs:
+      - 'request: httpx.Request'
+      output: httpx.Response
+      dependencies:
+      - httpx.Response
+      - request.url.path.endswith
+      parser: python-ast
+      dependency_targets: []
+    - name: test_lever_paginates_and_normalizes
+      kind: function
+      line_start: 82
+      line_end: 124
+      signature: test_lever_paginates_and_normalizes() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - HttpFetcher
+      - LeverConnector
+      - LeverConnector().scan
+      - _company
+      - _source
+      - asyncio.run
+      - client.aclose
+      - httpx.AsyncClient
+      - httpx.MockTransport
+      - httpx.Response
+      - int
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+    - name: test_lever_paginates_and_normalizes.handler
+      kind: function
+      line_start: 85
+      line_end: 109
+      signature: 'test_lever_paginates_and_normalizes.handler(request: httpx.Request) -> httpx.Response'
+      inputs:
+      - 'request: httpx.Request'
+      output: httpx.Response
+      dependencies:
+      - httpx.Response
+      - int
+      parser: python-ast
+      dependency_targets: []
+    - name: test_ashby_public_postings_normalize_listed_roles
+      kind: function
+      line_start: 127
+      line_end: 178
+      signature: test_ashby_public_postings_normalize_listed_roles() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - AshbyConnector
+      - AshbyConnector().scan
+      - HttpFetcher
+      - _company
+      - _source
+      - asyncio.run
+      - client.aclose
+      - httpx.AsyncClient
+      - httpx.MockTransport
+      - httpx.Response
+      - len
+      - request.url.path.endswith
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+    - name: test_ashby_public_postings_normalize_listed_roles.handler
+      kind: function
+      line_start: 128
+      line_end: 159
+      signature: 'test_ashby_public_postings_normalize_listed_roles.handler(request: httpx.Request) -> httpx.Response'
+      inputs:
+      - 'request: httpx.Request'
+      output: httpx.Response
+      dependencies:
+      - httpx.Response
+      - request.url.path.endswith
+      parser: python-ast
+      dependency_targets: []
+    - name: test_json_ld_extracts_nested_jobposting
+      kind: function
+      line_start: 181
+      line_end: 219
+      signature: test_json_ld_extracts_nested_jobposting() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - HttpFetcher
+      - JsonLdJobConnector
+      - JsonLdJobConnector().scan
+      - _company
+      - _source
+      - asyncio.run
+      - client.aclose
+      - httpx.AsyncClient
+      - httpx.MockTransport
+      - httpx.Response
+      - json.dumps
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+    - name: test_json_ld_extracts_nested_jobposting.handler
+      kind: function
+      line_start: 202
+      line_end: 203
+      signature: 'test_json_ld_extracts_nested_jobposting.handler(request: httpx.Request) -> httpx.Response'
+      inputs:
+      - 'request: httpx.Request'
+      output: httpx.Response
+      dependencies:
+      - httpx.Response
+      parser: python-ast
+      dependency_targets: []
+    - name: test_json_ld_resolves_aggregator_hiring_organization_domain
+      kind: function
+      line_start: 222
+      line_end: 264
+      signature: test_json_ld_resolves_aggregator_hiring_organization_domain() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - HttpFetcher
+      - JsonLdJobConnector
+      - JsonLdJobConnector().scan
+      - _company
+      - _source
+      - asyncio.run
+      - client.aclose
+      - httpx.AsyncClient
+      - httpx.MockTransport
+      - httpx.Response
+      - json.dumps
+      - request.url.path.startswith
+      - source.model_copy
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+    - name: test_json_ld_resolves_aggregator_hiring_organization_domain.handler
+      kind: function
+      line_start: 241
+      line_end: 244
+      signature: 'test_json_ld_resolves_aggregator_hiring_organization_domain.handler(request: httpx.Request) -> httpx.Response'
+      inputs:
+      - 'request: httpx.Request'
+      output: httpx.Response
+      dependencies:
+      - httpx.Response
+      - json.dumps
+      - request.url.path.startswith
+      parser: python-ast
+      dependency_targets: []
+    - name: test_json_ld_does_not_treat_social_same_as_as_employer_domain
+      kind: function
+      line_start: 267
+      line_end: 301
+      signature: test_json_ld_does_not_treat_social_same_as_as_employer_domain() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - HttpFetcher
+      - JsonLdJobConnector
+      - JsonLdJobConnector().scan
+      - _company
+      - _source
+      - asyncio.run
+      - client.aclose
+      - httpx.AsyncClient
+      - httpx.MockTransport
+      - httpx.Response
+      - json.dumps
+      - opening.company_domain.endswith
+      - source.model_copy
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+    - name: test_json_ld_does_not_treat_social_same_as_as_employer_domain.handler
+      kind: function
+      line_start: 281
+      line_end: 282
+      signature: 'test_json_ld_does_not_treat_social_same_as_as_employer_domain.handler(request: httpx.Request) -> httpx.Response'
+      inputs:
+      - 'request: httpx.Request'
+      output: httpx.Response
+      dependencies:
+      - httpx.Response
+      parser: python-ast
+      dependency_targets: []
+    - name: test_json_ld_disambiguates_same_name_unresolved_hiring_organizations
+      kind: function
+      line_start: 304
+      line_end: 350
+      signature: test_json_ld_disambiguates_same_name_unresolved_hiring_organizations() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - HttpFetcher
+      - JsonLdJobConnector
+      - JsonLdJobConnector().scan
+      - _company
+      - _source
+      - all
+      - asyncio.run
+      - client.aclose
+      - domain.endswith
+      - httpx.AsyncClient
+      - httpx.MockTransport
+      - httpx.Response
+      - json.dumps
+      - len
+      - source.model_copy
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+    - name: test_json_ld_disambiguates_same_name_unresolved_hiring_organizations.handler
+      kind: function
+      line_start: 332
+      line_end: 333
+      signature: 'test_json_ld_disambiguates_same_name_unresolved_hiring_organizations.handler(request: httpx.Request) ->
+        httpx.Response'
+      inputs:
+      - 'request: httpx.Request'
+      output: httpx.Response
+      dependencies:
+      - httpx.Response
+      parser: python-ast
+      dependency_targets: []
+    - name: test_sitemap_returns_only_likely_job_urls
+      kind: function
+      line_start: 353
+      line_end: 381
+      signature: test_sitemap_returns_only_likely_job_urls() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - HttpFetcher
+      - SitemapConnector
+      - SitemapConnector().scan
+      - _company
+      - _source
+      - asyncio.run
+      - client.aclose
+      - httpx.AsyncClient
+      - httpx.MockTransport
+      - httpx.Response
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+    - name: test_sitemap_returns_only_likely_job_urls.handler
+      kind: function
+      line_start: 364
+      line_end: 365
+      signature: 'test_sitemap_returns_only_likely_job_urls.handler(request: httpx.Request) -> httpx.Response'
+      inputs:
+      - 'request: httpx.Request'
+      output: httpx.Response
+      dependencies:
+      - httpx.Response
+      parser: python-ast
+      dependency_targets: []
+  - path: tests/test_job_scout_discovery_learning.py
+    analysis_version: 1
+    language: python
+    content_hash: e3968c9387e9ba70835c6e65bc9174e6ad93e5b7
+    dependencies:
+    - datetime
+    - nerve_center.applications.models
+    - nerve_center.config
+    - nerve_center.discovery.models
+    - nerve_center.persistence.applications
+    - nerve_center.persistence.database
+    - nerve_center.persistence.discovery
+    - nerve_center.plugins.job_scout.discovery_learning
+    - pathlib
+    provides:
+    - _database
+    - test_strategy_identity_weighting_and_exploration_floor_are_durable
+    - test_source_count_without_posting_yield_is_not_rewarded
+    - test_strategy_selection_reserves_company_deepening_capacity
+    - test_strategy_selection_reserves_local_employer_exploration_capacity
+    - test_strategy_selection_reserves_civic_attachment_employer_deepening
+    - test_strategy_selection_deduplicates_civic_employer_query_across_markets
+    - test_strategy_selection_deduplicates_compiled_market_reference_query
+    - test_strategy_selection_deduplicates_query_across_revision_provenance
+    - test_market_exploration_covers_distinct_locations_and_regional_probe
+    - test_market_exploration_prefers_current_query_revision
+    - test_current_market_attempt_moves_selection_to_next_market
+    - test_location_strategy_family_accumulates_zero_yield_across_query_variants
+    - test_cooldown_survives_restart_and_run_changes
+    - test_company_is_retained_as_strategy_evidence_with_zero_openings
+    - test_application_feedback_updates_discovery_strategy_without_ranking_mutation
+    - test_session_coverage_and_reflection_state_are_restart_safe
+    symbols:
+    - name: _database
+      kind: function
+      line_start: 27
+      line_end: 30
+      signature: '_database(tmp_path: Path) -> Database'
+      inputs:
+      - 'tmp_path: Path'
+      output: Database
+      dependencies:
+      - Database
+      - Settings
+      - database.initialize
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/database.py
+        symbol: Database.initialize
+    - name: test_strategy_identity_weighting_and_exploration_floor_are_durable
+      kind: function
+      line_start: 33
+      line_end: 73
+      signature: 'test_strategy_identity_weighting_and_exploration_floor_are_durable(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - JobScoutDiscoveryRepository
+      - StrategyOutcome
+      - _database
+      - learning.ensure_strategy
+      - learning.record_attempt
+      - learning.select_strategies
+      - restarted.get_strategy
+      parser: python-ast
+      dependency_targets:
+      - &id005
+        path: tests/test_applications.py
+        symbol: _database
+      - &id006
+        path: tests/test_discovery_persistence.py
+        symbol: _database
+      - &id007
+        path: tests/test_job_scout_discovery_learning.py
+        symbol: _database
+      - &id008
+        path: tests/test_job_scout_query_portfolio.py
+        symbol: _database
+      - &id009
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.ensure_strategy
+      - &id010
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.record_attempt
+      - &id011
+        path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: DiscoveryQualityRepository.record_attempt
+      - &id012
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.select_strategies
+      - &id017
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.get_strategy
+    - name: test_source_count_without_posting_yield_is_not_rewarded
+      kind: function
+      line_start: 76
+      line_end: 93
+      signature: 'test_source_count_without_posting_yield_is_not_rewarded(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - JobScoutDiscoveryRepository
+      - StrategyOutcome
+      - _database
+      - learning.ensure_strategy
+      - learning.record_attempt
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - *id010
+      - *id011
+    - name: test_strategy_selection_reserves_company_deepening_capacity
+      kind: function
+      line_start: 96
+      line_end: 110
+      signature: 'test_strategy_selection_reserves_company_deepening_capacity(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - JobScoutDiscoveryRepository
+      - _database
+      - learning.ensure_strategy
+      - learning.select_strategies
+      - range
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - *id012
+    - name: test_strategy_selection_reserves_local_employer_exploration_capacity
+      kind: function
+      line_start: 113
+      line_end: 141
+      signature: 'test_strategy_selection_reserves_local_employer_exploration_capacity(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - JobScoutDiscoveryRepository
+      - _database
+      - learning.ensure_strategy
+      - learning.select_strategies
+      - range
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - *id012
+    - name: test_strategy_selection_reserves_civic_attachment_employer_deepening
+      kind: function
+      line_start: 144
+      line_end: 183
+      signature: 'test_strategy_selection_reserves_civic_attachment_employer_deepening(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - JobScoutDiscoveryRepository
+      - _database
+      - learning.ensure_strategy
+      - learning.select_strategies
+      - range
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - *id012
+    - name: test_strategy_selection_deduplicates_civic_employer_query_across_markets
+      kind: function
+      line_start: 186
+      line_end: 229
+      signature: 'test_strategy_selection_deduplicates_civic_employer_query_across_markets(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - JobScoutDiscoveryRepository
+      - StrategyOutcome
+      - _database
+      - learning.ensure_strategy
+      - learning.record_attempt
+      - learning.select_strategies
+      - range
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - *id010
+      - *id011
+      - *id012
+    - name: test_strategy_selection_deduplicates_compiled_market_reference_query
+      kind: function
+      line_start: 232
+      line_end: 275
+      signature: 'test_strategy_selection_deduplicates_compiled_market_reference_query(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - JobScoutDiscoveryRepository
+      - StrategyOutcome
+      - _database
+      - chosen_ids.pop
+      - learning.ensure_strategy
+      - learning.record_attempt
+      - learning.select_strategies
+      - len
+      - range
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - *id010
+      - *id011
+      - *id012
+    - name: test_strategy_selection_deduplicates_query_across_revision_provenance
+      kind: function
+      line_start: 278
+      line_end: 303
+      signature: 'test_strategy_selection_deduplicates_query_across_revision_provenance(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - JobScoutDiscoveryRepository
+      - _database
+      - learning.ensure_strategy
+      - learning.select_strategies
+      - len
+      - range
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - *id012
+    - name: test_market_exploration_covers_distinct_locations_and_regional_probe
+      kind: function
+      line_start: 306
+      line_end: 371
+      signature: 'test_market_exploration_covers_distinct_locations_and_regional_probe(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - JobScoutDiscoveryRepository
+      - StrategyOutcome
+      - _database
+      - learning.ensure_strategy
+      - learning.record_attempt
+      - learning.select_strategies
+      - range
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - *id010
+      - *id011
+      - *id012
+    - name: test_market_exploration_prefers_current_query_revision
+      kind: function
+      line_start: 374
+      line_end: 410
+      signature: 'test_market_exploration_prefers_current_query_revision(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - JobScoutDiscoveryRepository
+      - _database
+      - learning.ensure_strategy
+      - learning.select_strategies
+      - range
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - *id012
+    - name: test_current_market_attempt_moves_selection_to_next_market
+      kind: function
+      line_start: 413
+      line_end: 457
+      signature: 'test_current_market_attempt_moves_selection_to_next_market(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - JobScoutDiscoveryRepository
+      - StrategyOutcome
+      - _database
+      - learning.ensure_strategy
+      - learning.record_attempt
+      - learning.select_strategies
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - *id010
+      - *id011
+      - *id012
+    - name: test_location_strategy_family_accumulates_zero_yield_across_query_variants
+      kind: function
+      line_start: 460
+      line_end: 528
+      signature: 'test_location_strategy_family_accumulates_zero_yield_across_query_variants(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - JobScoutDiscoveryRepository
+      - StrategyOutcome
+      - _database
+      - enumerate
+      - learning.ensure_strategy
+      - learning.list_strategy_families
+      - learning.record_attempt
+      - learning.select_strategies
+      - next
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.list_strategy_families
+      - *id010
+      - *id011
+      - *id012
+    - name: test_cooldown_survives_restart_and_run_changes
+      kind: function
+      line_start: 531
+      line_end: 546
+      signature: 'test_cooldown_survives_restart_and_run_changes(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - JobScoutDiscoveryRepository
+      - StrategyOutcome
+      - _database
+      - datetime.now
+      - learning.ensure_strategy
+      - learning.record_attempt
+      - restarted.select_strategies
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - *id010
+      - *id011
+      - *id012
+    - name: test_company_is_retained_as_strategy_evidence_with_zero_openings
+      kind: function
+      line_start: 549
+      line_end: 574
+      signature: 'test_company_is_retained_as_strategy_evidence_with_zero_openings(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Company
+      - CompanyRepository
+      - JobScoutDiscoveryRepository
+      - JobScoutDiscoveryRepository(database).company_evidence_count
+      - _database
+      - companies.upsert
+      - learning.company_evidence_count
+      - learning.ensure_strategy
+      - learning.record_company_evidence
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.company_evidence_count
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - &id013
+        path: src/nerve_center/persistence/discovery.py
+        symbol: CompanyRepository.upsert
+      - &id014
+        path: src/nerve_center/persistence/discovery.py
+        symbol: DiscoverySourceRepository.upsert
+      - &id015
+        path: src/nerve_center/persistence/discovery.py
+        symbol: JobOpeningRepository.upsert
+      - &id016
+        path: src/nerve_center/persistence/scoring.py
+        symbol: ScoringRuleRepository.upsert
+      - *id009
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.record_company_evidence
+      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: DiscoveryQualityRepository.record_company_evidence
+    - name: test_application_feedback_updates_discovery_strategy_without_ranking_mutation
+      kind: function
+      line_start: 577
+      line_end: 644
+      signature: 'test_application_feedback_updates_discovery_strategy_without_ranking_mutation(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - ApplicationRepository
+      - ApplicationUpdate
+      - Company
+      - CompanyRepository
+      - DiscoverySource
+      - DiscoverySourceRepository
+      - JobOpeningRepository
+      - JobProvenance
+      - JobScoutDiscoveryRepository
+      - NormalizedJobOpening
+      - _database
+      - applications.save
+      - companies.upsert
+      - datetime.now
+      - jobs.upsert
+      - learning.ensure_strategy
+      - learning.get_strategy
+      - learning.sync_application_feedback
+      - sources.upsert
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id013
+      - *id014
+      - *id015
+      - *id016
+      - *id009
+      - *id017
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.sync_application_feedback
+    - name: test_session_coverage_and_reflection_state_are_restart_safe
+      kind: function
+      line_start: 647
+      line_end: 693
+      signature: 'test_session_coverage_and_reflection_state_are_restart_safe(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - JobScoutDiscoveryRepository
+      - _database
+      - learning.ensure_strategy
+      - learning.record_reflection_hypothesis
+      - learning.record_reflection_request
+      - learning.update_session
+      - restarted.mark_reflection_applied
+      - restarted.reflection_hypotheses
+      - restarted.reflection_request
+      - restarted.session
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.record_reflection_hypothesis
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.record_reflection_request
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.update_session
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.mark_reflection_applied
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.reflection_hypotheses
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.reflection_request
+      - path: src/nerve_center/persistence/database.py
+        symbol: Database.session
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.session

@@ -1,0 +1,1260 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: '19'
+  files:
+  - path: desktop/src-tauri/src/lib.rs
+    analysis_version: 1
+    language: rust
+    content_hash: b08ae4a831981c048692814a5a5bcec745de4b3d
+    dependencies:
+    - serde::Serialize
+    - std::os::windows::process::CommandExt
+    - "std::{\n    env,\n    fs::{self, OpenOptions},\n    io::{Read, Write},\n    net::{SocketAddr, TcpStream},\n    path::PathBuf,\n\
+      \    process::{Child, Command, Stdio},\n    sync::{\n        atomic::{AtomicU64, Ordering},\n        Mutex,\n    },\n\
+      \    thread,\n    time::{Duration, SystemTime, UNIX_EPOCH},\n}"
+    - super::{classify_health_response, HealthProbe}
+    - "tauri::{\n    menu::{Menu, MenuItem},\n    path::BaseDirectory,\n    tray::{MouseButton, MouseButtonState, TrayIconBuilder,\
+      \ TrayIconEvent},\n    AppHandle, Manager, RunEvent, State, WindowEvent,\n}"
+    provides:
+    - new
+    - new
+    - detail
+    - source
+    - log_path
+    - pid
+    - startup_status
+    - restart_api
+    - diagnostic_log_path
+    - run
+    - start_api
+    - supervise_api
+    - wait_for_health
+    - monitor_api
+    - spawn_backend
+    - backend_command
+    - backend_log_path
+    - managed_process_exit
+    - terminate_managed_process
+    - stop_api
+    - show_main_window
+    - probe_health
+    - classify_health_response
+    - set_status
+    - is_current_generation
+    - now_ms
+    - recognizes_healthy_nerve_center_response
+    - rejects_non_nerve_center_service
+    symbols:
+    - name: new
+      kind: function
+      line_start: 46
+      line_end: 55
+      signature: new() -> Self
+      inputs: []
+      output: Self
+      dependencies: []
+      parser: rust-pattern
+      dependency_targets: []
+    - name: new
+      kind: function
+      line_start: 71
+      line_end: 81
+      signature: 'new(phase: &str, message: &str) -> Self'
+      inputs:
+      - 'phase: &str'
+      - 'message: &str'
+      output: Self
+      dependencies:
+      - message.to_string
+      - now_ms
+      - phase.to_string
+      parser: rust-pattern
+      dependency_targets:
+      - path: desktop/src-tauri/src/lib.rs
+        symbol: now_ms
+    - name: detail
+      kind: function
+      line_start: 82
+      line_end: 86
+      signature: 'detail(mut self, detail: impl Into<String>) -> Self'
+      inputs:
+      - mut self
+      - 'detail: impl Into<String>'
+      output: Self
+      dependencies:
+      - Some
+      - detail.into
+      parser: rust-pattern
+      dependency_targets: []
+    - name: source
+      kind: function
+      line_start: 87
+      line_end: 91
+      signature: 'source(mut self, source: impl Into<String>) -> Self'
+      inputs:
+      - mut self
+      - 'source: impl Into<String>'
+      output: Self
+      dependencies:
+      - Some
+      - source.into
+      parser: rust-pattern
+      dependency_targets: []
+    - name: log_path
+      kind: function
+      line_start: 92
+      line_end: 96
+      signature: 'log_path(mut self, path: Option<&PathBuf>) -> Self'
+      inputs:
+      - mut self
+      - 'path: Option<&PathBuf>'
+      output: Self
+      dependencies:
+      - into_owned
+      - item.to_string_lossy
+      - path.map
+      parser: rust-pattern
+      dependency_targets: []
+    - name: pid
+      kind: function
+      line_start: 97
+      line_end: 101
+      signature: 'pid(mut self, pid: Option<u32>) -> Self'
+      inputs:
+      - mut self
+      - 'pid: Option<u32>'
+      output: Self
+      dependencies: []
+      parser: rust-pattern
+      dependency_targets: []
+    - name: startup_status
+      kind: function
+      line_start: 118
+      line_end: 124
+      signature: 'startup_status(runtime: State<''_, ApiRuntime>) -> StartupStatus'
+      inputs:
+      - 'runtime: State<''_, ApiRuntime>'
+      output: StartupStatus
+      dependencies:
+      - clone
+      - expect
+      - lock
+      parser: rust-pattern
+      dependency_targets: []
+    - name: restart_api
+      kind: function
+      line_start: 127
+      line_end: 131
+      signature: 'restart_api(app: AppHandle) -> Result<(), String>'
+      inputs:
+      - 'app: AppHandle'
+      output: Result<(), String>
+      dependencies:
+      - Ok
+      - start_api
+      - stop_api
+      parser: rust-pattern
+      dependency_targets:
+      - path: desktop/src-tauri/src/lib.rs
+        symbol: start_api
+      - path: desktop/src-tauri/src/lib.rs
+        symbol: stop_api
+    - name: diagnostic_log_path
+      kind: function
+      line_start: 134
+      line_end: 141
+      signature: 'diagnostic_log_path(runtime: State<''_, ApiRuntime>) -> Option<String>'
+      inputs:
+      - 'runtime: State<''_, ApiRuntime>'
+      output: Option<String>
+      dependencies:
+      - clone
+      - expect
+      - lock
+      parser: rust-pattern
+      dependency_targets: []
+    - name: run
+      kind: function
+      line_start: 142
+      line_end: 201
+      signature: run()
+      inputs: []
+      output: unspecified
+      dependencies:
+      - Ok
+      - Some
+      - api.prevent_close
+      - app.default_window_icon
+      - app.exit
+      - app.handle
+      - build
+      - clone
+      - default
+      - event.id.as_ref
+      - expect
+      - icon.clone
+      - init
+      - invoke_handler
+      - manage
+      - menu
+      - new
+      - on_menu_event
+      - on_tray_icon_event
+      - on_window_event
+      - plugin
+      - setup
+      - show_main_window
+      - show_menu_on_left_click
+      parser: rust-pattern
+      dependency_targets:
+      - &id001
+        path: desktop/src-tauri/src/lib.rs
+        symbol: new
+      - path: desktop/src-tauri/src/lib.rs
+        symbol: show_main_window
+    - name: start_api
+      kind: function
+      line_start: 202
+      line_end: 213
+      signature: 'start_api(app: AppHandle)'
+      inputs:
+      - 'app: AppHandle'
+      output: unspecified
+      dependencies:
+      - new
+      - runtime.generation.fetch_add
+      - set_status
+      - spawn
+      - supervise_api
+      parser: rust-pattern
+      dependency_targets:
+      - *id001
+      - &id002
+        path: desktop/src-tauri/src/lib.rs
+        symbol: set_status
+      - path: desktop/src-tauri/src/lib.rs
+        symbol: supervise_api
+    - name: supervise_api
+      kind: function
+      line_start: 214
+      line_end: 295
+      signature: 'supervise_api(app: AppHandle, generation: u64)'
+      inputs:
+      - 'app: AppHandle'
+      - 'generation: u64'
+      output: unspecified
+      dependencies:
+      - Err
+      - Occupied
+      - Ok
+      - Some
+      - as_deref
+      - child.kill
+      - child.wait
+      - detail
+      - expect
+      - log_path
+      - monitor_api
+      - new
+      - pid
+      - probe_health
+      - runtime.generation.load
+      - runtime.process.lock
+      - set_status
+      - source
+      - spawn_backend
+      - spawned.child.id
+      - spawned.log_path.clone
+      - spawned.source.clone
+      - var
+      - wait_for_health
+      parser: rust-pattern
+      dependency_targets:
+      - &id012
+        path: tests/test_module_runtime.py
+        symbol: StubProcess.kill
+      - &id013
+        path: src/nerve_center/discovery/fetching.py
+        symbol: DomainRequestGate.wait
+      - &id014
+        path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService.wait
+      - &id015
+        path: tests/test_module_runtime.py
+        symbol: StubProcess.wait
+      - &id003
+        path: desktop/src-tauri/src/lib.rs
+        symbol: detail
+      - &id004
+        path: desktop/src-tauri/src/lib.rs
+        symbol: log_path
+      - &id005
+        path: desktop/src-tauri/src/lib.rs
+        symbol: monitor_api
+      - *id001
+      - &id006
+        path: desktop/src-tauri/src/lib.rs
+        symbol: pid
+      - &id007
+        path: desktop/src-tauri/src/lib.rs
+        symbol: probe_health
+      - &id016
+        path: src/nerve_center/plugins/job_scout/settings.py
+        symbol: JobScoutConfigurationStore.load
+      - &id017
+        path: tests/test_job_scout_query_portfolio.py
+        symbol: _ConfigStore.load
+      - *id002
+      - &id008
+        path: desktop/src-tauri/src/lib.rs
+        symbol: source
+      - path: desktop/src-tauri/src/lib.rs
+        symbol: spawn_backend
+      - path: desktop/src-tauri/src/lib.rs
+        symbol: wait_for_health
+    - name: wait_for_health
+      kind: function
+      line_start: 296
+      line_end: 393
+      signature: 'wait_for_health(app: &AppHandle, generation: u64, owns_process: bool, log_path: Option<PathBuf>)'
+      inputs:
+      - 'app: &AppHandle'
+      - 'generation: u64'
+      - 'owns_process: bool'
+      - 'log_path: Option<PathBuf>'
+      output: unspecified
+      dependencies:
+      - Err
+      - Occupied
+      - Ok
+      - Some
+      - clone
+      - detail
+      - expect
+      - is_current_generation
+      - lock
+      - log_path
+      - log_path.as_ref
+      - managed_process_exit
+      - monitor_api
+      - new
+      - pid
+      - probe_health
+      - set_status
+      - sleep
+      - source
+      - terminate_managed_process
+      - to_string
+      - unwrap_or_else
+      parser: rust-pattern
+      dependency_targets:
+      - *id003
+      - &id009
+        path: desktop/src-tauri/src/lib.rs
+        symbol: is_current_generation
+      - *id004
+      - &id010
+        path: desktop/src-tauri/src/lib.rs
+        symbol: managed_process_exit
+      - *id005
+      - *id001
+      - *id006
+      - *id007
+      - *id002
+      - *id008
+      - &id011
+        path: desktop/src-tauri/src/lib.rs
+        symbol: terminate_managed_process
+    - name: monitor_api
+      kind: function
+      line_start: 394
+      line_end: 470
+      signature: 'monitor_api(app: &AppHandle, generation: u64, owns_process: bool)'
+      inputs:
+      - 'app: &AppHandle'
+      - 'generation: u64'
+      - 'owns_process: bool'
+      output: unspecified
+      dependencies:
+      - Err
+      - Occupied
+      - Ok
+      - Some
+      - clone
+      - detail
+      - expect
+      - is_current_generation
+      - lock
+      - log_path
+      - log_path.as_ref
+      - managed_process_exit
+      - new
+      - prior.log_path.map
+      - probe_health
+      - set_status
+      - sleep
+      - source
+      - terminate_managed_process
+      - to_string
+      - unwrap_or_else
+      parser: rust-pattern
+      dependency_targets:
+      - *id003
+      - *id009
+      - *id004
+      - *id010
+      - *id001
+      - *id007
+      - *id002
+      - *id008
+      - *id011
+    - name: spawn_backend
+      kind: function
+      line_start: 471
+      line_end: 499
+      signature: 'spawn_backend(app: &AppHandle) -> Result<SpawnedBackend, String>'
+      inputs:
+      - 'app: &AppHandle'
+      output: Result<SpawnedBackend, String>
+      dependencies:
+      - Ok
+      - append
+      - backend_command
+      - backend_log_path
+      - cfg
+      - command.creation_flags
+      - create
+      - from
+      - let
+      - map_err
+      - new
+      - 'null'
+      - open
+      - spawn
+      - stderr
+      - stdin
+      - stdout
+      - try_clone
+      parser: rust-pattern
+      dependency_targets:
+      - &id019
+        path: src/nerve_center/persistence/scoring.py
+        symbol: OpportunityScoreRepository.append
+      - path: desktop/src-tauri/src/lib.rs
+        symbol: backend_command
+      - path: desktop/src-tauri/src/lib.rs
+        symbol: backend_log_path
+      - path: src/nerve_center/persistence/runs.py
+        symbol: RunRepository.create
+      - path: src/nerve_center/persistence/sessions.py
+        symbol: SessionRepository.create
+      - *id001
+    - name: backend_command
+      kind: function
+      line_start: 500
+      line_end: 522
+      signature: 'backend_command(app: &AppHandle) -> Result<(Command, String), String>'
+      inputs:
+      - 'app: &AppHandle'
+      output: Result<(Command, String), String>
+      dependencies:
+      - Err
+      - Ok
+      - app.path
+      - command.args
+      - executable.is_file
+      - fallback
+      - from
+      - new
+      - resolve
+      - run
+      - to_string
+      - unwrap_or_else
+      - var
+      parser: rust-pattern
+      dependency_targets:
+      - *id001
+    - name: backend_log_path
+      kind: function
+      line_start: 523
+      line_end: 532
+      signature: 'backend_log_path(app: &AppHandle) -> Result<PathBuf, String>'
+      inputs:
+      - 'app: &AppHandle'
+      output: Result<PathBuf, String>
+      dependencies:
+      - Ok
+      - app_log_dir
+      - create_dir_all
+      - directory.join
+      - join
+      - map_err
+      - path
+      - temp_dir
+      - unwrap_or_else
+      parser: rust-pattern
+      dependency_targets: []
+    - name: managed_process_exit
+      kind: function
+      line_start: 533
+      line_end: 553
+      signature: 'managed_process_exit(app: &AppHandle) -> Result<Option<String>, String>'
+      inputs:
+      - 'app: &AppHandle'
+      output: Result<Option<String>, String>
+      dependencies:
+      - Err
+      - Ok
+      - Some
+      - child.try_wait
+      - code
+      - code.to_string
+      - error.to_string
+      - expect
+      - map
+      - process.as_mut
+      - runtime.process.lock
+      - to_string
+      - unwrap_or_else
+      parser: rust-pattern
+      dependency_targets: []
+    - name: terminate_managed_process
+      kind: function
+      line_start: 554
+      line_end: 563
+      signature: 'terminate_managed_process(app: &AppHandle)'
+      inputs:
+      - 'app: &AppHandle'
+      output: unspecified
+      dependencies:
+      - Some
+      - child.kill
+      - child.wait
+      - expect
+      - process.as_mut
+      - runtime.process.lock
+      parser: rust-pattern
+      dependency_targets:
+      - *id012
+      - *id013
+      - *id014
+      - *id015
+    - name: stop_api
+      kind: function
+      line_start: 564
+      line_end: 571
+      signature: 'stop_api(app: &AppHandle)'
+      inputs:
+      - 'app: &AppHandle'
+      output: unspecified
+      dependencies:
+      - expect
+      - new
+      - runtime.generation.fetch_add
+      - runtime.status.lock
+      - terminate_managed_process
+      parser: rust-pattern
+      dependency_targets:
+      - *id001
+      - *id011
+    - name: show_main_window
+      kind: function
+      line_start: 572
+      line_end: 579
+      signature: 'show_main_window(app: &AppHandle)'
+      inputs:
+      - 'app: &AppHandle'
+      output: unspecified
+      dependencies:
+      - Some
+      - app.get_webview_window
+      - window.set_focus
+      - window.show
+      - window.unminimize
+      parser: rust-pattern
+      dependency_targets: []
+    - name: probe_health
+      kind: function
+      line_start: 580
+      line_end: 603
+      signature: probe_health() -> HealthProbe
+      inputs: []
+      output: HealthProbe
+      dependencies:
+      - API_ADDRESS.parse
+      - Err
+      - Occupied
+      - Ok
+      - Some
+      - classify_health_response
+      - connect_timeout
+      - expect
+      - from_millis
+      - is_err
+      - new
+      - stream.read_to_string
+      - stream.set_read_timeout
+      - stream.set_write_timeout
+      - stream.write_all
+      - to_string
+      parser: rust-pattern
+      dependency_targets:
+      - &id018
+        path: desktop/src-tauri/src/lib.rs
+        symbol: classify_health_response
+      - *id001
+    - name: classify_health_response
+      kind: function
+      line_start: 604
+      line_end: 619
+      signature: 'classify_health_response(response: &str) -> HealthProbe'
+      inputs:
+      - 'response: &str'
+      output: HealthProbe
+      dependencies:
+      - Occupied
+      - filter
+      - line.is_empty
+      - lines
+      - next
+      - response.contains
+      - response.starts_with
+      - unwrap_or
+      parser: rust-pattern
+      dependency_targets:
+      - path: desktop/src/display.tsx
+        symbol: lines
+      - path: src/nerve_center/domain/run_window.py
+        symbol: ResolvedRunWindow.contains
+    - name: set_status
+      kind: function
+      line_start: 620
+      line_end: 626
+      signature: 'set_status(app: &AppHandle, generation: u64, status: StartupStatus)'
+      inputs:
+      - 'app: &AppHandle'
+      - 'generation: u64'
+      - 'status: StartupStatus'
+      output: unspecified
+      dependencies:
+      - expect
+      - runtime.generation.load
+      - runtime.status.lock
+      parser: rust-pattern
+      dependency_targets:
+      - *id016
+      - *id017
+    - name: is_current_generation
+      kind: function
+      line_start: 627
+      line_end: 633
+      signature: 'is_current_generation(app: &AppHandle, generation: u64) -> bool'
+      inputs:
+      - 'app: &AppHandle'
+      - 'generation: u64'
+      output: bool
+      dependencies:
+      - load
+      parser: rust-pattern
+      dependency_targets:
+      - *id016
+      - *id017
+    - name: now_ms
+      kind: function
+      line_start: 634
+      line_end: 642
+      signature: now_ms() -> u64
+      inputs: []
+      output: u64
+      dependencies:
+      - as_millis
+      - duration_since
+      - now
+      - try_into
+      - unwrap_or
+      - unwrap_or_default
+      parser: rust-pattern
+      dependency_targets: []
+    - name: recognizes_healthy_nerve_center_response
+      kind: function
+      line_start: 649
+      line_end: 652
+      signature: recognizes_healthy_nerve_center_response()
+      inputs: []
+      output: unspecified
+      dependencies:
+      - classify_health_response
+      parser: rust-pattern
+      dependency_targets:
+      - *id018
+    - name: rejects_non_nerve_center_service
+      kind: function
+      line_start: 655
+      line_end: 661
+      signature: rejects_non_nerve_center_service()
+      inputs: []
+      output: unspecified
+      dependencies:
+      - Occupied
+      - classify_health_response
+      parser: rust-pattern
+      dependency_targets:
+      - *id018
+  - path: src/nerve_center/discovery/connectors/json_ld.py
+    analysis_version: 1
+    language: python
+    content_hash: dfad330d6adf9ecd862f27bf7e7b2094aed191d1
+    dependencies:
+    - __future__
+    - datetime
+    - html.parser
+    - json
+    - nerve_center.discovery.fetching
+    - nerve_center.discovery.models
+    - nerve_center.discovery.normalization
+    - typing
+    provides:
+    - _JsonLdParser.__init__
+    - _JsonLdParser.handle_starttag
+    - _JsonLdParser.handle_data
+    - _JsonLdParser.handle_endtag
+    - JsonLdJobConnector.__init__
+    - JsonLdJobConnector.scan
+    - JsonLdJobConnector._normalize
+    - JsonLdJobConnector._organization_domain
+    - _find_job_postings
+    - _organization_reference
+    - _organization_identity_hint
+    - _organization_domain_from_page
+    - _find_typed_objects
+    - _locations
+    - _applicant_locations
+    - _identifier
+    - _employment_type
+    symbols:
+    - name: _JsonLdParser.__init__
+      kind: method
+      line_start: 34
+      line_end: 38
+      signature: _JsonLdParser.__init__(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies:
+      - super
+      parser: python-ast
+      dependency_targets: []
+    - name: _JsonLdParser.handle_starttag
+      kind: method
+      line_start: 40
+      line_end: 46
+      signature: '_JsonLdParser.handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None'
+      inputs:
+      - self
+      - 'tag: str'
+      - 'attrs: list[tuple[str, str | None]]'
+      output: None
+      dependencies:
+      - attr_map.get
+      - attr_map.get('type', '').casefold
+      - attr_map.get('type', '').casefold().split
+      - attr_map.get('type', '').casefold().split(';')[0].strip
+      - key.casefold
+      parser: python-ast
+      dependency_targets: []
+    - name: _JsonLdParser.handle_data
+      kind: method
+      line_start: 48
+      line_end: 50
+      signature: '_JsonLdParser.handle_data(self, data: str) -> None'
+      inputs:
+      - self
+      - 'data: str'
+      output: None
+      dependencies:
+      - self._parts.append
+      parser: python-ast
+      dependency_targets:
+      - *id019
+    - name: _JsonLdParser.handle_endtag
+      kind: method
+      line_start: 52
+      line_end: 56
+      signature: '_JsonLdParser.handle_endtag(self, tag: str) -> None'
+      inputs:
+      - self
+      - 'tag: str'
+      output: None
+      dependencies:
+      - '''''.join'
+      - '''''.join(self._parts).strip'
+      - self.blocks.append
+      parser: python-ast
+      dependency_targets:
+      - *id019
+    - name: JsonLdJobConnector.__init__
+      kind: method
+      line_start: 63
+      line_end: 64
+      signature: JsonLdJobConnector.__init__(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: JsonLdJobConnector.scan
+      kind: method
+      line_start: 66
+      line_end: 132
+      signature: 'JsonLdJobConnector.scan(self, company: Company, source: DiscoverySource, fetcher: HttpFetcher) -> ConnectorScanResult'
+      inputs:
+      - self
+      - 'company: Company'
+      - 'source: DiscoverySource'
+      - 'fetcher: HttpFetcher'
+      output: ConnectorScanResult
+      dependencies:
+      - ConnectorScanResult
+      - _JsonLdParser
+      - _find_job_postings
+      - fetcher.get
+      - json.loads
+      - openings.append
+      - parser.close
+      - parser.feed
+      - raw.get
+      - self._normalize
+      - self._organization_domain
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/discovery/connectors/json_ld.py
+        symbol: _find_job_postings
+      - *id019
+      - &id026
+        path: src/nerve_center/runtime/client.py
+        symbol: ModuleRuntimeClient.close
+      - path: src/nerve_center/discovery/connectors/json_ld.py
+        symbol: JsonLdJobConnector._organization_domain
+    - name: JsonLdJobConnector._normalize
+      kind: method
+      line_start: 134
+      line_end: 201
+      signature: 'JsonLdJobConnector._normalize(self, company: Company, source: DiscoverySource, fetched_url: str, raw: dict[str,
+        Any], organization_domain: str | None) -> NormalizedJobOpening | None'
+      inputs:
+      - self
+      - 'company: Company'
+      - 'source: DiscoverySource'
+      - 'fetched_url: str'
+      - 'raw: dict[str, Any]'
+      - 'organization_domain: str | None'
+      output: NormalizedJobOpening | None
+      dependencies:
+      - '''; ''.join'
+      - JobProvenance
+      - NormalizedJobOpening
+      - _applicant_locations
+      - _employment_type
+      - _identifier
+      - _locations
+      - _organization_identity_hint
+      - bool
+      - canonicalize_url
+      - clean_html_text
+      - clean_text
+      - company.canonical_name.casefold
+      - company_name.casefold
+      - datetime.now
+      - infer_work_arrangement
+      - isinstance
+      - locations.extend
+      - organization.get
+      - parse_datetime
+      - raw.get
+      - source.configuration.get
+      - stable_company_id
+      - stable_opening_id
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/discovery/connectors/json_ld.py
+        symbol: _applicant_locations
+      - path: src/nerve_center/discovery/connectors/json_ld.py
+        symbol: _employment_type
+      - &id022
+        path: src/nerve_center/discovery/connectors/json_ld.py
+        symbol: _identifier
+      - path: src/nerve_center/discovery/connectors/json_ld.py
+        symbol: _locations
+      - path: src/nerve_center/discovery/connectors/json_ld.py
+        symbol: _organization_identity_hint
+      - &id020
+        path: src/nerve_center/discovery/normalization.py
+        symbol: canonicalize_url
+      - path: src/nerve_center/discovery/normalization.py
+        symbol: clean_html_text
+      - &id021
+        path: src/nerve_center/discovery/normalization.py
+        symbol: clean_text
+      - path: src/nerve_center/discovery/normalization.py
+        symbol: infer_work_arrangement
+      - path: src/nerve_center/discovery/normalization.py
+        symbol: parse_datetime
+      - path: src/nerve_center/discovery/normalization.py
+        symbol: stable_company_id
+      - path: src/nerve_center/discovery/normalization.py
+        symbol: stable_opening_id
+    - name: JsonLdJobConnector._organization_domain
+      kind: method
+      line_start: 203
+      line_end: 229
+      signature: 'JsonLdJobConnector._organization_domain(self, organization: object, source: DiscoverySource, fetcher: HttpFetcher)
+        -> tuple[str | None, int]'
+      inputs:
+      - self
+      - 'organization: object'
+      - 'source: DiscoverySource'
+      - 'fetcher: HttpFetcher'
+      output: tuple[str | None, int]
+      dependencies:
+      - _organization_domain_from_page
+      - _organization_reference
+      - bool
+      - canonical_domain
+      - fetcher.get
+      - is_third_party_identity_domain
+      - source.configuration.get
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/discovery/connectors/json_ld.py
+        symbol: _organization_domain_from_page
+      - &id023
+        path: src/nerve_center/discovery/connectors/json_ld.py
+        symbol: _organization_reference
+      - &id024
+        path: src/nerve_center/discovery/normalization.py
+        symbol: canonical_domain
+      - &id025
+        path: src/nerve_center/discovery/normalization.py
+        symbol: is_third_party_identity_domain
+    - name: _find_job_postings
+      kind: function
+      line_start: 232
+      line_end: 245
+      signature: '_find_job_postings(value: object) -> list[dict[str, Any]]'
+      inputs:
+      - 'value: object'
+      output: list[dict[str, Any]]
+      dependencies:
+      - any
+      - isinstance
+      - result.append
+      - result.extend
+      - str
+      - str(item).casefold
+      - str(item).casefold().endswith
+      - value.get
+      parser: python-ast
+      dependency_targets:
+      - *id019
+    - name: _organization_reference
+      kind: function
+      line_start: 248
+      line_end: 258
+      signature: '_organization_reference(value: object) -> tuple[str | None, bool]'
+      inputs:
+      - 'value: object'
+      output: tuple[str | None, bool]
+      dependencies:
+      - canonicalize_url
+      - clean_text
+      - isinstance
+      - text.startswith
+      - value.get
+      parser: python-ast
+      dependency_targets:
+      - *id020
+      - *id021
+    - name: _organization_identity_hint
+      kind: function
+      line_start: 261
+      line_end: 268
+      signature: '_organization_identity_hint(value: object) -> str | None'
+      inputs:
+      - 'value: object'
+      output: str | None
+      dependencies:
+      - _identifier
+      - _organization_reference
+      - isinstance
+      - value.get
+      parser: python-ast
+      dependency_targets:
+      - *id022
+      - *id023
+    - name: _organization_domain_from_page
+      kind: function
+      line_start: 271
+      line_end: 291
+      signature: '_organization_domain_from_page(page: str, excluded_domain: str) -> str | None'
+      inputs:
+      - 'page: str'
+      - 'excluded_domain: str'
+      output: str | None
+      dependencies:
+      - _JsonLdParser
+      - _find_typed_objects
+      - canonical_domain
+      - clean_text
+      - is_third_party_identity_domain
+      - isinstance
+      - item.get
+      - json.loads
+      - parser.close
+      - parser.feed
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/discovery/connectors/json_ld.py
+        symbol: _find_typed_objects
+      - *id024
+      - *id021
+      - *id025
+      - *id026
+    - name: _find_typed_objects
+      kind: function
+      line_start: 294
+      line_end: 307
+      signature: '_find_typed_objects(value: object, wanted: str) -> list[dict[str, Any]]'
+      inputs:
+      - 'value: object'
+      - 'wanted: str'
+      output: list[dict[str, Any]]
+      dependencies:
+      - any
+      - isinstance
+      - result.append
+      - result.extend
+      - str
+      - str(item).casefold
+      - str(item).casefold().endswith
+      - value.get
+      parser: python-ast
+      dependency_targets:
+      - *id019
+    - name: _locations
+      kind: function
+      line_start: 310
+      line_end: 330
+      signature: '_locations(value: object) -> list[str]'
+      inputs:
+      - 'value: object'
+      output: list[str]
+      dependencies:
+      - ''', ''.join'
+      - address.get
+      - clean_text
+      - isinstance
+      - item.get
+      - result.append
+      parser: python-ast
+      dependency_targets:
+      - *id021
+      - *id019
+    - name: _applicant_locations
+      kind: function
+      line_start: 333
+      line_end: 341
+      signature: '_applicant_locations(value: object) -> list[str]'
+      inputs:
+      - 'value: object'
+      output: list[str]
+      dependencies:
+      - clean_text
+      - isinstance
+      - item.get
+      - result.append
+      parser: python-ast
+      dependency_targets:
+      - *id021
+      - *id019
+    - name: _identifier
+      kind: function
+      line_start: 344
+      line_end: 347
+      signature: '_identifier(value: object) -> str | None'
+      inputs:
+      - 'value: object'
+      output: str | None
+      dependencies:
+      - clean_text
+      - isinstance
+      - value.get
+      parser: python-ast
+      dependency_targets:
+      - *id021
+    - name: _employment_type
+      kind: function
+      line_start: 350
+      line_end: 354
+      signature: '_employment_type(value: object) -> str | None'
+      inputs:
+      - 'value: object'
+      output: str | None
+      dependencies:
+      - ''', ''.join'
+      - clean_text
+      - isinstance
+      parser: python-ast
+      dependency_targets:
+      - *id021
+  - path: src/nerve_center/scoring/qualification_importance.py
+    analysis_version: 1
+    language: python
+    content_hash: 1886a658e6b9da4f92a85f83053ffc559192c3e6
+    dependencies:
+    - __future__
+    - nerve_center.scoring.models
+    - re
+    - typing
+    provides:
+    - normalize_qualifications
+    - weighted_coverage
+    - coverage_breakdown
+    - _normalize_weight
+    - _representative_rank
+    - _near_duplicate
+    - _tokens
+    symbols:
+    - name: normalize_qualifications
+      kind: function
+      line_start: 84
+      line_end: 122
+      signature: 'normalize_qualifications(qualifications: list[QualificationAssessment]) -> list[QualificationAssessment]'
+      inputs:
+      - 'qualifications: list[QualificationAssessment]'
+      output: list[QualificationAssessment]
+      dependencies:
+      - _near_duplicate
+      - _normalize_weight
+      - _representative_rank
+      - duplicate_of.get
+      - enumerate
+      - item.model_copy
+      - len
+      - next
+      - range
+      - representatives.append
+      - sorted
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scoring/qualification_importance.py
+        symbol: _near_duplicate
+      - path: src/nerve_center/scoring/qualification_importance.py
+        symbol: _normalize_weight
+      - path: src/nerve_center/scoring/qualification_importance.py
+        symbol: _representative_rank
+      - *id019
+    - name: weighted_coverage
+      kind: function
+      line_start: 125
+      line_end: 165
+      signature: 'weighted_coverage(qualifications: list[QualificationAssessment], importance: QualificationImportance) ->
+        tuple[float, list[dict[str, Any]]]'
+      inputs:
+      - 'qualifications: list[QualificationAssessment]'
+      - 'importance: QualificationImportance'
+      output: tuple[float, list[dict[str, Any]]]
+      dependencies:
+      - normalize_qualifications
+      - round
+      - rows.append
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scoring/qualification_importance.py
+        symbol: normalize_qualifications
+      - *id019
+    - name: coverage_breakdown
+      kind: function
+      line_start: 168
+      line_end: 191
+      signature: 'coverage_breakdown(qualifications: list[QualificationAssessment]) -> dict[str, Any]'
+      inputs:
+      - 'qualifications: list[QualificationAssessment]'
+      output: dict[str, Any]
+      dependencies:
+      - weighted_coverage
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scoring/qualification_importance.py
+        symbol: weighted_coverage
+    - name: _normalize_weight
+      kind: function
+      line_start: 194
+      line_end: 230
+      signature: '_normalize_weight(item: QualificationAssessment) -> QualificationAssessment'
+      inputs:
+      - 'item: QualificationAssessment'
+      output: QualificationAssessment
+      dependencies:
+      - abs
+      - any
+      - dict.fromkeys
+      - item.job_excerpt.casefold
+      - item.model_copy
+      - list
+      - max
+      - min
+      - rationale.append
+      - round
+      parser: python-ast
+      dependency_targets:
+      - *id019
+    - name: _representative_rank
+      kind: function
+      line_start: 233
+      line_end: 248
+      signature: '_representative_rank(item: QualificationAssessment, index: int) -> tuple[int, int, float, float, int]'
+      inputs:
+      - 'item: QualificationAssessment'
+      - 'index: int'
+      output: tuple[int, int, float, float, int]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: _near_duplicate
+      kind: function
+      line_start: 251
+      line_end: 263
+      signature: '_near_duplicate(left: QualificationAssessment, right: QualificationAssessment) -> bool'
+      inputs:
+      - 'left: QualificationAssessment'
+      - 'right: QualificationAssessment'
+      output: bool
+      dependencies:
+      - _tokens
+      - len
+      - max
+      - min
+      parser: python-ast
+      dependency_targets: []
+    - name: _tokens
+      kind: function
+      line_start: 266
+      line_end: 272
+      signature: '_tokens(value: str) -> set[str]'
+      inputs:
+      - 'value: str'
+      output: set[str]
+      dependencies:
+      - _TOKEN_ALIASES.get
+      - len
+      - re.findall
+      - set
+      - tokens.add
+      - value.casefold
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _extract_structured_employer_names.add

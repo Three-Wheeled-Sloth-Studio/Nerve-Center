@@ -1,0 +1,784 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: 1b
+  files:
+  - path: desktop/src/multivalue.ts
+    analysis_version: 1
+    language: typescript
+    content_hash: 436b3f2105d3e73e27e14b22092a32fe08fc4cea
+    dependencies: []
+    provides:
+    - parseMultivalueText
+    - formatMultivalueText
+    symbols:
+    - name: parseMultivalueText
+      kind: function
+      line_start: 1
+      line_end: 10
+      signature: 'parseMultivalueText(value: string) -> string[]'
+      inputs:
+      - 'value: string'
+      output: string[]
+      dependencies:
+      - Array.from
+      - Set
+      - filter
+      - item.trim
+      - map
+      - split
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: formatMultivalueText
+      kind: function
+      line_start: 11
+      line_end: 14
+      signature: 'formatMultivalueText(values: string[]) -> string'
+      inputs:
+      - 'values: string[]'
+      output: string
+      dependencies:
+      - values.join
+      parser: typescript-pattern
+      dependency_targets: []
+  - path: desktop/vite.config.ts
+    analysis_version: 1
+    language: typescript
+    content_hash: 2c4e0cd3542222ef0c60a09a44585cbac5da8713
+    dependencies:
+    - '@vitejs/plugin-react'
+    - vite
+    provides: []
+    symbols: []
+  - path: src/nerve_center/discovery/connectors/__init__.py
+    analysis_version: 1
+    language: python
+    content_hash: aa8b1623b902b39d9086bce42a9d26e61b7873c5
+    dependencies:
+    - nerve_center.discovery.connectors.ashby
+    - nerve_center.discovery.connectors.greenhouse
+    - nerve_center.discovery.connectors.json_ld
+    - nerve_center.discovery.connectors.lever
+    - nerve_center.discovery.connectors.sitemap
+    provides: []
+    symbols: []
+  - path: tests/test_job_scout_continuous_session.py
+    analysis_version: 1
+    language: python
+    content_hash: df2032990ae556806bdd486d300c619b0c60f265
+    dependencies:
+    - asyncio
+    - copy
+    - dataclasses
+    - datetime
+    - fastapi
+    - nerve_center.config
+    - nerve_center.plugins.job_scout
+    - nerve_center.plugins.job_scout.runtime
+    - nerve_center.providers.base
+    - nerve_center.scoring.api
+    - test_job_scout_discovery_loop
+    provides:
+    - FitProvider.generate_structured
+    - Client.__init__
+    - Client.invoke
+    - Client.control
+    - Client.checkpoint
+    - Client.consume
+    - Client.submit_work
+    - Client.results
+    - Client.acknowledge_result
+    - Client.complete
+    - Client.heartbeat
+    - setup_bridge
+    - setup_bridge.empty_cycle
+    - assignment
+    - test_two_waves_score_before_drain_despite_empty_reflection
+    - test_two_waves_score_before_drain_despite_empty_reflection.newly_available_surface
+    - test_no_work_has_paced_refresh_and_no_repeated_unchanged_reflection
+    - test_no_work_has_paced_refresh_and_no_repeated_unchanged_reflection.fake_sleep
+    - test_last_llm_allowance_is_harvested_before_budget_stop
+    - test_scoring_reservation_survives_restart_and_enforces_cap
+    - test_scoring_targets_successes_with_a_separate_failure_ceiling
+    - test_scoring_targets_successes_with_a_separate_failure_ceiling.FlakyScoringClient.invoke
+    - test_repeated_zero_marginal_yield_adds_bounded_backoff
+    - test_repeated_zero_marginal_yield_adds_bounded_backoff.ZeroYieldClient.invoke
+    - test_repeated_zero_marginal_yield_adds_bounded_backoff.ZeroYieldClient.control
+    - test_repeated_zero_marginal_yield_adds_bounded_backoff.fake_sleep
+    - test_discovery_backoff_does_not_pause_eligible_scoring
+    - test_discovery_backoff_does_not_pause_eligible_scoring.BackoffScoringClient.invoke
+    - test_discovery_backoff_does_not_pause_eligible_scoring.BackoffScoringClient.control
+    - test_request_budget_is_admitted_before_fetch_without_overrun
+    - test_different_strategies_cannot_rescan_a_source_before_due
+    - test_different_strategies_cannot_rescan_a_source_before_due.scan_twice
+    symbols:
+    - name: FitProvider.generate_structured
+      kind: method
+      line_start: 24
+      line_end: 37
+      signature: FitProvider.generate_structured(self, **kwargs)
+      inputs:
+      - self
+      - '**kwargs'
+      output: unspecified
+      dependencies:
+      - ProviderCallMetadata
+      - StructuredGenerationResult
+      - kwargs['response_type']
+      parser: python-ast
+      dependency_targets: []
+    - name: Client.__init__
+      kind: method
+      line_start: 41
+      line_end: 49
+      signature: Client.__init__(self, bridge, drain_after)
+      inputs:
+      - self
+      - bridge
+      - drain_after
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: Client.invoke
+      kind: method
+      line_start: 51
+      line_end: 56
+      signature: Client.invoke(self, run_id, operation, payload)
+      inputs:
+      - self
+      - run_id
+      - operation
+      - payload
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: Client.control
+      kind: method
+      line_start: 58
+      line_end: 63
+      signature: Client.control(self, run_id)
+      inputs:
+      - self
+      - run_id
+      output: unspecified
+      dependencies:
+      - dict
+      parser: python-ast
+      dependency_targets: []
+    - name: Client.checkpoint
+      kind: method
+      line_start: 65
+      line_end: 66
+      signature: Client.checkpoint(self, run_id, checkpoint)
+      inputs:
+      - self
+      - run_id
+      - checkpoint
+      output: unspecified
+      dependencies:
+      - deepcopy
+      - self.checkpoints.append
+      parser: python-ast
+      dependency_targets:
+      - &id001
+        path: src/nerve_center/persistence/scoring.py
+        symbol: OpportunityScoreRepository.append
+    - name: Client.consume
+      kind: method
+      line_start: 68
+      line_end: 69
+      signature: Client.consume(self, run_id, resource, count)
+      inputs:
+      - self
+      - run_id
+      - resource
+      - count
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: Client.submit_work
+      kind: method
+      line_start: 71
+      line_end: 78
+      signature: Client.submit_work(self, run_id, request)
+      inputs:
+      - self
+      - run_id
+      - request
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: Client.results
+      kind: method
+      line_start: 80
+      line_end: 81
+      signature: Client.results(self)
+      inputs:
+      - self
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: Client.acknowledge_result
+      kind: method
+      line_start: 83
+      line_end: 84
+      signature: Client.acknowledge_result(self, *args, **kwargs)
+      inputs:
+      - self
+      - '*args'
+      - '**kwargs'
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: Client.complete
+      kind: method
+      line_start: 86
+      line_end: 87
+      signature: Client.complete(self, run_id, status, summary, metrics)
+      inputs:
+      - self
+      - run_id
+      - status
+      - summary
+      - metrics
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: Client.heartbeat
+      kind: method
+      line_start: 89
+      line_end: 90
+      signature: Client.heartbeat(self, *args, **kwargs)
+      inputs:
+      - self
+      - '*args'
+      - '**kwargs'
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: setup_bridge
+      kind: function
+      line_start: 93
+      line_end: 118
+      signature: setup_bridge(tmp_path, monkeypatch, empty)
+      inputs:
+      - tmp_path
+      - monkeypatch
+      - empty
+      output: unspecified
+      dependencies:
+      - FastAPI
+      - FitProvider
+      - JobScoutOperationBridge
+      - SearchResult
+      - Settings
+      - _FixtureSearch
+      - _build_loop
+      - asdict
+      - monkeypatch.setattr
+      - original
+      - register_scoring_routes
+      - type
+      - type(result)
+      parser: python-ast
+      dependency_targets:
+      - path: tests/test_job_scout_discovery_loop.py
+        symbol: _build_loop
+      - path: src/nerve_center/scoring/api.py
+        symbol: register_scoring_routes
+    - name: setup_bridge.empty_cycle
+      kind: function
+      line_start: 110
+      line_end: 114
+      signature: setup_bridge.empty_cycle(run_id, cycle, request_limit)
+      inputs:
+      - run_id
+      - cycle
+      - request_limit
+      output: unspecified
+      dependencies:
+      - asdict
+      - original
+      - type
+      - type(result)
+      parser: python-ast
+      dependency_targets: []
+    - name: assignment
+      kind: function
+      line_start: 121
+      line_end: 125
+      signature: assignment()
+      inputs: []
+      output: unspecified
+      dependencies:
+      - (datetime.now(UTC) + timedelta(hours=8)).isoformat
+      - datetime.now
+      - timedelta
+      parser: python-ast
+      dependency_targets: []
+    - name: test_two_waves_score_before_drain_despite_empty_reflection
+      kind: function
+      line_start: 128
+      line_end: 161
+      signature: test_two_waves_score_before_drain_despite_empty_reflection(tmp_path, monkeypatch)
+      inputs:
+      - tmp_path
+      - monkeypatch
+      output: unspecified
+      dependencies:
+      - Client
+      - any
+      - assignment
+      - asyncio.run
+      - bridge.learning.list_strategies
+      - bridge.sources.list
+      - enumerate
+      - item.dimensions.get
+      - jobs.list
+      - len
+      - monkeypatch.setattr
+      - next
+      - resolutions.append
+      - scoring.scores.list
+      - setup_bridge
+      - worker._execute_discovery_loop
+      parser: python-ast
+      dependency_targets:
+      - &id002
+        path: tests/test_job_scout_continuous_session.py
+        symbol: assignment
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.list_strategies
+      - *id001
+      - &id003
+        path: tests/test_job_scout_continuous_session.py
+        symbol: setup_bridge
+      - &id004
+        path: src/nerve_center/plugins/job_scout/worker.py
+        symbol: _execute_discovery_loop
+    - name: test_two_waves_score_before_drain_despite_empty_reflection.newly_available_surface
+      kind: function
+      line_start: 132
+      line_end: 134
+      signature: test_two_waves_score_before_drain_despite_empty_reflection.newly_available_surface(company)
+      inputs:
+      - company
+      output: unspecified
+      dependencies:
+      - len
+      - resolutions.append
+      parser: python-ast
+      dependency_targets:
+      - *id001
+    - name: test_no_work_has_paced_refresh_and_no_repeated_unchanged_reflection
+      kind: function
+      line_start: 164
+      line_end: 182
+      signature: test_no_work_has_paced_refresh_and_no_repeated_unchanged_reflection(tmp_path, monkeypatch)
+      inputs:
+      - tmp_path
+      - monkeypatch
+      output: unspecified
+      dependencies:
+      - Client
+      - assignment
+      - asyncio.run
+      - monkeypatch.setattr
+      - original_sleep
+      - setup_bridge
+      - sleeps.append
+      - sum
+      - worker._execute_discovery_loop
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id001
+      - *id004
+    - name: test_no_work_has_paced_refresh_and_no_repeated_unchanged_reflection.fake_sleep
+      kind: function
+      line_start: 170
+      line_end: 173
+      signature: test_no_work_has_paced_refresh_and_no_repeated_unchanged_reflection.fake_sleep(seconds)
+      inputs:
+      - seconds
+      output: unspecified
+      dependencies:
+      - original_sleep
+      - sleeps.append
+      parser: python-ast
+      dependency_targets:
+      - *id001
+    - name: test_last_llm_allowance_is_harvested_before_budget_stop
+      kind: function
+      line_start: 185
+      line_end: 195
+      signature: test_last_llm_allowance_is_harvested_before_budget_stop(tmp_path, monkeypatch)
+      inputs:
+      - tmp_path
+      - monkeypatch
+      output: unspecified
+      dependencies:
+      - Client
+      - any
+      - assignment
+      - asyncio.run
+      - item.get
+      - setup_bridge
+      - worker._execute_discovery_loop
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id004
+    - name: test_scoring_reservation_survives_restart_and_enforces_cap
+      kind: function
+      line_start: 198
+      line_end: 212
+      signature: test_scoring_reservation_survives_restart_and_enforces_cap(tmp_path, monkeypatch)
+      inputs:
+      - tmp_path
+      - monkeypatch
+      output: unspecified
+      dependencies:
+      - Client
+      - any
+      - assignment
+      - asyncio.run
+      - bridge.coordinator.save_configuration
+      - bridge.coordinator.store.load
+      - jobs.list
+      - score.calculation.get
+      - scoring.scores.list
+      - setup_bridge
+      - worker._execute_discovery_loop
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - path: src/nerve_center/plugins/job_scout/configuration.py
+        symbol: JobScoutCoordinator.save_configuration
+      - path: src/nerve_center/plugins/job_scout/configuration.py
+        symbol: register_job_scout_configuration_routes.save_configuration
+      - path: src/nerve_center/plugins/job_scout/settings.py
+        symbol: JobScoutConfigurationStore.load
+      - path: tests/test_job_scout_query_portfolio.py
+        symbol: _ConfigStore.load
+      - *id003
+      - *id004
+    - name: test_scoring_targets_successes_with_a_separate_failure_ceiling
+      kind: function
+      line_start: 215
+      line_end: 240
+      signature: test_scoring_targets_successes_with_a_separate_failure_ceiling(tmp_path, monkeypatch)
+      inputs:
+      - tmp_path
+      - monkeypatch
+      output: unspecified
+      dependencies:
+      - (payload or {}).get
+      - FlakyScoringClient
+      - assignment
+      - asyncio.run
+      - len
+      - list
+      - setup_bridge
+      - super
+      - super().invoke
+      - worker._execute_discovery_loop
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id004
+    - name: test_scoring_targets_successes_with_a_separate_failure_ceiling.FlakyScoringClient.invoke
+      kind: method
+      line_start: 219
+      line_end: 233
+      signature: test_scoring_targets_successes_with_a_separate_failure_ceiling.FlakyScoringClient.invoke(self, run_id, operation,
+        payload)
+      inputs:
+      - self
+      - run_id
+      - operation
+      - payload
+      output: unspecified
+      dependencies:
+      - (payload or {}).get
+      - len
+      - list
+      - super
+      parser: python-ast
+      dependency_targets: []
+    - name: test_repeated_zero_marginal_yield_adds_bounded_backoff
+      kind: function
+      line_start: 243
+      line_end: 291
+      signature: test_repeated_zero_marginal_yield_adds_bounded_backoff(tmp_path, monkeypatch)
+      inputs:
+      - tmp_path
+      - monkeypatch
+      output: unspecified
+      dependencies:
+      - ZeroYieldClient
+      - any
+      - assignment
+      - asyncio.run
+      - item.get
+      - monkeypatch.setattr
+      - original_sleep
+      - result.update
+      - setup_bridge
+      - sleeps.append
+      - super
+      - super().control
+      - super().invoke
+      - worker._execute_discovery_loop
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id001
+      - *id004
+    - name: test_repeated_zero_marginal_yield_adds_bounded_backoff.ZeroYieldClient.invoke
+      kind: method
+      line_start: 247
+      line_end: 264
+      signature: test_repeated_zero_marginal_yield_adds_bounded_backoff.ZeroYieldClient.invoke(self, run_id, operation, payload)
+      inputs:
+      - self
+      - run_id
+      - operation
+      - payload
+      output: unspecified
+      dependencies:
+      - result.update
+      - super
+      parser: python-ast
+      dependency_targets: []
+    - name: test_repeated_zero_marginal_yield_adds_bounded_backoff.ZeroYieldClient.control
+      kind: method
+      line_start: 266
+      line_end: 270
+      signature: test_repeated_zero_marginal_yield_adds_bounded_backoff.ZeroYieldClient.control(self, run_id)
+      inputs:
+      - self
+      - run_id
+      output: unspecified
+      dependencies:
+      - any
+      - super
+      parser: python-ast
+      dependency_targets: []
+    - name: test_repeated_zero_marginal_yield_adds_bounded_backoff.fake_sleep
+      kind: function
+      line_start: 275
+      line_end: 278
+      signature: test_repeated_zero_marginal_yield_adds_bounded_backoff.fake_sleep(seconds)
+      inputs:
+      - seconds
+      output: unspecified
+      dependencies:
+      - original_sleep
+      - sleeps.append
+      parser: python-ast
+      dependency_targets:
+      - *id001
+    - name: test_discovery_backoff_does_not_pause_eligible_scoring
+      kind: function
+      line_start: 294
+      line_end: 345
+      signature: test_discovery_backoff_does_not_pause_eligible_scoring(tmp_path, monkeypatch)
+      inputs:
+      - tmp_path
+      - monkeypatch
+      output: unspecified
+      dependencies:
+      - (payload or {}).get
+      - BackoffScoringClient
+      - any
+      - assignment
+      - asyncio.run
+      - item.get
+      - result.update
+      - setup_bridge
+      - super
+      - super().control
+      - super().invoke
+      - worker._execute_discovery_loop
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id004
+    - name: test_discovery_backoff_does_not_pause_eligible_scoring.BackoffScoringClient.invoke
+      kind: method
+      line_start: 298
+      line_end: 327
+      signature: test_discovery_backoff_does_not_pause_eligible_scoring.BackoffScoringClient.invoke(self, run_id, operation,
+        payload)
+      inputs:
+      - self
+      - run_id
+      - operation
+      - payload
+      output: unspecified
+      dependencies:
+      - (payload or {}).get
+      - any
+      - item.get
+      - result.update
+      - super
+      parser: python-ast
+      dependency_targets: []
+    - name: test_discovery_backoff_does_not_pause_eligible_scoring.BackoffScoringClient.control
+      kind: method
+      line_start: 329
+      line_end: 333
+      signature: test_discovery_backoff_does_not_pause_eligible_scoring.BackoffScoringClient.control(self, run_id)
+      inputs:
+      - self
+      - run_id
+      output: unspecified
+      dependencies:
+      - any
+      - item.get
+      - super
+      parser: python-ast
+      dependency_targets: []
+    - name: test_request_budget_is_admitted_before_fetch_without_overrun
+      kind: function
+      line_start: 348
+      line_end: 358
+      signature: test_request_budget_is_admitted_before_fetch_without_overrun(tmp_path, monkeypatch)
+      inputs:
+      - tmp_path
+      - monkeypatch
+      output: unspecified
+      dependencies:
+      - Client
+      - assignment
+      - asyncio.run
+      - setup_bridge
+      - worker._execute_discovery_loop
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id004
+    - name: test_different_strategies_cannot_rescan_a_source_before_due
+      kind: function
+      line_start: 361
+      line_end: 373
+      signature: test_different_strategies_cannot_rescan_a_source_before_due(tmp_path, monkeypatch)
+      inputs:
+      - tmp_path
+      - monkeypatch
+      output: unspecified
+      dependencies:
+      - asyncio.run
+      - bridge.coordinator._register_source_url
+      - loop._scan_source
+      - scan_twice
+      - setup_bridge
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/configuration.py
+        symbol: JobScoutCoordinator._register_source_url
+      - &id005
+        path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._scan_source
+      - path: tests/test_job_scout_continuous_session.py
+        symbol: test_different_strategies_cannot_rescan_a_source_before_due.scan_twice
+      - *id003
+    - name: test_different_strategies_cannot_rescan_a_source_before_due.scan_twice
+      kind: function
+      line_start: 366
+      line_end: 371
+      signature: test_different_strategies_cannot_rescan_a_source_before_due.scan_twice()
+      inputs: []
+      output: unspecified
+      dependencies:
+      - loop._scan_source
+      parser: python-ast
+      dependency_targets:
+      - *id005
+  - path: tests/test_scoring_service.py
+    analysis_version: 1
+    language: python
+    content_hash: b6745b2aeead5835b356fb486597997b9ca1d0fd
+    dependencies:
+    - nerve_center.discovery.models
+    - nerve_center.scoring.models
+    - nerve_center.scoring.service
+    provides:
+    - _opening
+    - test_title_role_alignment_separates_target_and_unrelated_roles
+    - test_configured_job_scout_markets_feed_location_preferences
+    - test_direct_employer_location_evidence_builds_company_presence
+    symbols:
+    - name: _opening
+      kind: function
+      line_start: 10
+      line_end: 37
+      signature: '_opening(job_id: str, location: str, direct_employer_source: bool) -> NormalizedJobOpening'
+      inputs:
+      - 'job_id: str'
+      - 'location: str'
+      - 'direct_employer_source: bool'
+      output: NormalizedJobOpening
+      dependencies:
+      - JobProvenance
+      - NormalizedJobOpening
+      parser: python-ast
+      dependency_targets: []
+    - name: test_title_role_alignment_separates_target_and_unrelated_roles
+      kind: function
+      line_start: 40
+      line_end: 47
+      signature: test_title_role_alignment_separates_target_and_unrelated_roles() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - _title_role_alignment
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scoring/service.py
+        symbol: _title_role_alignment
+    - name: test_configured_job_scout_markets_feed_location_preferences
+      kind: function
+      line_start: 50
+      line_end: 57
+      signature: test_configured_job_scout_markets_feed_location_preferences() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - LocationPreferences
+      - _effective_location_preferences
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scoring/service.py
+        symbol: _effective_location_preferences
+    - name: test_direct_employer_location_evidence_builds_company_presence
+      kind: function
+      line_start: 60
+      line_end: 84
+      signature: test_direct_employer_location_evidence_builds_company_presence() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - CompanyEnrichment
+      - _merge_observed_company_presence
+      - _opening
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scoring/service.py
+        symbol: _merge_observed_company_presence

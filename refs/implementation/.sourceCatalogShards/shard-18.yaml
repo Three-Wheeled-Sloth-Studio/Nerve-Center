@@ -1,0 +1,96 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: '18'
+  files:
+  - path: desktop/scripts/test-multivalue.mjs
+    analysis_version: 1
+    language: javascript
+    content_hash: b944e51284f4ae02b7728beee259808e367db3b9
+    dependencies:
+    - node:assert/strict
+    - node:fs
+    - node:vm
+    - typescript
+    provides: []
+    symbols: []
+  - path: scripts/summarize_job_scout_run.py
+    analysis_version: 1
+    language: python
+    content_hash: da9110b51c8d5fed170ee6ba00e5436c640b44b1
+    dependencies:
+    - argparse
+    - json
+    - pathlib
+    - platformdirs
+    provides:
+    - summarize
+    - main
+    symbols:
+    - name: summarize
+      kind: function
+      line_start: 10
+      line_end: 41
+      signature: 'summarize(report: dict) -> dict'
+      inputs:
+      - 'report: dict'
+      output: dict
+      dependencies:
+      - checkpoint.get
+      - entry.get
+      - milestones.append
+      - report.get
+      - run.get
+      - state.get
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/scoring.py
+        symbol: OpportunityScoreRepository.append
+    - name: main
+      kind: function
+      line_start: 44
+      line_end: 52
+      signature: main() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - argparse.ArgumentParser
+      - args.report.read_text
+      - json.dumps
+      - json.loads
+      - parser.add_argument
+      - parser.parse_args
+      - print
+      - summarize
+      - user_data_path
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/summarize_job_scout_run.py
+        symbol: summarize
+  - path: src/nerve_center/scoring/models.py
+    analysis_version: 1
+    language: python
+    content_hash: e117dc6c9bdd7e2ad04dffdd779a61d937d34193
+    dependencies:
+    - __future__
+    - datetime
+    - enum
+    - pydantic
+    - typing
+    provides:
+    - ScoringWeights.validate_total
+    symbols:
+    - name: ScoringWeights.validate_total
+      kind: method
+      line_start: 233
+      line_end: 236
+      signature: ScoringWeights.validate_total(self) -> Self
+      inputs:
+      - self
+      output: Self
+      dependencies:
+      - ValueError
+      - model_validator
+      parser: python-ast
+      dependency_targets: []

@@ -1,0 +1,1371 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: 0c
+  files:
+  - path: desktop/src/vite-env.d.ts
+    analysis_version: 1
+    language: typescript
+    content_hash: 11f02fe2a0061d6e6e1f271b21da95423b448b32
+    dependencies: []
+    provides: []
+    symbols: []
+  - path: scripts/smoke_job_scout_live.py
+    analysis_version: 1
+    language: python
+    content_hash: a7302f11e9060fa1681ac6540287c4ab2cc8ceca
+    dependencies:
+    - __future__
+    - argparse
+    - json
+    - pathlib
+    - time
+    - typing
+    - urllib.error
+    - urllib.request
+    provides:
+    - request_json
+    - workspace_ready
+    - coverage_snapshot
+    - run_live_smoke
+    - parser
+    - main
+    symbols:
+    - name: request_json
+      kind: function
+      line_start: 23
+      line_end: 43
+      signature: 'request_json(endpoint: str, path: str, method: str, payload: dict[str, Any] | None, timeout: float) -> Any'
+      inputs:
+      - 'endpoint: str'
+      - 'path: str'
+      - 'method: str'
+      - 'payload: dict[str, Any] | None'
+      - 'timeout: float'
+      output: Any
+      dependencies:
+      - endpoint.rstrip
+      - json.dumps
+      - json.dumps(payload).encode
+      - json.loads
+      - response.read
+      - response.read().decode
+      - urllib.request.Request
+      - urllib.request.urlopen
+      parser: python-ast
+      dependency_targets: []
+    - name: workspace_ready
+      kind: function
+      line_start: 46
+      line_end: 54
+      signature: 'workspace_ready(workspace: dict[str, Any]) -> bool'
+      inputs:
+      - 'workspace: dict[str, Any]'
+      output: bool
+      dependencies:
+      - bool
+      - keywords.get
+      - profile.get
+      - workspace.get
+      parser: python-ast
+      dependency_targets: []
+    - name: coverage_snapshot
+      kind: function
+      line_start: 57
+      line_end: 66
+      signature: 'coverage_snapshot(run: dict[str, Any]) -> dict[str, Any]'
+      inputs:
+      - 'run: dict[str, Any]'
+      output: dict[str, Any]
+      dependencies:
+      - checkpoint.get
+      - coverage.items
+      - isinstance
+      - run.get
+      parser: python-ast
+      dependency_targets: []
+    - name: run_live_smoke
+      kind: function
+      line_start: 69
+      line_end: 156
+      signature: 'run_live_smoke(endpoint: str, duration_seconds: int, poll_seconds: float, output: Path | None) -> int'
+      inputs:
+      - 'endpoint: str'
+      - 'duration_seconds: int'
+      - 'poll_seconds: float'
+      - 'output: Path | None'
+      output: int
+      dependencies:
+      - (final_session or {}).get
+      - (session.get('module_run_ids') or {}).get
+      - (workspace.get('keywords') or {}).get
+      - RuntimeError
+      - coverage_snapshot
+      - final.get
+      - health.get
+      - int
+      - isinstance
+      - json.dumps
+      - len
+      - output.parent.mkdir
+      - output.write_text
+      - print
+      - request_json
+      - run.get
+      - session.get
+      - session_state.get
+      - str
+      - time.monotonic
+      - time.sleep
+      - workspace.get
+      - workspace_ready
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/smoke_job_scout_live.py
+        symbol: coverage_snapshot
+      - path: scripts/run_job_scout_live.py
+        symbol: request_json
+      - path: scripts/smoke_job_scout_live.py
+        symbol: request_json
+      - path: scripts/smoke_packaged_backend.py
+        symbol: request_json
+      - path: scripts/smoke_job_scout_live.py
+        symbol: workspace_ready
+    - name: parser
+      kind: function
+      line_start: 159
+      line_end: 183
+      signature: parser() -> argparse.ArgumentParser
+      inputs: []
+      output: argparse.ArgumentParser
+      dependencies:
+      - argparse.ArgumentParser
+      - result.add_argument
+      parser: python-ast
+      dependency_targets: []
+    - name: main
+      kind: function
+      line_start: 186
+      line_end: 201
+      signature: main() -> int
+      inputs: []
+      output: int
+      dependencies:
+      - SystemExit
+      - parser
+      - parser().parse_args
+      - print
+      - run_live_smoke
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/agent_context.py
+        symbol: parser
+      - path: scripts/run_job_scout_live.py
+        symbol: parser
+      - path: scripts/smoke_job_scout_live.py
+        symbol: parser
+      - path: scripts/smoke_job_scout_live.py
+        symbol: run_live_smoke
+  - path: src/nerve_center/persistence/model_lab.py
+    analysis_version: 1
+    language: python
+    content_hash: 969393ca69be9000b9c230dd4fe9eb4a3cc03e90
+    dependencies:
+    - __future__
+    - dataclasses
+    - datetime
+    - nerve_center.persistence.database
+    - nerve_center.persistence.models
+    - sqlalchemy
+    - sqlalchemy.orm
+    - typing
+    - uuid
+    provides:
+    - ModelLabRepository.__init__
+    - ModelLabRepository.settings
+    - ModelLabRepository.update_settings
+    - ModelLabRepository.completed_llm_work
+    - ModelLabRepository.add_corpus
+    - ModelLabRepository.list_corpus
+    - ModelLabRepository.get_corpus
+    - ModelLabRepository.corpus_count
+    - ModelLabRepository.task_ids
+    - ModelLabRepository.start_session
+    - ModelLabRepository.active_session
+    - ModelLabRepository.consume_attempt
+    - ModelLabRepository.latest_session
+    - ModelLabRepository.record_result
+    - ModelLabRepository.list_results
+    - _settings
+    - _corpus
+    - _lab_session
+    - _result
+    - _utc
+    symbols:
+    - name: ModelLabRepository.__init__
+      kind: method
+      line_start: 159
+      line_end: 160
+      signature: 'ModelLabRepository.__init__(self, database: Database) -> None'
+      inputs:
+      - self
+      - 'database: Database'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ModelLabRepository.settings
+      kind: method
+      line_start: 162
+      line_end: 175
+      signature: ModelLabRepository.settings(self) -> ModelLabSettingsSnapshot
+      inputs:
+      - self
+      output: ModelLabSettingsSnapshot
+      dependencies:
+      - ModelLabSettingsModel
+      - _settings
+      - datetime.now
+      - self.database.session
+      - session.add
+      - session.flush
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - &id001
+        path: src/nerve_center/persistence/model_lab.py
+        symbol: _settings
+      - &id002
+        path: src/nerve_center/persistence/database.py
+        symbol: Database.session
+      - &id003
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.session
+      - &id004
+        path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _extract_structured_employer_names.add
+      - &id005
+        path: scripts/agent_context.py
+        symbol: _markdown_blocks.flush
+    - name: ModelLabRepository.update_settings
+      kind: method
+      line_start: 177
+      line_end: 197
+      signature: 'ModelLabRepository.update_settings(self, enabled: bool, capture_enabled: bool, excluded_modules: list[str])
+        -> ModelLabSettingsSnapshot'
+      inputs:
+      - self
+      - 'enabled: bool'
+      - 'capture_enabled: bool'
+      - 'excluded_modules: list[str]'
+      output: ModelLabSettingsSnapshot
+      dependencies:
+      - ModelLabSettingsModel
+      - _settings
+      - datetime.now
+      - item.strip
+      - self.database.session
+      - session.add
+      - session.flush
+      - session.get
+      - sorted
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+      - *id005
+    - name: ModelLabRepository.completed_llm_work
+      kind: method
+      line_start: 199
+      line_end: 222
+      signature: 'ModelLabRepository.completed_llm_work(self, limit: int) -> list[CompletedLlmWork]'
+      inputs:
+      - self
+      - 'limit: int'
+      output: list[CompletedLlmWork]
+      dependencies:
+      - CompletedLlmWork
+      - WorkResultModel.created_at.asc
+      - dict
+      - select
+      - select(WorkRequestModel, WorkResultModel).join
+      - select(WorkRequestModel, WorkResultModel).join(WorkResultModel, WorkResultModel.request_id == WorkRequestModel.id).where
+      - select(WorkRequestModel, WorkResultModel).join(WorkResultModel, WorkResultModel.request_id == WorkRequestModel.id).where(WorkRequestModel.work_class
+        == 'llm').order_by
+      - select(WorkRequestModel, WorkResultModel).join(WorkResultModel, WorkResultModel.request_id == WorkRequestModel.id).where(WorkRequestModel.work_class
+        == 'llm').order_by(WorkResultModel.created_at.asc()).limit
+      - self.database.session
+      - session.execute
+      - session.execute(statement).all
+      parser: python-ast
+      dependency_targets:
+      - &id006
+        path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager.select
+      - *id002
+      - *id003
+      - path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager.execute
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.execute
+      - path: tests/test_scheduler.py
+        symbol: test_tick_starts_due_fixed_run.execute
+    - name: ModelLabRepository.add_corpus
+      kind: method
+      line_start: 224
+      line_end: 271
+      signature: 'ModelLabRepository.add_corpus(self, fingerprint: str, module_id: str, task_id: str, run_id: str, work_request_id:
+        str, contract_version: str, system_prompt: str, user_prompt: str, output_schema: dict[str, Any], requirements: dict[str,
+        Any], expected_output: dict[str, Any] | list[Any], production_provider: str | None, production_model: str | None,
+        production_call_id: str | None, created_at: datetime) -> tuple[BenchmarkCorpusItem, bool]'
+      inputs:
+      - self
+      - 'fingerprint: str'
+      - 'module_id: str'
+      - 'task_id: str'
+      - 'run_id: str'
+      - 'work_request_id: str'
+      - 'contract_version: str'
+      - 'system_prompt: str'
+      - 'user_prompt: str'
+      - 'output_schema: dict[str, Any]'
+      - 'requirements: dict[str, Any]'
+      - 'expected_output: dict[str, Any] | list[Any]'
+      - 'production_provider: str | None'
+      - 'production_model: str | None'
+      - 'production_call_id: str | None'
+      - 'created_at: datetime'
+      output: tuple[BenchmarkCorpusItem, bool]
+      dependencies:
+      - BenchmarkCorpusModel
+      - _corpus
+      - _utc
+      - select
+      - select(BenchmarkCorpusModel).where
+      - self.database.session
+      - session.add
+      - session.flush
+      - session.scalar
+      - str
+      - uuid4
+      parser: python-ast
+      dependency_targets:
+      - &id007
+        path: src/nerve_center/persistence/model_lab.py
+        symbol: _corpus
+      - *id006
+      - *id002
+      - *id003
+      - *id004
+      - *id005
+    - name: ModelLabRepository.list_corpus
+      kind: method
+      line_start: 273
+      line_end: 280
+      signature: 'ModelLabRepository.list_corpus(self, limit: int) -> list[BenchmarkCorpusItem]'
+      inputs:
+      - self
+      - 'limit: int'
+      output: list[BenchmarkCorpusItem]
+      dependencies:
+      - BenchmarkCorpusModel.created_at.desc
+      - _corpus
+      - select
+      - select(BenchmarkCorpusModel).order_by
+      - select(BenchmarkCorpusModel).order_by(BenchmarkCorpusModel.created_at.desc()).limit
+      - self.database.session
+      - session.scalars
+      - session.scalars(select(BenchmarkCorpusModel).order_by(BenchmarkCorpusModel.created_at.desc()).limit(limit)).all
+      parser: python-ast
+      dependency_targets:
+      - *id007
+      - *id006
+      - *id002
+      - *id003
+    - name: ModelLabRepository.get_corpus
+      kind: method
+      line_start: 282
+      line_end: 287
+      signature: 'ModelLabRepository.get_corpus(self, corpus_id: str) -> BenchmarkCorpusItem'
+      inputs:
+      - self
+      - 'corpus_id: str'
+      output: BenchmarkCorpusItem
+      dependencies:
+      - KeyError
+      - _corpus
+      - self.database.session
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - *id007
+      - *id002
+      - *id003
+    - name: ModelLabRepository.corpus_count
+      kind: method
+      line_start: 289
+      line_end: 291
+      signature: ModelLabRepository.corpus_count(self) -> int
+      inputs:
+      - self
+      output: int
+      dependencies:
+      - len
+      - select
+      - self.database.session
+      - session.scalars
+      - session.scalars(select(BenchmarkCorpusModel.id)).all
+      parser: python-ast
+      dependency_targets:
+      - *id006
+      - *id002
+      - *id003
+    - name: ModelLabRepository.task_ids
+      kind: method
+      line_start: 293
+      line_end: 302
+      signature: ModelLabRepository.task_ids(self) -> list[str]
+      inputs:
+      - self
+      output: list[str]
+      dependencies:
+      - select
+      - select(ModelObservationModel.task_id).distinct
+      - self.database.session
+      - session.scalars
+      - session.scalars(select(ModelObservationModel.task_id).distinct()).all
+      - sorted
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id006
+      - *id002
+      - *id003
+    - name: ModelLabRepository.start_session
+      kind: method
+      line_start: 304
+      line_end: 329
+      signature: 'ModelLabRepository.start_session(self, duration_seconds: int, max_attempts: int, now: datetime | None) ->
+        ModelLabSessionSnapshot'
+      inputs:
+      - self
+      - 'duration_seconds: int'
+      - 'max_attempts: int'
+      - 'now: datetime | None'
+      output: ModelLabSessionSnapshot
+      dependencies:
+      - ModelLabSessionModel
+      - ValueError
+      - _lab_session
+      - _utc
+      - self.active_session
+      - self.database.session
+      - session.add
+      - session.flush
+      - str
+      - timedelta
+      - uuid4
+      parser: python-ast
+      dependency_targets:
+      - &id008
+        path: src/nerve_center/persistence/model_lab.py
+        symbol: _lab_session
+      - path: src/nerve_center/persistence/model_lab.py
+        symbol: ModelLabRepository.active_session
+      - *id002
+      - *id003
+      - *id004
+      - *id005
+    - name: ModelLabRepository.active_session
+      kind: method
+      line_start: 331
+      line_end: 350
+      signature: 'ModelLabRepository.active_session(self, now: datetime | None) -> ModelLabSessionSnapshot | None'
+      inputs:
+      - self
+      - 'now: datetime | None'
+      output: ModelLabSessionSnapshot | None
+      dependencies:
+      - ModelLabSessionModel.starts_at.desc
+      - _lab_session
+      - _utc
+      - select
+      - select(ModelLabSessionModel).where
+      - select(ModelLabSessionModel).where(ModelLabSessionModel.status == 'running').order_by
+      - select(ModelLabSessionModel).where(ModelLabSessionModel.status == 'running').order_by(ModelLabSessionModel.starts_at.desc()).limit
+      - self.database.session
+      - session.flush
+      - session.scalar
+      parser: python-ast
+      dependency_targets:
+      - *id008
+      - *id006
+      - *id002
+      - *id003
+      - *id005
+    - name: ModelLabRepository.consume_attempt
+      kind: method
+      line_start: 352
+      line_end: 371
+      signature: 'ModelLabRepository.consume_attempt(self, session_id: str, now: datetime | None) -> ModelLabSessionSnapshot'
+      inputs:
+      - self
+      - 'session_id: str'
+      - 'now: datetime | None'
+      output: ModelLabSessionSnapshot
+      dependencies:
+      - KeyError
+      - ValueError
+      - _lab_session
+      - _utc
+      - self.database.session
+      - session.flush
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - *id008
+      - *id002
+      - *id003
+      - *id005
+    - name: ModelLabRepository.latest_session
+      kind: method
+      line_start: 373
+      line_end: 380
+      signature: ModelLabRepository.latest_session(self) -> ModelLabSessionSnapshot | None
+      inputs:
+      - self
+      output: ModelLabSessionSnapshot | None
+      dependencies:
+      - ModelLabSessionModel.created_at.desc
+      - _lab_session
+      - select
+      - select(ModelLabSessionModel).order_by
+      - select(ModelLabSessionModel).order_by(ModelLabSessionModel.created_at.desc()).limit
+      - self.database.session
+      - session.scalar
+      parser: python-ast
+      dependency_targets:
+      - *id008
+      - *id006
+      - *id002
+      - *id003
+    - name: ModelLabRepository.record_result
+      kind: method
+      line_start: 382
+      line_end: 414
+      signature: 'ModelLabRepository.record_result(self, corpus_id: str, session_id: str, provider: str, model: str, status:
+        str, schema_valid: bool | None, duration_ms: int, output: dict[str, Any] | list[Any] | None, error_code: str | None,
+        provider_call_id: str | None, now: datetime | None) -> BenchmarkResultSnapshot'
+      inputs:
+      - self
+      - 'corpus_id: str'
+      - 'session_id: str'
+      - 'provider: str'
+      - 'model: str'
+      - 'status: str'
+      - 'schema_valid: bool | None'
+      - 'duration_ms: int'
+      - 'output: dict[str, Any] | list[Any] | None'
+      - 'error_code: str | None'
+      - 'provider_call_id: str | None'
+      - 'now: datetime | None'
+      output: BenchmarkResultSnapshot
+      dependencies:
+      - BenchmarkResultModel
+      - _result
+      - _utc
+      - max
+      - self.database.session
+      - session.add
+      - session.flush
+      - str
+      - uuid4
+      parser: python-ast
+      dependency_targets:
+      - &id009
+        path: src/nerve_center/persistence/model_lab.py
+        symbol: _result
+      - &id010
+        path: tests/test_job_scout_reference_selection.py
+        symbol: _result
+      - &id011
+        path: tests/test_module_runtime.py
+        symbol: _result
+      - *id002
+      - *id003
+      - *id004
+      - *id005
+    - name: ModelLabRepository.list_results
+      kind: method
+      line_start: 416
+      line_end: 423
+      signature: 'ModelLabRepository.list_results(self, limit: int) -> list[BenchmarkResultSnapshot]'
+      inputs:
+      - self
+      - 'limit: int'
+      output: list[BenchmarkResultSnapshot]
+      dependencies:
+      - BenchmarkResultModel.created_at.desc
+      - _result
+      - select
+      - select(BenchmarkResultModel).order_by
+      - select(BenchmarkResultModel).order_by(BenchmarkResultModel.created_at.desc()).limit
+      - self.database.session
+      - session.scalars
+      - session.scalars(select(BenchmarkResultModel).order_by(BenchmarkResultModel.created_at.desc()).limit(limit)).all
+      parser: python-ast
+      dependency_targets:
+      - *id009
+      - *id010
+      - *id011
+      - *id006
+      - *id002
+      - *id003
+    - name: _settings
+      kind: function
+      line_start: 426
+      line_end: 432
+      signature: '_settings(model: ModelLabSettingsModel) -> ModelLabSettingsSnapshot'
+      inputs:
+      - 'model: ModelLabSettingsModel'
+      output: ModelLabSettingsSnapshot
+      dependencies:
+      - ModelLabSettingsSnapshot
+      - _utc
+      - tuple
+      parser: python-ast
+      dependency_targets: []
+    - name: _corpus
+      kind: function
+      line_start: 435
+      line_end: 453
+      signature: '_corpus(model: BenchmarkCorpusModel) -> BenchmarkCorpusItem'
+      inputs:
+      - 'model: BenchmarkCorpusModel'
+      output: BenchmarkCorpusItem
+      dependencies:
+      - BenchmarkCorpusItem
+      - _utc
+      - dict
+      parser: python-ast
+      dependency_targets: []
+    - name: _lab_session
+      kind: function
+      line_start: 456
+      line_end: 466
+      signature: '_lab_session(model: ModelLabSessionModel) -> ModelLabSessionSnapshot'
+      inputs:
+      - 'model: ModelLabSessionModel'
+      output: ModelLabSessionSnapshot
+      dependencies:
+      - ModelLabSessionSnapshot
+      - _utc
+      parser: python-ast
+      dependency_targets: []
+    - name: _result
+      kind: function
+      line_start: 469
+      line_end: 483
+      signature: '_result(model: BenchmarkResultModel) -> BenchmarkResultSnapshot'
+      inputs:
+      - 'model: BenchmarkResultModel'
+      output: BenchmarkResultSnapshot
+      dependencies:
+      - BenchmarkResultSnapshot
+      - _utc
+      parser: python-ast
+      dependency_targets: []
+    - name: _utc
+      kind: function
+      line_start: 486
+      line_end: 490
+      signature: '_utc(value: datetime | None) -> datetime'
+      inputs:
+      - 'value: datetime | None'
+      output: datetime
+      dependencies:
+      - current.astimezone
+      - current.replace
+      - datetime.now
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/profile/models.py
+    analysis_version: 1
+    language: python
+    content_hash: ceb799d7f71d4443e837ecf5c30e8f873c679f14
+    dependencies:
+    - __future__
+    - datetime
+    - enum
+    - pydantic
+    - typing
+    provides:
+    - SourceDocument.analysis_text
+    symbols:
+    - name: SourceDocument.analysis_text
+      kind: method
+      line_start: 41
+      line_end: 42
+      signature: SourceDocument.analysis_text(self) -> str
+      inputs:
+      - self
+      output: str
+      dependencies:
+      - '''\n''.join'
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/scheduler/sessions.py
+    analysis_version: 1
+    language: python
+    content_hash: b4758b172192e1a1d95eec985b7e46d140f9a6c4
+    dependencies:
+    - __future__
+    - asyncio
+    - datetime
+    - nerve_center.domain.budget
+    - nerve_center.domain.module
+    - nerve_center.domain.run_window
+    - nerve_center.domain.session
+    - nerve_center.persistence.modules
+    - nerve_center.persistence.runs
+    - nerve_center.persistence.sessions
+    - nerve_center.runtime.supervisor
+    - nerve_center.scheduler.registry
+    - nerve_center.scheduler.runner
+    provides:
+    - WorkSessionService.__init__
+    - WorkSessionService.create_duration
+    - WorkSessionService.create_fixed
+    - WorkSessionService.create_recurring
+    - WorkSessionService.start
+    - WorkSessionService.tick
+    - WorkSessionService.recover
+    - WorkSessionService.emergency_stop
+    - WorkSessionService.control
+    - WorkSessionService._close
+    - WorkSessionService._finish_occurrence
+    - WorkSessionService._schedule_next
+    - WorkSessionService._estimated_queue_clear
+    - normalize_priorities
+    - _resource_budget
+    - _utc
+    symbols:
+    - name: WorkSessionService.__init__
+      kind: method
+      line_start: 31
+      line_end: 45
+      signature: 'WorkSessionService.__init__(self, sessions: SessionRepository, modules: ModuleRepository, runs: RunRepository,
+        registry: TaskRegistry, runner: RunnerService, supervisor: ModuleSupervisor) -> None'
+      inputs:
+      - self
+      - 'sessions: SessionRepository'
+      - 'modules: ModuleRepository'
+      - 'runs: RunRepository'
+      - 'registry: TaskRegistry'
+      - 'runner: RunnerService'
+      - 'supervisor: ModuleSupervisor'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: WorkSessionService.create_duration
+      kind: method
+      line_start: 47
+      line_end: 56
+      signature: 'WorkSessionService.create_duration(self, duration_seconds: int, resource_policy: dict[str, int] | None,
+        now: datetime | None) -> WorkSessionSnapshot'
+      inputs:
+      - self
+      - 'duration_seconds: int'
+      - 'resource_policy: dict[str, int] | None'
+      - 'now: datetime | None'
+      output: WorkSessionSnapshot
+      dependencies:
+      - DurationRunWindow
+      - DurationRunWindow(timedelta(seconds=duration_seconds)).resolve
+      - _utc
+      - self.sessions.create
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - &id012
+        path: src/nerve_center/persistence/runs.py
+        symbol: RunRepository.create
+      - &id013
+        path: src/nerve_center/persistence/sessions.py
+        symbol: SessionRepository.create
+    - name: WorkSessionService.create_fixed
+      kind: method
+      line_start: 58
+      line_end: 68
+      signature: 'WorkSessionService.create_fixed(self, starts_at: datetime, ends_at: datetime, resource_policy: dict[str,
+        int] | None, now: datetime | None) -> WorkSessionSnapshot'
+      inputs:
+      - self
+      - 'starts_at: datetime'
+      - 'ends_at: datetime'
+      - 'resource_policy: dict[str, int] | None'
+      - 'now: datetime | None'
+      output: WorkSessionSnapshot
+      dependencies:
+      - FixedRunWindow
+      - FixedRunWindow(starts_at, ends_at).resolve
+      - _utc
+      - self.sessions.create
+      parser: python-ast
+      dependency_targets:
+      - *id012
+      - *id013
+    - name: WorkSessionService.create_recurring
+      kind: method
+      line_start: 70
+      line_end: 84
+      signature: 'WorkSessionService.create_recurring(self, recurrence: RecurrenceRule, resource_policy: dict[str, int] |
+        None, now: datetime | None) -> WorkSessionSnapshot'
+      inputs:
+      - self
+      - 'recurrence: RecurrenceRule'
+      - 'resource_policy: dict[str, int] | None'
+      - 'now: datetime | None'
+      output: WorkSessionSnapshot
+      dependencies:
+      - ResolvedRunWindow
+      - _utc
+      - recurrence.next_window
+      - self.sessions.create
+      parser: python-ast
+      dependency_targets:
+      - &id027
+        path: src/nerve_center/domain/session.py
+        symbol: RecurrenceRule.next_window
+      - *id012
+      - *id013
+    - name: WorkSessionService.start
+      kind: method
+      line_start: 86
+      line_end: 162
+      signature: 'WorkSessionService.start(self, session_id: str, now: datetime | None) -> WorkSessionSnapshot'
+      inputs:
+      - self
+      - 'session_id: str'
+      - 'now: datetime | None'
+      output: WorkSessionSnapshot
+      dependencies:
+      - FixedRunWindow
+      - WorkSessionConflictError
+      - _resource_budget
+      - _utc
+      - asyncio.gather
+      - dict
+      - next
+      - normalize_priorities
+      - run_ids.values
+      - self._finish_occurrence
+      - self.modules.list
+      - self.registry.get
+      - self.runs.create
+      - self.sessions.finish
+      - self.sessions.get
+      - self.sessions.list_actionable
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scheduler/sessions.py
+        symbol: _resource_budget
+      - &id039
+        path: src/nerve_center/scheduler/sessions.py
+        symbol: normalize_priorities
+      - &id014
+        path: src/nerve_center/scheduler/sessions.py
+        symbol: WorkSessionService._finish_occurrence
+      - *id012
+      - *id013
+      - &id016
+        path: src/nerve_center/persistence/sessions.py
+        symbol: SessionRepository.finish
+      - &id017
+        path: src/nerve_center/plugins/job_scout/worker.py
+        symbol: _execute_discovery_loop.finish
+      - &id015
+        path: src/nerve_center/persistence/sessions.py
+        symbol: SessionRepository.list_actionable
+    - name: WorkSessionService.tick
+      kind: method
+      line_start: 164
+      line_end: 197
+      signature: 'WorkSessionService.tick(self, now: datetime | None) -> list[WorkSessionSnapshot]'
+      inputs:
+      - self
+      - 'now: datetime | None'
+      output: list[WorkSessionSnapshot]
+      dependencies:
+      - _utc
+      - admission_phase_for
+      - changed.append
+      - self._close
+      - self._estimated_queue_clear
+      - self._finish_occurrence
+      - self.sessions.list_actionable
+      - self.sessions.update_phase
+      - self.start
+      parser: python-ast
+      dependency_targets:
+      - &id018
+        path: src/nerve_center/domain/session.py
+        symbol: admission_phase_for
+      - path: src/nerve_center/persistence/scoring.py
+        symbol: OpportunityScoreRepository.append
+      - path: src/nerve_center/scheduler/sessions.py
+        symbol: WorkSessionService._close
+      - &id019
+        path: src/nerve_center/scheduler/sessions.py
+        symbol: WorkSessionService._estimated_queue_clear
+      - *id014
+      - *id015
+      - &id023
+        path: src/nerve_center/persistence/sessions.py
+        symbol: SessionRepository.update_phase
+      - &id035
+        path: src/nerve_center/persistence/sessions.py
+        symbol: SessionRepository.start
+      - &id036
+        path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService.start
+      - &id037
+        path: src/nerve_center/scheduler/service.py
+        symbol: SchedulerService.start
+      - &id038
+        path: src/nerve_center/scheduler/sessions.py
+        symbol: WorkSessionService.start
+    - name: WorkSessionService.recover
+      kind: method
+      line_start: 199
+      line_end: 205
+      signature: 'WorkSessionService.recover(self, now: datetime | None) -> list[WorkSessionSnapshot]'
+      inputs:
+      - self
+      - 'now: datetime | None'
+      output: list[WorkSessionSnapshot]
+      dependencies:
+      - _utc
+      - self._schedule_next
+      - self.sessions.recover_interrupted
+      parser: python-ast
+      dependency_targets:
+      - &id026
+        path: src/nerve_center/scheduler/sessions.py
+        symbol: WorkSessionService._schedule_next
+      - &id031
+        path: src/nerve_center/persistence/runs.py
+        symbol: RunRepository.recover_interrupted
+      - &id032
+        path: src/nerve_center/persistence/sessions.py
+        symbol: SessionRepository.recover_interrupted
+      - &id033
+        path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService.recover_interrupted
+      - &id034
+        path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.recover_interrupted
+    - name: WorkSessionService.emergency_stop
+      kind: method
+      line_start: 207
+      line_end: 225
+      signature: 'WorkSessionService.emergency_stop(self, session_id: str, now: datetime | None) -> WorkSessionSnapshot'
+      inputs:
+      - self
+      - 'session_id: str'
+      - 'now: datetime | None'
+      output: WorkSessionSnapshot
+      dependencies:
+      - _utc
+      - asyncio.gather
+      - self.runner.cancel
+      - self.sessions.finish
+      - self.sessions.get
+      - self.supervisor.stop
+      - snapshot.module_run_ids.values
+      parser: python-ast
+      dependency_targets:
+      - &id020
+        path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.cancel
+      - &id021
+        path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService.cancel
+      - &id022
+        path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.cancel
+      - *id016
+      - *id017
+      - &id024
+        path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.stop
+      - &id025
+        path: src/nerve_center/scheduler/service.py
+        symbol: SchedulerService.stop
+    - name: WorkSessionService.control
+      kind: method
+      line_start: 227
+      line_end: 246
+      signature: 'WorkSessionService.control(self, session_id: str) -> dict[str, float | str | bool]'
+      inputs:
+      - self
+      - 'session_id: str'
+      output: dict[str, float | str | bool]
+      dependencies:
+      - (snapshot.ends_at - now).total_seconds
+      - admission_phase_for
+      - datetime.now
+      - max
+      - self._estimated_queue_clear
+      - self.sessions.get
+      - self.supervisor.report
+      parser: python-ast
+      dependency_targets:
+      - *id018
+      - *id019
+      - &id028
+        path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.report
+    - name: WorkSessionService._close
+      kind: method
+      line_start: 248
+      line_end: 264
+      signature: 'WorkSessionService._close(self, snapshot: WorkSessionSnapshot, now: datetime) -> WorkSessionSnapshot'
+      inputs:
+      - self
+      - 'snapshot: WorkSessionSnapshot'
+      - 'now: datetime'
+      output: WorkSessionSnapshot
+      dependencies:
+      - asyncio.gather
+      - self._finish_occurrence
+      - self.runner.cancel
+      - self.runs.get
+      - self.sessions.update_phase
+      - self.supervisor.stop
+      - snapshot.module_run_ids.values
+      parser: python-ast
+      dependency_targets:
+      - *id014
+      - *id020
+      - *id021
+      - *id022
+      - *id023
+      - *id024
+      - *id025
+    - name: WorkSessionService._finish_occurrence
+      kind: method
+      line_start: 266
+      line_end: 276
+      signature: 'WorkSessionService._finish_occurrence(self, snapshot: WorkSessionSnapshot, status: SessionStatus, summary:
+        str, now: datetime) -> WorkSessionSnapshot'
+      inputs:
+      - self
+      - 'snapshot: WorkSessionSnapshot'
+      - 'status: SessionStatus'
+      - 'summary: str'
+      - 'now: datetime'
+      output: WorkSessionSnapshot
+      dependencies:
+      - self._schedule_next
+      - self.sessions.finish
+      parser: python-ast
+      dependency_targets:
+      - *id026
+      - *id016
+      - *id017
+    - name: WorkSessionService._schedule_next
+      kind: method
+      line_start: 278
+      line_end: 288
+      signature: 'WorkSessionService._schedule_next(self, snapshot: WorkSessionSnapshot, after: datetime) -> None'
+      inputs:
+      - self
+      - 'snapshot: WorkSessionSnapshot'
+      - 'after: datetime'
+      output: None
+      dependencies:
+      - ResolvedRunWindow
+      - self.sessions.create
+      - snapshot.recurrence.next_window
+      parser: python-ast
+      dependency_targets:
+      - *id012
+      - *id013
+      - *id027
+    - name: WorkSessionService._estimated_queue_clear
+      kind: method
+      line_start: 290
+      line_end: 295
+      signature: 'WorkSessionService._estimated_queue_clear(self, snapshot: WorkSessionSnapshot) -> float'
+      inputs:
+      - self
+      - 'snapshot: WorkSessionSnapshot'
+      output: float
+      dependencies:
+      - max
+      - self.supervisor.report
+      parser: python-ast
+      dependency_targets:
+      - *id028
+    - name: normalize_priorities
+      kind: function
+      line_start: 298
+      line_end: 312
+      signature: 'normalize_priorities(weights: dict[str, int]) -> dict[str, int]'
+      inputs:
+      - 'weights: dict[str, int]'
+      output: dict[str, int]
+      dependencies:
+      - allocated.values
+      - dict.fromkeys
+      - exact.items
+      - int
+      - len
+      - max
+      - positive.items
+      - positive.values
+      - sorted
+      - sum
+      - weights.items
+      parser: python-ast
+      dependency_targets: []
+    - name: _resource_budget
+      kind: function
+      line_start: 315
+      line_end: 321
+      signature: '_resource_budget(policy: dict[str, int]) -> ResourceBudget'
+      inputs:
+      - 'policy: dict[str, int]'
+      output: ResourceBudget
+      dependencies:
+      - ResourceBudget
+      - int
+      - policy.get
+      parser: python-ast
+      dependency_targets: []
+    - name: _utc
+      kind: function
+      line_start: 324
+      line_end: 328
+      signature: '_utc(value: datetime | None) -> datetime'
+      inputs:
+      - 'value: datetime | None'
+      output: datetime
+      dependencies:
+      - ValueError
+      - current.astimezone
+      - current.utcoffset
+      - datetime.now
+      parser: python-ast
+      dependency_targets: []
+  - path: tests/test_sessions.py
+    analysis_version: 1
+    language: python
+    content_hash: 28cd7fb0ec3695e2ca22e4698495c6b9295b399d
+    dependencies:
+    - asyncio
+    - datetime
+    - nerve_center.config
+    - nerve_center.domain.run_window
+    - nerve_center.domain.session
+    - nerve_center.persistence.database
+    - nerve_center.persistence.modules
+    - nerve_center.persistence.runs
+    - nerve_center.persistence.sessions
+    - nerve_center.plugins.synthetic
+    - nerve_center.runtime.supervisor
+    - nerve_center.scheduler.registry
+    - nerve_center.scheduler.runner
+    - nerve_center.scheduler.sessions
+    - pathlib
+    provides:
+    - make_repository
+    - test_admission_phase_follows_concrete_wall_clock_window
+    - test_queue_estimate_can_advance_admission_phase
+    - test_recurrence_resolves_local_wall_clock_across_dst
+    - test_restart_preserves_original_session_end
+    - test_module_priorities_normalize_to_exactly_one_hundred
+    - test_missed_recurrence_schedules_next_future_occurrence
+    symbols:
+    - name: make_repository
+      kind: function
+      line_start: 24
+      line_end: 27
+      signature: 'make_repository(tmp_path: Path) -> SessionRepository'
+      inputs:
+      - 'tmp_path: Path'
+      output: SessionRepository
+      dependencies:
+      - Database
+      - SessionRepository
+      - Settings
+      - database.initialize
+      parser: python-ast
+      dependency_targets:
+      - &id040
+        path: src/nerve_center/persistence/database.py
+        symbol: Database.initialize
+    - name: test_admission_phase_follows_concrete_wall_clock_window
+      kind: function
+      line_start: 30
+      line_end: 50
+      signature: 'test_admission_phase_follows_concrete_wall_clock_window(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - ResolvedRunWindow
+      - admission_phase_for
+      - datetime
+      - make_repository
+      - repository.create
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - *id018
+      - &id029
+        path: tests/test_run_repository.py
+        symbol: make_repository
+      - &id030
+        path: tests/test_sessions.py
+        symbol: make_repository
+      - *id012
+      - *id013
+    - name: test_queue_estimate_can_advance_admission_phase
+      kind: function
+      line_start: 53
+      line_end: 68
+      signature: 'test_queue_estimate_can_advance_admission_phase(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - ResolvedRunWindow
+      - admission_phase_for
+      - datetime
+      - make_repository
+      - repository.create
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - *id018
+      - *id029
+      - *id030
+      - *id012
+      - *id013
+    - name: test_recurrence_resolves_local_wall_clock_across_dst
+      kind: function
+      line_start: 71
+      line_end: 84
+      signature: test_recurrence_resolves_local_wall_clock_across_dst() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - RecurrenceRule
+      - datetime
+      - recurrence.next_window
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - *id027
+    - name: test_restart_preserves_original_session_end
+      kind: function
+      line_start: 87
+      line_end: 100
+      signature: 'test_restart_preserves_original_session_end(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - ResolvedRunWindow
+      - datetime
+      - make_repository
+      - repository.create
+      - repository.recover_interrupted
+      - repository.start
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - *id029
+      - *id030
+      - *id012
+      - *id013
+      - *id031
+      - *id032
+      - *id033
+      - *id034
+      - *id035
+      - *id036
+      - *id037
+      - *id038
+    - name: test_module_priorities_normalize_to_exactly_one_hundred
+      kind: function
+      line_start: 103
+      line_end: 107
+      signature: test_module_priorities_normalize_to_exactly_one_hundred() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - normalize_priorities
+      - priorities.values
+      - sum
+      parser: python-ast
+      dependency_targets:
+      - *id039
+    - name: test_missed_recurrence_schedules_next_future_occurrence
+      kind: function
+      line_start: 110
+      line_end: 136
+      signature: 'test_missed_recurrence_schedules_next_future_occurrence(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Database
+      - ModuleRepository
+      - ModuleSupervisor
+      - RecurrenceRule
+      - ResolvedRunWindow
+      - RunRepository
+      - RunnerService
+      - SessionRepository
+      - Settings
+      - SyntheticTaskPlugin
+      - TaskRegistry
+      - WorkSessionService
+      - asyncio.run
+      - database.initialize
+      - datetime
+      - next
+      - registry.register
+      - service.tick
+      - sessions.create
+      - sessions.get
+      - sessions.list_recent
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - *id040
+      - path: src/nerve_center/discovery/service.py
+        symbol: ConnectorRegistry.register
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.register
+      - path: src/nerve_center/scheduler/registry.py
+        symbol: TaskRegistry.register
+      - path: src/nerve_center/scheduler/provider_worker.py
+        symbol: ProviderWorkExecutor.tick
+      - path: src/nerve_center/scheduler/service.py
+        symbol: SchedulerService.tick
+      - path: src/nerve_center/scheduler/sessions.py
+        symbol: WorkSessionService.tick
+      - *id012
+      - *id013
+      - path: src/nerve_center/persistence/runs.py
+        symbol: RunRepository.list_recent
+      - path: src/nerve_center/persistence/sessions.py
+        symbol: SessionRepository.list_recent

@@ -1,0 +1,1200 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: '13'
+  files:
+  - path: desktop/src/CorePanels.tsx
+    analysis_version: 1
+    language: typescript
+    content_hash: 29f78f28b6f2632905e4b2fcbad99e9626ba4a26
+    dependencies:
+    - ./api
+    - ./display
+    - ./types
+    - react
+    provides:
+    - toggle
+    - submit
+    - ManagerSettings
+    - QueueMetric
+    symbols:
+    - name: toggle
+      kind: function
+      line_start: 56
+      line_end: 61
+      signature: toggle()
+      inputs: []
+      output: unspecified
+      dependencies:
+      - messageOf
+      - onError
+      - onRefresh
+      - setModuleLifecycle
+      parser: typescript-pattern
+      dependency_targets:
+      - &id001
+        path: desktop/src/display.tsx
+        symbol: messageOf
+      - path: desktop/src/api.ts
+        symbol: setModuleLifecycle
+    - name: submit
+      kind: function
+      line_start: 87
+      line_end: 87
+      signature: 'submit(event: FormEvent)'
+      inputs:
+      - 'event: FormEvent'
+      output: unspecified
+      dependencies:
+      - Intl.DateTimeFormat
+      - createDurationSession
+      - createFixedSession
+      - createRecurringSession
+      - event.preventDefault
+      - messageOf
+      - onError
+      - onRefresh
+      - resolvedOptions
+      parser: typescript-pattern
+      dependency_targets:
+      - path: desktop/src/api.ts
+        symbol: createDurationSession
+      - path: desktop/src/api.ts
+        symbol: createFixedSession
+      - path: desktop/src/api.ts
+        symbol: createRecurringSession
+      - *id001
+    - name: ManagerSettings
+      kind: function
+      line_start: 100
+      line_end: 101
+      signature: 'ManagerSettings({ modules }: { modules: ModuleRecord[] })'
+      inputs:
+      - '{ modules }: { modules: ModuleRecord[] }'
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: QueueMetric
+      kind: function
+      line_start: 104
+      line_end: 106
+      signature: 'QueueMetric({ label, value }: { label: string; value: string | number })'
+      inputs:
+      - '{ label, value }: { label: string; value: string | number }'
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+  - path: desktop/src/DiscoveryAuditPanel.tsx
+    analysis_version: 1
+    language: typescript
+    content_hash: 254b45e5902c6da6ce1cffa1477e36a89eb612b4
+    dependencies:
+    - ./api
+    - ./display
+    - react
+    provides:
+    - DiscoveryAuditPanel
+    - refresh
+    symbols:
+    - name: DiscoveryAuditPanel
+      kind: function
+      line_start: 5
+      line_end: 81
+      signature: DiscoveryAuditPanel()
+      inputs: []
+      output: unspecified
+      dependencies:
+      - Object.entries
+      - filter
+      - gaps.map
+      - getJobScoutDiscoveryAudit
+      - refresh
+      - setAudit
+      - slice
+      - strategies.filter
+      - strategies.map
+      - strategy.learned_weight.toFixed
+      - strategy.warnings.join
+      - strategy.weight_after.toFixed
+      - strategy.weight_before.toFixed
+      - then
+      - titleCase
+      - useEffect
+      - useMemo
+      - values.join
+      - window.clearInterval
+      - window.setInterval
+      parser: typescript-pattern
+      dependency_targets:
+      - &id002
+        path: desktop/src/api.ts
+        symbol: getJobScoutDiscoveryAudit
+      - path: desktop/src/DiscoveryAuditPanel.tsx
+        symbol: refresh
+      - path: desktop/src/StartupGate.tsx
+        symbol: refresh
+      - path: desktop/src/display.tsx
+        symbol: titleCase
+    - name: refresh
+      kind: function
+      line_start: 11
+      line_end: 17
+      signature: refresh()
+      inputs: []
+      output: unspecified
+      dependencies:
+      - getJobScoutDiscoveryAudit
+      - setAudit
+      - then
+      parser: typescript-pattern
+      dependency_targets:
+      - *id002
+  - path: src/nerve_center/discovery/__init__.py
+    analysis_version: 1
+    language: python
+    content_hash: 2a50601942d142b0e46e67fe576d29de6ada1d5c
+    dependencies:
+    - nerve_center.discovery.models
+    provides: []
+    symbols: []
+  - path: src/nerve_center/discovery/fetching.py
+    analysis_version: 1
+    language: python
+    content_hash: 5db93becfdf6b79ee6969a06a6cacbb22135e8e5
+    dependencies:
+    - __future__
+    - asyncio
+    - collections.abc
+    - dataclasses
+    - httpx
+    - time
+    - urllib.parse
+    provides:
+    - DomainRequestGate.__init__
+    - DomainRequestGate.for_url
+    - DomainRequestGate.wait
+    - HttpFetcher.__init__
+    - HttpFetcher.get
+    - _is_textual
+    symbols:
+    - name: DomainRequestGate.__init__
+      kind: method
+      line_start: 40
+      line_end: 47
+      signature: 'DomainRequestGate.__init__(self, max_per_domain: int, minimum_interval_seconds: float) -> None'
+      inputs:
+      - self
+      - 'max_per_domain: int'
+      - 'minimum_interval_seconds: float'
+      output: None
+      dependencies:
+      - ValueError
+      - asyncio.Lock
+      - max
+      parser: python-ast
+      dependency_targets: []
+    - name: DomainRequestGate.for_url
+      kind: method
+      line_start: 49
+      line_end: 52
+      signature: 'DomainRequestGate.for_url(self, url: str) -> asyncio.Semaphore'
+      inputs:
+      - self
+      - 'url: str'
+      output: asyncio.Semaphore
+      dependencies:
+      - (urlsplit(url).hostname or '').casefold
+      - asyncio.Semaphore
+      - self._gates.setdefault
+      - urlsplit
+      parser: python-ast
+      dependency_targets: []
+    - name: DomainRequestGate.wait
+      kind: method
+      line_start: 54
+      line_end: 60
+      signature: 'DomainRequestGate.wait(self, url: str) -> None'
+      inputs:
+      - self
+      - 'url: str'
+      output: None
+      dependencies:
+      - (urlsplit(url).hostname or '').casefold
+      - asyncio.sleep
+      - self._last_request.get
+      - time.monotonic
+      - urlsplit
+      parser: python-ast
+      dependency_targets: []
+    - name: HttpFetcher.__init__
+      kind: method
+      line_start: 64
+      line_end: 75
+      signature: 'HttpFetcher.__init__(self, client: httpx.AsyncClient | None, timeout_seconds: float, gate: DomainRequestGate
+        | None, before_request: Callable[[], object] | None) -> None'
+      inputs:
+      - self
+      - 'client: httpx.AsyncClient | None'
+      - 'timeout_seconds: float'
+      - 'gate: DomainRequestGate | None'
+      - 'before_request: Callable[[], object] | None'
+      output: None
+      dependencies:
+      - DomainRequestGate
+      parser: python-ast
+      dependency_targets: []
+    - name: HttpFetcher.get
+      kind: method
+      line_start: 77
+      line_end: 152
+      signature: 'HttpFetcher.get(self, url: str, params: dict[str, object] | None, headers: dict[str, str] | None, max_bytes:
+        int | None) -> FetchResponse'
+      inputs:
+      - self
+      - 'url: str'
+      - 'params: dict[str, object] | None'
+      - 'headers: dict[str, str] | None'
+      - 'max_bytes: int | None'
+      output: FetchResponse
+      dependencies:
+      - FetchResponse
+      - ResponseTooLargeError
+      - ValueError
+      - _is_textual
+      - any
+      - body.extend
+      - bytearray
+      - bytes
+      - challenge_text[:200000].casefold
+      - client.aclose
+      - client.stream
+      - content.decode
+      - declared.isdigit
+      - httpx.AsyncClient
+      - int
+      - key.casefold
+      - len
+      - response.aiter_bytes
+      - response.headers.items
+      - self.before_request
+      - self.gate.for_url
+      - self.gate.wait
+      - str
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/discovery/fetching.py
+        symbol: _is_textual
+      - path: src/nerve_center/discovery/fetching.py
+        symbol: DomainRequestGate.for_url
+      - path: src/nerve_center/discovery/fetching.py
+        symbol: DomainRequestGate.wait
+      - path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService.wait
+      - path: tests/test_module_runtime.py
+        symbol: StubProcess.wait
+    - name: _is_textual
+      kind: function
+      line_start: 155
+      line_end: 157
+      signature: '_is_textual(content_type: str) -> bool'
+      inputs:
+      - 'content_type: str'
+      output: bool
+      dependencies:
+      - content_type.split
+      - content_type.split(';', 1)[0].strip
+      - content_type.split(';', 1)[0].strip().casefold
+      - mime.startswith
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/domain/run.py
+    analysis_version: 1
+    language: python
+    content_hash: c1e6946fcd0cb544e8433c368e5669d664240962
+    dependencies:
+    - __future__
+    - dataclasses
+    - datetime
+    - enum
+    - typing
+    provides:
+    - RunStatus.is_terminal
+    - InvalidRunTransitionError.__init__
+    symbols:
+    - name: RunStatus.is_terminal
+      kind: method
+      line_start: 24
+      line_end: 25
+      signature: RunStatus.is_terminal(self) -> bool
+      inputs:
+      - self
+      output: bool
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: InvalidRunTransitionError.__init__
+      kind: method
+      line_start: 94
+      line_end: 97
+      signature: 'InvalidRunTransitionError.__init__(self, source: RunStatus, target: RunStatus) -> None'
+      inputs:
+      - self
+      - 'source: RunStatus'
+      - 'target: RunStatus'
+      output: None
+      dependencies:
+      - super
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/plugins/__init__.py
+    analysis_version: 1
+    language: python
+    content_hash: 7103c4e1583997741fb7484ade5e0a45cc2d55d0
+    dependencies: []
+    provides: []
+    symbols: []
+  - path: src/nerve_center/plugins/job_scout/uploads.py
+    analysis_version: 1
+    language: python
+    content_hash: dadef7c6904031bd532096617992e03aa15c42cc
+    dependencies:
+    - __future__
+    - base64
+    - binascii
+    - fastapi
+    - nerve_center.config
+    - nerve_center.plugins.job_scout.settings
+    - nerve_center.profile.documents
+    - nerve_center.providers.errors
+    - pathlib
+    - uuid
+    provides:
+    - register_job_scout_upload_route
+    - register_job_scout_upload_route.upload_resume
+    symbols:
+    - name: register_job_scout_upload_route
+      kind: function
+      line_start: 18
+      line_end: 78
+      signature: 'register_job_scout_upload_route(application: FastAPI, settings: Settings) -> None'
+      inputs:
+      - 'application: FastAPI'
+      - 'settings: Settings'
+      output: None
+      dependencies:
+      - HTTPException
+      - Path
+      - Path(request.file_name.replace('\\', '/')).name.strip
+      - ResumeLoadRequest
+      - application.post
+      - base64.b64decode
+      - coordinator.load_resume
+      - error.as_dict
+      - import_dir.mkdir
+      - import_dir.rmdir
+      - isinstance
+      - len
+      - request.file_name.replace
+      - settings.module_data_dir
+      - stored_path.unlink
+      - stored_path.write_bytes
+      - str
+      - uuid4
+      parser: python-ast
+      dependency_targets:
+      - &id003
+        path: src/nerve_center/plugins/job_scout/configuration.py
+        symbol: JobScoutCoordinator.load_resume
+      - &id004
+        path: src/nerve_center/plugins/job_scout/configuration.py
+        symbol: register_job_scout_configuration_routes.load_resume
+      - &id005
+        path: src/nerve_center/providers/errors.py
+        symbol: ProviderError.as_dict
+      - &id006
+        path: src/nerve_center/config.py
+        symbol: Settings.module_data_dir
+    - name: register_job_scout_upload_route.upload_resume
+      kind: function
+      line_start: 23
+      line_end: 78
+      signature: 'register_job_scout_upload_route.upload_resume(request: ResumeUploadRequest) -> object'
+      inputs:
+      - 'request: ResumeUploadRequest'
+      output: object
+      dependencies:
+      - HTTPException
+      - Path
+      - Path(request.file_name.replace('\\', '/')).name.strip
+      - ResumeLoadRequest
+      - application.post
+      - base64.b64decode
+      - coordinator.load_resume
+      - error.as_dict
+      - import_dir.mkdir
+      - import_dir.rmdir
+      - isinstance
+      - len
+      - request.file_name.replace
+      - settings.module_data_dir
+      - stored_path.unlink
+      - stored_path.write_bytes
+      - str
+      - uuid4
+      parser: python-ast
+      dependency_targets:
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+  - path: tests/test_fit_analysis.py
+    analysis_version: 1
+    language: python
+    content_hash: 6cafbcdc657a92d69d59aa4bb3b6be898ac43195
+    dependencies:
+    - asyncio
+    - nerve_center.discovery.models
+    - nerve_center.profile.models
+    - nerve_center.providers.base
+    - nerve_center.scoring.fit
+    - nerve_center.scoring.models
+    - pydantic
+    provides:
+    - FakeProvider.__init__
+    - FakeProvider.list_models
+    - FakeProvider.generate_structured
+    - test_fit_analysis_rejects_invalid_evidence_and_unknown_claims
+    - test_fit_analysis_normalizes_fractional_dimension_scale
+    symbols:
+    - name: FakeProvider.__init__
+      kind: method
+      line_start: 27
+      line_end: 28
+      signature: 'FakeProvider.__init__(self, response: FitAnalysisResponse) -> None'
+      inputs:
+      - self
+      - 'response: FitAnalysisResponse'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: FakeProvider.list_models
+      kind: method
+      line_start: 30
+      line_end: 31
+      signature: FakeProvider.list_models(self)
+      inputs:
+      - self
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: FakeProvider.generate_structured
+      kind: method
+      line_start: 33
+      line_end: 54
+      signature: 'FakeProvider.generate_structured(self, model: str, system_prompt: str, user_prompt: str, response_type:
+        type[BaseModel], contract_version: str)'
+      inputs:
+      - self
+      - 'model: str'
+      - 'system_prompt: str'
+      - 'user_prompt: str'
+      - 'response_type: type[BaseModel]'
+      - 'contract_version: str'
+      output: unspecified
+      dependencies:
+      - ProviderCallMetadata
+      - StructuredGenerationResult
+      parser: python-ast
+      dependency_targets: []
+    - name: test_fit_analysis_rejects_invalid_evidence_and_unknown_claims
+      kind: function
+      line_start: 57
+      line_end: 158
+      signature: test_fit_analysis_rejects_invalid_evidence_and_unknown_claims() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - CanonicalCareerProfile
+      - CareerClaim
+      - EvidenceReference
+      - ExtractedQualificationAssessment
+      - FakeProvider
+      - FitAnalysisResponse
+      - JobFitAnalyzer
+      - JobFitAnalyzer(FakeProvider(response)).analyze
+      - JobProvenance
+      - NormalizedJobOpening
+      - asyncio.run
+      parser: python-ast
+      dependency_targets:
+      - &id007
+        path: src/nerve_center/scoring/fit.py
+        symbol: JobFitAnalyzer.analyze
+    - name: test_fit_analysis_normalizes_fractional_dimension_scale
+      kind: function
+      line_start: 161
+      line_end: 196
+      signature: test_fit_analysis_normalizes_fractional_dimension_scale() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - CanonicalCareerProfile
+      - FakeProvider
+      - FitAnalysisResponse
+      - JobFitAnalyzer
+      - JobFitAnalyzer(FakeProvider(response)).analyze
+      - JobProvenance
+      - NormalizedJobOpening
+      - any
+      - asyncio.run
+      parser: python-ast
+      dependency_targets:
+      - *id007
+  - path: tests/test_profile_api.py
+    analysis_version: 1
+    language: python
+    content_hash: 601c4278289c91cacc367da9c1df7712f9e2b911
+    dependencies:
+    - fastapi
+    - fastapi.testclient
+    - nerve_center.api.schemas
+    - nerve_center.config
+    - nerve_center.persistence.database
+    - nerve_center.profile.api
+    - nerve_center.profile.models
+    - nerve_center.providers.base
+    - pathlib
+    - pydantic
+    provides:
+    - FakeProvider.list_models
+    - FakeProvider.generate_structured
+    - test_profile_routes_cover_import_extract_decide_and_override
+    symbols:
+    - name: FakeProvider.list_models
+      kind: method
+      line_start: 34
+      line_end: 35
+      signature: FakeProvider.list_models(self) -> list[ProviderModel]
+      inputs:
+      - self
+      output: list[ProviderModel]
+      dependencies:
+      - ProviderModel
+      parser: python-ast
+      dependency_targets: []
+    - name: FakeProvider.generate_structured
+      kind: method
+      line_start: 37
+      line_end: 80
+      signature: 'FakeProvider.generate_structured(self, model: str, system_prompt: str, user_prompt: str, response_type:
+        type[BaseModel], contract_version: str)'
+      inputs:
+      - self
+      - 'model: str'
+      - 'system_prompt: str'
+      - 'user_prompt: str'
+      - 'response_type: type[BaseModel]'
+      - 'contract_version: str'
+      output: unspecified
+      dependencies:
+      - CareerExtractionResponse
+      - ExtractedClaim
+      - ExtractedEvidence
+      - ExtractedPositioningHypothesis
+      - ProviderCallMetadata
+      - StructuredGenerationResult
+      parser: python-ast
+      dependency_targets: []
+    - name: test_profile_routes_cover_import_extract_decide_and_override
+      kind: function
+      line_start: 83
+      line_end: 125
+      signature: 'test_profile_routes_cover_import_extract_decide_and_override(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - ClaimDecisionRequest
+      - ClaimDecisionRequest(decision='confirmed').model_dump
+      - ClaimOverrideRequest
+      - ClaimOverrideRequest(label='Product analytics leadership', statement='Built and led product analytics.').model_dump
+      - Database
+      - DocumentRegisterRequest
+      - DocumentRegisterRequest(path=str(source)).model_dump
+      - FakeProvider
+      - FastAPI
+      - HypothesisDecisionRequest
+      - HypothesisDecisionRequest(decision='approved').model_dump
+      - ProfileExtractRequest
+      - ProfileExtractRequest(document_id=document['id'], model='fake:1').model_dump
+      - Settings
+      - TestClient
+      - client.get
+      - client.get('/api/v1/providers/ollama/models').json
+      - client.post
+      - client.post('/api/v1/profile/documents', json=DocumentRegisterRequest(path=str(source)).model_dump(mode='json')).json
+      - client.post('/api/v1/profile/extract', json=ProfileExtractRequest(document_id=document['id'], model='fake:1').model_dump(mode='json')).json
+      - client.post(f"/api/v1/profile/claims/{claim['id']}/decision", json=ClaimDecisionRequest(decision='confirmed').model_dump(mode='json')).json
+      - client.post(f"/api/v1/profile/hypotheses/{hypothesis['id']}/decision", json=HypothesisDecisionRequest(decision='approved').model_dump(mode='json')).json
+      - client.put
+      - client.put(f"/api/v1/profile/claims/{claim['id']}", json=ClaimOverrideRequest(label='Product analytics leadership',
+        statement='Built and led product analytics.').model_dump(mode='json')).json
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/discovery.py
+        symbol: SearchCacheRepository.put
+  - path: tests/test_provider_manager.py
+    analysis_version: 1
+    language: python
+    content_hash: b1afeee348b073eb92f73245979c2c608a7982a8
+    dependencies:
+    - asyncio
+    - datetime
+    - fastapi.testclient
+    - nerve_center.api.app
+    - nerve_center.config
+    - nerve_center.domain.run_window
+    - nerve_center.domain.work_queue
+    - nerve_center.persistence.database
+    - nerve_center.persistence.providers
+    - nerve_center.persistence.runs
+    - nerve_center.persistence.work_queue
+    - nerve_center.providers.base
+    - nerve_center.providers.errors
+    - nerve_center.providers.manager
+    - nerve_center.scheduler.provider_worker
+    - nerve_center.scheduler.work_queue
+    - pathlib
+    - pytest
+    - typing
+    provides:
+    - FakeJsonProvider.__init__
+    - FakeJsonProvider.list_models
+    - FakeJsonProvider.generate_json
+    - FailingJsonProvider.generate_json
+    - MetadataFakeProvider.__init__
+    - MetadataFakeProvider.list_models
+    - make_queue
+    - model_request
+    - test_manager_selects_model_without_request_naming_one
+    - test_manager_uses_metadata_prior_instead_of_alphabetical_cold_start
+    - test_manager_honors_manager_owned_preferred_model
+    - test_manager_can_bound_execution_to_manager_owned_preferred_model
+    - test_manager_rejects_missing_preferred_model_when_fallback_disabled
+    - test_strict_schema_failure_uses_configured_fallback_then_returns_to_primary
+    - test_provider_executor_completes_valid_model_blind_work
+    - test_provider_executor_rejects_schema_invalid_result
+    - test_manager_prefers_task_model_with_stronger_observed_results
+    - test_manager_falls_back_without_exposing_models_to_request
+    - test_module_acknowledgement_records_acceptance_evidence
+    - test_schema_failure_falls_back_within_the_same_queue_attempt
+    - test_provider_catalog_is_inspectable_without_exposing_routing_control
+    - _queue_spec
+    symbols:
+    - name: FakeJsonProvider.__init__
+      kind: method
+      line_start: 30
+      line_end: 34
+      signature: 'FakeJsonProvider.__init__(self, name: str, model: str, value: dict[str, Any]) -> None'
+      inputs:
+      - self
+      - 'name: str'
+      - 'model: str'
+      - 'value: dict[str, Any]'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: FakeJsonProvider.list_models
+      kind: method
+      line_start: 36
+      line_end: 37
+      signature: FakeJsonProvider.list_models(self) -> list[ProviderModel]
+      inputs:
+      - self
+      output: list[ProviderModel]
+      dependencies:
+      - ProviderModel
+      parser: python-ast
+      dependency_targets: []
+    - name: FakeJsonProvider.generate_json
+      kind: method
+      line_start: 39
+      line_end: 62
+      signature: 'FakeJsonProvider.generate_json(self, model: str, system_prompt: str, user_prompt: str, output_schema: dict[str,
+        Any], contract_version: str) -> JsonGenerationResult'
+      inputs:
+      - self
+      - 'model: str'
+      - 'system_prompt: str'
+      - 'user_prompt: str'
+      - 'output_schema: dict[str, Any]'
+      - 'contract_version: str'
+      output: JsonGenerationResult
+      dependencies:
+      - JsonGenerationResult
+      - ProviderCallMetadata
+      - datetime.now
+      - self.selected_models.append
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/scoring.py
+        symbol: OpportunityScoreRepository.append
+    - name: FailingJsonProvider.generate_json
+      kind: method
+      line_start: 66
+      line_end: 76
+      signature: 'FailingJsonProvider.generate_json(self, model: str, system_prompt: str, user_prompt: str, output_schema:
+        dict[str, Any], contract_version: str) -> JsonGenerationResult'
+      inputs:
+      - self
+      - 'model: str'
+      - 'system_prompt: str'
+      - 'user_prompt: str'
+      - 'output_schema: dict[str, Any]'
+      - 'contract_version: str'
+      output: JsonGenerationResult
+      dependencies:
+      - ProviderError
+      parser: python-ast
+      dependency_targets: []
+    - name: MetadataFakeProvider.__init__
+      kind: method
+      line_start: 80
+      line_end: 82
+      signature: 'MetadataFakeProvider.__init__(self, model: ProviderModel, value: dict[str, Any]) -> None'
+      inputs:
+      - self
+      - 'model: ProviderModel'
+      - 'value: dict[str, Any]'
+      output: None
+      dependencies:
+      - super
+      parser: python-ast
+      dependency_targets: []
+    - name: MetadataFakeProvider.list_models
+      kind: method
+      line_start: 84
+      line_end: 85
+      signature: MetadataFakeProvider.list_models(self) -> list[ProviderModel]
+      inputs:
+      - self
+      output: list[ProviderModel]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: make_queue
+      kind: function
+      line_start: 88
+      line_end: 94
+      signature: 'make_queue(tmp_path: Path) -> tuple[WorkQueueService, str]'
+      inputs:
+      - 'tmp_path: Path'
+      output: tuple[WorkQueueService, str]
+      dependencies:
+      - Database
+      - DurationRunWindow
+      - RunRepository
+      - RunRepository(database).create
+      - Settings
+      - WorkQueueRepository
+      - WorkQueueService
+      - database.initialize
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - &id022
+        path: src/nerve_center/persistence/runs.py
+        symbol: RunRepository.create
+      - &id023
+        path: src/nerve_center/persistence/sessions.py
+        symbol: SessionRepository.create
+      - &id021
+        path: src/nerve_center/persistence/database.py
+        symbol: Database.initialize
+    - name: model_request
+      kind: function
+      line_start: 97
+      line_end: 108
+      signature: model_request() -> ModelBlindRequest
+      inputs: []
+      output: ModelBlindRequest
+      dependencies:
+      - ModelBlindRequest
+      parser: python-ast
+      dependency_targets: []
+    - name: test_manager_selects_model_without_request_naming_one
+      kind: function
+      line_start: 111
+      line_end: 120
+      signature: test_manager_selects_model_without_request_naming_one() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - FakeJsonProvider
+      - ProviderManager
+      - asyncio.run
+      - manager.execute
+      - model_request
+      parser: python-ast
+      dependency_targets:
+      - &id008
+        path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager.execute
+      - &id009
+        path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.execute
+      - &id010
+        path: tests/test_scheduler.py
+        symbol: test_tick_starts_due_fixed_run.execute
+      - &id011
+        path: tests/test_provider_manager.py
+        symbol: model_request
+    - name: test_manager_uses_metadata_prior_instead_of_alphabetical_cold_start
+      kind: function
+      line_start: 123
+      line_end: 150
+      signature: test_manager_uses_metadata_prior_instead_of_alphabetical_cold_start() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - MetadataFakeProvider
+      - ProviderManager
+      - ProviderModel
+      - asyncio.run
+      - manager.execute
+      - model_request
+      parser: python-ast
+      dependency_targets:
+      - *id008
+      - *id009
+      - *id010
+      - *id011
+    - name: test_manager_honors_manager_owned_preferred_model
+      kind: function
+      line_start: 153
+      line_end: 165
+      signature: test_manager_honors_manager_owned_preferred_model() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - FakeJsonProvider
+      - ProviderManager
+      - asyncio.run
+      - manager.execute
+      - model_request
+      parser: python-ast
+      dependency_targets:
+      - *id008
+      - *id009
+      - *id010
+      - *id011
+    - name: test_manager_can_bound_execution_to_manager_owned_preferred_model
+      kind: function
+      line_start: 168
+      line_end: 180
+      signature: test_manager_can_bound_execution_to_manager_owned_preferred_model() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - FailingJsonProvider
+      - FakeJsonProvider
+      - ProviderManager
+      - asyncio.run
+      - manager.execute
+      - model_request
+      - pytest.raises
+      parser: python-ast
+      dependency_targets:
+      - *id008
+      - *id009
+      - *id010
+      - *id011
+    - name: test_manager_rejects_missing_preferred_model_when_fallback_disabled
+      kind: function
+      line_start: 183
+      line_end: 195
+      signature: test_manager_rejects_missing_preferred_model_when_fallback_disabled() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - FakeJsonProvider
+      - ProviderManager
+      - asyncio.run
+      - manager.execute
+      - model_request
+      - pytest.raises
+      parser: python-ast
+      dependency_targets:
+      - *id008
+      - *id009
+      - *id010
+      - *id011
+    - name: test_strict_schema_failure_uses_configured_fallback_then_returns_to_primary
+      kind: function
+      line_start: 198
+      line_end: 221
+      signature: test_strict_schema_failure_uses_configured_fallback_then_returns_to_primary() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - FakeJsonProvider
+      - ProviderManager
+      - asyncio.run
+      - manager.execute
+      - model_request
+      - model_request().model_copy
+      parser: python-ast
+      dependency_targets:
+      - *id008
+      - *id009
+      - *id010
+      - *id011
+    - name: test_provider_executor_completes_valid_model_blind_work
+      kind: function
+      line_start: 224
+      line_end: 239
+      signature: 'test_provider_executor_completes_valid_model_blind_work(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - FakeJsonProvider
+      - ProviderManager
+      - ProviderWorkExecutor
+      - _queue_spec
+      - asyncio.run
+      - executor.tick
+      - make_queue
+      - queue.deliver_results
+      - queue.submit
+      parser: python-ast
+      dependency_targets:
+      - &id012
+        path: tests/test_provider_manager.py
+        symbol: _queue_spec
+      - &id013
+        path: src/nerve_center/scheduler/provider_worker.py
+        symbol: ProviderWorkExecutor.tick
+      - &id014
+        path: src/nerve_center/scheduler/service.py
+        symbol: SchedulerService.tick
+      - &id015
+        path: src/nerve_center/scheduler/sessions.py
+        symbol: WorkSessionService.tick
+      - &id016
+        path: tests/test_provider_manager.py
+        symbol: make_queue
+      - &id017
+        path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.deliver_results
+      - &id018
+        path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleWorkQueue.deliver_results
+      - &id019
+        path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.deliver_results
+      - &id020
+        path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.deliver_results
+    - name: test_provider_executor_rejects_schema_invalid_result
+      kind: function
+      line_start: 242
+      line_end: 256
+      signature: 'test_provider_executor_rejects_schema_invalid_result(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - FakeJsonProvider
+      - ProviderManager
+      - ProviderWorkExecutor
+      - _queue_spec
+      - asyncio.run
+      - executor.tick
+      - make_queue
+      - queue.deliver_results
+      - queue.submit
+      parser: python-ast
+      dependency_targets:
+      - *id012
+      - *id013
+      - *id014
+      - *id015
+      - *id016
+      - *id017
+      - *id018
+      - *id019
+      - *id020
+    - name: test_manager_prefers_task_model_with_stronger_observed_results
+      kind: function
+      line_start: 259
+      line_end: 278
+      signature: 'test_manager_prefers_task_model_with_stronger_observed_results(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Database
+      - FakeJsonProvider
+      - ModelEvidenceRepository
+      - ProviderManager
+      - Settings
+      - asyncio.run
+      - database.initialize
+      - evidence.record_outcome
+      - manager.execute
+      - model_request
+      parser: python-ast
+      dependency_targets:
+      - *id021
+      - path: src/nerve_center/persistence/providers.py
+        symbol: ModelEvidenceRepository.record_outcome
+      - *id008
+      - *id009
+      - *id010
+      - *id011
+    - name: test_manager_falls_back_without_exposing_models_to_request
+      kind: function
+      line_start: 281
+      line_end: 289
+      signature: test_manager_falls_back_without_exposing_models_to_request() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - FailingJsonProvider
+      - FakeJsonProvider
+      - ProviderManager
+      - asyncio.run
+      - manager.execute
+      - model_request
+      parser: python-ast
+      dependency_targets:
+      - *id008
+      - *id009
+      - *id010
+      - *id011
+    - name: test_module_acknowledgement_records_acceptance_evidence
+      kind: function
+      line_start: 292
+      line_end: 315
+      signature: 'test_module_acknowledgement_records_acceptance_evidence(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Database
+      - DurationRunWindow
+      - FakeJsonProvider
+      - ModelEvidenceRepository
+      - ProviderManager
+      - ProviderWorkExecutor
+      - RunRepository
+      - RunRepository(database).create
+      - Settings
+      - WorkQueueRepository
+      - WorkQueueService
+      - _queue_spec
+      - asyncio.run
+      - database.initialize
+      - evidence.task_evidence
+      - executor.tick
+      - queue.acknowledge
+      - queue.deliver_results
+      - queue.submit
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - *id022
+      - *id023
+      - *id012
+      - *id021
+      - path: src/nerve_center/persistence/providers.py
+        symbol: ModelEvidenceRepository.task_evidence
+      - *id013
+      - *id014
+      - *id015
+      - path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.acknowledge
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleWorkQueue.acknowledge
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.acknowledge
+      - *id017
+      - *id018
+      - *id019
+      - *id020
+    - name: test_schema_failure_falls_back_within_the_same_queue_attempt
+      kind: function
+      line_start: 318
+      line_end: 338
+      signature: 'test_schema_failure_falls_back_within_the_same_queue_attempt(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Database
+      - DurationRunWindow
+      - FakeJsonProvider
+      - ModelEvidenceRepository
+      - ProviderManager
+      - ProviderWorkExecutor
+      - RunRepository
+      - RunRepository(database).create
+      - Settings
+      - WorkQueueRepository
+      - WorkQueueService
+      - _queue_spec
+      - asyncio.run
+      - database.initialize
+      - executor.tick
+      - queue.submit
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - *id022
+      - *id023
+      - *id012
+      - *id021
+      - *id013
+      - *id014
+      - *id015
+    - name: test_provider_catalog_is_inspectable_without_exposing_routing_control
+      kind: function
+      line_start: 341
+      line_end: 352
+      signature: 'test_provider_catalog_is_inspectable_without_exposing_routing_control(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - FakeJsonProvider
+      - Settings
+      - TestClient
+      - client.get
+      - create_app
+      - response.json
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/api/app.py
+        symbol: create_app
+    - name: _queue_spec
+      kind: function
+      line_start: 355
+      line_end: 372
+      signature: '_queue_spec(run_id: str, max_retries: int) -> WorkRequestSpec'
+      inputs:
+      - 'run_id: str'
+      - 'max_retries: int'
+      output: WorkRequestSpec
+      dependencies:
+      - WorkRequestSpec
+      - model_request
+      parser: python-ast
+      dependency_targets:
+      - *id011

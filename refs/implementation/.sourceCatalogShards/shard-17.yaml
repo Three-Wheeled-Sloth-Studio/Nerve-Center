@@ -1,0 +1,436 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: '17'
+  files:
+  - path: src/nerve_center/api/__init__.py
+    analysis_version: 1
+    language: python
+    content_hash: 3faf57fa00cb2b654206621702fcd4c174833e2f
+    dependencies: []
+    provides: []
+    symbols: []
+  - path: src/nerve_center/discovery/connectors/ashby.py
+    analysis_version: 1
+    language: python
+    content_hash: 6ad3b52a1b28a35d1b24da8b75182c02e0805b13
+    dependencies:
+    - __future__
+    - datetime
+    - json
+    - nerve_center.discovery.fetching
+    - nerve_center.discovery.models
+    - nerve_center.discovery.normalization
+    - typing
+    provides:
+    - AshbyConnector.scan
+    - AshbyConnector._normalize
+    symbols:
+    - name: AshbyConnector.scan
+      kind: method
+      line_start: 31
+      line_end: 83
+      signature: 'AshbyConnector.scan(self, company: Company, source: DiscoverySource, fetcher: HttpFetcher) -> ConnectorScanResult'
+      inputs:
+      - self
+      - 'company: Company'
+      - 'source: DiscoverySource'
+      - 'fetcher: HttpFetcher'
+      output: ConnectorScanResult
+      dependencies:
+      - ConnectorScanResult
+      - ValueError
+      - fetcher.get
+      - isinstance
+      - json.loads
+      - payload.get
+      - raw.get
+      - self._normalize
+      - source.configuration.get
+      - str
+      - str(source.configuration.get('board_name') or '').strip
+      parser: python-ast
+      dependency_targets: []
+    - name: AshbyConnector._normalize
+      kind: method
+      line_start: 85
+      line_end: 144
+      signature: 'AshbyConnector._normalize(self, company: Company, source: DiscoverySource, raw: dict[str, Any]) -> NormalizedJobOpening
+        | None'
+      inputs:
+      - self
+      - 'company: Company'
+      - 'source: DiscoverySource'
+      - 'raw: dict[str, Any]'
+      output: NormalizedJobOpening | None
+      dependencies:
+      - '''; ''.join'
+      - JobProvenance
+      - NormalizedJobOpening
+      - canonicalize_url
+      - clean_html_text
+      - datetime.now
+      - dict.fromkeys
+      - infer_work_arrangement
+      - isinstance
+      - item.get
+      - list
+      - locations.extend
+      - parse_datetime
+      - raw.get
+      - stable_opening_id
+      - str
+      - str(item.get('location') or '').strip
+      - str(raw.get('applyUrl') or '').strip
+      - str(raw.get('department') or '').strip
+      - str(raw.get('descriptionPlain') or '').strip
+      - str(raw.get('employmentType') or '').strip
+      - str(raw.get('jobUrl') or '').strip
+      - str(raw.get('location') or '').strip
+      - str(raw.get('team') or '').strip
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/discovery/normalization.py
+        symbol: canonicalize_url
+      - path: src/nerve_center/discovery/normalization.py
+        symbol: clean_html_text
+      - path: src/nerve_center/discovery/normalization.py
+        symbol: infer_work_arrangement
+      - path: src/nerve_center/discovery/normalization.py
+        symbol: parse_datetime
+      - path: src/nerve_center/discovery/normalization.py
+        symbol: stable_opening_id
+  - path: src/nerve_center/plugins/job_scout/location_discovery.py
+    analysis_version: 1
+    language: python
+    content_hash: 4ca9703cf896b3ca4b4da1edc6ea6353f1218496
+    dependencies:
+    - __future__
+    - dataclasses
+    - datetime
+    - nerve_center.plugins.job_scout.discovery_learning
+    - nerve_center.plugins.job_scout.discovery_loop
+    - nerve_center.plugins.job_scout.discovery_quality
+    - nerve_center.plugins.job_scout.settings
+    - nerve_center.scoring.location
+    - sqlalchemy
+    provides:
+    - LocationAwareJobScoutDiscoveryLoop.prepare
+    - LocationAwareJobScoutDiscoveryLoop.cycle
+    - _normalize_legacy_location_strategy_yield
+    - _clamp
+    symbols:
+    - name: LocationAwareJobScoutDiscoveryLoop.prepare
+      kind: method
+      line_start: 29
+      line_end: 32
+      signature: 'LocationAwareJobScoutDiscoveryLoop.prepare(self, run_id: str) -> dict[str, object]'
+      inputs:
+      - self
+      - 'run_id: str'
+      output: dict[str, object]
+      dependencies:
+      - _normalize_legacy_location_strategy_yield
+      - super
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/location_discovery.py
+        symbol: _normalize_legacy_location_strategy_yield
+    - name: LocationAwareJobScoutDiscoveryLoop.cycle
+      kind: method
+      line_start: 34
+      line_end: 225
+      signature: 'LocationAwareJobScoutDiscoveryLoop.cycle(self, run_id: str, cycle: int, request_limit: int | None) -> DiscoveryCycleSummary'
+      inputs:
+      - self
+      - 'run_id: str'
+      - 'cycle: int'
+      - 'request_limit: int | None'
+      output: DiscoveryCycleSummary
+      dependencies:
+      - DiscoveryCycleSummary
+      - _RequestAllowance
+      - _clean_domain
+      - _is_employer_source
+      - clean_list
+      - dict
+      - excluded_source_ids.update
+      - int
+      - isinstance
+      - jobs_after.items
+      - len
+      - max
+      - opening_matches_market
+      - outcome.detail.get
+      - replace
+      - self._career_source_ids
+      - self._coverage_gaps
+      - self._execute_strategy
+      - self._record_gaps
+      - self._seed_due_source_strategies
+      - self._seed_known_company_strategies
+      - self.companies.list
+      - self.coordinator.store.load
+      - self.jobs.list
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _clean_domain
+      - path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: _clean_domain
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _is_employer_source
+      - path: src/nerve_center/plugins/job_scout/settings.py
+        symbol: clean_list
+      - path: src/nerve_center/scoring/location.py
+        symbol: opening_matches_market
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._career_source_ids
+      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: SourceAwareJobScoutDiscoveryLoop._coverage_gaps
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._execute_strategy
+      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: SourceAwareJobScoutDiscoveryLoop._record_gaps
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._seed_due_source_strategies
+      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: SourceAwareJobScoutDiscoveryLoop._seed_due_source_strategies
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._seed_known_company_strategies
+      - path: src/nerve_center/plugins/job_scout/settings.py
+        symbol: JobScoutConfigurationStore.load
+      - path: tests/test_job_scout_query_portfolio.py
+        symbol: _ConfigStore.load
+    - name: _normalize_legacy_location_strategy_yield
+      kind: function
+      line_start: 228
+      line_end: 271
+      signature: '_normalize_legacy_location_strategy_yield(learning: JobScoutDiscoveryRepository) -> int'
+      inputs:
+      - 'learning: JobScoutDiscoveryRepository'
+      output: int
+      dependencies:
+      - _clamp
+      - datetime.now
+      - int
+      - isinstance
+      - item.detail.get
+      - learning.database.session
+      - max
+      - select
+      - select(StrategyAttemptModel).where
+      - session.scalars
+      - session.scalars(select(DiscoveryStrategyModel)).all
+      - session.scalars(select(StrategyAttemptModel).where(StrategyAttemptModel.strategy_id == strategy.id)).all
+      - strategy.dimensions.get
+      - sum
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: _clamp
+      - path: src/nerve_center/plugins/job_scout/location_discovery.py
+        symbol: _clamp
+      - path: src/nerve_center/scoring/engine.py
+        symbol: _clamp
+      - path: src/nerve_center/persistence/database.py
+        symbol: Database.session
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.session
+      - path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager.select
+    - name: _clamp
+      kind: function
+      line_start: 274
+      line_end: 275
+      signature: '_clamp(value: float, minimum: float, maximum: float) -> float'
+      inputs:
+      - 'value: float'
+      - 'minimum: float'
+      - 'maximum: float'
+      output: float
+      dependencies:
+      - max
+      - min
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/runtime/plugin.py
+    analysis_version: 1
+    language: python
+    content_hash: 4069c829ad0c6bf60d5a79d6fa1cf985561713dd
+    dependencies:
+    - nerve_center.domain.module
+    - nerve_center.domain.task
+    - nerve_center.runtime.supervisor
+    provides:
+    - ModuleProcessTaskPlugin.__init__
+    - ModuleProcessTaskPlugin.run
+    symbols:
+    - name: ModuleProcessTaskPlugin.__init__
+      kind: method
+      line_start: 9
+      line_end: 19
+      signature: 'ModuleProcessTaskPlugin.__init__(self, supervisor: ModuleSupervisor, manifest: ModuleManifest, task_id:
+        str, display_name: str) -> None'
+      inputs:
+      - self
+      - 'supervisor: ModuleSupervisor'
+      - 'manifest: ModuleManifest'
+      - 'task_id: str'
+      - 'display_name: str'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ModuleProcessTaskPlugin.run
+      kind: method
+      line_start: 21
+      line_end: 27
+      signature: 'ModuleProcessTaskPlugin.run(self, context: TaskContext) -> TaskResult'
+      inputs:
+      - self
+      - 'context: TaskContext'
+      output: TaskResult
+      dependencies:
+      - self.supervisor.execute
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager.execute
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.execute
+      - path: tests/test_scheduler.py
+        symbol: test_tick_starts_due_fixed_run.execute
+  - path: tests/test_evidence_matching.py
+    analysis_version: 1
+    language: python
+    content_hash: 73b61d7e24acdda3f2d464875277a4806745328d
+    dependencies:
+    - nerve_center.discovery.models
+    - nerve_center.profile.models
+    - nerve_center.scoring.evidence
+    - nerve_center.scoring.models
+    provides:
+    - claim
+    - opening
+    - test_matcher_connects_semantically_equivalent_product_work_with_provenance
+    - test_matcher_marks_generic_cross_domain_support_as_transferable
+    - test_matcher_does_not_infer_unsupported_credentials
+    - test_matcher_does_not_treat_every_use_of_platform_as_product_evidence
+    - test_domain_assessment_distinguishes_direct_adjacent_transferable_and_mismatch
+    symbols:
+    - name: claim
+      kind: function
+      line_start: 12
+      line_end: 31
+      signature: 'claim(claim_id: str, category: ClaimCategory, label: str, statement: str) -> CareerClaim'
+      inputs:
+      - 'claim_id: str'
+      - 'category: ClaimCategory'
+      - 'label: str'
+      - 'statement: str'
+      output: CareerClaim
+      dependencies:
+      - CareerClaim
+      - EvidenceReference
+      parser: python-ast
+      dependency_targets: []
+    - name: opening
+      kind: function
+      line_start: 34
+      line_end: 52
+      signature: 'opening(description: str) -> NormalizedJobOpening'
+      inputs:
+      - 'description: str'
+      output: NormalizedJobOpening
+      dependencies:
+      - JobProvenance
+      - NormalizedJobOpening
+      parser: python-ast
+      dependency_targets: []
+    - name: test_matcher_connects_semantically_equivalent_product_work_with_provenance
+      kind: function
+      line_start: 55
+      line_end: 72
+      signature: test_matcher_connects_semantically_equivalent_product_work_with_provenance() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - CareerEvidenceMatcher
+      - claim
+      - matcher.match_requirement
+      parser: python-ast
+      dependency_targets:
+      - &id001
+        path: tests/test_evidence_matching.py
+        symbol: claim
+      - &id002
+        path: src/nerve_center/scoring/evidence.py
+        symbol: CareerEvidenceMatcher.match_requirement
+    - name: test_matcher_marks_generic_cross_domain_support_as_transferable
+      kind: function
+      line_start: 75
+      line_end: 89
+      signature: test_matcher_marks_generic_cross_domain_support_as_transferable() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - CareerEvidenceMatcher
+      - claim
+      - matcher.match_requirement
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+    - name: test_matcher_does_not_infer_unsupported_credentials
+      kind: function
+      line_start: 92
+      line_end: 101
+      signature: test_matcher_does_not_infer_unsupported_credentials() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - CareerEvidenceMatcher
+      - claim
+      - matcher.match_requirement
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+    - name: test_matcher_does_not_treat_every_use_of_platform_as_product_evidence
+      kind: function
+      line_start: 104
+      line_end: 116
+      signature: test_matcher_does_not_treat_every_use_of_platform_as_product_evidence() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - CareerEvidenceMatcher
+      - claim
+      - matcher.match_requirement
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+    - name: test_domain_assessment_distinguishes_direct_adjacent_transferable_and_mismatch
+      kind: function
+      line_start: 119
+      line_end: 164
+      signature: test_domain_assessment_distinguishes_direct_adjacent_transferable_and_mismatch() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - CareerEvidenceMatcher
+      - claim
+      - matcher.assess_domain
+      - matcher.match_requirement
+      - opening
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - path: src/nerve_center/scoring/evidence.py
+        symbol: CareerEvidenceMatcher.assess_domain
+      - *id002
+      - path: tests/test_evidence_matching.py
+        symbol: opening

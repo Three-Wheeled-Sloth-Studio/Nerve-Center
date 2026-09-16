@@ -1,0 +1,1520 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: '10'
+  files:
+  - path: desktop/scripts/test-location-filter.mjs
+    analysis_version: 1
+    language: javascript
+    content_hash: f007568d7224110c2d7e85b0879a9d0e1cf2878f
+    dependencies:
+    - ../src/locationFilter.js
+    - node:assert/strict
+    provides: []
+    symbols: []
+  - path: desktop/src-tauri/src/main.rs
+    analysis_version: 1
+    language: rust
+    content_hash: f2c1ca594aa3d0dfcf0afbd0b4648595d93dddbf
+    dependencies: []
+    provides:
+    - main
+    symbols:
+    - name: main
+      kind: function
+      line_start: 2
+      line_end: 5
+      signature: main()
+      inputs: []
+      output: unspecified
+      dependencies:
+      - run
+      parser: rust-pattern
+      dependency_targets: []
+  - path: src/nerve_center/api/app.py
+    analysis_version: 1
+    language: python
+    content_hash: 16e22000a5818f0adcec73e332ee2078cfa8e58a
+    dependencies:
+    - __future__
+    - collections.abc
+    - contextlib
+    - fastapi
+    - fastapi.middleware.cors
+    - nerve_center
+    - nerve_center.api.schemas
+    - nerve_center.config
+    - nerve_center.domain.run
+    - nerve_center.domain.work_queue
+    - nerve_center.model_lab.api
+    - nerve_center.model_lab.service
+    - nerve_center.persistence.database
+    - nerve_center.persistence.model_lab
+    - nerve_center.persistence.modules
+    - nerve_center.persistence.providers
+    - nerve_center.persistence.runs
+    - nerve_center.persistence.sessions
+    - nerve_center.persistence.work_queue
+    - nerve_center.plugins.job_scout.bootstrap
+    - nerve_center.plugins.synthetic
+    - nerve_center.providers.base
+    - nerve_center.providers.errors
+    - nerve_center.providers.manager
+    - nerve_center.providers.ollama
+    - nerve_center.runtime.api
+    - nerve_center.runtime.plugin
+    - nerve_center.runtime.supervisor
+    - nerve_center.scheduler.provider_worker
+    - nerve_center.scheduler.registry
+    - nerve_center.scheduler.runner
+    - nerve_center.scheduler.service
+    - nerve_center.scheduler.sessions
+    - nerve_center.scheduler.work_queue
+    - typing
+    - uvicorn
+    provides:
+    - create_app
+    - create_app.lifespan
+    - create_app.queue_error
+    - create_app.health
+    - create_app.list_provider_models
+    - create_app.list_provider_evidence
+    - create_app.create_session
+    - create_app.list_sessions
+    - create_app.get_session
+    - create_app.start_session
+    - create_app.emergency_stop_session
+    - create_app.submit_work_request
+    - create_app.list_work_requests
+    - create_app.work_queue_status
+    - create_app.get_work_request
+    - create_app.get_work_attempts
+    - create_app.claim_work
+    - create_app.complete_work_attempt
+    - create_app.fail_work_attempt
+    - create_app.cancel_work_request
+    - create_app.retry_work_request
+    - create_app.reprioritize_work_request
+    - create_app.list_modules
+    - create_app.get_module
+    - create_app.update_module
+    - create_app.create_run
+    - create_app.list_runs
+    - create_app.get_run
+    - create_app.get_run_events
+    - create_app.start_run
+    - create_app.cancel_run
+    - run
+    symbols:
+    - name: create_app
+      kind: function
+      line_start: 79
+      line_end: 492
+      signature: 'create_app(settings: Settings | None, provider: StructuredProvider | None) -> FastAPI'
+      inputs:
+      - 'settings: Settings | None'
+      - 'provider: StructuredProvider | None'
+      output: FastAPI
+      dependencies:
+      - Database
+      - FastAPI
+      - HTTPException
+      - ModelEvidenceRepository
+      - ModelLabRepository
+      - ModelLabService
+      - ModuleProcessTaskPlugin
+      - ModuleRepository
+      - ModuleResponse.from_installed
+      - ModuleSupervisor
+      - OllamaProvider
+      - ProviderCallRepository
+      - ProviderManager
+      - ProviderWorkExecutor
+      - Query
+      - QueueStatusResponse.from_snapshot
+      - RunEventResponse.from_snapshot
+      - RunRepository
+      - RunResponse.from_snapshot
+      - RunnerService
+      - SchedulerService
+      - SessionRepository
+      - SessionResponse.from_snapshot
+      - Settings
+      parser: python-ast
+      dependency_targets:
+      - &id006
+        path: src/nerve_center/api/schemas.py
+        symbol: ModuleResponse.from_installed
+    - name: create_app.lifespan
+      kind: function
+      line_start: 121
+      line_end: 131
+      signature: 'create_app.lifespan(_app: FastAPI) -> AsyncIterator[None]'
+      inputs:
+      - '_app: FastAPI'
+      output: AsyncIterator[None]
+      dependencies:
+      - database.initialize
+      - module_repository.synchronize
+      - module_supervisor.shutdown
+      - registry.list_modules
+      - runner.recover_interrupted
+      - runner.shutdown
+      - scheduler.start
+      - scheduler.stop
+      - work_queue.recover_interrupted
+      - work_sessions.recover
+      parser: python-ast
+      dependency_targets:
+      - &id025
+        path: src/nerve_center/persistence/database.py
+        symbol: Database.initialize
+      - path: src/nerve_center/persistence/modules.py
+        symbol: ModuleRepository.synchronize
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.shutdown
+      - path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService.shutdown
+      - path: src/nerve_center/api/app.py
+        symbol: create_app.list_modules
+      - path: src/nerve_center/scheduler/registry.py
+        symbol: TaskRegistry.list_modules
+      - path: src/nerve_center/persistence/runs.py
+        symbol: RunRepository.recover_interrupted
+      - path: src/nerve_center/persistence/sessions.py
+        symbol: SessionRepository.recover_interrupted
+      - path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService.recover_interrupted
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.recover_interrupted
+      - &id001
+        path: src/nerve_center/persistence/sessions.py
+        symbol: SessionRepository.start
+      - &id002
+        path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService.start
+      - &id003
+        path: src/nerve_center/scheduler/service.py
+        symbol: SchedulerService.start
+      - &id004
+        path: src/nerve_center/scheduler/sessions.py
+        symbol: WorkSessionService.start
+      - &id008
+        path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.stop
+      - &id009
+        path: src/nerve_center/scheduler/service.py
+        symbol: SchedulerService.stop
+      - path: src/nerve_center/scheduler/sessions.py
+        symbol: WorkSessionService.recover
+    - name: create_app.queue_error
+      kind: function
+      line_start: 201
+      line_end: 208
+      signature: 'create_app.queue_error(error: Exception) -> HTTPException'
+      inputs:
+      - 'error: Exception'
+      output: HTTPException
+      dependencies:
+      - HTTPException
+      - isinstance
+      - str
+      parser: python-ast
+      dependency_targets: []
+    - name: create_app.health
+      kind: function
+      line_start: 211
+      line_end: 212
+      signature: create_app.health() -> dict[str, str]
+      inputs: []
+      output: dict[str, str]
+      dependencies:
+      - application.get
+      parser: python-ast
+      dependency_targets: []
+    - name: create_app.list_provider_models
+      kind: function
+      line_start: 215
+      line_end: 219
+      signature: create_app.list_provider_models() -> list[object]
+      inputs: []
+      output: list[object]
+      dependencies:
+      - application.get
+      - list
+      - model_evidence.list_models
+      - provider_manager.list_models
+      - suppress
+      parser: python-ast
+      dependency_targets: []
+    - name: create_app.list_provider_evidence
+      kind: function
+      line_start: 222
+      line_end: 223
+      signature: 'create_app.list_provider_evidence(task_id: str) -> list[object]'
+      inputs:
+      - 'task_id: str'
+      output: list[object]
+      dependencies:
+      - application.get
+      - list
+      - model_evidence.task_evidence
+      parser: python-ast
+      dependency_targets:
+      - &id020
+        path: src/nerve_center/persistence/providers.py
+        symbol: ModelEvidenceRepository.task_evidence
+    - name: create_app.create_session
+      kind: function
+      line_start: 226
+      line_end: 252
+      signature: 'create_app.create_session(request: SessionCreateRequest) -> SessionResponse'
+      inputs:
+      - 'request: SessionCreateRequest'
+      output: SessionResponse
+      dependencies:
+      - HTTPException
+      - SessionResponse.from_snapshot
+      - ValueError
+      - application.post
+      - request.recurrence
+      - request.resource_policy.model_dump
+      - str
+      - work_sessions.create_duration
+      - work_sessions.create_fixed
+      - work_sessions.create_recurring
+      - work_sessions.start
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/api/schemas.py
+        symbol: SessionCreateRequest.recurrence
+      - path: src/nerve_center/scheduler/sessions.py
+        symbol: WorkSessionService.create_duration
+      - path: src/nerve_center/scheduler/sessions.py
+        symbol: WorkSessionService.create_fixed
+      - path: src/nerve_center/scheduler/sessions.py
+        symbol: WorkSessionService.create_recurring
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+    - name: create_app.list_sessions
+      kind: function
+      line_start: 255
+      line_end: 261
+      signature: 'create_app.list_sessions(limit: Annotated[int, Query(ge) -> list[SessionResponse]'
+      inputs:
+      - 'limit: Annotated[int, Query(ge'
+      output: list[SessionResponse]
+      dependencies:
+      - Query
+      - SessionResponse.from_snapshot
+      - application.get
+      - session_repository.list_recent
+      parser: python-ast
+      dependency_targets:
+      - &id012
+        path: src/nerve_center/persistence/runs.py
+        symbol: RunRepository.list_recent
+      - &id013
+        path: src/nerve_center/persistence/sessions.py
+        symbol: SessionRepository.list_recent
+    - name: create_app.get_session
+      kind: function
+      line_start: 264
+      line_end: 268
+      signature: 'create_app.get_session(session_id: str) -> SessionResponse'
+      inputs:
+      - 'session_id: str'
+      output: SessionResponse
+      dependencies:
+      - HTTPException
+      - SessionResponse.from_snapshot
+      - application.get
+      - session_repository.get
+      - str
+      parser: python-ast
+      dependency_targets: []
+    - name: create_app.start_session
+      kind: function
+      line_start: 271
+      line_end: 277
+      signature: 'create_app.start_session(session_id: str) -> SessionResponse'
+      inputs:
+      - 'session_id: str'
+      output: SessionResponse
+      dependencies:
+      - HTTPException
+      - SessionResponse.from_snapshot
+      - application.post
+      - str
+      - work_sessions.start
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+    - name: create_app.emergency_stop_session
+      kind: function
+      line_start: 280
+      line_end: 286
+      signature: 'create_app.emergency_stop_session(session_id: str) -> SessionResponse'
+      inputs:
+      - 'session_id: str'
+      output: SessionResponse
+      dependencies:
+      - HTTPException
+      - SessionResponse.from_snapshot
+      - application.post
+      - str
+      - work_sessions.emergency_stop
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scheduler/sessions.py
+        symbol: WorkSessionService.emergency_stop
+    - name: create_app.submit_work_request
+      kind: function
+      line_start: 292
+      line_end: 296
+      signature: 'create_app.submit_work_request(request: WorkRequestCreateRequest) -> WorkRequestResponse'
+      inputs:
+      - 'request: WorkRequestCreateRequest'
+      output: WorkRequestResponse
+      dependencies:
+      - WorkRequestResponse.from_snapshot
+      - application.post
+      - queue_error
+      - request.to_domain
+      - work_queue.submit
+      parser: python-ast
+      dependency_targets:
+      - &id005
+        path: src/nerve_center/api/app.py
+        symbol: create_app.queue_error
+      - &id010
+        path: src/nerve_center/api/schemas.py
+        symbol: ResourceBudgetRequest.to_domain
+      - &id011
+        path: src/nerve_center/api/schemas.py
+        symbol: WorkRequestCreateRequest.to_domain
+    - name: create_app.list_work_requests
+      kind: function
+      line_start: 299
+      line_end: 309
+      signature: 'create_app.list_work_requests(module_id: str | None, request_status: WorkRequestStatus | None, limit: Annotated[int,
+        Query(ge) -> list[WorkRequestResponse]'
+      inputs:
+      - 'module_id: str | None'
+      - 'request_status: WorkRequestStatus | None'
+      - 'limit: Annotated[int, Query(ge'
+      output: list[WorkRequestResponse]
+      dependencies:
+      - Query
+      - WorkRequestResponse.from_snapshot
+      - application.get
+      - work_queue.list_requests
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.list_requests
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.list_requests
+    - name: create_app.work_queue_status
+      kind: function
+      line_start: 312
+      line_end: 313
+      signature: 'create_app.work_queue_status(module_id: str | None) -> QueueStatusResponse'
+      inputs:
+      - 'module_id: str | None'
+      output: QueueStatusResponse
+      dependencies:
+      - QueueStatusResponse.from_snapshot
+      - application.get
+      - work_queue.status
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleWorkQueue.status
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.status
+    - name: create_app.get_work_request
+      kind: function
+      line_start: 316
+      line_end: 320
+      signature: 'create_app.get_work_request(request_id: str) -> WorkRequestResponse'
+      inputs:
+      - 'request_id: str'
+      output: WorkRequestResponse
+      dependencies:
+      - WorkRequestResponse.from_snapshot
+      - application.get
+      - queue_error
+      - work_queue.get
+      parser: python-ast
+      dependency_targets:
+      - *id005
+    - name: create_app.get_work_attempts
+      kind: function
+      line_start: 323
+      line_end: 330
+      signature: 'create_app.get_work_attempts(request_id: str) -> list[WorkAttemptResponse]'
+      inputs:
+      - 'request_id: str'
+      output: list[WorkAttemptResponse]
+      dependencies:
+      - WorkAttemptResponse.from_snapshot
+      - application.get
+      - queue_error
+      - work_queue.attempts
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.attempts
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.attempts
+    - name: create_app.claim_work
+      kind: function
+      line_start: 333
+      line_end: 338
+      signature: 'create_app.claim_work(request: WorkClaimRequest) -> WorkAttemptResponse | None'
+      inputs:
+      - 'request: WorkClaimRequest'
+      output: WorkAttemptResponse | None
+      dependencies:
+      - WorkAttemptResponse.from_snapshot
+      - application.post
+      - tuple
+      - work_queue.claim_next
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.claim_next
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.claim_next
+    - name: create_app.complete_work_attempt
+      kind: function
+      line_start: 341
+      line_end: 349
+      signature: 'create_app.complete_work_attempt(attempt_id: str, request: WorkCompleteRequest) -> WorkResultResponse'
+      inputs:
+      - 'attempt_id: str'
+      - 'request: WorkCompleteRequest'
+      output: WorkResultResponse
+      dependencies:
+      - WorkResultResponse.from_snapshot
+      - application.post
+      - queue_error
+      - work_queue.complete
+      parser: python-ast
+      dependency_targets:
+      - *id005
+    - name: create_app.fail_work_attempt
+      kind: function
+      line_start: 352
+      line_end: 365
+      signature: 'create_app.fail_work_attempt(attempt_id: str, request: WorkFailRequest) -> WorkRequestResponse'
+      inputs:
+      - 'attempt_id: str'
+      - 'request: WorkFailRequest'
+      output: WorkRequestResponse
+      dependencies:
+      - WorkRequestResponse.from_snapshot
+      - application.post
+      - queue_error
+      - work_queue.fail
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.fail
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.fail
+    - name: create_app.cancel_work_request
+      kind: function
+      line_start: 368
+      line_end: 372
+      signature: 'create_app.cancel_work_request(request_id: str) -> WorkRequestResponse'
+      inputs:
+      - 'request_id: str'
+      output: WorkRequestResponse
+      dependencies:
+      - WorkRequestResponse.from_snapshot
+      - application.post
+      - queue_error
+      - work_queue.cancel
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - &id014
+        path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.cancel
+      - &id015
+        path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService.cancel
+      - &id016
+        path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.cancel
+    - name: create_app.retry_work_request
+      kind: function
+      line_start: 375
+      line_end: 379
+      signature: 'create_app.retry_work_request(request_id: str) -> WorkRequestResponse'
+      inputs:
+      - 'request_id: str'
+      output: WorkRequestResponse
+      dependencies:
+      - WorkRequestResponse.from_snapshot
+      - application.post
+      - queue_error
+      - work_queue.retry
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - path: desktop/src/StartupGate.tsx
+        symbol: retry
+      - path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.retry
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.retry
+    - name: create_app.reprioritize_work_request
+      kind: function
+      line_start: 382
+      line_end: 390
+      signature: 'create_app.reprioritize_work_request(request_id: str, request: WorkPriorityRequest) -> WorkRequestResponse'
+      inputs:
+      - 'request_id: str'
+      - 'request: WorkPriorityRequest'
+      output: WorkRequestResponse
+      dependencies:
+      - WorkRequestResponse.from_snapshot
+      - application.patch
+      - queue_error
+      - work_queue.reprioritize
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.reprioritize
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.reprioritize
+    - name: create_app.list_modules
+      kind: function
+      line_start: 393
+      line_end: 400
+      signature: create_app.list_modules() -> list[ModuleResponse]
+      inputs: []
+      output: list[ModuleResponse]
+      dependencies:
+      - ModuleResponse.from_installed
+      - application.get
+      - module_repository.list
+      - module_supervisor.report
+      parser: python-ast
+      dependency_targets:
+      - *id006
+      - &id007
+        path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.report
+    - name: create_app.get_module
+      kind: function
+      line_start: 403
+      line_end: 409
+      signature: 'create_app.get_module(module_id: str) -> ModuleResponse'
+      inputs:
+      - 'module_id: str'
+      output: ModuleResponse
+      dependencies:
+      - HTTPException
+      - ModuleResponse.from_installed
+      - application.get
+      - module_repository.get
+      - module_supervisor.report
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id006
+      - *id007
+    - name: create_app.update_module
+      kind: function
+      line_start: 412
+      line_end: 424
+      signature: 'create_app.update_module(module_id: str, request: ModuleLifecycleRequest) -> ModuleResponse'
+      inputs:
+      - 'module_id: str'
+      - 'request: ModuleLifecycleRequest'
+      output: ModuleResponse
+      dependencies:
+      - HTTPException
+      - ModuleResponse.from_installed
+      - application.patch
+      - module_repository.set_lifecycle
+      - module_supervisor.report
+      - module_supervisor.stop
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id006
+      - path: src/nerve_center/persistence/modules.py
+        symbol: ModuleRepository.set_lifecycle
+      - *id007
+      - *id008
+      - *id009
+    - name: create_app.create_run
+      kind: function
+      line_start: 427
+      line_end: 448
+      signature: 'create_app.create_run(request: RunCreateRequest) -> RunResponse'
+      inputs:
+      - 'request: RunCreateRequest'
+      output: RunResponse
+      dependencies:
+      - HTTPException
+      - RunResponse.from_snapshot
+      - application.post
+      - module_repository.get
+      - registry.get
+      - registry.module_for_task
+      - repository.create
+      - request.budget.to_domain
+      - request.to_window
+      - str
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scheduler/registry.py
+        symbol: TaskRegistry.module_for_task
+      - &id026
+        path: src/nerve_center/persistence/runs.py
+        symbol: RunRepository.create
+      - &id027
+        path: src/nerve_center/persistence/sessions.py
+        symbol: SessionRepository.create
+      - *id010
+      - *id011
+      - path: src/nerve_center/api/schemas.py
+        symbol: RunCreateRequest.to_window
+    - name: create_app.list_runs
+      kind: function
+      line_start: 451
+      line_end: 454
+      signature: 'create_app.list_runs(limit: Annotated[int, Query(ge) -> list[RunResponse]'
+      inputs:
+      - 'limit: Annotated[int, Query(ge'
+      output: list[RunResponse]
+      dependencies:
+      - Query
+      - RunResponse.from_snapshot
+      - application.get
+      - repository.list_recent
+      parser: python-ast
+      dependency_targets:
+      - *id012
+      - *id013
+    - name: create_app.get_run
+      kind: function
+      line_start: 457
+      line_end: 461
+      signature: 'create_app.get_run(run_id: str) -> RunResponse'
+      inputs:
+      - 'run_id: str'
+      output: RunResponse
+      dependencies:
+      - HTTPException
+      - RunResponse.from_snapshot
+      - application.get
+      - repository.get
+      - str
+      parser: python-ast
+      dependency_targets: []
+    - name: create_app.get_run_events
+      kind: function
+      line_start: 464
+      line_end: 474
+      signature: 'create_app.get_run_events(run_id: str, limit: Annotated[int, Query(ge) -> list[RunEventResponse]'
+      inputs:
+      - 'run_id: str'
+      - 'limit: Annotated[int, Query(ge'
+      output: list[RunEventResponse]
+      dependencies:
+      - HTTPException
+      - Query
+      - RunEventResponse.from_snapshot
+      - application.get
+      - repository.list_events
+      - str
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/runs.py
+        symbol: RunRepository.list_events
+    - name: create_app.start_run
+      kind: function
+      line_start: 477
+      line_end: 483
+      signature: 'create_app.start_run(run_id: str) -> RunResponse'
+      inputs:
+      - 'run_id: str'
+      output: RunResponse
+      dependencies:
+      - HTTPException
+      - RunResponse.from_snapshot
+      - application.post
+      - runner.start
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+    - name: create_app.cancel_run
+      kind: function
+      line_start: 486
+      line_end: 490
+      signature: 'create_app.cancel_run(run_id: str) -> RunResponse'
+      inputs:
+      - 'run_id: str'
+      output: RunResponse
+      dependencies:
+      - HTTPException
+      - RunResponse.from_snapshot
+      - application.post
+      - runner.cancel
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id014
+      - *id015
+      - *id016
+    - name: run
+      kind: function
+      line_start: 498
+      line_end: 505
+      signature: run() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - Settings
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/discovery/connectors/base.py
+    analysis_version: 1
+    language: python
+    content_hash: 88858e9ea4f1f9c580b77384422dae2362e90c2e
+    dependencies:
+    - __future__
+    - nerve_center.discovery.fetching
+    - nerve_center.discovery.models
+    - typing
+    provides:
+    - JobSourceConnector.scan
+    symbols:
+    - name: JobSourceConnector.scan
+      kind: method
+      line_start: 15
+      line_end: 20
+      signature: 'JobSourceConnector.scan(self, company: Company, source: DiscoverySource, fetcher: HttpFetcher) -> ConnectorScanResult'
+      inputs:
+      - self
+      - 'company: Company'
+      - 'source: DiscoverySource'
+      - 'fetcher: HttpFetcher'
+      output: ConnectorScanResult
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/providers/manager.py
+    analysis_version: 1
+    language: python
+    content_hash: 35fed6fa41dc260a9e72d7fb3353f4f81a692a38
+    dependencies:
+    - __future__
+    - jsonschema
+    - nerve_center.persistence.providers
+    - nerve_center.providers.base
+    - nerve_center.providers.errors
+    - pydantic
+    - re
+    - time
+    - typing
+    provides:
+    - ProviderManager.__init__
+    - ProviderManager.list_models
+    - ProviderManager.execute
+    - ProviderManager.execute_specific
+    - ProviderManager._record_failure
+    - ProviderManager.generate_structured
+    - ProviderManager.select
+    - ProviderManager.task_routing_scores
+    - ProviderManager._ranked_candidates
+    - ProviderManager._discover_candidates
+    - ProviderManager._suitability
+    - _cold_start_prior
+    - _parameter_billions
+    symbols:
+    - name: ProviderManager.__init__
+      kind: method
+      line_start: 27
+      line_end: 45
+      signature: 'ProviderManager.__init__(self, providers: tuple[JsonProvider, ...], evidence: ModelEvidenceRepository |
+        None, preferred_model: str | None, schema_fallback_model: str | None, allow_model_fallback: bool) -> None'
+      inputs:
+      - self
+      - 'providers: tuple[JsonProvider, ...]'
+      - 'evidence: ModelEvidenceRepository | None'
+      - 'preferred_model: str | None'
+      - 'schema_fallback_model: str | None'
+      - 'allow_model_fallback: bool'
+      output: None
+      dependencies:
+      - ValueError
+      - preferred_model.strip
+      - schema_fallback_model.strip
+      parser: python-ast
+      dependency_targets: []
+    - name: ProviderManager.list_models
+      kind: method
+      line_start: 47
+      line_end: 54
+      signature: ProviderManager.list_models(self) -> list[ProviderModel]
+      inputs:
+      - self
+      output: list[ProviderModel]
+      dependencies:
+      - item.id.casefold
+      - models.extend
+      - self.evidence.sync_models
+      - sorted
+      parser: python-ast
+      dependency_targets:
+      - &id022
+        path: src/nerve_center/persistence/providers.py
+        symbol: ModelEvidenceRepository.sync_models
+    - name: ProviderManager.execute
+      kind: method
+      line_start: 56
+      line_end: 114
+      signature: 'ProviderManager.execute(self, request: ModelBlindRequest) -> JsonGenerationResult'
+      inputs:
+      - self
+      - 'request: ModelBlindRequest'
+      output: JsonGenerationResult
+      dependencies:
+      - ProviderError
+      - bool
+      - enumerate
+      - len
+      - perf_counter
+      - provider.generate_json
+      - request.requirements.get
+      - self._ranked_candidates
+      - self._record_failure
+      - self.evidence.record_outcome
+      - validate
+      parser: python-ast
+      dependency_targets:
+      - &id018
+        path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager._ranked_candidates
+      - path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager._record_failure
+      - &id017
+        path: src/nerve_center/persistence/providers.py
+        symbol: ModelEvidenceRepository.record_outcome
+      - path: src/nerve_center/domain/module.py
+        symbol: ModuleManifest.validate
+    - name: ProviderManager.execute_specific
+      kind: method
+      line_start: 116
+      line_end: 147
+      signature: 'ProviderManager.execute_specific(self, request: ModelBlindRequest, provider_name: str, model_id: str) ->
+        JsonGenerationResult'
+      inputs:
+      - self
+      - 'request: ModelBlindRequest'
+      - 'provider_name: str'
+      - 'model_id: str'
+      output: JsonGenerationResult
+      dependencies:
+      - ProviderError
+      - next
+      - provider.generate_json
+      - self._discover_candidates
+      parser: python-ast
+      dependency_targets:
+      - &id019
+        path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager._discover_candidates
+    - name: ProviderManager._record_failure
+      kind: method
+      line_start: 149
+      line_end: 172
+      signature: 'ProviderManager._record_failure(self, request: ModelBlindRequest, provider: str, model: str, started: float,
+        error: ProviderError, schema_valid: bool | None) -> None'
+      inputs:
+      - self
+      - 'request: ModelBlindRequest'
+      - 'provider: str'
+      - 'model: str'
+      - 'started: float'
+      - 'error: ProviderError'
+      - 'schema_valid: bool | None'
+      output: None
+      dependencies:
+      - perf_counter
+      - round
+      - self.evidence.record_outcome
+      parser: python-ast
+      dependency_targets:
+      - *id017
+    - name: ProviderManager.generate_structured
+      kind: method
+      line_start: 174
+      line_end: 225
+      signature: 'ProviderManager.generate_structured(self, model: str, system_prompt: str, user_prompt: str, response_type:
+        type[TResponse], contract_version: str) -> StructuredGenerationResult[TResponse]'
+      inputs:
+      - self
+      - 'model: str'
+      - 'system_prompt: str'
+      - 'user_prompt: str'
+      - 'response_type: type[TResponse]'
+      - 'contract_version: str'
+      output: StructuredGenerationResult[TResponse]
+      dependencies:
+      - ModelBlindRequest
+      - ProviderError
+      - StructuredGenerationResult
+      - response_type.model_json_schema
+      - response_type.model_validate
+      - self.evidence.record_outcome
+      - self.execute
+      parser: python-ast
+      dependency_targets:
+      - *id017
+      - path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager.execute
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.execute
+      - path: tests/test_scheduler.py
+        symbol: test_tick_starts_due_fixed_run.execute
+    - name: ProviderManager.select
+      kind: method
+      line_start: 227
+      line_end: 228
+      signature: 'ProviderManager.select(self, request: ModelBlindRequest) -> tuple[JsonProvider, ProviderModel]'
+      inputs:
+      - self
+      - 'request: ModelBlindRequest'
+      output: tuple[JsonProvider, ProviderModel]
+      dependencies:
+      - self._ranked_candidates
+      parser: python-ast
+      dependency_targets:
+      - *id018
+    - name: ProviderManager.task_routing_scores
+      kind: method
+      line_start: 230
+      line_end: 248
+      signature: 'ProviderManager.task_routing_scores(self, task_ids: set[str]) -> dict[str, float]'
+      inputs:
+      - self
+      - 'task_ids: set[str]'
+      output: dict[str, float]
+      dependencies:
+      - max
+      - self._discover_candidates
+      - self._suitability
+      - self.evidence.task_evidence
+      parser: python-ast
+      dependency_targets:
+      - *id019
+      - &id021
+        path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager._suitability
+      - *id020
+    - name: ProviderManager._ranked_candidates
+      kind: method
+      line_start: 250
+      line_end: 308
+      signature: 'ProviderManager._ranked_candidates(self, request: ModelBlindRequest) -> list[tuple[JsonProvider, ProviderModel]]'
+      inputs:
+      - self
+      - 'request: ModelBlindRequest'
+      output: list[tuple[JsonProvider, ProviderModel]]
+      dependencies:
+      - ProviderError
+      - any
+      - bool
+      - item[1].id.casefold
+      - request.requirements.get
+      - self._discover_candidates
+      - self._suitability
+      - self.evidence.task_evidence
+      - sorted
+      parser: python-ast
+      dependency_targets:
+      - *id019
+      - *id021
+      - *id020
+    - name: ProviderManager._discover_candidates
+      kind: method
+      line_start: 310
+      line_end: 325
+      signature: ProviderManager._discover_candidates(self) -> list[tuple[JsonProvider, ProviderModel]]
+      inputs:
+      - self
+      output: list[tuple[JsonProvider, ProviderModel]]
+      dependencies:
+      - ProviderError
+      - candidates.extend
+      - errors.append
+      - provider.list_models
+      - self.evidence.sync_models
+      parser: python-ast
+      dependency_targets:
+      - &id031
+        path: src/nerve_center/persistence/scoring.py
+        symbol: OpportunityScoreRepository.append
+      - *id022
+    - name: ProviderManager._suitability
+      kind: method
+      line_start: 327
+      line_end: 350
+      signature: 'ProviderManager._suitability(self, provider: str, model: ProviderModel, evidence: dict[tuple[str, str],
+        TaskModelEvidence], task_id: str, requirements: dict[str, object] | None) -> float'
+      inputs:
+      - self
+      - 'provider: str'
+      - 'model: ProviderModel'
+      - 'evidence: dict[tuple[str, str], TaskModelEvidence]'
+      - 'task_id: str'
+      - 'requirements: dict[str, object] | None'
+      output: float
+      dependencies:
+      - _cold_start_prior
+      - evidence.get
+      - min
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/providers/manager.py
+        symbol: _cold_start_prior
+    - name: _cold_start_prior
+      kind: function
+      line_start: 353
+      line_end: 390
+      signature: '_cold_start_prior(model: ProviderModel, task_id: str, requirements: dict[str, object]) -> float'
+      inputs:
+      - 'model: ProviderModel'
+      - 'task_id: str'
+      - 'requirements: dict[str, object]'
+      output: float
+      dependencies:
+      - ''' ''.join'
+      - ''' ''.join(filter(None, (model.id, model.family))).casefold'
+      - _parameter_billions
+      - any
+      - filter
+      - max
+      - requirements.get
+      - str
+      - str(requirements.get('quality_tier') or 'balanced').casefold
+      - task_id.casefold
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/providers/manager.py
+        symbol: _parameter_billions
+    - name: _parameter_billions
+      kind: function
+      line_start: 393
+      line_end: 400
+      signature: '_parameter_billions(value: str | None) -> float | None'
+      inputs:
+      - 'value: str | None'
+      output: float | None
+      dependencies:
+      - float
+      - match.group
+      - re.search
+      - value.casefold
+      parser: python-ast
+      dependency_targets: []
+  - path: tests/test_location_awareness.py
+    analysis_version: 1
+    language: python
+    content_hash: 74cc3b7b141158de5888ceb89946e46fbf8bac4a
+    dependencies:
+    - nerve_center.discovery.models
+    - nerve_center.scoring.location
+    - nerve_center.scoring.models
+    provides:
+    - _opening
+    - test_real_location_strings_do_not_trigger_state_substring_false_positives
+    - test_state_only_location_is_regional_without_inventing_city_match
+    - test_market_matching_requires_real_city_or_region_evidence
+    - test_remote_and_multi_location_labels_are_not_company_office_evidence
+    symbols:
+    - name: _opening
+      kind: function
+      line_start: 10
+      line_end: 34
+      signature: '_opening(location: str, arrangement: WorkArrangement) -> NormalizedJobOpening'
+      inputs:
+      - 'location: str'
+      - 'arrangement: WorkArrangement'
+      output: NormalizedJobOpening
+      dependencies:
+      - JobProvenance
+      - NormalizedJobOpening
+      parser: python-ast
+      dependency_targets: []
+    - name: test_real_location_strings_do_not_trigger_state_substring_false_positives
+      kind: function
+      line_start: 37
+      line_end: 59
+      signature: test_real_location_strings_do_not_trigger_state_substring_false_positives() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - LocationPreferences
+      - _opening
+      - classify_listing_locations
+      - opening_matches_market
+      parser: python-ast
+      dependency_targets:
+      - &id023
+        path: src/nerve_center/scoring/location.py
+        symbol: classify_listing_locations
+      - &id024
+        path: src/nerve_center/scoring/location.py
+        symbol: opening_matches_market
+    - name: test_state_only_location_is_regional_without_inventing_city_match
+      kind: function
+      line_start: 62
+      line_end: 84
+      signature: test_state_only_location_is_regional_without_inventing_city_match() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - LocationPreferences
+      - _opening
+      - classify_listing_locations
+      - opening_matches_market
+      parser: python-ast
+      dependency_targets:
+      - *id023
+      - *id024
+    - name: test_market_matching_requires_real_city_or_region_evidence
+      kind: function
+      line_start: 87
+      line_end: 93
+      signature: test_market_matching_requires_real_city_or_region_evidence() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - _opening
+      - opening_matches_market
+      parser: python-ast
+      dependency_targets:
+      - *id024
+    - name: test_remote_and_multi_location_labels_are_not_company_office_evidence
+      kind: function
+      line_start: 96
+      line_end: 101
+      signature: test_remote_and_multi_location_labels_are_not_company_office_evidence() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - is_specific_physical_location
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scoring/location.py
+        symbol: is_specific_physical_location
+  - path: tests/test_module_runtime.py
+    analysis_version: 1
+    language: python
+    content_hash: 54a299336ee5ad219decec46c7e4ef29ab5df23b
+    dependencies:
+    - asyncio
+    - dataclasses
+    - datetime
+    - nerve_center.config
+    - nerve_center.domain.budget
+    - nerve_center.domain.module
+    - nerve_center.domain.module_runtime
+    - nerve_center.domain.run_window
+    - nerve_center.domain.task
+    - nerve_center.persistence.database
+    - nerve_center.persistence.runs
+    - nerve_center.persistence.work_queue
+    - nerve_center.plugins.job_scout.manifest
+    - nerve_center.runtime.supervisor
+    - nerve_center.scheduler.work_queue
+    - pathlib
+    - pytest
+    - typing
+    provides:
+    - StubBridge.invoke
+    - StubProcess.__init__
+    - StubProcess.wait
+    - StubProcess.terminate
+    - StubProcess.kill
+    - test_runtime_token_assignment_and_manager_callbacks
+    - test_module_runtime_backoff_checkpoint_does_not_block_another_module
+    - _exercise_independent_modules
+    - _exercise_independent_modules.process_factory
+    - _exercise_independent_modules.context
+    - _exercise_runtime
+    - _exercise_runtime.process_factory
+    - _result
+    symbols:
+    - name: StubBridge.invoke
+      kind: method
+      line_start: 27
+      line_end: 28
+      signature: 'StubBridge.invoke(self, operation: str, payload: dict[str, Any]) -> dict[str, Any]'
+      inputs:
+      - self
+      - 'operation: str'
+      - 'payload: dict[str, Any]'
+      output: dict[str, Any]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: StubProcess.__init__
+      kind: method
+      line_start: 35
+      line_end: 36
+      signature: StubProcess.__init__(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies:
+      - asyncio.Event
+      parser: python-ast
+      dependency_targets: []
+    - name: StubProcess.wait
+      kind: method
+      line_start: 38
+      line_end: 40
+      signature: StubProcess.wait(self) -> int
+      inputs:
+      - self
+      output: int
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: StubProcess.terminate
+      kind: method
+      line_start: 42
+      line_end: 44
+      signature: StubProcess.terminate(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies:
+      - self._finished.set
+      parser: python-ast
+      dependency_targets: []
+    - name: StubProcess.kill
+      kind: method
+      line_start: 46
+      line_end: 48
+      signature: StubProcess.kill(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies:
+      - self._finished.set
+      parser: python-ast
+      dependency_targets: []
+    - name: test_runtime_token_assignment_and_manager_callbacks
+      kind: function
+      line_start: 51
+      line_end: 52
+      signature: 'test_runtime_token_assignment_and_manager_callbacks(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - _exercise_runtime
+      - asyncio.run
+      parser: python-ast
+      dependency_targets:
+      - path: tests/test_module_runtime.py
+        symbol: _exercise_runtime
+    - name: test_module_runtime_backoff_checkpoint_does_not_block_another_module
+      kind: function
+      line_start: 55
+      line_end: 58
+      signature: 'test_module_runtime_backoff_checkpoint_does_not_block_another_module(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - _exercise_independent_modules
+      - asyncio.run
+      parser: python-ast
+      dependency_targets:
+      - path: tests/test_module_runtime.py
+        symbol: _exercise_independent_modules
+    - name: _exercise_independent_modules
+      kind: function
+      line_start: 61
+      line_end: 143
+      signature: '_exercise_independent_modules(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Database
+      - DurationRunWindow
+      - ModuleSupervisor
+      - ModuleTaskDeclaration
+      - ResourceBudget
+      - ResourceBudgetTracker
+      - RunRepository
+      - Settings
+      - StubBridge
+      - StubProcess
+      - TaskContext
+      - _result
+      - asyncio.create_task
+      - asyncio.sleep
+      - asyncio.wait_for
+      - context
+      - database.initialize
+      - datetime.now
+      - job_execution.done
+      - job_scout_manifest
+      - replace
+      - runs.create
+      - supervisor.checkpoint
+      - supervisor.complete
+      parser: python-ast
+      dependency_targets:
+      - &id028
+        path: src/nerve_center/persistence/model_lab.py
+        symbol: _result
+      - &id029
+        path: tests/test_job_scout_reference_selection.py
+        symbol: _result
+      - &id030
+        path: tests/test_module_runtime.py
+        symbol: _result
+      - path: tests/test_module_runtime.py
+        symbol: _exercise_independent_modules.context
+      - *id025
+      - &id032
+        path: src/nerve_center/plugins/job_scout/manifest.py
+        symbol: job_scout_manifest
+      - *id026
+      - *id027
+    - name: _exercise_independent_modules.process_factory
+      kind: function
+      line_start: 65
+      line_end: 71
+      signature: '_exercise_independent_modules.process_factory(*_command: str, **kwargs: Any) -> StubProcess'
+      inputs:
+      - '*_command: str'
+      - '**kwargs: Any'
+      output: StubProcess
+      dependencies:
+      - StubProcess
+      parser: python-ast
+      dependency_targets: []
+    - name: _exercise_independent_modules.context
+      kind: function
+      line_start: 96
+      line_end: 105
+      signature: '_exercise_independent_modules.context(task_id: str) -> TaskContext'
+      inputs:
+      - 'task_id: str'
+      output: TaskContext
+      dependencies:
+      - DurationRunWindow
+      - ResourceBudget
+      - ResourceBudgetTracker
+      - TaskContext
+      - datetime.now
+      - runs.create
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - *id026
+      - *id027
+    - name: _exercise_runtime
+      kind: function
+      line_start: 146
+      line_end: 235
+      signature: '_exercise_runtime(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Database
+      - DurationRunWindow
+      - ModuleSupervisor
+      - ResourceBudget
+      - ResourceBudgetTracker
+      - RunRepository
+      - RunRepository(database).create
+      - Settings
+      - StubBridge
+      - StubProcess
+      - TaskContext
+      - WorkQueueRepository
+      - WorkQueueService
+      - _result
+      - asyncio.create_task
+      - asyncio.sleep
+      - checkpoints.append
+      - database.initialize
+      - datetime.now
+      - dict
+      - job_scout_manifest
+      - pytest.raises
+      - str
+      - supervisor.acknowledge_result
+      parser: python-ast
+      dependency_targets:
+      - *id026
+      - *id027
+      - *id028
+      - *id029
+      - *id030
+      - *id031
+      - *id025
+      - *id032
+      - path: src/nerve_center/runtime/api.py
+        symbol: register_runtime_routes.acknowledge_result
+      - path: src/nerve_center/runtime/client.py
+        symbol: ModuleRuntimeClient.acknowledge_result
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.acknowledge_result
+      - path: tests/test_job_scout_continuous_session.py
+        symbol: Client.acknowledge_result
+    - name: _exercise_runtime.process_factory
+      kind: function
+      line_start: 150
+      line_end: 153
+      signature: '_exercise_runtime.process_factory(*command: str, **kwargs: Any) -> StubProcess'
+      inputs:
+      - '*command: str'
+      - '**kwargs: Any'
+      output: StubProcess
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: _result
+      kind: function
+      line_start: 238
+      line_end: 239
+      signature: _result() -> TaskResult
+      inputs: []
+      output: TaskResult
+      dependencies:
+      - TaskResult
+      parser: python-ast
+      dependency_targets: []

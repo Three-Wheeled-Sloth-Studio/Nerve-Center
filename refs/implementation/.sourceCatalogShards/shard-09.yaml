@@ -1,0 +1,1098 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: 09
+  files:
+  - path: src/nerve_center/__init__.py
+    analysis_version: 1
+    language: python
+    content_hash: fd1a8ff3980d747e4f824dc80ce57141d75ff566
+    dependencies: []
+    provides: []
+    symbols: []
+  - path: src/nerve_center/discovery/connectors/greenhouse.py
+    analysis_version: 1
+    language: python
+    content_hash: 7261485b4a8a6870ef6c1a509a967163505d70e4
+    dependencies:
+    - __future__
+    - datetime
+    - json
+    - nerve_center.discovery.fetching
+    - nerve_center.discovery.models
+    - nerve_center.discovery.normalization
+    - typing
+    provides:
+    - GreenhouseConnector.scan
+    - GreenhouseConnector._normalize
+    - _all_names
+    - _first_name
+    - _metadata_value
+    symbols:
+    - name: GreenhouseConnector.scan
+      kind: method
+      line_start: 31
+      line_end: 79
+      signature: 'GreenhouseConnector.scan(self, company: Company, source: DiscoverySource, fetcher: HttpFetcher) -> ConnectorScanResult'
+      inputs:
+      - self
+      - 'company: Company'
+      - 'source: DiscoverySource'
+      - 'fetcher: HttpFetcher'
+      output: ConnectorScanResult
+      dependencies:
+      - ConnectorScanResult
+      - ValueError
+      - fetcher.get
+      - isinstance
+      - json.loads
+      - payload.get
+      - self._normalize
+      - source.configuration.get
+      - str
+      - str(source.configuration.get('board_token') or '').strip
+      parser: python-ast
+      dependency_targets: []
+    - name: GreenhouseConnector._normalize
+      kind: method
+      line_start: 81
+      line_end: 132
+      signature: 'GreenhouseConnector._normalize(self, company: Company, source: DiscoverySource, raw: dict[str, Any]) ->
+        NormalizedJobOpening | None'
+      inputs:
+      - self
+      - 'company: Company'
+      - 'source: DiscoverySource'
+      - 'raw: dict[str, Any]'
+      output: NormalizedJobOpening | None
+      dependencies:
+      - JobProvenance
+      - NormalizedJobOpening
+      - _all_names
+      - _first_name
+      - _metadata_value
+      - canonicalize_url
+      - clean_html_text
+      - datetime.now
+      - dict.fromkeys
+      - infer_work_arrangement
+      - isinstance
+      - list
+      - location.get
+      - locations.extend
+      - parse_datetime
+      - raw.get
+      - stable_opening_id
+      - str
+      - str(location.get('name') or '').strip
+      - str(raw.get('absolute_url') or '').strip
+      - str(raw.get('id') or '').strip
+      - str(raw.get('title') or '').strip
+      parser: python-ast
+      dependency_targets:
+      - &id001
+        path: src/nerve_center/discovery/connectors/greenhouse.py
+        symbol: _all_names
+      - path: src/nerve_center/discovery/connectors/greenhouse.py
+        symbol: _first_name
+      - path: src/nerve_center/discovery/connectors/greenhouse.py
+        symbol: _metadata_value
+      - path: src/nerve_center/discovery/normalization.py
+        symbol: canonicalize_url
+      - path: src/nerve_center/discovery/normalization.py
+        symbol: clean_html_text
+      - path: src/nerve_center/discovery/normalization.py
+        symbol: infer_work_arrangement
+      - path: src/nerve_center/discovery/normalization.py
+        symbol: parse_datetime
+      - path: src/nerve_center/discovery/normalization.py
+        symbol: stable_opening_id
+    - name: _all_names
+      kind: function
+      line_start: 135
+      line_end: 142
+      signature: '_all_names(value: object) -> list[str]'
+      inputs:
+      - 'value: object'
+      output: list[str]
+      dependencies:
+      - isinstance
+      - item.get
+      - str
+      - str(item.get('name') or '').strip
+      parser: python-ast
+      dependency_targets: []
+    - name: _first_name
+      kind: function
+      line_start: 145
+      line_end: 147
+      signature: '_first_name(value: object) -> str | None'
+      inputs:
+      - 'value: object'
+      output: str | None
+      dependencies:
+      - _all_names
+      parser: python-ast
+      dependency_targets:
+      - *id001
+    - name: _metadata_value
+      kind: function
+      line_start: 150
+      line_end: 160
+      signature: '_metadata_value(value: object, target: str) -> str | None'
+      inputs:
+      - 'value: object'
+      - 'target: str'
+      output: str | None
+      dependencies:
+      - isinstance
+      - item.get
+      - str
+      - str(item.get('name') or '').strip
+      - str(item.get('name') or '').strip().casefold
+      - str(item_value).strip
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/scoring/engine.py
+    analysis_version: 1
+    language: python
+    content_hash: a307e281440ae43f5b893a7d56960b32cb46f59a
+    dependencies:
+    - __future__
+    - datetime
+    - hashlib
+    - json
+    - nerve_center.discovery.models
+    - nerve_center.profile.models
+    - nerve_center.scoring.location
+    - nerve_center.scoring.models
+    - nerve_center.scoring.qualification_importance
+    - uuid
+    provides:
+    - OpportunityScorer.score
+    - _fit_score
+    - _response_score
+    - _location_base_for_remote
+    - _freshness_score
+    - _value_score
+    - _apply_gates
+    - _confidence_score
+    - _confidence_multiplier
+    - _rule_matches
+    - _snapshot_hash
+    - _clamp
+    symbols:
+    - name: OpportunityScorer.score
+      kind: method
+      line_start: 38
+      line_end: 257
+      signature: 'OpportunityScorer.score(self, opening: NormalizedJobOpening, profile: CanonicalCareerProfile, fit_analysis:
+        JobFitAnalysis, company_enrichment: CompanyEnrichment, job_enrichment: JobEnrichment, location_preferences: LocationPreferences,
+        settings: ScoringSettings, rules: list[ScoringRule], target_title_alignment: float | None, now: datetime | None) ->
+        OpportunityScore'
+      inputs:
+      - self
+      - 'opening: NormalizedJobOpening'
+      - 'profile: CanonicalCareerProfile'
+      - 'fit_analysis: JobFitAnalysis'
+      - 'company_enrichment: CompanyEnrichment'
+      - 'job_enrichment: JobEnrichment'
+      - 'location_preferences: LocationPreferences'
+      - 'settings: ScoringSettings'
+      - 'rules: list[ScoringRule]'
+      - 'target_title_alignment: float | None'
+      - 'now: datetime | None'
+      output: OpportunityScore
+      dependencies:
+      - HardGate
+      - OpportunityScore
+      - ScoreFactor
+      - _apply_gates
+      - _clamp
+      - _confidence_multiplier
+      - _confidence_score
+      - _fit_score
+      - _response_score
+      - _rule_matches
+      - _snapshot_hash
+      - _value_score
+      - any
+      - assess_location
+      - datetime.now
+      - factors.append
+      - factors.extend
+      - gates.append
+      - map
+      - max
+      - opening.model_dump
+      - profile.model_dump
+      - round
+      - sorted
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scoring/engine.py
+        symbol: _apply_gates
+      - &id003
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: _clamp
+      - &id004
+        path: src/nerve_center/plugins/job_scout/location_discovery.py
+        symbol: _clamp
+      - &id005
+        path: src/nerve_center/scoring/engine.py
+        symbol: _clamp
+      - path: src/nerve_center/scoring/engine.py
+        symbol: _confidence_multiplier
+      - path: src/nerve_center/scoring/engine.py
+        symbol: _confidence_score
+      - path: src/nerve_center/scoring/engine.py
+        symbol: _fit_score
+      - path: src/nerve_center/scoring/engine.py
+        symbol: _response_score
+      - path: src/nerve_center/scoring/engine.py
+        symbol: _rule_matches
+      - path: src/nerve_center/scoring/engine.py
+        symbol: _snapshot_hash
+      - path: src/nerve_center/scoring/engine.py
+        symbol: _value_score
+      - path: src/nerve_center/scoring/location.py
+        symbol: assess_location
+      - &id002
+        path: src/nerve_center/persistence/scoring.py
+        symbol: OpportunityScoreRepository.append
+    - name: _fit_score
+      kind: function
+      line_start: 260
+      line_end: 327
+      signature: '_fit_score(analysis: JobFitAnalysis, factors: list[ScoreFactor]) -> tuple[float, float, float, float]'
+      inputs:
+      - 'analysis: JobFitAnalysis'
+      - 'factors: list[ScoreFactor]'
+      output: tuple[float, float, float, float]
+      dependencies:
+      - ScoreFactor
+      - coverage_breakdown
+      - factors.append
+      - float
+      - sum
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scoring/qualification_importance.py
+        symbol: coverage_breakdown
+      - *id002
+    - name: _response_score
+      kind: function
+      line_start: 330
+      line_end: 443
+      signature: '_response_score(opening: NormalizedJobOpening, company: CompanyEnrichment, job: JobEnrichment, location:
+        LocationAssessment, fit: float, required: float, settings: ScoringSettings, now: datetime, factors: list[ScoreFactor])
+        -> float'
+      inputs:
+      - 'opening: NormalizedJobOpening'
+      - 'company: CompanyEnrichment'
+      - 'job: JobEnrichment'
+      - 'location: LocationAssessment'
+      - 'fit: float'
+      - 'required: float'
+      - 'settings: ScoringSettings'
+      - 'now: datetime'
+      - 'factors: list[ScoreFactor]'
+      output: float
+      dependencies:
+      - ScoreFactor
+      - _freshness_score
+      - _location_base_for_remote
+      - any
+      - factors.append
+      - max
+      - next
+      - round
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scoring/engine.py
+        symbol: _freshness_score
+      - path: src/nerve_center/scoring/engine.py
+        symbol: _location_base_for_remote
+      - *id002
+    - name: _location_base_for_remote
+      kind: function
+      line_start: 446
+      line_end: 453
+      signature: '_location_base_for_remote(scope: LocationScope) -> float'
+      inputs:
+      - 'scope: LocationScope'
+      output: float
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: _freshness_score
+      kind: function
+      line_start: 456
+      line_end: 520
+      signature: '_freshness_score(opening: NormalizedJobOpening, job: JobEnrichment, now: datetime, factors: list[ScoreFactor])
+        -> float'
+      inputs:
+      - 'opening: NormalizedJobOpening'
+      - 'job: JobEnrichment'
+      - 'now: datetime'
+      - 'factors: list[ScoreFactor]'
+      output: float
+      dependencies:
+      - (now - timestamp).total_seconds
+      - ScoreFactor
+      - _clamp
+      - factors.append
+      - max
+      - timestamp.isoformat
+      parser: python-ast
+      dependency_targets:
+      - *id003
+      - *id004
+      - *id005
+      - *id002
+    - name: _value_score
+      kind: function
+      line_start: 523
+      line_end: 576
+      signature: '_value_score(opening: NormalizedJobOpening, analysis: JobFitAnalysis, job: JobEnrichment, location: LocationAssessment,
+        settings: ScoringSettings, factors: list[ScoreFactor]) -> float'
+      inputs:
+      - 'opening: NormalizedJobOpening'
+      - 'analysis: JobFitAnalysis'
+      - 'job: JobEnrichment'
+      - 'location: LocationAssessment'
+      - 'settings: ScoringSettings'
+      - 'factors: list[ScoreFactor]'
+      output: float
+      dependencies:
+      - (opening.employment_type or '').casefold
+      - ScoreFactor
+      - _clamp
+      - any
+      - factors.append
+      - item.casefold
+      parser: python-ast
+      dependency_targets:
+      - *id003
+      - *id004
+      - *id005
+      - *id002
+    - name: _apply_gates
+      kind: function
+      line_start: 579
+      line_end: 658
+      signature: '_apply_gates(opening: NormalizedJobOpening, analysis: JobFitAnalysis, job: JobEnrichment, location: LocationAssessment,
+        settings: ScoringSettings, fit: float, response: float, value: float, gates: list[HardGate]) -> None'
+      inputs:
+      - 'opening: NormalizedJobOpening'
+      - 'analysis: JobFitAnalysis'
+      - 'job: JobEnrichment'
+      - 'location: LocationAssessment'
+      - 'settings: ScoringSettings'
+      - 'fit: float'
+      - 'response: float'
+      - 'value: float'
+      - 'gates: list[HardGate]'
+      output: None
+      dependencies:
+      - (opening.employment_type or '').casefold
+      - HardGate
+      - any
+      - gates.append
+      - item.casefold
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id002
+    - name: _confidence_score
+      kind: function
+      line_start: 661
+      line_end: 694
+      signature: '_confidence_score(opening: NormalizedJobOpening, analysis: JobFitAnalysis, job: JobEnrichment, location:
+        LocationAssessment, factors: list[ScoreFactor]) -> float'
+      inputs:
+      - 'opening: NormalizedJobOpening'
+      - 'analysis: JobFitAnalysis'
+      - 'job: JobEnrichment'
+      - 'location: LocationAssessment'
+      - 'factors: list[ScoreFactor]'
+      output: float
+      dependencies:
+      - ScoreFactor
+      - _clamp
+      - any
+      - components.values
+      - factors.append
+      - len
+      - sum
+      parser: python-ast
+      dependency_targets:
+      - *id003
+      - *id004
+      - *id005
+      - *id002
+    - name: _confidence_multiplier
+      kind: function
+      line_start: 697
+      line_end: 701
+      signature: '_confidence_multiplier(confidence: float, settings: ScoringSettings) -> float'
+      inputs:
+      - 'confidence: float'
+      - 'settings: ScoringSettings'
+      output: float
+      dependencies:
+      - sorted
+      parser: python-ast
+      dependency_targets: []
+    - name: _rule_matches
+      kind: function
+      line_start: 704
+      line_end: 727
+      signature: '_rule_matches(rule: ScoringRule, opening: NormalizedJobOpening, company: CompanyEnrichment) -> bool'
+      inputs:
+      - 'rule: ScoringRule'
+      - 'opening: NormalizedJobOpening'
+      - 'company: CompanyEnrichment'
+      output: bool
+      dependencies:
+      - rule.pattern.strip
+      - rule.pattern.strip().casefold
+      - value.strip
+      - value.strip().casefold
+      parser: python-ast
+      dependency_targets: []
+    - name: _snapshot_hash
+      kind: function
+      line_start: 730
+      line_end: 732
+      signature: '_snapshot_hash(payload: dict[str, object]) -> str'
+      inputs:
+      - 'payload: dict[str, object]'
+      output: str
+      dependencies:
+      - encoded.encode
+      - hashlib.sha256
+      - hashlib.sha256(encoded.encode('utf-8')).hexdigest
+      - json.dumps
+      parser: python-ast
+      dependency_targets: []
+    - name: _clamp
+      kind: function
+      line_start: 735
+      line_end: 736
+      signature: '_clamp(value: float) -> float'
+      inputs:
+      - 'value: float'
+      output: float
+      dependencies:
+      - float
+      - max
+      - min
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/scoring/fit.py
+    analysis_version: 1
+    language: python
+    content_hash: 5d4e475e7a33d725e8afbd41d4c637437753860b
+    dependencies:
+    - __future__
+    - json
+    - nerve_center.discovery.models
+    - nerve_center.profile.models
+    - nerve_center.providers.base
+    - nerve_center.scoring.evidence
+    - nerve_center.scoring.models
+    - nerve_center.scoring.qualification_importance
+    - uuid
+    provides:
+    - JobFitAnalyzer.__init__
+    - JobFitAnalyzer.analyze
+    - required_coverage
+    - preferred_coverage
+    - responsibility_coverage
+    - _build_prompt
+    - _validate_analysis
+    - _validated_qualification
+    symbols:
+    - name: JobFitAnalyzer.__init__
+      kind: method
+      line_start: 48
+      line_end: 49
+      signature: 'JobFitAnalyzer.__init__(self, provider: StructuredProvider) -> None'
+      inputs:
+      - self
+      - 'provider: StructuredProvider'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: JobFitAnalyzer.analyze
+      kind: method
+      line_start: 51
+      line_end: 68
+      signature: 'JobFitAnalyzer.analyze(self, opening: NormalizedJobOpening, profile: CanonicalCareerProfile, model: str
+        | None) -> JobFitAnalysis'
+      inputs:
+      - self
+      - 'opening: NormalizedJobOpening'
+      - 'profile: CanonicalCareerProfile'
+      - 'model: str | None'
+      output: JobFitAnalysis
+      dependencies:
+      - _build_prompt
+      - _validate_analysis
+      - self.provider.generate_structured
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scoring/fit.py
+        symbol: _build_prompt
+      - path: src/nerve_center/scoring/fit.py
+        symbol: _validate_analysis
+    - name: required_coverage
+      kind: function
+      line_start: 71
+      line_end: 74
+      signature: 'required_coverage(analysis: JobFitAnalysis) -> float'
+      inputs:
+      - 'analysis: JobFitAnalysis'
+      output: float
+      dependencies:
+      - weighted_coverage
+      parser: python-ast
+      dependency_targets:
+      - &id006
+        path: src/nerve_center/scoring/qualification_importance.py
+        symbol: weighted_coverage
+    - name: preferred_coverage
+      kind: function
+      line_start: 77
+      line_end: 80
+      signature: 'preferred_coverage(analysis: JobFitAnalysis) -> float'
+      inputs:
+      - 'analysis: JobFitAnalysis'
+      output: float
+      dependencies:
+      - weighted_coverage
+      parser: python-ast
+      dependency_targets:
+      - *id006
+    - name: responsibility_coverage
+      kind: function
+      line_start: 83
+      line_end: 86
+      signature: 'responsibility_coverage(analysis: JobFitAnalysis) -> float'
+      inputs:
+      - 'analysis: JobFitAnalysis'
+      output: float
+      dependencies:
+      - weighted_coverage
+      parser: python-ast
+      dependency_targets:
+      - *id006
+    - name: _build_prompt
+      kind: function
+      line_start: 89
+      line_end: 103
+      signature: '_build_prompt(opening: NormalizedJobOpening, claims: list[CareerClaim]) -> str'
+      inputs:
+      - 'opening: NormalizedJobOpening'
+      - 'claims: list[CareerClaim]'
+      output: str
+      dependencies:
+      - '''\n''.join'
+      - claim.model_dump
+      - json.dumps
+      parser: python-ast
+      dependency_targets: []
+    - name: _validate_analysis
+      kind: function
+      line_start: 106
+      line_end: 210
+      signature: '_validate_analysis(opening: NormalizedJobOpening, profile: CanonicalCareerProfile, model: str, response:
+        FitAnalysisResponse) -> JobFitAnalysis'
+      inputs:
+      - 'opening: NormalizedJobOpening'
+      - 'profile: CanonicalCareerProfile'
+      - 'model: str'
+      - 'response: FitAnalysisResponse'
+      output: JobFitAnalysis
+      dependencies:
+      - ''' ''.join'
+      - CareerEvidenceMatcher
+      - JobFitAnalysis
+      - _validated_qualification
+      - bool
+      - enumerate
+      - len
+      - matcher.assess_domain
+      - matcher.match_requirement
+      - max
+      - min
+      - normalize_qualifications
+      - opening.description.casefold
+      - opening.description.casefold().split
+      - qualifications.append
+      - review_notes.append
+      - str
+      - sum
+      - uuid4
+      - valid_claims.values
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scoring/fit.py
+        symbol: _validated_qualification
+      - path: src/nerve_center/scoring/evidence.py
+        symbol: CareerEvidenceMatcher.assess_domain
+      - path: src/nerve_center/scoring/evidence.py
+        symbol: CareerEvidenceMatcher.match_requirement
+      - path: src/nerve_center/scoring/qualification_importance.py
+        symbol: normalize_qualifications
+      - *id002
+    - name: _validated_qualification
+      kind: function
+      line_start: 213
+      line_end: 274
+      signature: '_validated_qualification(job_id: str, index: int, extracted: ExtractedQualificationAssessment, valid_claims:
+        dict[str, CareerClaim], normalized_description: str, review_notes: list[str], evidence_matches: list[RequirementEvidenceMatch])
+        -> QualificationAssessment'
+      inputs:
+      - 'job_id: str'
+      - 'index: int'
+      - 'extracted: ExtractedQualificationAssessment'
+      - 'valid_claims: dict[str, CareerClaim]'
+      - 'normalized_description: str'
+      - 'review_notes: list[str]'
+      - 'evidence_matches: list[RequirementEvidenceMatch]'
+      output: QualificationAssessment
+      dependencies:
+      - ''' ''.join'
+      - QualificationAssessment
+      - extracted.job_excerpt.casefold
+      - extracted.job_excerpt.casefold().split
+      - extracted.job_excerpt.strip
+      - extracted.requirement.strip
+      - len
+      - max
+      - min
+      - review_notes.append
+      - set
+      - str
+      - uuid5
+      parser: python-ast
+      dependency_targets:
+      - *id002
+  - path: tests/test_job_scout_market.py
+    analysis_version: 1
+    language: python
+    content_hash: 563239b8838bc3e056d4cd4f789c67a756cc1486
+    dependencies:
+    - asyncio
+    - nerve_center.config
+    - nerve_center.plugins.job_scout.market
+    - pathlib
+    provides:
+    - _write_fixture
+    - test_expands_start_location_with_cached_public_geography
+    - test_unknown_location_remains_a_search_alias_without_network
+    symbols:
+    - name: _write_fixture
+      kind: function
+      line_start: 8
+      line_end: 37
+      signature: '_write_fixture(cache: Path) -> None'
+      inputs:
+      - 'cache: Path'
+      output: None
+      dependencies:
+      - cache.joinpath
+      - cache.joinpath('cbsa.txt').write_text
+      - cache.joinpath('counties.txt').write_text
+      - cache.joinpath('places.txt').write_text
+      - cache.mkdir
+      parser: python-ast
+      dependency_targets: []
+    - name: test_expands_start_location_with_cached_public_geography
+      kind: function
+      line_start: 40
+      line_end: 55
+      signature: 'test_expands_start_location_with_cached_public_geography(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - GazetteerMarketExpander
+      - Settings
+      - _write_fixture
+      - all
+      - asyncio.run
+      - expander.expand
+      - item.provenance.startswith
+      parser: python-ast
+      dependency_targets:
+      - &id007
+        path: tests/test_agent_context.py
+        symbol: _write_fixture
+      - &id008
+        path: tests/test_job_scout_market.py
+        symbol: _write_fixture
+    - name: test_unknown_location_remains_a_search_alias_without_network
+      kind: function
+      line_start: 58
+      line_end: 65
+      signature: 'test_unknown_location_remains_a_search_alias_without_network(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - GazetteerMarketExpander
+      - Settings
+      - _write_fixture
+      - asyncio.run
+      - expander.expand
+      parser: python-ast
+      dependency_targets:
+      - *id007
+      - *id008
+  - path: tests/test_module_runtime_integration.py
+    analysis_version: 1
+    language: python
+    content_hash: b1cb38ae53ee323c0d5c086bb1d1ad0464fdafd9
+    dependencies:
+    - httpx
+    - nerve_center.api.app
+    - nerve_center.config
+    - pathlib
+    - socket
+    - threading
+    - time
+    - uvicorn
+    provides:
+    - test_job_scout_run_crosses_supervised_process_boundary
+    - _terminal_run
+    - _wait_until
+    - _available_port
+    symbols:
+    - name: test_job_scout_run_crosses_supervised_process_boundary
+      kind: function
+      line_start: 13
+      line_end: 48
+      signature: 'test_job_scout_run_crosses_supervised_process_boundary(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Settings
+      - _available_port
+      - _terminal_run
+      - _wait_until
+      - client.close
+      - client.get
+      - client.get('/api/v1/modules/job_scout').json
+      - client.get(f'/api/v1/runs/{run_id}').json
+      - client.post
+      - create_app
+      - created.json
+      - created.raise_for_status
+      - httpx.Client
+      - stopped.json
+      - stopped.raise_for_status
+      - thread.join
+      - thread.start
+      - threading.Thread
+      - uvicorn.Config
+      - uvicorn.Server
+      parser: python-ast
+      dependency_targets:
+      - path: tests/test_module_runtime_integration.py
+        symbol: _available_port
+      - path: tests/test_module_runtime_integration.py
+        symbol: _terminal_run
+      - path: tests/test_module_runtime_integration.py
+        symbol: _wait_until
+      - path: src/nerve_center/runtime/client.py
+        symbol: ModuleRuntimeClient.close
+      - path: src/nerve_center/api/app.py
+        symbol: create_app
+      - path: src/nerve_center/persistence/sessions.py
+        symbol: SessionRepository.start
+      - path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService.start
+      - path: src/nerve_center/scheduler/service.py
+        symbol: SchedulerService.start
+      - path: src/nerve_center/scheduler/sessions.py
+        symbol: WorkSessionService.start
+    - name: _terminal_run
+      kind: function
+      line_start: 51
+      line_end: 54
+      signature: '_terminal_run(value: dict)'
+      inputs:
+      - 'value: dict'
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: _wait_until
+      kind: function
+      line_start: 57
+      line_end: 68
+      signature: '_wait_until(operation, timeout_seconds: float)'
+      inputs:
+      - operation
+      - 'timeout_seconds: float'
+      output: unspecified
+      dependencies:
+      - AssertionError
+      - operation
+      - time.monotonic
+      - time.sleep
+      parser: python-ast
+      dependency_targets: []
+    - name: _available_port
+      kind: function
+      line_start: 71
+      line_end: 74
+      signature: _available_port() -> int
+      inputs: []
+      output: int
+      dependencies:
+      - int
+      - listener.bind
+      - listener.getsockname
+      - socket.socket
+      parser: python-ast
+      dependency_targets: []
+  - path: tests/test_packaged_smoke.py
+    analysis_version: 1
+    language: python
+    content_hash: 48cb9e12a31c41d33781e954e34744ea09652453
+    dependencies:
+    - pathlib
+    - pytest
+    - runpy
+    provides:
+    - test_packaged_empty_workspace_requires_exact_no_work_reason
+    - test_packaged_empty_workspace_requires_exact_no_work_reason.request
+    symbols:
+    - name: test_packaged_empty_workspace_requires_exact_no_work_reason
+      kind: function
+      line_start: 10
+      line_end: 25
+      signature: test_packaged_empty_workspace_requires_exact_no_work_reason(monkeypatch, reason)
+      inputs:
+      - monkeypatch
+      - reason
+      output: unspecified
+      dependencies:
+      - monkeypatch.setitem
+      - pytest.mark.parametrize
+      - pytest.raises
+      - smoke
+      parser: python-ast
+      dependency_targets: []
+    - name: test_packaged_empty_workspace_requires_exact_no_work_reason.request
+      kind: function
+      line_start: 13
+      line_end: 18
+      signature: test_packaged_empty_workspace_requires_exact_no_work_reason.request(path, method, payload)
+      inputs:
+      - path
+      - method
+      - payload
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+  - path: tests/test_profile_service.py
+    analysis_version: 1
+    language: python
+    content_hash: 1ef5e75c9032b2ae160df33334cd18947512c6f2
+    dependencies:
+    - asyncio
+    - nerve_center.profile.documents
+    - nerve_center.profile.models
+    - nerve_center.profile.service
+    - nerve_center.providers.base
+    - pathlib
+    - pydantic
+    provides:
+    - MemoryStore.__init__
+    - MemoryStore.get_profile
+    - MemoryStore.save_profile
+    - FakeProvider.__init__
+    - FakeProvider.list_models
+    - FakeProvider.generate_structured
+    - test_builds_evidence_backed_profile_and_remembers_hypothesis_decision
+    - test_rejects_claim_without_exact_source_evidence
+    - test_rejected_claim_cannot_regenerate_positioning_hypothesis
+    symbols:
+    - name: MemoryStore.__init__
+      kind: method
+      line_start: 25
+      line_end: 26
+      signature: MemoryStore.__init__(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies:
+      - CanonicalCareerProfile
+      parser: python-ast
+      dependency_targets: []
+    - name: MemoryStore.get_profile
+      kind: method
+      line_start: 28
+      line_end: 29
+      signature: MemoryStore.get_profile(self) -> CanonicalCareerProfile
+      inputs:
+      - self
+      output: CanonicalCareerProfile
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: MemoryStore.save_profile
+      kind: method
+      line_start: 31
+      line_end: 33
+      signature: 'MemoryStore.save_profile(self, profile: CanonicalCareerProfile) -> CanonicalCareerProfile'
+      inputs:
+      - self
+      - 'profile: CanonicalCareerProfile'
+      output: CanonicalCareerProfile
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: FakeProvider.__init__
+      kind: method
+      line_start: 39
+      line_end: 40
+      signature: 'FakeProvider.__init__(self, response: CareerExtractionResponse) -> None'
+      inputs:
+      - self
+      - 'response: CareerExtractionResponse'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: FakeProvider.list_models
+      kind: method
+      line_start: 42
+      line_end: 43
+      signature: FakeProvider.list_models(self)
+      inputs:
+      - self
+      output: unspecified
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: FakeProvider.generate_structured
+      kind: method
+      line_start: 45
+      line_end: 66
+      signature: 'FakeProvider.generate_structured(self, model: str, system_prompt: str, user_prompt: str, response_type:
+        type[BaseModel], contract_version: str)'
+      inputs:
+      - self
+      - 'model: str'
+      - 'system_prompt: str'
+      - 'user_prompt: str'
+      - 'response_type: type[BaseModel]'
+      - 'contract_version: str'
+      output: unspecified
+      dependencies:
+      - ProviderCallMetadata
+      - StructuredGenerationResult
+      parser: python-ast
+      dependency_targets: []
+    - name: test_builds_evidence_backed_profile_and_remembers_hypothesis_decision
+      kind: function
+      line_start: 69
+      line_end: 124
+      signature: 'test_builds_evidence_backed_profile_and_remembers_hypothesis_decision(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - CareerExtractionResponse
+      - CareerProfileService
+      - ExtractedClaim
+      - ExtractedEvidence
+      - ExtractedPositioningHypothesis
+      - FakeProvider
+      - MemoryStore
+      - asyncio.run
+      - import_source_document
+      - response.model_copy
+      - response.positioning_hypotheses[0].model_copy
+      - service.decide_claim
+      - service.decide_hypothesis
+      - service.extract_document
+      - source.write_text
+      parser: python-ast
+      dependency_targets:
+      - &id010
+        path: src/nerve_center/profile/documents.py
+        symbol: import_source_document
+      - &id011
+        path: src/nerve_center/profile/api.py
+        symbol: register_profile_routes.decide_claim
+      - &id012
+        path: src/nerve_center/profile/service.py
+        symbol: CareerProfileService.decide_claim
+      - path: src/nerve_center/profile/api.py
+        symbol: register_profile_routes.decide_hypothesis
+      - path: src/nerve_center/profile/service.py
+        symbol: CareerProfileService.decide_hypothesis
+      - &id009
+        path: src/nerve_center/profile/service.py
+        symbol: CareerProfileService.extract_document
+    - name: test_rejects_claim_without_exact_source_evidence
+      kind: function
+      line_start: 127
+      line_end: 152
+      signature: 'test_rejects_claim_without_exact_source_evidence(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - CareerExtractionResponse
+      - CareerProfileService
+      - CareerProfileService(store, FakeProvider(response)).extract_document
+      - ExtractedClaim
+      - ExtractedEvidence
+      - FakeProvider
+      - MemoryStore
+      - asyncio.run
+      - import_source_document
+      - source.write_text
+      parser: python-ast
+      dependency_targets:
+      - *id009
+      - *id010
+    - name: test_rejected_claim_cannot_regenerate_positioning_hypothesis
+      kind: function
+      line_start: 155
+      line_end: 187
+      signature: 'test_rejected_claim_cannot_regenerate_positioning_hypothesis(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - CareerExtractionResponse
+      - CareerProfileService
+      - ExtractedClaim
+      - ExtractedEvidence
+      - ExtractedPositioningHypothesis
+      - FakeProvider
+      - MemoryStore
+      - asyncio.run
+      - import_source_document
+      - service.decide_claim
+      - service.extract_document
+      - source.write_text
+      parser: python-ast
+      dependency_targets:
+      - *id010
+      - *id011
+      - *id012
+      - *id009

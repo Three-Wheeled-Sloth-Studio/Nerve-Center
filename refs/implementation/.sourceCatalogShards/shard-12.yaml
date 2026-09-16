@@ -1,0 +1,103 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: '12'
+  files:
+  - path: desktop/src/main.tsx
+    analysis_version: 1
+    language: typescript
+    content_hash: 45589d012ff5a92cd2fafdf1a8e06a89cbe9e73a
+    dependencies:
+    - ./App
+    - ./StartupGate
+    - react
+    - react-dom/client
+    provides: []
+    symbols: []
+  - path: tests/test_agent_context.py
+    analysis_version: 1
+    language: python
+    content_hash: fcd32730b6f8eb184733ee5e367e65bb3d58bb43
+    dependencies:
+    - __future__
+    - pathlib
+    - runpy
+    provides:
+    - _write_fixture
+    - test_packet_selects_relevant_context_and_stays_bounded
+    - test_packet_without_focus_uses_recent_accepted_decision
+    - test_issue_number_is_inferred_from_agent_branch
+    symbols:
+    - name: _write_fixture
+      kind: function
+      line_start: 12
+      line_end: 61
+      signature: '_write_fixture(repo: Path) -> None'
+      inputs:
+      - 'repo: Path'
+      output: None
+      dependencies:
+      - (repo / 'refs/handoffs').mkdir
+      - (repo / 'refs/handoffs/currentHandoff.md').write_text
+      - (repo / 'refs/implementation').mkdir
+      - (repo / 'refs/implementation/fileMap.yaml').write_text
+      - (repo / 'refs/planning').mkdir
+      - (repo / 'refs/planning/decision-register.md').write_text
+      - (repo / 'refs/project.yaml').write_text
+      - (repo / 'refs/testing').mkdir
+      - (repo / 'refs/testing/validationCommands.yaml').write_text
+      parser: python-ast
+      dependency_targets: []
+    - name: test_packet_selects_relevant_context_and_stays_bounded
+      kind: function
+      line_start: 64
+      line_end: 91
+      signature: 'test_packet_selects_relevant_context_and_stays_bounded(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - GitContext
+      - _write_fixture
+      - build_packet
+      - len
+      parser: python-ast
+      dependency_targets:
+      - &id001
+        path: tests/test_agent_context.py
+        symbol: _write_fixture
+      - &id002
+        path: tests/test_job_scout_market.py
+        symbol: _write_fixture
+      - &id003
+        path: scripts/agent_context.py
+        symbol: build_packet
+    - name: test_packet_without_focus_uses_recent_accepted_decision
+      kind: function
+      line_start: 94
+      line_end: 103
+      signature: 'test_packet_without_focus_uses_recent_accepted_decision(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - GitContext
+      - _write_fixture
+      - build_packet
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+      - *id003
+    - name: test_issue_number_is_inferred_from_agent_branch
+      kind: function
+      line_start: 106
+      line_end: 109
+      signature: test_issue_number_is_inferred_from_agent_branch() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - infer_issue
+      parser: python-ast
+      dependency_targets: []

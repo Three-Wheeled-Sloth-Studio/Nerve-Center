@@ -1,0 +1,1438 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: '04'
+  files:
+  - path: scripts/agent_context.py
+    analysis_version: 1
+    language: python
+    content_hash: 3a671866d8ced1fb91bd0af0369453b927e08952
+    dependencies:
+    - __future__
+    - argparse
+    - dataclasses
+    - generate_source_catalog
+    - pathlib
+    - re
+    - subprocess
+    - sys
+    - typing
+    - yaml
+    provides:
+    - _repo_root
+    - _run_git
+    - collect_git_context
+    - _tokens
+    - _relevance
+    - _read_yaml
+    - _decisions
+    - _markdown_blocks
+    - _markdown_blocks.flush
+    - _required_reads
+    - _handoff_snippets
+    - _truncate
+    - _file_hints
+    - _validation_commands
+    - _project_summary
+    - _infer_issue
+    - build_packet
+    - parser
+    - main
+    symbols:
+    - name: _repo_root
+      kind: function
+      line_start: 64
+      line_end: 65
+      signature: _repo_root() -> Path
+      inputs: []
+      output: Path
+      dependencies:
+      - Path
+      - Path(__file__).resolve
+      parser: python-ast
+      dependency_targets: []
+    - name: _run_git
+      kind: function
+      line_start: 68
+      line_end: 82
+      signature: '_run_git(repo_root: Path, *args: str) -> str | None'
+      inputs:
+      - 'repo_root: Path'
+      - '*args: str'
+      output: str | None
+      dependencies:
+      - result.stdout.strip
+      - subprocess.run
+      parser: python-ast
+      dependency_targets: []
+    - name: collect_git_context
+      kind: function
+      line_start: 85
+      line_end: 103
+      signature: 'collect_git_context(repo_root: Path, base_ref: str) -> GitContext'
+      inputs:
+      - 'repo_root: Path'
+      - 'base_ref: str'
+      output: GitContext
+      dependencies:
+      - GitContext
+      - _run_git
+      - changed.splitlines
+      - len
+      - line.strip
+      - line[3:].strip
+      - status.splitlines
+      - tuple
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/agent_context.py
+        symbol: _run_git
+    - name: _tokens
+      kind: function
+      line_start: 106
+      line_end: 111
+      signature: '_tokens(value: str) -> set[str]'
+      inputs:
+      - 'value: str'
+      output: set[str]
+      dependencies:
+      - _TOKEN_RE.findall
+      - len
+      - value.casefold
+      parser: python-ast
+      dependency_targets: []
+    - name: _relevance
+      kind: function
+      line_start: 114
+      line_end: 118
+      signature: '_relevance(value: str, focus_tokens: set[str]) -> int'
+      inputs:
+      - 'value: str'
+      - 'focus_tokens: set[str]'
+      output: int
+      dependencies:
+      - _tokens
+      - len
+      parser: python-ast
+      dependency_targets: []
+    - name: _read_yaml
+      kind: function
+      line_start: 121
+      line_end: 123
+      signature: '_read_yaml(path: Path) -> dict[str, Any]'
+      inputs:
+      - 'path: Path'
+      output: dict[str, Any]
+      dependencies:
+      - isinstance
+      - path.read_text
+      - yaml.safe_load
+      parser: python-ast
+      dependency_targets: []
+    - name: _decisions
+      kind: function
+      line_start: 126
+      line_end: 147
+      signature: '_decisions(path: Path, focus_tokens: set[str], limit: int) -> list[tuple[str, str]]'
+      inputs:
+      - 'path: Path'
+      - 'focus_tokens: set[str]'
+      - 'limit: int'
+      output: list[tuple[str, str]]
+      dependencies:
+      - _DECISION_RE.match
+      - _relevance
+      - accepted.append
+      - decision.strip
+      - match.groups
+      - path.read_text
+      - path.read_text(encoding='utf-8').splitlines
+      - sorted
+      - status.strip
+      - status.strip().casefold
+      parser: python-ast
+      dependency_targets:
+      - &id003
+        path: scripts/agent_context.py
+        symbol: _relevance
+      - &id001
+        path: src/nerve_center/persistence/scoring.py
+        symbol: OpportunityScoreRepository.append
+    - name: _markdown_blocks
+      kind: function
+      line_start: 150
+      line_end: 199
+      signature: '_markdown_blocks(path: Path) -> list[tuple[str, str]]'
+      inputs:
+      - 'path: Path'
+      output: list[tuple[str, str]]
+      dependencies:
+      - ''' ''.join'
+      - ''' ''.join((item.strip() for item in paragraph if item.strip())).strip'
+      - _HEADING_RE.match
+      - blocks.append
+      - flush
+      - heading.group
+      - item.strip
+      - line.startswith
+      - line[2:].strip
+      - paragraph.append
+      - paragraph.clear
+      - path.read_text
+      - path.read_text(encoding='utf-8').splitlines
+      - raw_line.strip
+      - re.match
+      - re.sub
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - &id005
+        path: scripts/agent_context.py
+        symbol: _markdown_blocks.flush
+    - name: _markdown_blocks.flush
+      kind: function
+      line_start: 156
+      line_end: 161
+      signature: _markdown_blocks.flush() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - ''' ''.join'
+      - ''' ''.join((item.strip() for item in paragraph if item.strip())).strip'
+      - blocks.append
+      - item.strip
+      - paragraph.clear
+      parser: python-ast
+      dependency_targets:
+      - *id001
+    - name: _required_reads
+      kind: function
+      line_start: 202
+      line_end: 207
+      signature: '_required_reads(path: Path, limit: int) -> list[str]'
+      inputs:
+      - 'path: Path'
+      - 'limit: int'
+      output: list[str]
+      dependencies:
+      - _markdown_blocks
+      parser: python-ast
+      dependency_targets:
+      - &id002
+        path: scripts/agent_context.py
+        symbol: _markdown_blocks
+    - name: _handoff_snippets
+      kind: function
+      line_start: 210
+      line_end: 257
+      signature: '_handoff_snippets(path: Path, focus_tokens: set[str], limit: int) -> list[tuple[str, str]]'
+      inputs:
+      - 'path: Path'
+      - 'focus_tokens: set[str]'
+      - 'limit: int'
+      output: list[tuple[str, str]]
+      dependencies:
+      - _markdown_blocks
+      - _relevance
+      - enumerate
+      - section_priority.get
+      - sorted
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+    - name: _truncate
+      kind: function
+      line_start: 260
+      line_end: 264
+      signature: '_truncate(value: str, limit: int) -> str'
+      inputs:
+      - 'value: str'
+      - 'limit: int'
+      output: str
+      dependencies:
+      - ''' ''.join'
+      - len
+      - normalized[:limit - 1].rstrip
+      - value.split
+      parser: python-ast
+      dependency_targets: []
+    - name: _file_hints
+      kind: function
+      line_start: 267
+      line_end: 285
+      signature: '_file_hints(path: Path, focus_tokens: set[str]) -> list[tuple[str, list[str]]]'
+      inputs:
+      - 'path: Path'
+      - 'focus_tokens: set[str]'
+      output: list[tuple[str, list[str]]]
+      dependencies:
+      - ''' ''.join'
+      - _read_yaml
+      - _relevance
+      - any
+      - isinstance
+      - item.get
+      - payload.get
+      - ranked.append
+      - ranked.sort
+      - str
+      - str(item.get('task') or '').strip
+      parser: python-ast
+      dependency_targets:
+      - &id004
+        path: scripts/agent_context.py
+        symbol: _read_yaml
+      - *id003
+      - *id001
+    - name: _validation_commands
+      kind: function
+      line_start: 288
+      line_end: 297
+      signature: '_validation_commands(path: Path) -> list[tuple[str, str]]'
+      inputs:
+      - 'path: Path'
+      output: list[tuple[str, str]]
+      dependencies:
+      - _read_yaml
+      - isinstance
+      - item.get
+      - payload.get
+      - result.append
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id004
+      - *id001
+    - name: _project_summary
+      kind: function
+      line_start: 300
+      line_end: 305
+      signature: '_project_summary(path: Path) -> tuple[str, str]'
+      inputs:
+      - 'path: Path'
+      output: tuple[str, str]
+      dependencies:
+      - _read_yaml
+      - identity.get
+      - payload.get
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id004
+    - name: _infer_issue
+      kind: function
+      line_start: 308
+      line_end: 310
+      signature: '_infer_issue(branch: str) -> int | None'
+      inputs:
+      - 'branch: str'
+      output: int | None
+      dependencies:
+      - int
+      - match.group
+      - re.match
+      parser: python-ast
+      dependency_targets: []
+    - name: build_packet
+      kind: function
+      line_start: 313
+      line_end: 470
+      signature: 'build_packet(repo_root: Path, focus: str, issue: int | None, base_ref: str, git_context: GitContext | None,
+        max_decisions: int, max_handoff_snippets: int, max_changed_paths: int) -> str'
+      inputs:
+      - 'repo_root: Path'
+      - 'focus: str'
+      - 'issue: int | None'
+      - 'base_ref: str'
+      - 'git_context: GitContext | None'
+      - 'max_decisions: int'
+      - 'max_handoff_snippets: int'
+      - 'max_changed_paths: int'
+      output: str
+      dependencies:
+      - ''', ''.join'
+      - '''\n''.join'
+      - '''\n''.join(lines).rstrip'
+      - _decisions
+      - _file_hints
+      - _handoff_snippets
+      - _infer_issue
+      - _project_summary
+      - _required_reads
+      - _tokens
+      - _truncate
+      - _validation_commands
+      - collect_git_context
+      - dict.fromkeys
+      - focus.strip
+      - isinstance
+      - item.get
+      - len
+      - lines.append
+      - lines.extend
+      - list
+      - query_catalog
+      - str
+      - symbol.get
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/agent_context.py
+        symbol: _decisions
+      - path: scripts/agent_context.py
+        symbol: _file_hints
+      - path: scripts/agent_context.py
+        symbol: _handoff_snippets
+      - path: scripts/agent_context.py
+        symbol: _infer_issue
+      - path: scripts/agent_context.py
+        symbol: _project_summary
+      - path: scripts/agent_context.py
+        symbol: _required_reads
+      - path: scripts/agent_context.py
+        symbol: _truncate
+      - path: scripts/agent_context.py
+        symbol: _validation_commands
+      - path: scripts/agent_context.py
+        symbol: collect_git_context
+      - *id001
+    - name: parser
+      kind: function
+      line_start: 473
+      line_end: 501
+      signature: parser() -> argparse.ArgumentParser
+      inputs: []
+      output: argparse.ArgumentParser
+      dependencies:
+      - argparse.ArgumentParser
+      - result.add_argument
+      parser: python-ast
+      dependency_targets: []
+    - name: main
+      kind: function
+      line_start: 504
+      line_end: 540
+      signature: main() -> int
+      inputs: []
+      output: int
+      dependencies:
+      - '''\n- ''.join'
+      - SystemExit
+      - _repo_root
+      - args.output.is_absolute
+      - build_packet
+      - check_catalog
+      - getattr
+      - len
+      - output.parent.mkdir
+      - output.write_text
+      - parser
+      - parser().parse_args
+      - print
+      - reconfigure
+      - refresh_catalog
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/agent_context.py
+        symbol: _repo_root
+      - path: scripts/agent_context.py
+        symbol: build_packet
+      - path: scripts/agent_context.py
+        symbol: parser
+      - path: scripts/run_job_scout_live.py
+        symbol: parser
+      - path: scripts/smoke_job_scout_live.py
+        symbol: parser
+  - path: src/nerve_center/domain/task.py
+    analysis_version: 1
+    language: python
+    content_hash: 81fb297b9bc1fb27df790f80f20395ecc1b317fe
+    dependencies:
+    - __future__
+    - collections.abc
+    - dataclasses
+    - datetime
+    - enum
+    - nerve_center.domain.budget
+    - typing
+    provides:
+    - TaskPlugin.run
+    symbols:
+    - name: TaskPlugin.run
+      kind: method
+      line_start: 48
+      line_end: 50
+      signature: 'TaskPlugin.run(self, context: TaskContext) -> TaskResult'
+      inputs:
+      - self
+      - 'context: TaskContext'
+      output: TaskResult
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/persistence/application_tables.py
+    analysis_version: 1
+    language: python
+    content_hash: dc6169437d218ed450fad16f775b3137146c59b6
+    dependencies:
+    - __future__
+    - datetime
+    - nerve_center.persistence.models
+    - sqlalchemy
+    - sqlalchemy.orm
+    - typing
+    provides: []
+    symbols: []
+  - path: src/nerve_center/persistence/sessions.py
+    analysis_version: 1
+    language: python
+    content_hash: 01fb4874a17fa42fe2ef42c950ee71ffdb032601
+    dependencies:
+    - __future__
+    - datetime
+    - nerve_center.domain.run_window
+    - nerve_center.domain.session
+    - nerve_center.persistence.database
+    - nerve_center.persistence.models
+    - sqlalchemy
+    - sqlalchemy.orm
+    - uuid
+    provides:
+    - SessionRepository.__init__
+    - SessionRepository.create
+    - SessionRepository.get
+    - SessionRepository.list_recent
+    - SessionRepository.list_actionable
+    - SessionRepository.start
+    - SessionRepository.update_phase
+    - SessionRepository.finish
+    - SessionRepository.recover_interrupted
+    - SessionRepository._model
+    - _snapshot
+    - _utc
+    - _restore_utc
+    - _restore_required_utc
+    symbols:
+    - name: SessionRepository.__init__
+      kind: method
+      line_start: 27
+      line_end: 28
+      signature: 'SessionRepository.__init__(self, database: Database) -> None'
+      inputs:
+      - self
+      - 'database: Database'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: SessionRepository.create
+      kind: method
+      line_start: 30
+      line_end: 75
+      signature: 'SessionRepository.create(self, window: ResolvedRunWindow, recurrence: RecurrenceRule | None, recurrence_parent_id:
+        str | None, resource_policy: dict[str, int] | None, now: datetime | None) -> WorkSessionSnapshot'
+      inputs:
+      - self
+      - 'window: ResolvedRunWindow'
+      - 'recurrence: RecurrenceRule | None'
+      - 'recurrence_parent_id: str | None'
+      - 'resource_policy: dict[str, int] | None'
+      - 'now: datetime | None'
+      output: WorkSessionSnapshot
+      dependencies:
+      - WorkSessionModel
+      - _snapshot
+      - _utc
+      - dict
+      - recurrence.to_dict
+      - self.database.session
+      - session.add
+      - session.flush
+      - str
+      - uuid4
+      - window.ends_at.astimezone
+      - window.starts_at.astimezone
+      parser: python-ast
+      dependency_targets:
+      - &id006
+        path: src/nerve_center/persistence/modules.py
+        symbol: ModuleRepository._snapshot
+      - &id007
+        path: src/nerve_center/persistence/runs.py
+        symbol: _snapshot
+      - &id008
+        path: src/nerve_center/persistence/sessions.py
+        symbol: _snapshot
+      - path: src/nerve_center/domain/module.py
+        symbol: ModuleManifest.to_dict
+      - path: src/nerve_center/domain/module_runtime.py
+        symbol: ModuleRuntimeReport.to_dict
+      - path: src/nerve_center/domain/module_runtime.py
+        symbol: ModuleRunAssignment.to_dict
+      - path: src/nerve_center/domain/session.py
+        symbol: RecurrenceRule.to_dict
+      - &id009
+        path: src/nerve_center/persistence/database.py
+        symbol: Database.session
+      - &id010
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.session
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _extract_structured_employer_names.add
+      - *id005
+    - name: SessionRepository.get
+      kind: method
+      line_start: 77
+      line_end: 82
+      signature: 'SessionRepository.get(self, session_id: str) -> WorkSessionSnapshot'
+      inputs:
+      - self
+      - 'session_id: str'
+      output: WorkSessionSnapshot
+      dependencies:
+      - SessionNotFoundError
+      - _snapshot
+      - self.database.session
+      parser: python-ast
+      dependency_targets:
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - *id010
+    - name: SessionRepository.list_recent
+      kind: method
+      line_start: 84
+      line_end: 91
+      signature: 'SessionRepository.list_recent(self, limit: int) -> list[WorkSessionSnapshot]'
+      inputs:
+      - self
+      - 'limit: int'
+      output: list[WorkSessionSnapshot]
+      dependencies:
+      - WorkSessionModel.requested_at.desc
+      - _snapshot
+      - select
+      - select(WorkSessionModel).order_by
+      - select(WorkSessionModel).order_by(WorkSessionModel.requested_at.desc()).limit
+      - self.database.session
+      - session.scalars
+      - session.scalars(select(WorkSessionModel).order_by(WorkSessionModel.requested_at.desc()).limit(limit)).all
+      parser: python-ast
+      dependency_targets:
+      - *id006
+      - *id007
+      - *id008
+      - &id011
+        path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager.select
+      - *id009
+      - *id010
+    - name: SessionRepository.list_actionable
+      kind: method
+      line_start: 93
+      line_end: 107
+      signature: SessionRepository.list_actionable(self) -> list[WorkSessionSnapshot]
+      inputs:
+      - self
+      output: list[WorkSessionSnapshot]
+      dependencies:
+      - WorkSessionModel.status.in_
+      - _snapshot
+      - select
+      - select(WorkSessionModel).where
+      - select(WorkSessionModel).where(WorkSessionModel.status.in_(statuses)).order_by
+      - self.database.session
+      - session.scalars
+      - session.scalars(select(WorkSessionModel).where(WorkSessionModel.status.in_(statuses)).order_by(WorkSessionModel.starts_at)).all
+      parser: python-ast
+      dependency_targets:
+      - *id006
+      - *id007
+      - *id008
+      - *id011
+      - *id009
+      - *id010
+    - name: SessionRepository.start
+      kind: method
+      line_start: 109
+      line_end: 127
+      signature: 'SessionRepository.start(self, session_id: str, module_run_ids: dict[str, str], module_priorities: dict[str,
+        int], now: datetime | None) -> WorkSessionSnapshot'
+      inputs:
+      - self
+      - 'session_id: str'
+      - 'module_run_ids: dict[str, str]'
+      - 'module_priorities: dict[str, int]'
+      - 'now: datetime | None'
+      output: WorkSessionSnapshot
+      dependencies:
+      - SessionStatus
+      - _snapshot
+      - _utc
+      - dict
+      - self._model
+      - self.database.session
+      - session.flush
+      parser: python-ast
+      dependency_targets:
+      - *id006
+      - *id007
+      - *id008
+      - &id012
+        path: src/nerve_center/persistence/sessions.py
+        symbol: SessionRepository._model
+      - *id009
+      - *id010
+      - *id005
+    - name: SessionRepository.update_phase
+      kind: method
+      line_start: 129
+      line_end: 143
+      signature: 'SessionRepository.update_phase(self, session_id: str, phase: AdmissionPhase, now: datetime | None) -> WorkSessionSnapshot'
+      inputs:
+      - self
+      - 'session_id: str'
+      - 'phase: AdmissionPhase'
+      - 'now: datetime | None'
+      output: WorkSessionSnapshot
+      dependencies:
+      - _snapshot
+      - _utc
+      - self._model
+      - self.database.session
+      - session.flush
+      parser: python-ast
+      dependency_targets:
+      - *id006
+      - *id007
+      - *id008
+      - *id012
+      - *id009
+      - *id010
+      - *id005
+    - name: SessionRepository.finish
+      kind: method
+      line_start: 145
+      line_end: 166
+      signature: 'SessionRepository.finish(self, session_id: str, status: SessionStatus, summary: str, emergency_stop: bool,
+        now: datetime | None) -> WorkSessionSnapshot'
+      inputs:
+      - self
+      - 'session_id: str'
+      - 'status: SessionStatus'
+      - 'summary: str'
+      - 'emergency_stop: bool'
+      - 'now: datetime | None'
+      output: WorkSessionSnapshot
+      dependencies:
+      - ValueError
+      - _snapshot
+      - _utc
+      - self._model
+      - self.database.session
+      - session.flush
+      parser: python-ast
+      dependency_targets:
+      - *id006
+      - *id007
+      - *id008
+      - *id012
+      - *id009
+      - *id010
+      - *id005
+    - name: SessionRepository.recover_interrupted
+      kind: method
+      line_start: 168
+      line_end: 191
+      signature: 'SessionRepository.recover_interrupted(self, now: datetime | None) -> list[WorkSessionSnapshot]'
+      inputs:
+      - self
+      - 'now: datetime | None'
+      output: list[WorkSessionSnapshot]
+      dependencies:
+      - WorkSessionModel.status.in_
+      - _restore_required_utc
+      - _snapshot
+      - _utc
+      - recovered.append
+      - select
+      - select(WorkSessionModel).where
+      - self.database.session
+      - session.flush
+      - session.scalars
+      - session.scalars(select(WorkSessionModel).where(WorkSessionModel.status.in_([SessionStatus.RUNNING.value, SessionStatus.DRAINING.value]))).all
+      parser: python-ast
+      dependency_targets:
+      - &id013
+        path: src/nerve_center/persistence/runs.py
+        symbol: _restore_required_utc
+      - &id014
+        path: src/nerve_center/persistence/sessions.py
+        symbol: _restore_required_utc
+      - *id006
+      - *id007
+      - *id008
+      - *id001
+      - *id011
+      - *id009
+      - *id010
+      - *id005
+    - name: SessionRepository._model
+      kind: method
+      line_start: 194
+      line_end: 198
+      signature: 'SessionRepository._model(session: Session, session_id: str) -> WorkSessionModel'
+      inputs:
+      - 'session: Session'
+      - 'session_id: str'
+      output: WorkSessionModel
+      dependencies:
+      - SessionNotFoundError
+      - session.get
+      parser: python-ast
+      dependency_targets: []
+    - name: _snapshot
+      kind: function
+      line_start: 201
+      line_end: 225
+      signature: '_snapshot(model: WorkSessionModel) -> WorkSessionSnapshot'
+      inputs:
+      - 'model: WorkSessionModel'
+      output: WorkSessionSnapshot
+      dependencies:
+      - (model.module_priorities or {}).items
+      - (model.resource_policy or {}).items
+      - AdmissionPhase
+      - RecurrenceRule.from_dict
+      - SessionStatus
+      - WorkSessionSnapshot
+      - _restore_required_utc
+      - _restore_utc
+      - dict
+      - int
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/domain/module.py
+        symbol: ModuleManifest.from_dict
+      - path: src/nerve_center/domain/session.py
+        symbol: RecurrenceRule.from_dict
+      - *id013
+      - *id014
+      - &id015
+        path: src/nerve_center/persistence/runs.py
+        symbol: _restore_utc
+      - &id016
+        path: src/nerve_center/persistence/sessions.py
+        symbol: _restore_utc
+      - &id017
+        path: src/nerve_center/persistence/work_queue.py
+        symbol: _restore_utc
+    - name: _utc
+      kind: function
+      line_start: 228
+      line_end: 232
+      signature: '_utc(value: datetime | None) -> datetime'
+      inputs:
+      - 'value: datetime | None'
+      output: datetime
+      dependencies:
+      - ValueError
+      - current.astimezone
+      - current.utcoffset
+      - datetime.now
+      parser: python-ast
+      dependency_targets: []
+    - name: _restore_utc
+      kind: function
+      line_start: 235
+      line_end: 240
+      signature: '_restore_utc(value: datetime | None) -> datetime | None'
+      inputs:
+      - 'value: datetime | None'
+      output: datetime | None
+      dependencies:
+      - value.astimezone
+      - value.replace
+      - value.utcoffset
+      parser: python-ast
+      dependency_targets: []
+    - name: _restore_required_utc
+      kind: function
+      line_start: 243
+      line_end: 247
+      signature: '_restore_required_utc(value: datetime) -> datetime'
+      inputs:
+      - 'value: datetime'
+      output: datetime
+      dependencies:
+      - ValueError
+      - _restore_utc
+      parser: python-ast
+      dependency_targets:
+      - *id015
+      - *id016
+      - *id017
+  - path: src/nerve_center/profile/prompts.py
+    analysis_version: 1
+    language: python
+    content_hash: 47dab19d489b9c1ad507c27001e273ee3c3e0f12
+    dependencies:
+    - __future__
+    - json
+    - nerve_center.profile.models
+    provides:
+    - build_extraction_prompt
+    symbols:
+    - name: build_extraction_prompt
+      kind: function
+      line_start: 20
+      line_end: 33
+      signature: 'build_extraction_prompt(document: SourceDocument) -> str'
+      inputs:
+      - 'document: SourceDocument'
+      output: str
+      dependencies:
+      - '''\n''.join'
+      - item.model_dump
+      - json.dumps
+      parser: python-ast
+      dependency_targets: []
+  - path: tests/test_discovery_service.py
+    analysis_version: 1
+    language: python
+    content_hash: b6426839a40bde3ec78a9d347c1a4f13871cbafd
+    dependencies:
+    - asyncio
+    - datetime
+    - httpx
+    - nerve_center.config
+    - nerve_center.discovery.fetching
+    - nerve_center.discovery.models
+    - nerve_center.discovery.plugin
+    - nerve_center.discovery.search
+    - nerve_center.discovery.service
+    - nerve_center.domain.budget
+    - nerve_center.domain.task
+    - nerve_center.persistence.database
+    - nerve_center.persistence.discovery
+    - pathlib
+    - pytest
+    provides:
+    - _setup
+    - test_service_scans_source_and_persists_job
+    - test_service_scans_source_and_persists_job.handler
+    - test_sitemap_child_registration_has_a_small_default_ceiling
+    - test_sitemap_child_registration_has_a_small_default_ceiling.handler
+    - test_plugin_checkpoints_and_consumes_request_budget
+    - test_plugin_checkpoints_and_consumes_request_budget.handler
+    - test_google_result_normalization_rejects_internal_links
+    - test_public_search_discovers_supported_result_pages
+    - test_public_search_discovers_supported_result_pages.FakeFetcher.get
+    - test_cached_search_results_are_reclassified_by_current_url_policy
+    - test_public_reference_search_retains_non_job_evidence
+    - test_public_reference_search_retains_non_job_evidence.FakeFetcher.get
+    - test_public_reference_fetch_is_durably_cached
+    - test_public_reference_fetch_is_durably_cached.FakeFetcher.get
+    - test_extensionless_binary_reference_is_bounded_and_cached
+    - test_extensionless_binary_reference_is_bounded_and_cached.FakeFetcher.get
+    - test_public_reference_challenge_is_persistently_cooled_down
+    - test_public_reference_challenge_is_persistently_cooled_down.ChallengedFetcher.get
+    - test_cached_browser_challenge_prevents_repeated_headless_attempts
+    - test_public_search_challenge_cools_down_remaining_queries
+    - test_public_search_challenge_cools_down_remaining_queries.ChallengedFetcher.get
+    - test_public_search_challenge_does_not_cool_down_another_provider
+    - test_public_search_challenge_does_not_cool_down_another_provider.PortfolioFetcher.get
+    symbols:
+    - name: _setup
+      kind: function
+      line_start: 40
+      line_end: 74
+      signature: '_setup(tmp_path: Path, handler)'
+      inputs:
+      - 'tmp_path: Path'
+      - handler
+      output: unspecified
+      dependencies:
+      - Company
+      - CompanyRepository
+      - Database
+      - DiscoveryService
+      - DiscoverySource
+      - DiscoverySourceRepository
+      - HttpFetcher
+      - JobOpeningRepository
+      - Settings
+      - companies.upsert
+      - database.initialize
+      - httpx.AsyncClient
+      - httpx.MockTransport
+      - sources.upsert
+      parser: python-ast
+      dependency_targets:
+      - &id019
+        path: src/nerve_center/persistence/discovery.py
+        symbol: CompanyRepository.upsert
+      - &id020
+        path: src/nerve_center/persistence/discovery.py
+        symbol: DiscoverySourceRepository.upsert
+      - &id021
+        path: src/nerve_center/persistence/discovery.py
+        symbol: JobOpeningRepository.upsert
+      - &id022
+        path: src/nerve_center/persistence/scoring.py
+        symbol: ScoringRuleRepository.upsert
+      - &id023
+        path: src/nerve_center/persistence/database.py
+        symbol: Database.initialize
+    - name: test_service_scans_source_and_persists_job
+      kind: function
+      line_start: 77
+      line_end: 100
+      signature: 'test_service_scans_source_and_persists_job(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - _setup
+      - asyncio.run
+      - client.aclose
+      - httpx.Response
+      - jobs.list
+      - len
+      - service.scan_source
+      - sources.get
+      parser: python-ast
+      dependency_targets:
+      - &id018
+        path: tests/test_discovery_service.py
+        symbol: _setup
+      - path: src/nerve_center/discovery/api.py
+        symbol: register_discovery_routes.scan_source
+      - path: src/nerve_center/discovery/service.py
+        symbol: DiscoveryService.scan_source
+    - name: test_service_scans_source_and_persists_job.handler
+      kind: function
+      line_start: 78
+      line_end: 92
+      signature: 'test_service_scans_source_and_persists_job.handler(request: httpx.Request) -> httpx.Response'
+      inputs:
+      - 'request: httpx.Request'
+      output: httpx.Response
+      dependencies:
+      - httpx.Response
+      parser: python-ast
+      dependency_targets: []
+    - name: test_sitemap_child_registration_has_a_small_default_ceiling
+      kind: function
+      line_start: 103
+      line_end: 119
+      signature: 'test_sitemap_child_registration_has_a_small_default_ceiling(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - _setup
+      - asyncio.run
+      - client.aclose
+      - httpx.Response
+      - len
+      - range
+      - service._register_sitemap_urls
+      - sources.get
+      - sources.get('source-1').model_copy
+      - sources.list
+      - sources.upsert
+      parser: python-ast
+      dependency_targets:
+      - *id018
+      - path: src/nerve_center/discovery/service.py
+        symbol: DiscoveryService._register_sitemap_urls
+      - *id019
+      - *id020
+      - *id021
+      - *id022
+    - name: test_sitemap_child_registration_has_a_small_default_ceiling.handler
+      kind: function
+      line_start: 104
+      line_end: 105
+      signature: 'test_sitemap_child_registration_has_a_small_default_ceiling.handler(request: httpx.Request) -> httpx.Response'
+      inputs:
+      - 'request: httpx.Request'
+      output: httpx.Response
+      dependencies:
+      - httpx.Response
+      parser: python-ast
+      dependency_targets: []
+    - name: test_plugin_checkpoints_and_consumes_request_budget
+      kind: function
+      line_start: 122
+      line_end: 145
+      signature: 'test_plugin_checkpoints_and_consumes_request_budget(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - JobDiscoveryTaskPlugin
+      - JobDiscoveryTaskPlugin(service, sources).run
+      - ResourceBudget
+      - ResourceBudgetTracker
+      - TaskContext
+      - _setup
+      - asyncio.run
+      - checkpoints.append
+      - client.aclose
+      - datetime.now
+      - dict
+      - httpx.Response
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - *id018
+      - *id001
+    - name: test_plugin_checkpoints_and_consumes_request_budget.handler
+      kind: function
+      line_start: 123
+      line_end: 124
+      signature: 'test_plugin_checkpoints_and_consumes_request_budget.handler(request: httpx.Request) -> httpx.Response'
+      inputs:
+      - 'request: httpx.Request'
+      output: httpx.Response
+      dependencies:
+      - httpx.Response
+      parser: python-ast
+      dependency_targets: []
+    - name: test_google_result_normalization_rejects_internal_links
+      kind: function
+      line_start: 148
+      line_end: 179
+      signature: test_google_result_normalization_rejects_internal_links() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - classify_discovered_url
+      - normalize_google_result_url
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/discovery/search.py
+        symbol: classify_discovered_url
+      - path: src/nerve_center/discovery/search.py
+        symbol: normalize_google_result_url
+    - name: test_public_search_discovers_supported_result_pages
+      kind: function
+      line_start: 182
+      line_end: 217
+      signature: 'test_public_search_discovers_supported_result_pages(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Database
+      - FakeFetcher
+      - FetchResponse
+      - PublicWebSearchAdapter
+      - SearchCacheRepository
+      - Settings
+      - adapter.search
+      - asyncio.run
+      - database.initialize
+      - normalize_public_search_result_url
+      parser: python-ast
+      dependency_targets:
+      - *id023
+      - path: src/nerve_center/discovery/search.py
+        symbol: normalize_public_search_result_url
+    - name: test_public_search_discovers_supported_result_pages.FakeFetcher.get
+      kind: method
+      line_start: 188
+      line_end: 204
+      signature: 'test_public_search_discovers_supported_result_pages.FakeFetcher.get(self, url: str, **kwargs: object) ->
+        FetchResponse'
+      inputs:
+      - self
+      - 'url: str'
+      - '**kwargs: object'
+      output: FetchResponse
+      dependencies:
+      - FetchResponse
+      parser: python-ast
+      dependency_targets: []
+    - name: test_cached_search_results_are_reclassified_by_current_url_policy
+      kind: function
+      line_start: 220
+      line_end: 247
+      signature: 'test_cached_search_results_are_reclassified_by_current_url_policy(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Database
+      - PublicWebSearchAdapter
+      - SearchCacheRepository
+      - Settings
+      - adapter.search
+      - adapter.search_references
+      - asyncio.run
+      - cache.put
+      - database.initialize
+      parser: python-ast
+      dependency_targets:
+      - &id024
+        path: src/nerve_center/persistence/discovery.py
+        symbol: SearchCacheRepository.put
+      - *id023
+    - name: test_public_reference_search_retains_non_job_evidence
+      kind: function
+      line_start: 250
+      line_end: 279
+      signature: 'test_public_reference_search_retains_non_job_evidence(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Database
+      - FakeFetcher
+      - FetchResponse
+      - PublicWebSearchAdapter
+      - SearchCacheRepository
+      - Settings
+      - adapter.search
+      - adapter.search_references
+      - asyncio.run
+      - database.initialize
+      parser: python-ast
+      dependency_targets:
+      - *id023
+    - name: test_public_reference_search_retains_non_job_evidence.FakeFetcher.get
+      kind: method
+      line_start: 255
+      line_end: 266
+      signature: 'test_public_reference_search_retains_non_job_evidence.FakeFetcher.get(self, url: str, **_kwargs: object)
+        -> FetchResponse'
+      inputs:
+      - self
+      - 'url: str'
+      - '**_kwargs: object'
+      output: FetchResponse
+      dependencies:
+      - FetchResponse
+      parser: python-ast
+      dependency_targets: []
+    - name: test_public_reference_fetch_is_durably_cached
+      kind: function
+      line_start: 282
+      line_end: 314
+      signature: 'test_public_reference_fetch_is_durably_cached(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Database
+      - FakeFetcher
+      - FetchResponse
+      - PublicWebSearchAdapter
+      - ReferenceDocument
+      - SearchCacheRepository
+      - Settings
+      - asyncio.run
+      - database.initialize
+      - first_adapter.fetch_reference
+      - second_adapter.fetch_reference
+      parser: python-ast
+      dependency_targets:
+      - *id023
+    - name: test_public_reference_fetch_is_durably_cached.FakeFetcher.get
+      kind: method
+      line_start: 288
+      line_end: 298
+      signature: 'test_public_reference_fetch_is_durably_cached.FakeFetcher.get(self, url: str, **_kwargs: object) -> FetchResponse'
+      inputs:
+      - self
+      - 'url: str'
+      - '**_kwargs: object'
+      output: FetchResponse
+      dependencies:
+      - FetchResponse
+      parser: python-ast
+      dependency_targets: []
+    - name: test_extensionless_binary_reference_is_bounded_and_cached
+      kind: function
+      line_start: 317
+      line_end: 355
+      signature: 'test_extensionless_binary_reference_is_bounded_and_cached(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Database
+      - FakeFetcher
+      - FetchResponse
+      - PublicWebSearchAdapter
+      - SearchCacheRepository
+      - Settings
+      - asyncio.run
+      - calls.append
+      - database.initialize
+      - first_adapter.fetch_reference
+      - second_adapter.fetch_reference
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id023
+    - name: test_extensionless_binary_reference_is_bounded_and_cached.FakeFetcher.get
+      kind: method
+      line_start: 324
+      line_end: 334
+      signature: 'test_extensionless_binary_reference_is_bounded_and_cached.FakeFetcher.get(self, url: str, **kwargs: object)
+        -> FetchResponse'
+      inputs:
+      - self
+      - 'url: str'
+      - '**kwargs: object'
+      output: FetchResponse
+      dependencies:
+      - FetchResponse
+      - calls.append
+      parser: python-ast
+      dependency_targets:
+      - *id001
+    - name: test_public_reference_challenge_is_persistently_cooled_down
+      kind: function
+      line_start: 358
+      line_end: 384
+      signature: 'test_public_reference_challenge_is_persistently_cooled_down(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - ChallengedFetcher
+      - Database
+      - FetchResponse
+      - PublicWebSearchAdapter
+      - SearchCacheRepository
+      - Settings
+      - asyncio.run
+      - database.initialize
+      - first_adapter.fetch_reference
+      - pytest.raises
+      - second_adapter.fetch_reference
+      parser: python-ast
+      dependency_targets:
+      - *id023
+    - name: test_public_reference_challenge_is_persistently_cooled_down.ChallengedFetcher.get
+      kind: method
+      line_start: 364
+      line_end: 374
+      signature: 'test_public_reference_challenge_is_persistently_cooled_down.ChallengedFetcher.get(self, url: str, **_kwargs:
+        object) -> FetchResponse'
+      inputs:
+      - self
+      - 'url: str'
+      - '**_kwargs: object'
+      output: FetchResponse
+      dependencies:
+      - FetchResponse
+      parser: python-ast
+      dependency_targets: []
+    - name: test_cached_browser_challenge_prevents_repeated_headless_attempts
+      kind: function
+      line_start: 387
+      line_end: 402
+      signature: 'test_cached_browser_challenge_prevents_repeated_headless_attempts(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Database
+      - PlaywrightSearchAdapter
+      - SearchCacheRepository
+      - Settings
+      - adapter.search
+      - asyncio.run
+      - cache.put
+      - database.initialize
+      - pytest.raises
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - *id024
+      - *id023
+    - name: test_public_search_challenge_cools_down_remaining_queries
+      kind: function
+      line_start: 405
+      line_end: 432
+      signature: 'test_public_search_challenge_cools_down_remaining_queries(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - ChallengedFetcher
+      - Database
+      - FetchResponse
+      - PublicWebSearchAdapter
+      - SearchCacheRepository
+      - Settings
+      - adapter.search
+      - asyncio.run
+      - database.initialize
+      - pytest.raises
+      parser: python-ast
+      dependency_targets:
+      - *id023
+    - name: test_public_search_challenge_cools_down_remaining_queries.ChallengedFetcher.get
+      kind: method
+      line_start: 411
+      line_end: 421
+      signature: 'test_public_search_challenge_cools_down_remaining_queries.ChallengedFetcher.get(self, url: str, **kwargs:
+        object) -> FetchResponse'
+      inputs:
+      - self
+      - 'url: str'
+      - '**kwargs: object'
+      output: FetchResponse
+      dependencies:
+      - FetchResponse
+      parser: python-ast
+      dependency_targets: []
+    - name: test_public_search_challenge_does_not_cool_down_another_provider
+      kind: function
+      line_start: 435
+      line_end: 473
+      signature: 'test_public_search_challenge_does_not_cool_down_another_provider(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Database
+      - FetchResponse
+      - PortfolioFetcher
+      - PublicWebSearchAdapter
+      - SearchCacheRepository
+      - Settings
+      - adapter.search
+      - asyncio.run
+      - calls.append
+      - database.initialize
+      - pytest.raises
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id023
+    - name: test_public_search_challenge_does_not_cool_down_another_provider.PortfolioFetcher.get
+      kind: method
+      line_start: 443
+      line_end: 462
+      signature: 'test_public_search_challenge_does_not_cool_down_another_provider.PortfolioFetcher.get(self, url: str, **kwargs:
+        object) -> FetchResponse'
+      inputs:
+      - self
+      - 'url: str'
+      - '**kwargs: object'
+      output: FetchResponse
+      dependencies:
+      - FetchResponse
+      - calls.append
+      parser: python-ast
+      dependency_targets:
+      - *id001

@@ -1,0 +1,2536 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: 1c
+  files:
+  - path: src/nerve_center/persistence/__init__.py
+    analysis_version: 1
+    language: python
+    content_hash: 7521b9a2ca9ec9e29044422647c95afe2e1c6cb9
+    dependencies: []
+    provides: []
+    symbols: []
+  - path: src/nerve_center/plugins/job_scout/attachment_discovery.py
+    analysis_version: 1
+    language: python
+    content_hash: 7903c571e4b97c9458d0c78a7aa3f24324263954
+    dependencies:
+    - __future__
+    - dataclasses
+    - datetime
+    - nerve_center.discovery.search
+    - nerve_center.plugins.job_scout.discovery_learning
+    - nerve_center.plugins.job_scout.discovery_loop
+    - nerve_center.plugins.job_scout.location_discovery
+    - nerve_center.plugins.job_scout.reference_attachments
+    - re
+    - typing
+    - urllib.parse
+    provides:
+    - _empty_attachment_counters
+    - _IntentAwareReferenceAdapter.__init__
+    - _IntentAwareReferenceAdapter.search
+    - _IntentAwareReferenceAdapter.search_references
+    - _IntentAwareReferenceAdapter.fetch_reference
+    - _IntentAwareReferenceAdapter.reference_cache_status
+    - _IntentAwareReferenceAdapter.rank_civic_references
+    - _IntentAwareReferenceAdapter.is_civic_reference_eligible
+    - _IntentAwareReferenceAdapter.__getattr__
+    - AttachmentAwareJobScoutDiscoveryLoop.__init__
+    - AttachmentAwareJobScoutDiscoveryLoop.prepare
+    - AttachmentAwareJobScoutDiscoveryLoop._migrate_attachment_authority_hypotheses
+    - AttachmentAwareJobScoutDiscoveryLoop.cycle
+    - AttachmentAwareJobScoutDiscoveryLoop._execute_public_search
+    - AttachmentAwareJobScoutDiscoveryLoop._process_attachment_links
+    - _prioritize_civic_reference_results
+    - _reference_intent_rank
+    - _is_civic_reference_candidate
+    - _is_civic_authority
+    - _reference_evidence_text
+    - _supported_reference_document
+    - _attachment_evidence
+    - _cached_parent_document
+    - _persist_attachment_coverage
+    symbols:
+    - name: _empty_attachment_counters
+      kind: function
+      line_start: 76
+      line_end: 77
+      signature: _empty_attachment_counters() -> dict[str, int]
+      inputs: []
+      output: dict[str, int]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: _IntentAwareReferenceAdapter.__init__
+      kind: method
+      line_start: 83
+      line_end: 92
+      signature: '_IntentAwareReferenceAdapter.__init__(self, delegate: Any, candidate_limit: int) -> None'
+      inputs:
+      - self
+      - 'delegate: Any'
+      - 'candidate_limit: int'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: _IntentAwareReferenceAdapter.search
+      kind: method
+      line_start: 94
+      line_end: 95
+      signature: '_IntentAwareReferenceAdapter.search(self, query: str) -> Any'
+      inputs:
+      - self
+      - 'query: str'
+      output: Any
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: _IntentAwareReferenceAdapter.search_references
+      kind: method
+      line_start: 97
+      line_end: 108
+      signature: '_IntentAwareReferenceAdapter.search_references(self, query: str) -> list[SearchResult]'
+      inputs:
+      - self
+      - 'query: str'
+      output: list[SearchResult]
+      dependencies:
+      - _prioritize_civic_reference_results
+      - getattr
+      - len
+      - list
+      - method
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/attachment_discovery.py
+        symbol: _prioritize_civic_reference_results
+    - name: _IntentAwareReferenceAdapter.fetch_reference
+      kind: method
+      line_start: 110
+      line_end: 114
+      signature: '_IntentAwareReferenceAdapter.fetch_reference(self, url: str) -> Any'
+      inputs:
+      - self
+      - 'url: str'
+      output: Any
+      dependencies:
+      - getattr
+      - method
+      parser: python-ast
+      dependency_targets: []
+    - name: _IntentAwareReferenceAdapter.reference_cache_status
+      kind: method
+      line_start: 116
+      line_end: 118
+      signature: '_IntentAwareReferenceAdapter.reference_cache_status(self, url: str) -> str'
+      inputs:
+      - self
+      - 'url: str'
+      output: str
+      dependencies:
+      - getattr
+      - method
+      parser: python-ast
+      dependency_targets: []
+    - name: _IntentAwareReferenceAdapter.rank_civic_references
+      kind: method
+      line_start: 120
+      line_end: 124
+      signature: '_IntentAwareReferenceAdapter.rank_civic_references(self, results: list[SearchResult]) -> list[SearchResult]'
+      inputs:
+      - self
+      - 'results: list[SearchResult]'
+      output: list[SearchResult]
+      dependencies:
+      - sorted
+      parser: python-ast
+      dependency_targets: []
+    - name: _IntentAwareReferenceAdapter.is_civic_reference_eligible
+      kind: method
+      line_start: 126
+      line_end: 127
+      signature: '_IntentAwareReferenceAdapter.is_civic_reference_eligible(self, result: SearchResult) -> bool'
+      inputs:
+      - self
+      - 'result: SearchResult'
+      output: bool
+      dependencies:
+      - _is_civic_reference_candidate
+      parser: python-ast
+      dependency_targets:
+      - &id005
+        path: src/nerve_center/plugins/job_scout/attachment_discovery.py
+        symbol: _is_civic_reference_candidate
+    - name: _IntentAwareReferenceAdapter.__getattr__
+      kind: method
+      line_start: 129
+      line_end: 130
+      signature: '_IntentAwareReferenceAdapter.__getattr__(self, name: str) -> Any'
+      inputs:
+      - self
+      - 'name: str'
+      output: Any
+      dependencies:
+      - getattr
+      parser: python-ast
+      dependency_targets: []
+    - name: AttachmentAwareJobScoutDiscoveryLoop.__init__
+      kind: method
+      line_start: 136
+      line_end: 148
+      signature: 'AttachmentAwareJobScoutDiscoveryLoop.__init__(self, *args: Any, attachment_fetcher: PublicAttachmentFetcher
+        | None, **kwargs: Any) -> None'
+      inputs:
+      - self
+      - '*args: Any'
+      - 'attachment_fetcher: PublicAttachmentFetcher | None'
+      - '**kwargs: Any'
+      output: None
+      dependencies:
+      - PublicAttachmentFetcher
+      - getattr
+      - super
+      parser: python-ast
+      dependency_targets: []
+    - name: AttachmentAwareJobScoutDiscoveryLoop.prepare
+      kind: method
+      line_start: 150
+      line_end: 157
+      signature: 'AttachmentAwareJobScoutDiscoveryLoop.prepare(self, run_id: str) -> dict[str, object]'
+      inputs:
+      - self
+      - 'run_id: str'
+      output: dict[str, object]
+      dependencies:
+      - _persist_attachment_coverage
+      - dict
+      - prepared.get
+      - self._migrate_attachment_authority_hypotheses
+      - super
+      parser: python-ast
+      dependency_targets:
+      - &id001
+        path: src/nerve_center/plugins/job_scout/attachment_discovery.py
+        symbol: _persist_attachment_coverage
+      - path: src/nerve_center/plugins/job_scout/attachment_discovery.py
+        symbol: AttachmentAwareJobScoutDiscoveryLoop._migrate_attachment_authority_hypotheses
+    - name: AttachmentAwareJobScoutDiscoveryLoop._migrate_attachment_authority_hypotheses
+      kind: method
+      line_start: 159
+      line_end: 181
+      signature: AttachmentAwareJobScoutDiscoveryLoop._migrate_attachment_authority_hypotheses(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies:
+      - dict
+      - self.learning.ensure_strategy
+      - self.learning.list_strategies
+      - strategy.dimensions.get
+      parser: python-ast
+      dependency_targets:
+      - &id004
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.ensure_strategy
+      - &id003
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.list_strategies
+    - name: AttachmentAwareJobScoutDiscoveryLoop.cycle
+      kind: method
+      line_start: 183
+      line_end: 204
+      signature: 'AttachmentAwareJobScoutDiscoveryLoop.cycle(self, run_id: str, cycle: int, request_limit: int | None)'
+      inputs:
+      - self
+      - 'run_id: str'
+      - 'cycle: int'
+      - 'request_limit: int | None'
+      output: unspecified
+      dependencies:
+      - _empty_attachment_counters
+      - _persist_attachment_coverage
+      - dict
+      - replace
+      - super
+      parser: python-ast
+      dependency_targets:
+      - &id002
+        path: src/nerve_center/plugins/job_scout/attachment_discovery.py
+        symbol: _empty_attachment_counters
+      - *id001
+    - name: AttachmentAwareJobScoutDiscoveryLoop._execute_public_search
+      kind: method
+      line_start: 206
+      line_end: 305
+      signature: 'AttachmentAwareJobScoutDiscoveryLoop._execute_public_search(self, strategy: DiscoveryStrategySnapshot, allowance:
+        _RequestAllowance | None) -> tuple[StrategyOutcome, int, list[str]]'
+      inputs:
+      - self
+      - 'strategy: DiscoveryStrategySnapshot'
+      - 'allowance: _RequestAllowance | None'
+      output: tuple[StrategyOutcome, int, list[str]]
+      dependencies:
+      - AttachmentLink
+      - _IntentAwareReferenceAdapter
+      - _RequestAllowance
+      - _cached_parent_document
+      - _empty_attachment_counters
+      - dict
+      - discover_directory_attachments
+      - infer_document_format
+      - int
+      - isinstance
+      - len
+      - metrics.items
+      - outcome.detail.get
+      - reference.get
+      - replace
+      - self._process_attachment_links
+      - self.learning.list_strategies
+      - stages.get
+      - stages.update
+      - str
+      - str(reference.get('requested_url') or reference.get('url') or '').strip
+      - strategy.dimensions.get
+      - super
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/attachment_discovery.py
+        symbol: _cached_parent_document
+      - *id002
+      - path: src/nerve_center/plugins/job_scout/reference_attachments.py
+        symbol: discover_directory_attachments
+      - path: src/nerve_center/plugins/job_scout/reference_attachments.py
+        symbol: infer_document_format
+      - path: src/nerve_center/plugins/job_scout/attachment_discovery.py
+        symbol: AttachmentAwareJobScoutDiscoveryLoop._process_attachment_links
+      - *id003
+    - name: AttachmentAwareJobScoutDiscoveryLoop._process_attachment_links
+      kind: method
+      line_start: 307
+      line_end: 466
+      signature: 'AttachmentAwareJobScoutDiscoveryLoop._process_attachment_links(self, strategy: DiscoveryStrategySnapshot,
+        parent: ReferenceDocument, links: list[AttachmentLink], allowance: _RequestAllowance, metrics: dict[str, int], evidence:
+        list[dict[str, Any]], known_strategy_ids: set[str], direct_reference: bool) -> int'
+      inputs:
+      - self
+      - 'strategy: DiscoveryStrategySnapshot'
+      - 'parent: ReferenceDocument'
+      - 'links: list[AttachmentLink]'
+      - 'allowance: _RequestAllowance'
+      - 'metrics: dict[str, int]'
+      - 'evidence: list[dict[str, Any]]'
+      - 'known_strategy_ids: set[str]'
+      - 'direct_reference: bool'
+      output: int
+      dependencies:
+      - DirectoryDocument
+      - _attachment_evidence
+      - allowance.reserve
+      - evidence.append
+      - known_strategy_ids.add
+      - len
+      - list
+      - parent.text.encode
+      - parse_directory_document
+      - self.attachment_fetcher.cache_status
+      - self.attachment_fetcher.fetch
+      - self.attachment_fetcher.mark_invalid
+      - self.learning.ensure_strategy
+      - str
+      - strategy.dimensions.get
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/attachment_discovery.py
+        symbol: _attachment_evidence
+      - &id025
+        path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _RequestAllowance.reserve
+      - &id006
+        path: src/nerve_center/persistence/scoring.py
+        symbol: OpportunityScoreRepository.append
+      - &id018
+        path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _extract_structured_employer_names.add
+      - path: src/nerve_center/plugins/job_scout/reference_attachments.py
+        symbol: parse_directory_document
+      - path: src/nerve_center/plugins/job_scout/reference_attachments.py
+        symbol: PublicAttachmentFetcher.cache_status
+      - path: tests/test_job_scout_reference_attachments.py
+        symbol: _FixtureAttachmentFetcher.cache_status
+      - path: src/nerve_center/plugins/job_scout/reference_attachments.py
+        symbol: PublicAttachmentFetcher.fetch
+      - path: tests/test_job_scout_reference_attachments.py
+        symbol: _FixtureAttachmentFetcher.fetch
+      - path: src/nerve_center/plugins/job_scout/reference_attachments.py
+        symbol: PublicAttachmentFetcher.mark_invalid
+      - path: tests/test_job_scout_reference_attachments.py
+        symbol: _FixtureAttachmentFetcher.mark_invalid
+      - *id004
+    - name: _prioritize_civic_reference_results
+      kind: function
+      line_start: 469
+      line_end: 504
+      signature: '_prioritize_civic_reference_results(results: list[SearchResult], reference_limit: int) -> tuple[list[SearchResult],
+        list[dict[str, Any]]]'
+      inputs:
+      - 'results: list[SearchResult]'
+      - 'reference_limit: int'
+      output: tuple[list[SearchResult], list[dict[str, Any]]]
+      dependencies:
+      - _is_civic_authority
+      - _is_civic_reference_candidate
+      - _reference_intent_rank
+      - _supported_reference_document
+      - evidence.append
+      - id
+      - max
+      - sorted
+      parser: python-ast
+      dependency_targets:
+      - &id008
+        path: src/nerve_center/plugins/job_scout/attachment_discovery.py
+        symbol: _is_civic_authority
+      - *id005
+      - path: src/nerve_center/plugins/job_scout/attachment_discovery.py
+        symbol: _reference_intent_rank
+      - &id007
+        path: src/nerve_center/plugins/job_scout/attachment_discovery.py
+        symbol: _supported_reference_document
+      - *id006
+    - name: _reference_intent_rank
+      kind: function
+      line_start: 507
+      line_end: 542
+      signature: '_reference_intent_rank(result: SearchResult) -> tuple[int, int, str]'
+      inputs:
+      - 'result: SearchResult'
+      output: tuple[int, int, str]
+      dependencies:
+      - ''' ''.join'
+      - ''' ''.join((str(result.title), str(result.snippet), parsed.path.replace(''-'', '' '').replace(''_'', '' ''))).casefold'
+      - (parsed.hostname or '').casefold
+      - _STRONG_EMPLOYER_INTENT.search
+      - _supported_reference_document
+      - any
+      - bool
+      - domain.endswith
+      - parsed.path.replace
+      - parsed.path.replace('-', ' ').replace
+      - re.search
+      - re.sub
+      - str
+      - url.casefold
+      - urlsplit
+      parser: python-ast
+      dependency_targets:
+      - *id007
+    - name: _is_civic_reference_candidate
+      kind: function
+      line_start: 545
+      line_end: 552
+      signature: '_is_civic_reference_candidate(result: SearchResult) -> bool'
+      inputs:
+      - 'result: SearchResult'
+      output: bool
+      dependencies:
+      - _CIVIC_SELF_EMPLOYMENT.search
+      - _EMPLOYER_LANDSCAPE_SIGNAL.search
+      - _is_civic_authority
+      - _reference_evidence_text
+      parser: python-ast
+      dependency_targets:
+      - *id008
+      - path: src/nerve_center/plugins/job_scout/attachment_discovery.py
+        symbol: _reference_evidence_text
+    - name: _is_civic_authority
+      kind: function
+      line_start: 555
+      line_end: 561
+      signature: '_is_civic_authority(result: SearchResult) -> bool'
+      inputs:
+      - 'result: SearchResult'
+      output: bool
+      dependencies:
+      - (urlsplit(str(result.url)).hostname or '').casefold
+      - any
+      - domain.endswith
+      - re.sub
+      - str
+      - urlsplit
+      parser: python-ast
+      dependency_targets: []
+    - name: _reference_evidence_text
+      kind: function
+      line_start: 564
+      line_end: 572
+      signature: '_reference_evidence_text(result: SearchResult) -> str'
+      inputs:
+      - 'result: SearchResult'
+      output: str
+      dependencies:
+      - ''' ''.join'
+      - ''' ''.join((str(result.title), str(result.snippet), parsed.path.replace(''-'', '' '').replace(''_'', '' ''))).casefold'
+      - parsed.path.replace
+      - parsed.path.replace('-', ' ').replace
+      - str
+      - urlsplit
+      parser: python-ast
+      dependency_targets: []
+    - name: _supported_reference_document
+      kind: function
+      line_start: 575
+      line_end: 577
+      signature: '_supported_reference_document(url: str) -> bool'
+      inputs:
+      - 'url: str'
+      output: bool
+      dependencies:
+      - any
+      - path.endswith
+      - urlsplit
+      - urlsplit(url).path.casefold
+      parser: python-ast
+      dependency_targets: []
+    - name: _attachment_evidence
+      kind: function
+      line_start: 580
+      line_end: 604
+      signature: '_attachment_evidence(link: AttachmentLink, status: str, final_url: str, content_type: str, extraction_method:
+        str, candidate_count: int, cache_status: str, units_inspected: int, detail: str) -> dict[str, Any]'
+      inputs:
+      - 'link: AttachmentLink'
+      - 'status: str'
+      - 'final_url: str'
+      - 'content_type: str'
+      - 'extraction_method: str'
+      - 'candidate_count: int'
+      - 'cache_status: str'
+      - 'units_inspected: int'
+      - 'detail: str'
+      output: dict[str, Any]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: _cached_parent_document
+      kind: function
+      line_start: 607
+      line_end: 625
+      signature: '_cached_parent_document(adapter: Any, url: str) -> ReferenceDocument | None'
+      inputs:
+      - 'adapter: Any'
+      - 'url: str'
+      output: ReferenceDocument | None
+      dependencies:
+      - ReferenceDocument
+      - cache_status_method
+      - fetch_reference
+      - getattr
+      - isinstance
+      - str
+      parser: python-ast
+      dependency_targets: []
+    - name: _persist_attachment_coverage
+      kind: function
+      line_start: 628
+      line_end: 648
+      signature: '_persist_attachment_coverage(learning: JobScoutDiscoveryRepository, run_id: str, increments: dict[str, int]
+        | None) -> dict[str, int]'
+      inputs:
+      - 'learning: JobScoutDiscoveryRepository'
+      - 'run_id: str'
+      - 'increments: dict[str, int] | None'
+      output: dict[str, int]
+      dependencies:
+      - (increments or {}).get
+      - _empty_attachment_counters
+      - coverage.setdefault
+      - datetime.now
+      - dict
+      - int
+      - learning.database.session
+      - session.flush
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - &id010
+        path: src/nerve_center/persistence/database.py
+        symbol: Database.session
+      - &id011
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.session
+      - path: scripts/agent_context.py
+        symbol: _markdown_blocks.flush
+  - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+    analysis_version: 1
+    language: python
+    content_hash: a55f977525002a53d1d3da4a508a2685d81d6947
+    dependencies:
+    - __future__
+    - dataclasses
+    - datetime
+    - html.parser
+    - httpx
+    - json
+    - nerve_center.config
+    - nerve_center.discovery.connectors.sitemap
+    - nerve_center.discovery.models
+    - nerve_center.discovery.normalization
+    - nerve_center.discovery.search
+    - nerve_center.discovery.service
+    - nerve_center.persistence.discovery
+    - nerve_center.plugins.job_scout.configuration
+    - nerve_center.plugins.job_scout.discovery_learning
+    - nerve_center.plugins.job_scout.market
+    - nerve_center.plugins.job_scout.settings
+    - re
+    - typing
+    - urllib.parse
+    - zipfile
+    provides:
+    - MarketExpander.expand
+    - SurfaceResolver.resolve
+    - _RequestAllowance.__init__
+    - _RequestAllowance.exhausted
+    - _RequestAllowance.reserve
+    - PublicCareerSurfaceResolver.__init__
+    - PublicCareerSurfaceResolver.resolve
+    - _CareerLinkParser.__init__
+    - _CareerLinkParser.handle_starttag
+    - _EmployerLandscapeParser.__init__
+    - _EmployerLandscapeParser.handle_starttag
+    - _EmployerLandscapeParser.handle_data
+    - _EmployerLandscapeParser.handle_endtag
+    - JobScoutDiscoveryLoop.__init__
+    - JobScoutDiscoveryLoop.prepare
+    - JobScoutDiscoveryLoop.cycle
+    - JobScoutDiscoveryLoop.deterministic_reflection
+    - JobScoutDiscoveryLoop.reflection_work_request
+    - JobScoutDiscoveryLoop.apply_reflection_result
+    - JobScoutDiscoveryLoop.summary
+    - JobScoutDiscoveryLoop._seed_search_strategies
+    - JobScoutDiscoveryLoop._seed_market_strategies
+    - JobScoutDiscoveryLoop._seed_known_company_strategies
+    - JobScoutDiscoveryLoop._seed_due_source_strategies
+    - JobScoutDiscoveryLoop._execute_strategy
+    - JobScoutDiscoveryLoop._execute_public_search
+    - JobScoutDiscoveryLoop._execute_company_revisit
+    - JobScoutDiscoveryLoop._execute_source_revisit
+    - JobScoutDiscoveryLoop._scan_source
+    - JobScoutDiscoveryLoop._deepen_company
+    - JobScoutDiscoveryLoop._register_sitemap
+    - JobScoutDiscoveryLoop._attribute_source
+    - JobScoutDiscoveryLoop._career_source_ids
+    - _strategy_query
+    - _clean_domain
+    - _is_employer_source
+    - _extract_regional_alias_evidence
+    - _extract_employer_landscape_names
+    - _as_reference_document
+    - _extract_structured_employer_names
+    - _extract_structured_employer_names.add
+    - _extract_structured_employer_names.walk
+    - _is_civic_reference_result
+    - _civic_reference_rank
+    - _reflection_schema
+    symbols:
+    - name: MarketExpander.expand
+      kind: method
+      line_start: 49
+      line_end: 49
+      signature: 'MarketExpander.expand(self, locations: list[str], **kwargs: Any) -> list[MarketAlias]'
+      inputs:
+      - self
+      - 'locations: list[str]'
+      - '**kwargs: Any'
+      output: list[MarketAlias]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: SurfaceResolver.resolve
+      kind: method
+      line_start: 53
+      line_end: 53
+      signature: 'SurfaceResolver.resolve(self, company: Company) -> list[str]'
+      inputs:
+      - self
+      - 'company: Company'
+      output: list[str]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: _RequestAllowance.__init__
+      kind: method
+      line_start: 74
+      line_end: 78
+      signature: '_RequestAllowance.__init__(self, limit: int | None) -> None'
+      inputs:
+      - self
+      - 'limit: int | None'
+      output: None
+      dependencies:
+      - ValueError
+      parser: python-ast
+      dependency_targets: []
+    - name: _RequestAllowance.exhausted
+      kind: method
+      line_start: 81
+      line_end: 82
+      signature: _RequestAllowance.exhausted(self) -> bool
+      inputs:
+      - self
+      output: bool
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: _RequestAllowance.reserve
+      kind: method
+      line_start: 84
+      line_end: 87
+      signature: _RequestAllowance.reserve(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: PublicCareerSurfaceResolver.__init__
+      kind: method
+      line_start: 100
+      line_end: 101
+      signature: 'PublicCareerSurfaceResolver.__init__(self, discovery: DiscoveryService) -> None'
+      inputs:
+      - self
+      - 'discovery: DiscoveryService'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: PublicCareerSurfaceResolver.resolve
+      kind: method
+      line_start: 103
+      line_end: 116
+      signature: 'PublicCareerSurfaceResolver.resolve(self, company: Company) -> list[str]'
+      inputs:
+      - self
+      - 'company: Company'
+      output: list[str]
+      dependencies:
+      - _CareerLinkParser
+      - any
+      - clean_list
+      - fetcher.get
+      - item.casefold
+      - links.append
+      - parser.close
+      - parser.feed
+      - self.discovery.fetcher_factory
+      - urljoin
+      parser: python-ast
+      dependency_targets:
+      - &id009
+        path: src/nerve_center/plugins/job_scout/settings.py
+        symbol: clean_list
+      - *id006
+      - &id038
+        path: src/nerve_center/runtime/client.py
+        symbol: ModuleRuntimeClient.close
+    - name: _CareerLinkParser.__init__
+      kind: method
+      line_start: 120
+      line_end: 123
+      signature: '_CareerLinkParser.__init__(self, base_url: str) -> None'
+      inputs:
+      - self
+      - 'base_url: str'
+      output: None
+      dependencies:
+      - super
+      parser: python-ast
+      dependency_targets: []
+    - name: _CareerLinkParser.handle_starttag
+      kind: method
+      line_start: 125
+      line_end: 140
+      signature: '_CareerLinkParser.handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None'
+      inputs:
+      - self
+      - 'tag: str'
+      - 'attrs: list[tuple[str, str | None]]'
+      output: None
+      dependencies:
+      - (values.get('rel') or '').casefold
+      - absolute.casefold
+      - canonicalize_url
+      - dict
+      - self.links.append
+      - urljoin
+      - values.get
+      parser: python-ast
+      dependency_targets:
+      - &id033
+        path: src/nerve_center/discovery/normalization.py
+        symbol: canonicalize_url
+      - *id006
+    - name: _EmployerLandscapeParser.__init__
+      kind: method
+      line_start: 146
+      line_end: 152
+      signature: _EmployerLandscapeParser.__init__(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies:
+      - super
+      parser: python-ast
+      dependency_targets: []
+    - name: _EmployerLandscapeParser.handle_starttag
+      kind: method
+      line_start: 154
+      line_end: 161
+      signature: '_EmployerLandscapeParser.handle_starttag(self, tag: str, _attrs: list[tuple[str, str | None]]) -> None'
+      inputs:
+      - self
+      - 'tag: str'
+      - '_attrs: list[tuple[str, str | None]]'
+      output: None
+      dependencies:
+      - int
+      - len
+      - tag.startswith
+      - tag[1].isdigit
+      parser: python-ast
+      dependency_targets: []
+    - name: _EmployerLandscapeParser.handle_data
+      kind: method
+      line_start: 163
+      line_end: 165
+      signature: '_EmployerLandscapeParser.handle_data(self, data: str) -> None'
+      inputs:
+      - self
+      - 'data: str'
+      output: None
+      dependencies:
+      - self._parts.append
+      parser: python-ast
+      dependency_targets:
+      - *id006
+    - name: _EmployerLandscapeParser.handle_endtag
+      kind: method
+      line_start: 167
+      line_end: 177
+      signature: '_EmployerLandscapeParser.handle_endtag(self, tag: str) -> None'
+      inputs:
+      - self
+      - 'tag: str'
+      output: None
+      dependencies:
+      - ''' ''.join'
+      - '''''.join'
+      - '''''.join(self._parts).split'
+      - self.headings.append
+      - self.items.append
+      parser: python-ast
+      dependency_targets:
+      - *id006
+    - name: JobScoutDiscoveryLoop.__init__
+      kind: method
+      line_start: 183
+      line_end: 215
+      signature: 'JobScoutDiscoveryLoop.__init__(self, settings: Settings, coordinator: JobScoutCoordinator, discovery: DiscoveryService,
+        companies: CompanyRepository, sources: DiscoverySourceRepository, jobs: JobOpeningRepository, learning: JobScoutDiscoveryRepository,
+        market: MarketExpander | None, search_adapter: SearchAdapter | None, surface_resolver: SurfaceResolver | None, exploration_floor:
+        float, strategies_per_cycle: int, results_per_strategy: int) -> None'
+      inputs:
+      - self
+      - 'settings: Settings'
+      - 'coordinator: JobScoutCoordinator'
+      - 'discovery: DiscoveryService'
+      - 'companies: CompanyRepository'
+      - 'sources: DiscoverySourceRepository'
+      - 'jobs: JobOpeningRepository'
+      - 'learning: JobScoutDiscoveryRepository'
+      - 'market: MarketExpander | None'
+      - 'search_adapter: SearchAdapter | None'
+      - 'surface_resolver: SurfaceResolver | None'
+      - 'exploration_floor: float'
+      - 'strategies_per_cycle: int'
+      - 'results_per_strategy: int'
+      output: None
+      dependencies:
+      - GazetteerMarketExpander
+      - PublicCareerSurfaceResolver
+      - PublicWebSearchAdapter
+      parser: python-ast
+      dependency_targets: []
+    - name: JobScoutDiscoveryLoop.prepare
+      kind: method
+      line_start: 217
+      line_end: 266
+      signature: 'JobScoutDiscoveryLoop.prepare(self, run_id: str) -> dict[str, Any]'
+      inputs:
+      - self
+      - 'run_id: str'
+      output: dict[str, Any]
+      dependencies:
+      - MarketAlias
+      - clean_list
+      - len
+      - max
+      - self._seed_due_source_strategies
+      - self._seed_known_company_strategies
+      - self._seed_market_strategies
+      - self._seed_search_strategies
+      - self.coordinator._discover_keywords
+      - self.coordinator.save_configuration
+      - self.coordinator.store.load
+      - self.learning.list_strategies
+      - self.learning.session
+      - self.learning.sync_application_feedback
+      - self.learning.update_session
+      - self.market.expand
+      - warnings.append
+      parser: python-ast
+      dependency_targets:
+      - *id009
+      - &id012
+        path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._seed_due_source_strategies
+      - &id013
+        path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: SourceAwareJobScoutDiscoveryLoop._seed_due_source_strategies
+      - &id014
+        path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._seed_known_company_strategies
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._seed_market_strategies
+      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: SourceAwareJobScoutDiscoveryLoop._seed_market_strategies
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._seed_search_strategies
+      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: SourceAwareJobScoutDiscoveryLoop._seed_search_strategies
+      - &id019
+        path: src/nerve_center/plugins/job_scout/configuration.py
+        symbol: JobScoutCoordinator._discover_keywords
+      - &id020
+        path: tests/test_job_scout_query_portfolio.py
+        symbol: _Coordinator._discover_keywords
+      - path: src/nerve_center/plugins/job_scout/configuration.py
+        symbol: JobScoutCoordinator.save_configuration
+      - path: src/nerve_center/plugins/job_scout/configuration.py
+        symbol: register_job_scout_configuration_routes.save_configuration
+      - &id015
+        path: src/nerve_center/plugins/job_scout/settings.py
+        symbol: JobScoutConfigurationStore.load
+      - &id016
+        path: tests/test_job_scout_query_portfolio.py
+        symbol: _ConfigStore.load
+      - *id003
+      - *id010
+      - *id011
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.sync_application_feedback
+      - &id017
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.update_session
+      - *id006
+    - name: JobScoutDiscoveryLoop.cycle
+      kind: method
+      line_start: 268
+      line_end: 420
+      signature: 'JobScoutDiscoveryLoop.cycle(self, run_id: str, cycle: int, request_limit: int | None) -> DiscoveryCycleSummary'
+      inputs:
+      - self
+      - 'run_id: str'
+      - 'cycle: int'
+      - 'request_limit: int | None'
+      output: DiscoveryCycleSummary
+      dependencies:
+      - DiscoveryCycleSummary
+      - _RequestAllowance
+      - _clean_domain
+      - _is_employer_source
+      - clean_list
+      - excluded_source_ids.update
+      - int
+      - isinstance
+      - len
+      - max
+      - outcome.detail.get
+      - replace
+      - self._career_source_ids
+      - self._execute_strategy
+      - self._seed_due_source_strategies
+      - self._seed_known_company_strategies
+      - self.companies.list
+      - self.coordinator.store.load
+      - self.jobs.list
+      - self.learning.record_attempt
+      - self.learning.select_strategies
+      - self.learning.session
+      - self.learning.update_session
+      - self.sources.list
+      parser: python-ast
+      dependency_targets:
+      - &id022
+        path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _clean_domain
+      - &id023
+        path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: _clean_domain
+      - &id024
+        path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _is_employer_source
+      - *id009
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._career_source_ids
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._execute_strategy
+      - *id012
+      - *id013
+      - *id014
+      - *id015
+      - *id016
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.record_attempt
+      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: DiscoveryQualityRepository.record_attempt
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.select_strategies
+      - *id010
+      - *id011
+      - *id017
+    - name: JobScoutDiscoveryLoop.deterministic_reflection
+      kind: method
+      line_start: 422
+      line_end: 476
+      signature: 'JobScoutDiscoveryLoop.deterministic_reflection(self, run_id: str, cycle: int) -> dict[str, Any]'
+      inputs:
+      - self
+      - 'run_id: str'
+      - 'cycle: int'
+      output: dict[str, Any]
+      dependencies:
+      - existing_ids.add
+      - hypotheses.append
+      - self.companies.list
+      - self.coordinator._discover_keywords
+      - self.coordinator.store.load
+      - self.learning.ensure_strategy
+      - self.learning.list_strategies
+      - self.learning.record_reflection_hypothesis
+      - self.learning.update_session
+      - self.sources.list
+      parser: python-ast
+      dependency_targets:
+      - *id018
+      - *id006
+      - *id019
+      - *id020
+      - *id015
+      - *id016
+      - *id004
+      - *id003
+      - &id021
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.record_reflection_hypothesis
+      - *id017
+    - name: JobScoutDiscoveryLoop.reflection_work_request
+      kind: method
+      line_start: 478
+      line_end: 522
+      signature: 'JobScoutDiscoveryLoop.reflection_work_request(self, run_id: str, cycle: int) -> dict[str, Any]'
+      inputs:
+      - self
+      - 'run_id: str'
+      - 'cycle: int'
+      output: dict[str, Any]
+      dependencies:
+      - _reflection_schema
+      - round
+      - self.learning.list_strategies
+      - self.learning.session
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _reflection_schema
+      - *id003
+      - *id010
+      - *id011
+    - name: JobScoutDiscoveryLoop.apply_reflection_result
+      kind: method
+      line_start: 524
+      line_end: 563
+      signature: 'JobScoutDiscoveryLoop.apply_reflection_result(self, request_id: str, value: dict[str, Any]) -> int'
+      inputs:
+      - self
+      - 'request_id: str'
+      - 'value: dict[str, Any]'
+      output: int
+      dependencies:
+      - ValueError
+      - int
+      - isinstance
+      - item.get
+      - known_ids.add
+      - self.learning.ensure_strategy
+      - self.learning.list_strategies
+      - self.learning.mark_reflection_applied
+      - self.learning.record_reflection_hypothesis
+      - self.learning.reflection_request
+      - self.learning.update_session
+      - str
+      - str(item.get('anchor') or '').strip
+      - str(item.get('employer_archetype') or '').strip
+      - str(item.get('location') or '').strip
+      - str(item.get('source_domain') or 'web').strip
+      - value.get
+      parser: python-ast
+      dependency_targets:
+      - *id018
+      - *id004
+      - *id003
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.mark_reflection_applied
+      - *id021
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.reflection_request
+      - *id017
+    - name: JobScoutDiscoveryLoop.summary
+      kind: method
+      line_start: 565
+      line_end: 572
+      signature: 'JobScoutDiscoveryLoop.summary(self, run_id: str) -> dict[str, Any]'
+      inputs:
+      - self
+      - 'run_id: str'
+      output: dict[str, Any]
+      dependencies:
+      - self.learning.session
+      parser: python-ast
+      dependency_targets:
+      - *id010
+      - *id011
+    - name: JobScoutDiscoveryLoop._seed_search_strategies
+      kind: method
+      line_start: 574
+      line_end: 597
+      signature: 'JobScoutDiscoveryLoop._seed_search_strategies(self, anchors: list[str], locations: list[str], boards: list[str])
+        -> None'
+      inputs:
+      - self
+      - 'anchors: list[str]'
+      - 'locations: list[str]'
+      - 'boards: list[str]'
+      output: None
+      dependencies:
+      - _clean_domain
+      - clean_list
+      - self.learning.ensure_strategy
+      parser: python-ast
+      dependency_targets:
+      - *id022
+      - *id023
+      - *id009
+      - *id004
+    - name: JobScoutDiscoveryLoop._seed_market_strategies
+      kind: method
+      line_start: 599
+      line_end: 600
+      signature: 'JobScoutDiscoveryLoop._seed_market_strategies(self, aliases: list[MarketAlias]) -> None'
+      inputs:
+      - self
+      - 'aliases: list[MarketAlias]'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: JobScoutDiscoveryLoop._seed_known_company_strategies
+      kind: method
+      line_start: 602
+      line_end: 619
+      signature: JobScoutDiscoveryLoop._seed_known_company_strategies(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies:
+      - _clean_domain
+      - _is_employer_source
+      - any
+      - self.companies.list
+      - self.coordinator.store.load
+      - self.learning.ensure_strategy
+      - self.sources.list
+      parser: python-ast
+      dependency_targets:
+      - *id022
+      - *id023
+      - *id024
+      - *id015
+      - *id016
+      - *id004
+    - name: JobScoutDiscoveryLoop._seed_due_source_strategies
+      kind: method
+      line_start: 621
+      line_end: 628
+      signature: JobScoutDiscoveryLoop._seed_due_source_strategies(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies:
+      - _is_employer_source
+      - self.learning.ensure_strategy
+      - self.sources.list_due
+      parser: python-ast
+      dependency_targets:
+      - *id024
+      - *id004
+      - &id028
+        path: src/nerve_center/persistence/discovery.py
+        symbol: DiscoverySourceRepository.list_due
+    - name: JobScoutDiscoveryLoop._execute_strategy
+      kind: method
+      line_start: 630
+      line_end: 643
+      signature: 'JobScoutDiscoveryLoop._execute_strategy(self, strategy: DiscoveryStrategySnapshot, allowance: _RequestAllowance
+        | None) -> tuple[StrategyOutcome, int, list[str]]'
+      inputs:
+      - self
+      - 'strategy: DiscoveryStrategySnapshot'
+      - 'allowance: _RequestAllowance | None'
+      output: tuple[StrategyOutcome, int, list[str]]
+      dependencies:
+      - StrategyOutcome
+      - _RequestAllowance
+      - self._execute_company_revisit
+      - self._execute_public_search
+      - self._execute_source_revisit
+      - strategy.dimensions.get
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._execute_company_revisit
+      - path: src/nerve_center/plugins/job_scout/attachment_discovery.py
+        symbol: AttachmentAwareJobScoutDiscoveryLoop._execute_public_search
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._execute_public_search
+      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: SourceAwareJobScoutDiscoveryLoop._execute_public_search
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._execute_source_revisit
+    - name: JobScoutDiscoveryLoop._execute_public_search
+      kind: method
+      line_start: 645
+      line_end: 990
+      signature: 'JobScoutDiscoveryLoop._execute_public_search(self, strategy: DiscoveryStrategySnapshot, allowance: _RequestAllowance
+        | None) -> tuple[StrategyOutcome, int, list[str]]'
+      inputs:
+      - self
+      - 'strategy: DiscoveryStrategySnapshot'
+      - 'allowance: _RequestAllowance | None'
+      output: tuple[StrategyOutcome, int, list[str]]
+      dependencies:
+      - StrategyOutcome
+      - _RequestAllowance
+      - _as_reference_document
+      - _extract_employer_landscape_names
+      - _extract_regional_alias_evidence
+      - _is_civic_reference_result
+      - _is_employer_source
+      - _strategy_query
+      - allowance.reserve
+      - cache_status_method
+      - companies_seen.add
+      - companies_seen.update
+      - dict
+      - fetch_reference
+      - getattr
+      - int
+      - len
+      - max
+      - rank_references
+      - reference_eligible
+      - reference_evidence.append
+      - search
+      - self._attribute_source
+      - self._deepen_company
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _as_reference_document
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _extract_employer_landscape_names
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _extract_regional_alias_evidence
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _is_civic_reference_result
+      - *id024
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _strategy_query
+      - *id025
+      - *id018
+      - *id006
+      - &id026
+        path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._attribute_source
+      - &id027
+        path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._deepen_company
+    - name: JobScoutDiscoveryLoop._execute_company_revisit
+      kind: method
+      line_start: 992
+      line_end: 1064
+      signature: 'JobScoutDiscoveryLoop._execute_company_revisit(self, strategy: DiscoveryStrategySnapshot, allowance: _RequestAllowance
+        | None) -> tuple[StrategyOutcome, int, list[str]]'
+      inputs:
+      - self
+      - 'strategy: DiscoveryStrategySnapshot'
+      - 'allowance: _RequestAllowance | None'
+      output: tuple[StrategyOutcome, int, list[str]]
+      dependencies:
+      - StrategyOutcome
+      - _RequestAllowance
+      - company.domain.endswith
+      - len
+      - self._attribute_source
+      - self._deepen_company
+      - self._scan_source
+      - self.companies.get
+      - self.coordinator._register_source_url
+      - self.coordinator.store.load
+      - self.learning.ensure_strategy
+      - self.learning.record_company_evidence
+      - self.sources.list
+      - self.sources.list_due
+      - set
+      - source_ids.add
+      - source_ids.update
+      - str
+      - strategy.dimensions.get
+      parser: python-ast
+      dependency_targets:
+      - *id026
+      - *id027
+      - &id029
+        path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._scan_source
+      - &id032
+        path: src/nerve_center/plugins/job_scout/configuration.py
+        symbol: JobScoutCoordinator._register_source_url
+      - *id015
+      - *id016
+      - *id004
+      - &id030
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.record_company_evidence
+      - &id031
+        path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: DiscoveryQualityRepository.record_company_evidence
+      - *id028
+      - *id018
+    - name: JobScoutDiscoveryLoop._execute_source_revisit
+      kind: method
+      line_start: 1066
+      line_end: 1123
+      signature: 'JobScoutDiscoveryLoop._execute_source_revisit(self, strategy: DiscoveryStrategySnapshot, allowance: _RequestAllowance
+        | None) -> tuple[StrategyOutcome, int, list[str]]'
+      inputs:
+      - self
+      - 'strategy: DiscoveryStrategySnapshot'
+      - 'allowance: _RequestAllowance | None'
+      output: tuple[StrategyOutcome, int, list[str]]
+      dependencies:
+      - StrategyOutcome
+      - _RequestAllowance
+      - len
+      - self._attribute_source
+      - self._scan_source
+      - self.companies.list
+      - self.learning.ensure_strategy
+      - self.learning.record_company_evidence
+      - self.sources.get
+      - str
+      - strategy.dimensions.get
+      - sum
+      parser: python-ast
+      dependency_targets:
+      - *id026
+      - *id029
+      - *id004
+      - *id030
+      - *id031
+    - name: JobScoutDiscoveryLoop._scan_source
+      kind: method
+      line_start: 1125
+      line_end: 1153
+      signature: 'JobScoutDiscoveryLoop._scan_source(self, source: DiscoverySource, allowance: _RequestAllowance | None) ->
+        tuple[Any | None, int]'
+      inputs:
+      - self
+      - 'source: DiscoverySource'
+      - 'allowance: _RequestAllowance | None'
+      output: tuple[Any | None, int]
+      dependencies:
+      - _RequestAllowance
+      - datetime.now
+      - due.replace
+      - self.discovery.scan_source
+      - self.sources.get
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/discovery/api.py
+        symbol: register_discovery_routes.scan_source
+      - path: src/nerve_center/discovery/service.py
+        symbol: DiscoveryService.scan_source
+    - name: JobScoutDiscoveryLoop._deepen_company
+      kind: method
+      line_start: 1155
+      line_end: 1199
+      signature: 'JobScoutDiscoveryLoop._deepen_company(self, company: Company, strategy_id: str, allowance: _RequestAllowance
+        | None) -> tuple[set[str], int, int]'
+      inputs:
+      - self
+      - 'company: Company'
+      - 'strategy_id: str'
+      - 'allowance: _RequestAllowance | None'
+      output: tuple[set[str], int, int]
+      dependencies:
+      - _RequestAllowance
+      - allowance.reserve
+      - len
+      - self._attribute_source
+      - self._register_sitemap
+      - self._scan_source
+      - self.coordinator._register_source_url
+      - self.coordinator.store.load
+      - self.sources.upsert
+      - self.surface_resolver.resolve
+      - set
+      - source.model_copy
+      - source_ids.add
+      - url.casefold
+      - url.casefold().endswith
+      parser: python-ast
+      dependency_targets:
+      - *id025
+      - *id026
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._register_sitemap
+      - *id029
+      - *id032
+      - *id015
+      - *id016
+      - &id034
+        path: src/nerve_center/persistence/discovery.py
+        symbol: CompanyRepository.upsert
+      - &id035
+        path: src/nerve_center/persistence/discovery.py
+        symbol: DiscoverySourceRepository.upsert
+      - &id036
+        path: src/nerve_center/persistence/discovery.py
+        symbol: JobOpeningRepository.upsert
+      - &id037
+        path: src/nerve_center/persistence/scoring.py
+        symbol: ScoringRuleRepository.upsert
+      - *id018
+    - name: JobScoutDiscoveryLoop._register_sitemap
+      kind: method
+      line_start: 1201
+      line_end: 1220
+      signature: 'JobScoutDiscoveryLoop._register_sitemap(self, company: Company, url: str, strategy_id: str) -> DiscoverySource'
+      inputs:
+      - self
+      - 'company: Company'
+      - 'url: str'
+      - 'strategy_id: str'
+      output: DiscoverySource
+      dependencies:
+      - DiscoverySource
+      - canonicalize_url
+      - self.coordinator.store.load
+      - self.sources.upsert
+      - stable_source_id
+      parser: python-ast
+      dependency_targets:
+      - *id033
+      - *id015
+      - *id016
+      - *id034
+      - *id035
+      - *id036
+      - *id037
+      - path: src/nerve_center/discovery/normalization.py
+        symbol: stable_source_id
+    - name: JobScoutDiscoveryLoop._attribute_source
+      kind: method
+      line_start: 1222
+      line_end: 1230
+      signature: 'JobScoutDiscoveryLoop._attribute_source(self, source: DiscoverySource, strategy_id: str) -> DiscoverySource'
+      inputs:
+      - self
+      - 'source: DiscoverySource'
+      - 'strategy_id: str'
+      output: DiscoverySource
+      dependencies:
+      - clean_list
+      - configuration.get
+      - dict
+      - isinstance
+      - self.sources.upsert
+      - source.model_copy
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id009
+      - *id034
+      - *id035
+      - *id036
+      - *id037
+    - name: JobScoutDiscoveryLoop._career_source_ids
+      kind: method
+      line_start: 1232
+      line_end: 1233
+      signature: JobScoutDiscoveryLoop._career_source_ids(self) -> set[str]
+      inputs:
+      - self
+      output: set[str]
+      dependencies:
+      - _is_employer_source
+      - self.sources.list
+      parser: python-ast
+      dependency_targets:
+      - *id024
+    - name: _strategy_query
+      kind: function
+      line_start: 1236
+      line_end: 1243
+      signature: '_strategy_query(strategy: DiscoveryStrategySnapshot) -> str'
+      inputs:
+      - 'strategy: DiscoveryStrategySnapshot'
+      output: str
+      dependencies:
+      - ''' ''.join'
+      - ''' ''.join((item for item in parts if item)).strip'
+      - strategy.dimensions.get
+      - strategy.dimensions.get('anchor', '').strip
+      - strategy.dimensions.get('employer_archetype', '').strip
+      - strategy.dimensions.get('location', '').strip
+      - strategy.dimensions.get('source_domain', 'web').strip
+      parser: python-ast
+      dependency_targets: []
+    - name: _clean_domain
+      kind: function
+      line_start: 1246
+      line_end: 1249
+      signature: '_clean_domain(value: str) -> str'
+      inputs:
+      - 'value: str'
+      output: str
+      dependencies:
+      - domain.removeprefix
+      - domain.removeprefix('https://').removeprefix
+      - domain.split
+      - domain.split('/', 1)[0].removeprefix
+      - value.casefold
+      - value.casefold().strip
+      parser: python-ast
+      dependency_targets: []
+    - name: _is_employer_source
+      kind: function
+      line_start: 1252
+      line_end: 1255
+      signature: '_is_employer_source(source: DiscoverySource) -> bool'
+      inputs:
+      - 'source: DiscoverySource'
+      output: bool
+      dependencies:
+      - bool
+      - source.configuration.get
+      parser: python-ast
+      dependency_targets: []
+    - name: _extract_regional_alias_evidence
+      kind: function
+      line_start: 1266
+      line_end: 1309
+      signature: '_extract_regional_alias_evidence(results: list[Any], anchor: str) -> list[dict[str, str]]'
+      inputs:
+      - 'results: list[Any]'
+      - 'anchor: str'
+      output: list[dict[str, str]]
+      dependencies:
+      - ''' ''.join'
+      - alias.casefold
+      - alias.casefold().split
+      - anchor.casefold
+      - anchor.casefold().split
+      - found.append
+      - getattr
+      - len
+      - match.group
+      - pattern.finditer
+      - re.split
+      - "re.split('[|:\u2013\u2014]|\\\\s+-\\\\s+', raw)[-1].strip"
+      - re.sub
+      - seen.add
+      - set
+      - str
+      - str(getattr(result, 'title', '')).split
+      parser: python-ast
+      dependency_targets:
+      - *id006
+      - *id018
+    - name: _extract_employer_landscape_names
+      kind: function
+      line_start: 1312
+      line_end: 1353
+      signature: '_extract_employer_landscape_names(content: str, content_type: str) -> list[str]'
+      inputs:
+      - 'content: str'
+      - 'content_type: str'
+      output: list[str]
+      dependencies:
+      - ''' ''.join'
+      - ''' ''.join(text.split()).strip'
+      - _EmployerLandscapeParser
+      - _extract_structured_employer_names
+      - candidate.casefold
+      - candidate.split
+      - candidates.append
+      - enumerate
+      - item.casefold
+      - key.startswith
+      - len
+      - list
+      - parser.close
+      - parser.feed
+      - re.search
+      - seen.add
+      - text.casefold
+      - text.casefold().split
+      - text.split
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _extract_structured_employer_names
+      - *id006
+      - *id038
+      - *id018
+    - name: _as_reference_document
+      kind: function
+      line_start: 1356
+      line_end: 1364
+      signature: '_as_reference_document(url: str, fetched: Any) -> ReferenceDocument'
+      inputs:
+      - 'url: str'
+      - 'fetched: Any'
+      output: ReferenceDocument
+      dependencies:
+      - ReferenceDocument
+      - isinstance
+      - str
+      parser: python-ast
+      dependency_targets: []
+    - name: _extract_structured_employer_names
+      kind: function
+      line_start: 1367
+      line_end: 1457
+      signature: '_extract_structured_employer_names(content: str, content_type: str) -> list[str]'
+      inputs:
+      - 'content: str'
+      - 'content_type: str'
+      output: list[str]
+      dependencies:
+      - ''' ''.join'
+      - ''' ''.join(str(value or '''').split()).strip'
+      - add
+      - bool
+      - candidate.casefold
+      - candidate.split
+      - content.lstrip
+      - content.lstrip().startswith
+      - content_type.casefold
+      - documents.append
+      - found.append
+      - isinstance
+      - json.loads
+      - len
+      - re.findall
+      - re.sub
+      - seen.add
+      - set
+      - str
+      - str(item).casefold
+      - str(key).casefold
+      - str(value or '').split
+      - value.get
+      - value.items
+      parser: python-ast
+      dependency_targets:
+      - *id018
+      - *id006
+    - name: _extract_structured_employer_names.add
+      kind: function
+      line_start: 1391
+      line_end: 1396
+      signature: '_extract_structured_employer_names.add(value: Any) -> None'
+      inputs:
+      - 'value: Any'
+      output: None
+      dependencies:
+      - ''' ''.join'
+      - ''' ''.join(str(value or '''').split()).strip'
+      - candidate.casefold
+      - candidate.split
+      - found.append
+      - len
+      - str
+      - str(value or '').split
+      parser: python-ast
+      dependency_targets:
+      - *id006
+    - name: _extract_structured_employer_names.walk
+      kind: function
+      line_start: 1398
+      line_end: 1453
+      signature: '_extract_structured_employer_names.walk(value: Any, directory_context: bool, organization_context: bool)
+        -> None'
+      inputs:
+      - 'value: Any'
+      - 'directory_context: bool'
+      - 'organization_context: bool'
+      output: None
+      dependencies:
+      - add
+      - bool
+      - isinstance
+      - len
+      - re.sub
+      - str
+      - str(item).casefold
+      - str(key).casefold
+      - value.get
+      - value.items
+      parser: python-ast
+      dependency_targets:
+      - *id018
+    - name: _is_civic_reference_result
+      kind: function
+      line_start: 1460
+      line_end: 1468
+      signature: '_is_civic_reference_result(result: Any) -> bool'
+      inputs:
+      - 'result: Any'
+      output: bool
+      dependencies:
+      - (urlsplit(str(getattr(result, 'url', ''))).hostname or '').casefold
+      - any
+      - domain.endswith
+      - getattr
+      - re.sub
+      - str
+      - urlsplit
+      parser: python-ast
+      dependency_targets: []
+    - name: _civic_reference_rank
+      kind: function
+      line_start: 1471
+      line_end: 1480
+      signature: '_civic_reference_rank(result: Any) -> tuple[int, str]'
+      inputs:
+      - 'result: Any'
+      output: tuple[int, str]
+      dependencies:
+      - (urlsplit(str(getattr(result, 'url', ''))).hostname or '').casefold
+      - domain.endswith
+      - getattr
+      - re.sub
+      - str
+      - urlsplit
+      parser: python-ast
+      dependency_targets: []
+    - name: _reflection_schema
+      kind: function
+      line_start: 1483
+      line_end: 1506
+      signature: _reflection_schema() -> dict[str, Any]
+      inputs: []
+      output: dict[str, Any]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/plugins/job_scout/worker.py
+    analysis_version: 1
+    language: python
+    content_hash: 7f5cb9b34728917904ca4c381cac0a1f00b3d0ed
+    dependencies:
+    - __future__
+    - asyncio
+    - contextlib
+    - datetime
+    - nerve_center.runtime.client
+    - os
+    - typing
+    provides:
+    - run_worker
+    - _execute_assignment
+    - _execute_discovery_loop
+    - _execute_discovery_loop.checkpoint
+    - _execute_discovery_loop.finish
+    - _execute_discovery_loop.control_reason
+    - _harvest_reflection_results
+    - _complete_from_summary
+    - _stop_status
+    - _terminal_status
+    - _optional_utc_datetime
+    - _marginal_window
+    - _accumulate_marginal_yield
+    - _checkpoint_coverage
+    - _completion_metrics
+    - _execute_configured_sources
+    - _heartbeat_while_working
+    - _required_environment
+    - main
+    symbols:
+    - name: run_worker
+      kind: function
+      line_start: 14
+      line_end: 33
+      signature: run_worker() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - ModuleRuntimeClient
+      - _execute_assignment
+      - _required_environment
+      - asyncio.sleep
+      - client.close
+      - client.heartbeat
+      - client.module_control
+      - client.next_work
+      - suppress
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/worker.py
+        symbol: _execute_assignment
+      - path: src/nerve_center/plugins/job_scout/worker.py
+        symbol: _required_environment
+      - *id038
+      - &id044
+        path: src/nerve_center/runtime/api.py
+        symbol: register_runtime_routes.heartbeat
+      - &id045
+        path: src/nerve_center/runtime/client.py
+        symbol: ModuleRuntimeClient.heartbeat
+      - &id046
+        path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.heartbeat
+      - &id047
+        path: tests/test_job_scout_continuous_session.py
+        symbol: Client.heartbeat
+      - path: src/nerve_center/runtime/api.py
+        symbol: register_runtime_routes.module_control
+      - path: src/nerve_center/runtime/client.py
+        symbol: ModuleRuntimeClient.module_control
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.module_control
+      - path: src/nerve_center/runtime/api.py
+        symbol: register_runtime_routes.next_work
+      - path: src/nerve_center/runtime/client.py
+        symbol: ModuleRuntimeClient.next_work
+    - name: _execute_assignment
+      kind: function
+      line_start: 36
+      line_end: 41
+      signature: '_execute_assignment(client: ModuleRuntimeClient, assignment: dict[str, Any]) -> None'
+      inputs:
+      - 'client: ModuleRuntimeClient'
+      - 'assignment: dict[str, Any]'
+      output: None
+      dependencies:
+      - (assignment.get('configuration') or {}).get
+      - _execute_configured_sources
+      - _execute_discovery_loop
+      - assignment.get
+      - isinstance
+      - str
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/worker.py
+        symbol: _execute_configured_sources
+      - path: src/nerve_center/plugins/job_scout/worker.py
+        symbol: _execute_discovery_loop
+    - name: _execute_discovery_loop
+      kind: function
+      line_start: 44
+      line_end: 368
+      signature: '_execute_discovery_loop(client: ModuleRuntimeClient, assignment: dict[str, Any]) -> None'
+      inputs:
+      - 'client: ModuleRuntimeClient'
+      - 'assignment: dict[str, Any]'
+      output: None
+      dependencies:
+      - (discovery_backoff_until - datetime.now(UTC)).total_seconds
+      - RuntimeError
+      - _accumulate_marginal_yield
+      - _completion_metrics
+      - _harvest_reflection_results
+      - _heartbeat_while_working
+      - _marginal_window
+      - _optional_utc_datetime
+      - _terminal_status
+      - assignment.get
+      - asyncio.create_task
+      - asyncio.gather
+      - asyncio.sleep
+      - attempted_ids.append
+      - bool
+      - checkpoint
+      - client.checkpoint
+      - client.complete
+      - client.consume
+      - client.control
+      - client.invoke
+      - client.submit_work
+      - control.get
+      - control_reason
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/worker.py
+        symbol: _accumulate_marginal_yield
+      - &id039
+        path: src/nerve_center/plugins/job_scout/worker.py
+        symbol: _completion_metrics
+      - path: src/nerve_center/plugins/job_scout/worker.py
+        symbol: _harvest_reflection_results
+      - &id041
+        path: src/nerve_center/plugins/job_scout/worker.py
+        symbol: _heartbeat_while_working
+      - &id040
+        path: src/nerve_center/plugins/job_scout/worker.py
+        symbol: _marginal_window
+      - path: src/nerve_center/plugins/job_scout/worker.py
+        symbol: _optional_utc_datetime
+      - path: src/nerve_center/plugins/job_scout/worker.py
+        symbol: _terminal_status
+      - *id006
+      - &id042
+        path: src/nerve_center/runtime/client.py
+        symbol: ModuleRuntimeClient.consume
+      - &id043
+        path: tests/test_job_scout_continuous_session.py
+        symbol: Client.consume
+      - path: src/nerve_center/runtime/api.py
+        symbol: register_runtime_routes.submit_work
+      - path: src/nerve_center/runtime/client.py
+        symbol: ModuleRuntimeClient.submit_work
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.submit_work
+      - path: tests/test_job_scout_continuous_session.py
+        symbol: Client.submit_work
+      - path: src/nerve_center/plugins/job_scout/worker.py
+        symbol: _execute_discovery_loop.control_reason
+    - name: _execute_discovery_loop.checkpoint
+      kind: function
+      line_start: 66
+      line_end: 91
+      signature: '_execute_discovery_loop.checkpoint(phase: str, **detail: Any) -> None'
+      inputs:
+      - 'phase: str'
+      - '**detail: Any'
+      output: None
+      dependencies:
+      - discovery_backoff_until.isoformat
+      - int
+      - len
+      - max
+      - saved.update
+      parser: python-ast
+      dependency_targets: []
+    - name: _execute_discovery_loop.finish
+      kind: function
+      line_start: 93
+      line_end: 104
+      signature: '_execute_discovery_loop.finish(reason: str, status: str) -> None'
+      inputs:
+      - 'reason: str'
+      - 'status: str'
+      output: None
+      dependencies:
+      - _completion_metrics
+      - checkpoint
+      - client.complete
+      - len
+      - max
+      - metrics.update
+      parser: python-ast
+      dependency_targets:
+      - *id039
+    - name: _execute_discovery_loop.control_reason
+      kind: function
+      line_start: 106
+      line_end: 124
+      signature: '_execute_discovery_loop.control_reason(check_budgets: bool) -> str | None'
+      inputs:
+      - 'check_budgets: bool'
+      output: str | None
+      dependencies:
+      - assignment.get
+      - client.control
+      - control.get
+      - datetime.fromisoformat
+      - datetime.now
+      - int
+      - policy.get
+      - str
+      - usage.get
+      parser: python-ast
+      dependency_targets: []
+    - name: _harvest_reflection_results
+      kind: function
+      line_start: 371
+      line_end: 396
+      signature: '_harvest_reflection_results(client: ModuleRuntimeClient, run_id: str) -> dict[str, int]'
+      inputs:
+      - 'client: ModuleRuntimeClient'
+      - 'run_id: str'
+      output: dict[str, int]
+      dependencies:
+      - applied.get
+      - client.acknowledge_result
+      - client.invoke
+      - client.results
+      - int
+      - isinstance
+      - payload.get
+      - result.get
+      - str
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/runtime/api.py
+        symbol: register_runtime_routes.acknowledge_result
+      - path: src/nerve_center/runtime/client.py
+        symbol: ModuleRuntimeClient.acknowledge_result
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.acknowledge_result
+      - path: tests/test_job_scout_continuous_session.py
+        symbol: Client.acknowledge_result
+      - path: src/nerve_center/runtime/api.py
+        symbol: register_runtime_routes.results
+      - path: src/nerve_center/runtime/client.py
+        symbol: ModuleRuntimeClient.results
+      - path: tests/test_job_scout_continuous_session.py
+        symbol: Client.results
+    - name: _complete_from_summary
+      kind: function
+      line_start: 399
+      line_end: 420
+      signature: '_complete_from_summary(client: ModuleRuntimeClient, run_id: str, status: str, reflection_queued: bool) ->
+        None'
+      inputs:
+      - 'client: ModuleRuntimeClient'
+      - 'run_id: str'
+      - 'status: str'
+      - 'reflection_queued: bool'
+      output: None
+      dependencies:
+      - _completion_metrics
+      - client.complete
+      - client.invoke
+      parser: python-ast
+      dependency_targets:
+      - *id039
+    - name: _stop_status
+      kind: function
+      line_start: 423
+      line_end: 431
+      signature: '_stop_status(control: dict[str, Any], assignment: dict[str, Any]) -> str | None'
+      inputs:
+      - 'control: dict[str, Any]'
+      - 'assignment: dict[str, Any]'
+      output: str | None
+      dependencies:
+      - datetime.fromisoformat
+      - datetime.now
+      - str
+      parser: python-ast
+      dependency_targets: []
+    - name: _terminal_status
+      kind: function
+      line_start: 434
+      line_end: 439
+      signature: '_terminal_status(reason: str) -> str'
+      inputs:
+      - 'reason: str'
+      output: str
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: _optional_utc_datetime
+      kind: function
+      line_start: 442
+      line_end: 451
+      signature: '_optional_utc_datetime(value: object) -> datetime | None'
+      inputs:
+      - 'value: object'
+      output: datetime | None
+      dependencies:
+      - datetime.fromisoformat
+      - parsed.astimezone
+      - parsed.replace
+      - str
+      parser: python-ast
+      dependency_targets: []
+    - name: _marginal_window
+      kind: function
+      line_start: 465
+      line_end: 467
+      signature: '_marginal_window(value: object) -> dict[str, int]'
+      inputs:
+      - 'value: object'
+      output: dict[str, int]
+      dependencies:
+      - int
+      - isinstance
+      - max
+      - source.get
+      parser: python-ast
+      dependency_targets: []
+    - name: _accumulate_marginal_yield
+      kind: function
+      line_start: 470
+      line_end: 495
+      signature: '_accumulate_marginal_yield(window: dict[str, int], metrics: object, requests: int, strategies: int, openings:
+        int) -> dict[str, int]'
+      inputs:
+      - 'window: dict[str, int]'
+      - 'metrics: object'
+      - 'requests: int'
+      - 'strategies: int'
+      - 'openings: int'
+      output: dict[str, int]
+      dependencies:
+      - _marginal_window
+      - int
+      - isinstance
+      - max
+      - values.get
+      parser: python-ast
+      dependency_targets:
+      - *id040
+    - name: _checkpoint_coverage
+      kind: function
+      line_start: 498
+      line_end: 503
+      signature: '_checkpoint_coverage(value: dict[str, Any]) -> dict[str, Any]'
+      inputs:
+      - 'value: dict[str, Any]'
+      output: dict[str, Any]
+      dependencies:
+      - isinstance
+      - value.items
+      parser: python-ast
+      dependency_targets: []
+    - name: _completion_metrics
+      kind: function
+      line_start: 506
+      line_end: 513
+      signature: '_completion_metrics(summary: dict[str, Any]) -> dict[str, int | float | str | bool]'
+      inputs:
+      - 'summary: dict[str, Any]'
+      output: dict[str, int | float | str | bool]
+      dependencies:
+      - isinstance
+      - len
+      - summary.get
+      - summary.items
+      parser: python-ast
+      dependency_targets: []
+    - name: _execute_configured_sources
+      kind: function
+      line_start: 516
+      line_end: 595
+      signature: '_execute_configured_sources(client: ModuleRuntimeClient, assignment: dict[str, Any], source_ids: list[str])
+        -> None'
+      inputs:
+      - 'client: ModuleRuntimeClient'
+      - 'assignment: dict[str, Any]'
+      - 'source_ids: list[str]'
+      output: None
+      dependencies:
+      - _heartbeat_while_working
+      - assignment.get
+      - asyncio.create_task
+      - asyncio.gather
+      - checkpoint.get
+      - client.checkpoint
+      - client.complete
+      - client.consume
+      - client.control
+      - client.invoke
+      - completed.append
+      - datetime.fromisoformat
+      - datetime.now
+      - enumerate
+      - heartbeat.cancel
+      - int
+      - len
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id041
+      - *id042
+      - *id043
+      - *id006
+      - path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.cancel
+      - path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService.cancel
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.cancel
+    - name: _heartbeat_while_working
+      kind: function
+      line_start: 598
+      line_end: 606
+      signature: '_heartbeat_while_working(client: ModuleRuntimeClient, state: dict[str, Any]) -> None'
+      inputs:
+      - 'client: ModuleRuntimeClient'
+      - 'state: dict[str, Any]'
+      output: None
+      dependencies:
+      - asyncio.sleep
+      - client.heartbeat
+      - int
+      - state.get
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id044
+      - *id045
+      - *id046
+      - *id047
+    - name: _required_environment
+      kind: function
+      line_start: 609
+      line_end: 613
+      signature: '_required_environment(name: str) -> str'
+      inputs:
+      - 'name: str'
+      output: str
+      dependencies:
+      - RuntimeError
+      - os.environ.get
+      parser: python-ast
+      dependency_targets: []
+    - name: main
+      kind: function
+      line_start: 616
+      line_end: 617
+      signature: main() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - asyncio.run
+      - run_worker
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/worker.py
+        symbol: run_worker
+  - path: tests/test_run_window.py
+    analysis_version: 1
+    language: python
+    content_hash: 0f1cf973441fd52540cf16a3e875b9ce09a73b7f
+    dependencies:
+    - datetime
+    - nerve_center.domain.run_window
+    - pytest
+    provides:
+    - test_duration_window_resolves_from_run_start
+    - test_remaining_is_zero_after_deadline
+    - test_fixed_window_keeps_explicit_bounds
+    - test_naive_timestamps_are_rejected
+    - test_non_positive_duration_is_rejected
+    symbols:
+    - name: test_duration_window_resolves_from_run_start
+      kind: function
+      line_start: 8
+      line_end: 16
+      signature: test_duration_window_resolves_from_run_start() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - DurationRunWindow
+      - DurationRunWindow(timedelta(minutes=30)).resolve
+      - datetime
+      - resolved.contains
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/domain/run_window.py
+        symbol: ResolvedRunWindow.contains
+    - name: test_remaining_is_zero_after_deadline
+      kind: function
+      line_start: 19
+      line_end: 23
+      signature: test_remaining_is_zero_after_deadline() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - DurationRunWindow
+      - DurationRunWindow(timedelta(minutes=5)).resolve
+      - datetime
+      - resolved.remaining
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - path: desktop/src/display.tsx
+        symbol: remaining
+      - path: src/nerve_center/domain/run_window.py
+        symbol: ResolvedRunWindow.remaining
+    - name: test_fixed_window_keeps_explicit_bounds
+      kind: function
+      line_start: 26
+      line_end: 33
+      signature: test_fixed_window_keeps_explicit_bounds() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - FixedRunWindow
+      - FixedRunWindow(starts_at, ends_at).resolve
+      - datetime
+      parser: python-ast
+      dependency_targets: []
+    - name: test_naive_timestamps_are_rejected
+      kind: function
+      line_start: 36
+      line_end: 38
+      signature: test_naive_timestamps_are_rejected() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - DurationRunWindow
+      - DurationRunWindow(timedelta(minutes=5)).resolve
+      - datetime
+      - pytest.raises
+      - timedelta
+      parser: python-ast
+      dependency_targets: []
+    - name: test_non_positive_duration_is_rejected
+      kind: function
+      line_start: 41
+      line_end: 43
+      signature: test_non_positive_duration_is_rejected() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - DurationRunWindow
+      - pytest.raises
+      - timedelta
+      parser: python-ast
+      dependency_targets: []
+  - path: tests/test_scheduler.py
+    analysis_version: 1
+    language: python
+    content_hash: 0cd1447a495e7f3193edc281121abf74e3e488f9
+    dependencies:
+    - asyncio
+    - datetime
+    - nerve_center.config
+    - nerve_center.domain.run
+    - nerve_center.domain.run_window
+    - nerve_center.persistence.database
+    - nerve_center.persistence.runs
+    - nerve_center.plugins.synthetic
+    - nerve_center.scheduler.registry
+    - nerve_center.scheduler.runner
+    - nerve_center.scheduler.service
+    - pathlib
+    provides:
+    - make_scheduler
+    - test_tick_starts_due_fixed_run
+    - test_tick_starts_due_fixed_run.execute
+    - test_tick_marks_expired_window_missed
+    symbols:
+    - name: make_scheduler
+      kind: function
+      line_start: 16
+      line_end: 23
+      signature: 'make_scheduler(tmp_path: Path) -> tuple[RunRepository, RunnerService, SchedulerService]'
+      inputs:
+      - 'tmp_path: Path'
+      output: tuple[RunRepository, RunnerService, SchedulerService]
+      dependencies:
+      - Database
+      - RunRepository
+      - RunnerService
+      - SchedulerService
+      - Settings
+      - SyntheticTaskPlugin
+      - TaskRegistry
+      - database.initialize
+      - registry.register
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/database.py
+        symbol: Database.initialize
+      - path: src/nerve_center/discovery/service.py
+        symbol: ConnectorRegistry.register
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.register
+      - path: src/nerve_center/scheduler/registry.py
+        symbol: TaskRegistry.register
+    - name: test_tick_starts_due_fixed_run
+      kind: function
+      line_start: 26
+      line_end: 41
+      signature: 'test_tick_starts_due_fixed_run(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - FixedRunWindow
+      - asyncio.run
+      - datetime.now
+      - execute
+      - make_scheduler
+      - repository.create
+      - runner.wait
+      - scheduler.tick
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager.execute
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.execute
+      - path: tests/test_scheduler.py
+        symbol: test_tick_starts_due_fixed_run.execute
+      - &id054
+        path: tests/test_scheduler.py
+        symbol: make_scheduler
+      - &id055
+        path: src/nerve_center/persistence/runs.py
+        symbol: RunRepository.create
+      - &id056
+        path: src/nerve_center/persistence/sessions.py
+        symbol: SessionRepository.create
+      - &id048
+        path: src/nerve_center/discovery/fetching.py
+        symbol: DomainRequestGate.wait
+      - &id049
+        path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService.wait
+      - &id050
+        path: tests/test_module_runtime.py
+        symbol: StubProcess.wait
+      - &id051
+        path: src/nerve_center/scheduler/provider_worker.py
+        symbol: ProviderWorkExecutor.tick
+      - &id052
+        path: src/nerve_center/scheduler/service.py
+        symbol: SchedulerService.tick
+      - &id053
+        path: src/nerve_center/scheduler/sessions.py
+        symbol: WorkSessionService.tick
+    - name: test_tick_starts_due_fixed_run.execute
+      kind: function
+      line_start: 36
+      line_end: 39
+      signature: test_tick_starts_due_fixed_run.execute() -> RunStatus
+      inputs: []
+      output: RunStatus
+      dependencies:
+      - runner.wait
+      - scheduler.tick
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - *id048
+      - *id049
+      - *id050
+      - *id051
+      - *id052
+      - *id053
+    - name: test_tick_marks_expired_window_missed
+      kind: function
+      line_start: 44
+      line_end: 55
+      signature: 'test_tick_marks_expired_window_missed(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - FixedRunWindow
+      - asyncio.run
+      - datetime.now
+      - make_scheduler
+      - repository.create
+      - repository.get
+      - scheduler.tick
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - *id054
+      - *id055
+      - *id056
+      - *id051
+      - *id052
+      - *id053
+  - path: tests/test_scoring_persistence.py
+    analysis_version: 1
+    language: python
+    content_hash: d8c455e2a3748bff2f66c0f671f997b9ee543260
+    dependencies:
+    - nerve_center.config
+    - nerve_center.discovery.models
+    - nerve_center.persistence.database
+    - nerve_center.persistence.discovery
+    - nerve_center.persistence.scoring
+    - nerve_center.scoring.models
+    - pathlib
+    provides:
+    - test_scoring_state_and_history_persist_append_only
+    symbols:
+    - name: test_scoring_state_and_history_persist_append_only
+      kind: function
+      line_start: 40
+      line_end: 116
+      signature: 'test_scoring_state_and_history_persist_append_only(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Company
+      - CompanyEnrichment
+      - CompanyEnrichmentRepository
+      - CompanyEnrichmentRepository(database).save
+      - CompanyRepository
+      - CompanyRepository(database).upsert
+      - Database
+      - DiscoverySource
+      - DiscoverySourceRepository
+      - DiscoverySourceRepository(database).upsert
+      - JobEnrichment
+      - JobEnrichmentRepository
+      - JobEnrichmentRepository(database).save
+      - JobOpeningRepository
+      - JobOpeningRepository(database).upsert
+      - JobProvenance
+      - LocationAssessment
+      - LocationPreferences
+      - LocationPreferencesRepository
+      - LocationPreferencesRepository(database).save
+      - NormalizedJobOpening
+      - OpportunityScore
+      - OpportunityScoreRepository
+      - ScoringRule
+      parser: python-ast
+      dependency_targets:
+      - *id034
+      - *id035
+      - *id036
+      - *id037

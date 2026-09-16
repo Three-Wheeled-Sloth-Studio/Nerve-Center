@@ -1,0 +1,1281 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: '01'
+  files:
+  - path: desktop/src/display.tsx
+    analysis_version: 1
+    language: typescript
+    content_hash: 717fc6b7861f38555995590ea188a40dbccdf8a8
+    dependencies: []
+    provides:
+    - Metric
+    - score
+    - lines
+    - messageOf
+    - remaining
+    - formatDuration
+    - titleCase
+    symbols:
+    - name: Metric
+      kind: function
+      line_start: 1
+      line_end: 1
+      signature: 'Metric({ label, value }: { label: string; value: number | undefined })'
+      inputs:
+      - '{ label, value }: { label: string; value: number | undefined }'
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: score
+      kind: function
+      line_start: 2
+      line_end: 2
+      signature: 'score(value: number | undefined)'
+      inputs:
+      - 'value: number | undefined'
+      output: unspecified
+      dependencies:
+      - Math.round
+      - toString
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: lines
+      kind: function
+      line_start: 3
+      line_end: 3
+      signature: 'lines(value: string)'
+      inputs:
+      - 'value: string'
+      output: unspecified
+      dependencies:
+      - Array.from
+      - Set
+      - filter
+      - item.trim
+      - map
+      - value.split
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: messageOf
+      kind: function
+      line_start: 4
+      line_end: 4
+      signature: 'messageOf(reason: unknown)'
+      inputs:
+      - 'reason: unknown'
+      output: unspecified
+      dependencies:
+      - String
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: remaining
+      kind: function
+      line_start: 5
+      line_end: 5
+      signature: 'remaining(deadline: string | null)'
+      inputs:
+      - 'deadline: string | null'
+      output: unspecified
+      dependencies:
+      - Date
+      - Date.now
+      - Math.floor
+      - Math.max
+      - Math.round
+      - getTime
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: formatDuration
+      kind: function
+      line_start: 6
+      line_end: 6
+      signature: 'formatDuration(seconds: number)'
+      inputs:
+      - 'seconds: number'
+      output: unspecified
+      dependencies:
+      - Math.round
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: titleCase
+      kind: function
+      line_start: 7
+      line_end: 7
+      signature: 'titleCase(value: string)'
+      inputs:
+      - 'value: string'
+      output: unspecified
+      dependencies:
+      - letter.toUpperCase
+      - replace
+      - value.replaceAll
+      parser: typescript-pattern
+      dependency_targets: []
+  - path: src/nerve_center/applications/models.py
+    analysis_version: 1
+    language: python
+    content_hash: fabcbed59be0b30ab956802a47f5ee1c8d911123
+    dependencies:
+    - __future__
+    - datetime
+    - enum
+    - nerve_center.discovery.models
+    - nerve_center.scoring.models
+    - pydantic
+    - typing
+    provides: []
+    symbols: []
+  - path: src/nerve_center/domain/module.py
+    analysis_version: 1
+    language: python
+    content_hash: 66b93ae0567947618e6a04d552adaad80e7c23ee
+    dependencies:
+    - __future__
+    - dataclasses
+    - enum
+    - re
+    - typing
+    provides:
+    - ModuleManifest.__post_init__
+    - ModuleManifest.validate
+    - ModuleManifest.supports_core
+    - ModuleManifest.to_dict
+    - ModuleManifest.from_dict
+    - _parse_version
+    symbols:
+    - name: ModuleManifest.__post_init__
+      kind: method
+      line_start: 90
+      line_end: 91
+      signature: ModuleManifest.__post_init__(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies:
+      - self.validate
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/domain/module.py
+        symbol: ModuleManifest.validate
+    - name: ModuleManifest.validate
+      kind: method
+      line_start: 93
+      line_end: 127
+      signature: ModuleManifest.validate(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies:
+      - ValueError
+      - _IDENTIFIER.fullmatch
+      - _parse_version
+      - self.description.strip
+      - self.display_name.strip
+      - set
+      - task.task_id.startswith
+      - task_ids.add
+      parser: python-ast
+      dependency_targets:
+      - &id001
+        path: src/nerve_center/domain/module.py
+        symbol: _parse_version
+      - &id004
+        path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _extract_structured_employer_names.add
+    - name: ModuleManifest.supports_core
+      kind: method
+      line_start: 129
+      line_end: 135
+      signature: 'ModuleManifest.supports_core(self, core_version: str) -> bool'
+      inputs:
+      - self
+      - 'core_version: str'
+      output: bool
+      dependencies:
+      - _parse_version
+      parser: python-ast
+      dependency_targets:
+      - *id001
+    - name: ModuleManifest.to_dict
+      kind: method
+      line_start: 137
+      line_end: 138
+      signature: ModuleManifest.to_dict(self) -> dict[str, Any]
+      inputs:
+      - self
+      output: dict[str, Any]
+      dependencies:
+      - asdict
+      parser: python-ast
+      dependency_targets: []
+    - name: ModuleManifest.from_dict
+      kind: method
+      line_start: 141
+      line_end: 181
+      signature: 'ModuleManifest.from_dict(cls, value: dict[str, Any]) -> Self'
+      inputs:
+      - cls
+      - 'value: dict[str, Any]'
+      output: Self
+      dependencies:
+      - ModuleCompatibility
+      - ModuleLaunchDefinition
+      - ModulePermission
+      - ModulePermissionKind
+      - ModuleTaskDeclaration
+      - ModuleUiContribution
+      - cls
+      - dict
+      - item.get
+      - launch_value.get
+      - tuple
+      - value.get
+      parser: python-ast
+      dependency_targets: []
+    - name: _parse_version
+      kind: function
+      line_start: 191
+      line_end: 195
+      signature: '_parse_version(value: str) -> tuple[int, int, int]'
+      inputs:
+      - 'value: str'
+      output: tuple[int, int, int]
+      dependencies:
+      - ValueError
+      - _SEMANTIC_VERSION.fullmatch
+      - int
+      - match.groups
+      - tuple
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/persistence/scoring.py
+    analysis_version: 1
+    language: python
+    content_hash: fd5e661804568cd151b5a2aece347d7dac2f698e
+    dependencies:
+    - __future__
+    - datetime
+    - nerve_center.persistence.database
+    - nerve_center.persistence.models
+    - nerve_center.scoring.models
+    - sqlalchemy
+    provides:
+    - LocationPreferencesRepository.__init__
+    - LocationPreferencesRepository.get
+    - LocationPreferencesRepository.save
+    - CompanyEnrichmentRepository.__init__
+    - CompanyEnrichmentRepository.get
+    - CompanyEnrichmentRepository.save
+    - JobEnrichmentRepository.__init__
+    - JobEnrichmentRepository.get
+    - JobEnrichmentRepository.save
+    - FitAnalysisRepository.__init__
+    - FitAnalysisRepository.save
+    - FitAnalysisRepository.get
+    - FitAnalysisRepository.latest
+    - FitAnalysisRepository.list
+    - ScoringSettingsRepository.__init__
+    - ScoringSettingsRepository.get
+    - ScoringSettingsRepository.save
+    - ScoringRuleRepository.__init__
+    - ScoringRuleRepository.upsert
+    - ScoringRuleRepository.list
+    - ScoringRuleRepository.delete
+    - OpportunityScoreRepository.__init__
+    - OpportunityScoreRepository.append
+    - OpportunityScoreRepository.list
+    symbols:
+    - name: LocationPreferencesRepository.__init__
+      kind: method
+      line_start: 31
+      line_end: 32
+      signature: 'LocationPreferencesRepository.__init__(self, database: Database) -> None'
+      inputs:
+      - self
+      - 'database: Database'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: LocationPreferencesRepository.get
+      kind: method
+      line_start: 34
+      line_end: 41
+      signature: LocationPreferencesRepository.get(self) -> LocationPreferences
+      inputs:
+      - self
+      output: LocationPreferences
+      dependencies:
+      - LocationPreferences
+      - LocationPreferences.model_validate
+      - self.database.session
+      parser: python-ast
+      dependency_targets:
+      - &id002
+        path: src/nerve_center/persistence/database.py
+        symbol: Database.session
+      - &id003
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.session
+    - name: LocationPreferencesRepository.save
+      kind: method
+      line_start: 43
+      line_end: 66
+      signature: 'LocationPreferencesRepository.save(self, preferences: LocationPreferences) -> LocationPreferences'
+      inputs:
+      - self
+      - 'preferences: LocationPreferences'
+      output: LocationPreferences
+      dependencies:
+      - LocationPreferencesModel
+      - datetime.now
+      - preferences.model_copy
+      - saved.model_dump
+      - self.database.session
+      - session.add
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id004
+    - name: CompanyEnrichmentRepository.__init__
+      kind: method
+      line_start: 70
+      line_end: 71
+      signature: 'CompanyEnrichmentRepository.__init__(self, database: Database) -> None'
+      inputs:
+      - self
+      - 'database: Database'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: CompanyEnrichmentRepository.get
+      kind: method
+      line_start: 73
+      line_end: 80
+      signature: 'CompanyEnrichmentRepository.get(self, company_id: str) -> CompanyEnrichment'
+      inputs:
+      - self
+      - 'company_id: str'
+      output: CompanyEnrichment
+      dependencies:
+      - CompanyEnrichment
+      - CompanyEnrichment.model_validate
+      - self.database.session
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+    - name: CompanyEnrichmentRepository.save
+      kind: method
+      line_start: 82
+      line_end: 97
+      signature: 'CompanyEnrichmentRepository.save(self, enrichment: CompanyEnrichment) -> CompanyEnrichment'
+      inputs:
+      - self
+      - 'enrichment: CompanyEnrichment'
+      output: CompanyEnrichment
+      dependencies:
+      - CompanyEnrichmentModel
+      - datetime.now
+      - enrichment.model_copy
+      - saved.model_dump
+      - self.database.session
+      - session.add
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id004
+    - name: JobEnrichmentRepository.__init__
+      kind: method
+      line_start: 101
+      line_end: 102
+      signature: 'JobEnrichmentRepository.__init__(self, database: Database) -> None'
+      inputs:
+      - self
+      - 'database: Database'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: JobEnrichmentRepository.get
+      kind: method
+      line_start: 104
+      line_end: 111
+      signature: 'JobEnrichmentRepository.get(self, job_id: str) -> JobEnrichment'
+      inputs:
+      - self
+      - 'job_id: str'
+      output: JobEnrichment
+      dependencies:
+      - JobEnrichment
+      - JobEnrichment.model_validate
+      - self.database.session
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+    - name: JobEnrichmentRepository.save
+      kind: method
+      line_start: 113
+      line_end: 128
+      signature: 'JobEnrichmentRepository.save(self, enrichment: JobEnrichment) -> JobEnrichment'
+      inputs:
+      - self
+      - 'enrichment: JobEnrichment'
+      output: JobEnrichment
+      dependencies:
+      - JobEnrichmentModel
+      - datetime.now
+      - enrichment.model_copy
+      - saved.model_dump
+      - self.database.session
+      - session.add
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id004
+    - name: FitAnalysisRepository.__init__
+      kind: method
+      line_start: 132
+      line_end: 133
+      signature: 'FitAnalysisRepository.__init__(self, database: Database) -> None'
+      inputs:
+      - self
+      - 'database: Database'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: FitAnalysisRepository.save
+      kind: method
+      line_start: 135
+      line_end: 149
+      signature: 'FitAnalysisRepository.save(self, analysis: JobFitAnalysis) -> JobFitAnalysis'
+      inputs:
+      - self
+      - 'analysis: JobFitAnalysis'
+      output: JobFitAnalysis
+      dependencies:
+      - FitAnalysisModel
+      - analysis.model_dump
+      - self.database.session
+      - session.add
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id004
+    - name: FitAnalysisRepository.get
+      kind: method
+      line_start: 151
+      line_end: 156
+      signature: 'FitAnalysisRepository.get(self, analysis_id: str) -> JobFitAnalysis'
+      inputs:
+      - self
+      - 'analysis_id: str'
+      output: JobFitAnalysis
+      dependencies:
+      - JobFitAnalysis.model_validate
+      - KeyError
+      - self.database.session
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+    - name: FitAnalysisRepository.latest
+      kind: method
+      line_start: 158
+      line_end: 167
+      signature: 'FitAnalysisRepository.latest(self, job_id: str) -> JobFitAnalysis'
+      inputs:
+      - self
+      - 'job_id: str'
+      output: JobFitAnalysis
+      dependencies:
+      - FitAnalysisModel.created_at.desc
+      - JobFitAnalysis.model_validate
+      - KeyError
+      - select
+      - select(FitAnalysisModel).where
+      - select(FitAnalysisModel).where(FitAnalysisModel.job_id == job_id).order_by
+      - self.database.session
+      - session.scalar
+      parser: python-ast
+      dependency_targets:
+      - &id005
+        path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager.select
+      - *id002
+      - *id003
+    - name: FitAnalysisRepository.list
+      kind: method
+      line_start: 169
+      line_end: 178
+      signature: 'FitAnalysisRepository.list(self, job_id: str) -> list[JobFitAnalysis]'
+      inputs:
+      - self
+      - 'job_id: str'
+      output: list[JobFitAnalysis]
+      dependencies:
+      - FitAnalysisModel.created_at.desc
+      - JobFitAnalysis.model_validate
+      - select
+      - select(FitAnalysisModel).where
+      - select(FitAnalysisModel).where(FitAnalysisModel.job_id == job_id).order_by
+      - self.database.session
+      - session.scalars
+      - session.scalars(select(FitAnalysisModel).where(FitAnalysisModel.job_id == job_id).order_by(FitAnalysisModel.created_at.desc())).all
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id002
+      - *id003
+    - name: ScoringSettingsRepository.__init__
+      kind: method
+      line_start: 182
+      line_end: 183
+      signature: 'ScoringSettingsRepository.__init__(self, database: Database) -> None'
+      inputs:
+      - self
+      - 'database: Database'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ScoringSettingsRepository.get
+      kind: method
+      line_start: 185
+      line_end: 192
+      signature: ScoringSettingsRepository.get(self) -> ScoringSettings
+      inputs:
+      - self
+      output: ScoringSettings
+      dependencies:
+      - ScoringSettings
+      - ScoringSettings.model_validate
+      - self.database.session
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+    - name: ScoringSettingsRepository.save
+      kind: method
+      line_start: 194
+      line_end: 219
+      signature: 'ScoringSettingsRepository.save(self, settings: ScoringSettings) -> ScoringSettings'
+      inputs:
+      - self
+      - 'settings: ScoringSettings'
+      output: ScoringSettings
+      dependencies:
+      - ScoringSettingsModel
+      - datetime.now
+      - saved.model_dump
+      - self.database.session
+      - session.add
+      - session.get
+      - settings.model_copy
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id004
+    - name: ScoringRuleRepository.__init__
+      kind: method
+      line_start: 223
+      line_end: 224
+      signature: 'ScoringRuleRepository.__init__(self, database: Database) -> None'
+      inputs:
+      - self
+      - 'database: Database'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ScoringRuleRepository.upsert
+      kind: method
+      line_start: 226
+      line_end: 243
+      signature: 'ScoringRuleRepository.upsert(self, rule: ScoringRule) -> ScoringRule'
+      inputs:
+      - self
+      - 'rule: ScoringRule'
+      output: ScoringRule
+      dependencies:
+      - ScoringRuleModel
+      - datetime.now
+      - rule.model_copy
+      - saved.model_dump
+      - self.database.session
+      - session.add
+      - session.get
+      - setattr
+      - values.items
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id004
+    - name: ScoringRuleRepository.list
+      kind: method
+      line_start: 245
+      line_end: 253
+      signature: 'ScoringRuleRepository.list(self, enabled_only: bool) -> list[ScoringRule]'
+      inputs:
+      - self
+      - 'enabled_only: bool'
+      output: list[ScoringRule]
+      dependencies:
+      - ScoringRule.model_validate
+      - ScoringRuleModel.enabled.is_
+      - ScoringRuleModel.updated_at.desc
+      - select
+      - select(ScoringRuleModel).order_by
+      - self.database.session
+      - session.scalars
+      - session.scalars(statement).all
+      - statement.where
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id002
+      - *id003
+    - name: ScoringRuleRepository.delete
+      kind: method
+      line_start: 255
+      line_end: 260
+      signature: 'ScoringRuleRepository.delete(self, rule_id: str) -> None'
+      inputs:
+      - self
+      - 'rule_id: str'
+      output: None
+      dependencies:
+      - KeyError
+      - self.database.session
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+    - name: OpportunityScoreRepository.__init__
+      kind: method
+      line_start: 264
+      line_end: 265
+      signature: 'OpportunityScoreRepository.__init__(self, database: Database) -> None'
+      inputs:
+      - self
+      - 'database: Database'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: OpportunityScoreRepository.append
+      kind: method
+      line_start: 267
+      line_end: 284
+      signature: 'OpportunityScoreRepository.append(self, score: OpportunityScore) -> OpportunityScore'
+      inputs:
+      - self
+      - 'score: OpportunityScore'
+      output: OpportunityScore
+      dependencies:
+      - OpportunityScoreModel
+      - score.model_dump
+      - self.database.session
+      - session.add
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id004
+    - name: OpportunityScoreRepository.list
+      kind: method
+      line_start: 286
+      line_end: 298
+      signature: 'OpportunityScoreRepository.list(self, job_id: str) -> list[OpportunityScore]'
+      inputs:
+      - self
+      - 'job_id: str'
+      output: list[OpportunityScore]
+      dependencies:
+      - OpportunityScore.model_validate
+      - OpportunityScoreModel.created_at.desc
+      - OpportunityScoreModel.id.desc
+      - select
+      - select(OpportunityScoreModel).where
+      - select(OpportunityScoreModel).where(OpportunityScoreModel.job_id == job_id).order_by
+      - self.database.session
+      - session.scalars
+      - session.scalars(select(OpportunityScoreModel).where(OpportunityScoreModel.job_id == job_id).order_by(OpportunityScoreModel.created_at.desc(),
+        OpportunityScoreModel.id.desc())).all
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id002
+      - *id003
+  - path: src/nerve_center/scheduler/__init__.py
+    analysis_version: 1
+    language: python
+    content_hash: 960b8e57851b1f03a85b219da75852f47577b9c3
+    dependencies: []
+    provides: []
+    symbols: []
+  - path: tests/test_discovery_persistence.py
+    analysis_version: 1
+    language: python
+    content_hash: fe03e50c5ee6b62d420abaa7850bdaae2fd9b130
+    dependencies:
+    - datetime
+    - nerve_center.config
+    - nerve_center.discovery.models
+    - nerve_center.persistence.database
+    - nerve_center.persistence.discovery
+    - pathlib
+    provides:
+    - _database
+    - _company
+    - _source
+    - _opening
+    - test_persists_registry_health_jobs_and_cache
+    - test_search_cache_expires
+    - test_company_lookup_by_domain_preserves_resolved_identity
+    - test_existing_aggregator_opening_is_reassigned_to_resolved_company
+    symbols:
+    - name: _database
+      kind: function
+      line_start: 24
+      line_end: 27
+      signature: '_database(tmp_path: Path) -> Database'
+      inputs:
+      - 'tmp_path: Path'
+      output: Database
+      dependencies:
+      - Database
+      - Settings
+      - database.initialize
+      parser: python-ast
+      dependency_targets:
+      - &id019
+        path: src/nerve_center/persistence/database.py
+        symbol: Database.initialize
+    - name: _company
+      kind: function
+      line_start: 30
+      line_end: 38
+      signature: _company() -> Company
+      inputs: []
+      output: Company
+      dependencies:
+      - Company
+      - datetime.now
+      parser: python-ast
+      dependency_targets: []
+    - name: _source
+      kind: function
+      line_start: 41
+      line_end: 52
+      signature: _source() -> DiscoverySource
+      inputs: []
+      output: DiscoverySource
+      dependencies:
+      - DiscoverySource
+      parser: python-ast
+      dependency_targets: []
+    - name: _opening
+      kind: function
+      line_start: 55
+      line_end: 80
+      signature: '_opening(source_id: str, direct: bool, description: str) -> NormalizedJobOpening'
+      inputs:
+      - 'source_id: str'
+      - 'direct: bool'
+      - 'description: str'
+      output: NormalizedJobOpening
+      dependencies:
+      - JobProvenance
+      - NormalizedJobOpening
+      - datetime.now
+      parser: python-ast
+      dependency_targets: []
+    - name: test_persists_registry_health_jobs_and_cache
+      kind: function
+      line_start: 83
+      line_end: 116
+      signature: 'test_persists_registry_health_jobs_and_cache(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - CompanyRepository
+      - DiscoverySourceRepository
+      - JobOpeningRepository
+      - SearchCacheRepository
+      - _company
+      - _database
+      - _opening
+      - _source
+      - cache.get
+      - cache.put
+      - companies.upsert
+      - datetime.now
+      - jobs.list
+      - jobs.upsert
+      - len
+      - sources.get
+      - sources.record_scan
+      - sources.upsert
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - &id011
+        path: tests/test_discovery_connectors.py
+        symbol: _company
+      - &id012
+        path: tests/test_discovery_persistence.py
+        symbol: _company
+      - &id006
+        path: tests/test_applications.py
+        symbol: _database
+      - &id007
+        path: tests/test_discovery_persistence.py
+        symbol: _database
+      - &id008
+        path: tests/test_job_scout_discovery_learning.py
+        symbol: _database
+      - &id009
+        path: tests/test_job_scout_query_portfolio.py
+        symbol: _database
+      - &id017
+        path: tests/test_discovery_connectors.py
+        symbol: _source
+      - &id018
+        path: tests/test_discovery_persistence.py
+        symbol: _source
+      - &id010
+        path: src/nerve_center/persistence/discovery.py
+        symbol: SearchCacheRepository.put
+      - &id013
+        path: src/nerve_center/persistence/discovery.py
+        symbol: CompanyRepository.upsert
+      - &id014
+        path: src/nerve_center/persistence/discovery.py
+        symbol: DiscoverySourceRepository.upsert
+      - &id015
+        path: src/nerve_center/persistence/discovery.py
+        symbol: JobOpeningRepository.upsert
+      - &id016
+        path: src/nerve_center/persistence/scoring.py
+        symbol: ScoringRuleRepository.upsert
+      - path: src/nerve_center/persistence/discovery.py
+        symbol: DiscoverySourceRepository.record_scan
+    - name: test_search_cache_expires
+      kind: function
+      line_start: 119
+      line_end: 126
+      signature: 'test_search_cache_expires(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - SearchCacheRepository
+      - _database
+      - cache.get
+      - cache.put
+      - datetime.now
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - *id010
+    - name: test_company_lookup_by_domain_preserves_resolved_identity
+      kind: function
+      line_start: 129
+      line_end: 136
+      signature: 'test_company_lookup_by_domain_preserves_resolved_identity(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - CompanyRepository
+      - _company
+      - _database
+      - companies.find_by_domain
+      - companies.upsert
+      parser: python-ast
+      dependency_targets:
+      - *id011
+      - *id012
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - path: src/nerve_center/persistence/discovery.py
+        symbol: CompanyRepository.find_by_domain
+      - *id013
+      - *id014
+      - *id015
+      - *id016
+    - name: test_existing_aggregator_opening_is_reassigned_to_resolved_company
+      kind: function
+      line_start: 139
+      line_end: 170
+      signature: 'test_existing_aggregator_opening_is_reassigned_to_resolved_company(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Company
+      - CompanyRepository
+      - DiscoverySourceRepository
+      - JobOpeningRepository
+      - _company
+      - _database
+      - _opening
+      - _opening('source-1', direct=False, description='Resolved copy').model_copy
+      - _source
+      - companies.upsert
+      - jobs.list
+      - jobs.upsert
+      - sources.upsert
+      parser: python-ast
+      dependency_targets:
+      - *id011
+      - *id012
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - *id017
+      - *id018
+      - *id013
+      - *id014
+      - *id015
+      - *id016
+  - path: tests/test_work_queue.py
+    analysis_version: 1
+    language: python
+    content_hash: c14337d3d28c454afce95a49d0b41d7eaf63900a
+    dependencies:
+    - concurrent.futures
+    - dataclasses
+    - datetime
+    - nerve_center.config
+    - nerve_center.domain.run_window
+    - nerve_center.domain.work_queue
+    - nerve_center.persistence.database
+    - nerve_center.persistence.runs
+    - nerve_center.persistence.work_queue
+    - nerve_center.scheduler.work_queue
+    - pathlib
+    - pytest
+    provides:
+    - make_service
+    - spec
+    - test_submit_is_durable_and_idempotent
+    - test_result_is_redelivered_until_acknowledged
+    - test_failed_attempt_requeues_and_preserves_attempt_history
+    - test_model_routing_score_can_outweigh_small_task_priority_gap
+    - test_hard_module_limit_rejects_before_acknowledgement
+    - test_order_prefers_module_then_task_priority_then_age
+    - test_queue_status_reports_pressure_and_wait_estimates
+    - test_claimed_work_is_redelivered_after_manager_restart
+    - test_concurrent_claims_never_assign_the_same_request
+    symbols:
+    - name: make_service
+      kind: function
+      line_start: 23
+      line_end: 31
+      signature: 'make_service(tmp_path: Path, limits: QueueLimits | None) -> tuple[WorkQueueService, str]'
+      inputs:
+      - 'tmp_path: Path'
+      - 'limits: QueueLimits | None'
+      output: tuple[WorkQueueService, str]
+      dependencies:
+      - Database
+      - DurationRunWindow
+      - RunRepository
+      - RunRepository(database).create
+      - Settings
+      - WorkQueueRepository
+      - WorkQueueService
+      - database.initialize
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/runs.py
+        symbol: RunRepository.create
+      - path: src/nerve_center/persistence/sessions.py
+        symbol: SessionRepository.create
+      - *id019
+    - name: spec
+      kind: function
+      line_start: 34
+      line_end: 45
+      signature: 'spec(run_id: str, key: str) -> WorkRequestSpec'
+      inputs:
+      - 'run_id: str'
+      - 'key: str'
+      output: WorkRequestSpec
+      dependencies:
+      - WorkRequestSpec
+      parser: python-ast
+      dependency_targets: []
+    - name: test_submit_is_durable_and_idempotent
+      kind: function
+      line_start: 48
+      line_end: 56
+      signature: 'test_submit_is_durable_and_idempotent(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - len
+      - make_service
+      - service.get
+      - service.list_requests
+      - service.submit
+      - spec
+      parser: python-ast
+      dependency_targets:
+      - &id020
+        path: tests/test_work_queue.py
+        symbol: make_service
+      - &id024
+        path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.list_requests
+      - &id025
+        path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.list_requests
+      - &id021
+        path: tests/test_work_queue.py
+        symbol: spec
+    - name: test_result_is_redelivered_until_acknowledged
+      kind: function
+      line_start: 59
+      line_end: 74
+      signature: 'test_result_is_redelivered_until_acknowledged(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - make_service
+      - service.acknowledge
+      - service.claim_next
+      - service.complete
+      - service.deliver_results
+      - service.get
+      - service.submit
+      - spec
+      parser: python-ast
+      dependency_targets:
+      - *id020
+      - path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.acknowledge
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleWorkQueue.acknowledge
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.acknowledge
+      - &id022
+        path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.claim_next
+      - &id023
+        path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.claim_next
+      - path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.deliver_results
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleWorkQueue.deliver_results
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.deliver_results
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.deliver_results
+      - *id021
+    - name: test_failed_attempt_requeues_and_preserves_attempt_history
+      kind: function
+      line_start: 77
+      line_end: 88
+      signature: 'test_failed_attempt_requeues_and_preserves_attempt_history(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - len
+      - make_service
+      - service.attempts
+      - service.claim_next
+      - service.fail
+      - service.submit
+      - spec
+      parser: python-ast
+      dependency_targets:
+      - *id020
+      - &id026
+        path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.attempts
+      - &id027
+        path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.attempts
+      - *id022
+      - *id023
+      - path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.fail
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.fail
+      - *id021
+    - name: test_model_routing_score_can_outweigh_small_task_priority_gap
+      kind: function
+      line_start: 91
+      line_end: 115
+      signature: 'test_model_routing_score_can_outweigh_small_task_priority_gap(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - make_service
+      - replace
+      - service.claim_next
+      - service.submit
+      - spec
+      parser: python-ast
+      dependency_targets:
+      - *id020
+      - *id022
+      - *id023
+      - *id021
+    - name: test_hard_module_limit_rejects_before_acknowledgement
+      kind: function
+      line_start: 118
+      line_end: 127
+      signature: 'test_hard_module_limit_rejects_before_acknowledgement(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - QueueLimits
+      - len
+      - make_service
+      - pytest.raises
+      - service.list_requests
+      - service.submit
+      - spec
+      parser: python-ast
+      dependency_targets:
+      - *id020
+      - *id024
+      - *id025
+      - *id021
+    - name: test_order_prefers_module_then_task_priority_then_age
+      kind: function
+      line_start: 130
+      line_end: 152
+      signature: 'test_order_prefers_module_then_task_priority_then_age(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - WorkRequestSpec
+      - datetime
+      - make_service
+      - service.claim_next
+      - service.get
+      - service.submit
+      - spec
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - *id020
+      - *id022
+      - *id023
+      - *id021
+    - name: test_queue_status_reports_pressure_and_wait_estimates
+      kind: function
+      line_start: 155
+      line_end: 166
+      signature: 'test_queue_status_reports_pressure_and_wait_estimates(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - QueueLimits
+      - make_service
+      - service.status
+      - service.submit
+      - spec
+      parser: python-ast
+      dependency_targets:
+      - *id020
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleWorkQueue.status
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.status
+      - *id021
+    - name: test_claimed_work_is_redelivered_after_manager_restart
+      kind: function
+      line_start: 169
+      line_end: 182
+      signature: 'test_claimed_work_is_redelivered_after_manager_restart(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - make_service
+      - service.attempts
+      - service.claim_next
+      - service.recover_interrupted
+      - service.submit
+      - spec
+      parser: python-ast
+      dependency_targets:
+      - *id020
+      - *id026
+      - *id027
+      - *id022
+      - *id023
+      - path: src/nerve_center/persistence/runs.py
+        symbol: RunRepository.recover_interrupted
+      - path: src/nerve_center/persistence/sessions.py
+        symbol: SessionRepository.recover_interrupted
+      - path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService.recover_interrupted
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.recover_interrupted
+      - *id021
+    - name: test_concurrent_claims_never_assign_the_same_request
+      kind: function
+      line_start: 185
+      line_end: 197
+      signature: 'test_concurrent_claims_never_assign_the_same_request(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - ThreadPoolExecutor
+      - executor.map
+      - len
+      - list
+      - make_service
+      - range
+      - service.claim_next
+      - service.submit
+      - set
+      - spec
+      parser: python-ast
+      dependency_targets:
+      - *id020
+      - *id022
+      - *id023
+      - *id021

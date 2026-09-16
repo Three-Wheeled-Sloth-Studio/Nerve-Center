@@ -1,0 +1,1097 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: '16'
+  files:
+  - path: src/nerve_center/applications/api.py
+    analysis_version: 1
+    language: python
+    content_hash: 0baab70d56c43f01758b80ba337567099e349372
+    dependencies:
+    - __future__
+    - fastapi
+    - nerve_center.applications.models
+    - nerve_center.persistence.applications
+    - nerve_center.persistence.database
+    - nerve_center.persistence.discovery
+    - nerve_center.persistence.scoring
+    - nerve_center.plugins.job_scout.settings
+    - nerve_center.scoring.engine
+    - nerve_center.scoring.service
+    - typing
+    provides:
+    - register_application_routes
+    - register_application_routes.list_applications
+    - register_application_routes.get_application
+    - register_application_routes.update_application
+    - register_application_routes.application_history
+    - register_application_routes.review_opportunities
+    - _require_job
+    - _sort_value
+    - _next_action
+    symbols:
+    - name: register_application_routes
+      kind: function
+      line_start: 27
+      line_end: 113
+      signature: 'register_application_routes(application: FastAPI, database: Database, scoring_service: ScoringService |
+        None, configuration_store: JobScoutConfigurationStore | None) -> ApplicationRepository'
+      inputs:
+      - 'application: FastAPI'
+      - 'database: Database'
+      - 'scoring_service: ScoringService | None'
+      - 'configuration_store: JobScoutConfigurationStore | None'
+      output: ApplicationRepository
+      dependencies:
+      - ApplicationRepository
+      - CompanyRepository
+      - JobOpeningRepository
+      - OpportunityScoreRepository
+      - Query
+      - ReviewOpportunity
+      - _next_action
+      - _require_job
+      - _sort_value
+      - application.get
+      - application.patch
+      - applications.get_or_default
+      - applications.history
+      - applications.list
+      - applications.save
+      - companies.get
+      - configuration_store.load
+      - history[0].calculation.get
+      - items.append
+      - items.sort
+      - jobs.list
+      - latest_fit_contract.startswith
+      - scores.list
+      - scoring_service.ensure_provisional_score
+      parser: python-ast
+      dependency_targets:
+      - &id005
+        path: src/nerve_center/applications/api.py
+        symbol: _next_action
+      - &id001
+        path: src/nerve_center/applications/api.py
+        symbol: _require_job
+      - &id002
+        path: src/nerve_center/scoring/api.py
+        symbol: _require_job
+      - &id006
+        path: src/nerve_center/applications/api.py
+        symbol: _sort_value
+      - &id003
+        path: src/nerve_center/persistence/applications.py
+        symbol: ApplicationRepository.get_or_default
+      - &id004
+        path: src/nerve_center/persistence/applications.py
+        symbol: ApplicationRepository.history
+      - &id007
+        path: src/nerve_center/plugins/job_scout/settings.py
+        symbol: JobScoutConfigurationStore.load
+      - &id008
+        path: tests/test_job_scout_query_portfolio.py
+        symbol: _ConfigStore.load
+      - &id009
+        path: src/nerve_center/persistence/scoring.py
+        symbol: OpportunityScoreRepository.append
+      - &id010
+        path: src/nerve_center/scoring/service.py
+        symbol: ScoringService.ensure_provisional_score
+      - &id011
+        path: tests/test_applications.py
+        symbol: _RescoreStub.ensure_provisional_score
+    - name: register_application_routes.list_applications
+      kind: function
+      line_start: 41
+      line_end: 42
+      signature: register_application_routes.list_applications() -> list[ApplicationRecord]
+      inputs: []
+      output: list[ApplicationRecord]
+      dependencies:
+      - application.get
+      - applications.list
+      parser: python-ast
+      dependency_targets: []
+    - name: register_application_routes.get_application
+      kind: function
+      line_start: 45
+      line_end: 47
+      signature: 'register_application_routes.get_application(job_id: str) -> ApplicationRecord'
+      inputs:
+      - 'job_id: str'
+      output: ApplicationRecord
+      dependencies:
+      - _require_job
+      - application.get
+      - applications.get_or_default
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+      - *id003
+    - name: register_application_routes.update_application
+      kind: function
+      line_start: 50
+      line_end: 55
+      signature: 'register_application_routes.update_application(job_id: str, request: ApplicationUpdate) -> ApplicationRecord'
+      inputs:
+      - 'job_id: str'
+      - 'request: ApplicationUpdate'
+      output: ApplicationRecord
+      dependencies:
+      - _require_job
+      - application.patch
+      - applications.save
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+    - name: register_application_routes.application_history
+      kind: function
+      line_start: 58
+      line_end: 60
+      signature: 'register_application_routes.application_history(job_id: str) -> list[ApplicationEvent]'
+      inputs:
+      - 'job_id: str'
+      output: list[ApplicationEvent]
+      dependencies:
+      - _require_job
+      - application.get
+      - applications.history
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+      - *id004
+    - name: register_application_routes.review_opportunities
+      kind: function
+      line_start: 63
+      line_end: 111
+      signature: 'register_application_routes.review_opportunities(include_dismissed: bool, sort: SortKey, limit: Annotated[int,
+        Query(ge) -> list[ReviewOpportunity]'
+      inputs:
+      - 'include_dismissed: bool'
+      - 'sort: SortKey'
+      - 'limit: Annotated[int, Query(ge'
+      output: list[ReviewOpportunity]
+      dependencies:
+      - Query
+      - ReviewOpportunity
+      - _next_action
+      - _sort_value
+      - application.get
+      - applications.get_or_default
+      - companies.get
+      - configuration_store.load
+      - history[0].calculation.get
+      - items.append
+      - items.sort
+      - jobs.list
+      - latest_fit_contract.startswith
+      - scores.list
+      - scoring_service.ensure_provisional_score
+      - scoring_service.score
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id003
+      - *id007
+      - *id008
+      - *id009
+      - *id010
+      - *id011
+      - path: desktop/src/display.tsx
+        symbol: score
+      - path: src/nerve_center/scoring/engine.py
+        symbol: OpportunityScorer.score
+      - path: src/nerve_center/scoring/service.py
+        symbol: ScoringService.score
+      - path: tests/test_applications.py
+        symbol: _RescoreStub.score
+    - name: _require_job
+      kind: function
+      line_start: 116
+      line_end: 118
+      signature: '_require_job(repository: JobOpeningRepository, job_id: str) -> None'
+      inputs:
+      - 'repository: JobOpeningRepository'
+      - 'job_id: str'
+      output: None
+      dependencies:
+      - HTTPException
+      - any
+      - repository.list
+      parser: python-ast
+      dependency_targets: []
+    - name: _sort_value
+      kind: function
+      line_start: 121
+      line_end: 130
+      signature: '_sort_value(item: ReviewOpportunity, sort: SortKey) -> float'
+      inputs:
+      - 'item: ReviewOpportunity'
+      - 'sort: SortKey'
+      output: float
+      dependencies:
+      - timestamp.timestamp
+      parser: python-ast
+      dependency_targets: []
+    - name: _next_action
+      kind: function
+      line_start: 133
+      line_end: 151
+      signature: '_next_action(status: ApplicationStatus) -> str'
+      inputs:
+      - 'status: ApplicationStatus'
+      output: str
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/plugins/job_scout/runtime.py
+    analysis_version: 1
+    language: python
+    content_hash: 5c9fef9ec7281b406c5a4318cf996c905a90ac9c
+    dependencies:
+    - __future__
+    - collections.abc
+    - dataclasses
+    - nerve_center.discovery.models
+    - nerve_center.discovery.service
+    - nerve_center.persistence.discovery
+    - nerve_center.plugins.job_scout.configuration
+    - nerve_center.plugins.job_scout.discovery_learning
+    - nerve_center.plugins.job_scout.discovery_loop
+    - nerve_center.providers.errors
+    - nerve_center.scoring.service
+    - typing
+    provides:
+    - JobScoutOperationBridge.__init__
+    - JobScoutOperationBridge.invoke
+    - _required_string
+    symbols:
+    - name: JobScoutOperationBridge.__init__
+      kind: method
+      line_start: 23
+      line_end: 37
+      signature: 'JobScoutOperationBridge.__init__(self, service: DiscoveryService, sources: DiscoverySourceRepository, coordinator:
+        JobScoutCoordinator, learning: JobScoutDiscoveryRepository, discovery_loop: JobScoutDiscoveryLoop, scoring: ScoringService
+        | None) -> None'
+      inputs:
+      - self
+      - 'service: DiscoveryService'
+      - 'sources: DiscoverySourceRepository'
+      - 'coordinator: JobScoutCoordinator'
+      - 'learning: JobScoutDiscoveryRepository'
+      - 'discovery_loop: JobScoutDiscoveryLoop'
+      - 'scoring: ScoringService | None'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: JobScoutOperationBridge.invoke
+      kind: method
+      line_start: 39
+      line_end: 159
+      signature: 'JobScoutOperationBridge.invoke(self, operation: str, payload: Mapping[str, Any]) -> dict[str, Any]'
+      inputs:
+      - self
+      - 'operation: str'
+      - 'payload: Mapping[str, Any]'
+      output: dict[str, Any]
+      dependencies:
+      - JobScoutScanRequest
+      - ValueError
+      - _required_string
+      - asdict
+      - bool
+      - candidates.append
+      - candidates.sort
+      - int
+      - isinstance
+      - len
+      - list
+      - payload.get
+      - score.calculation.get
+      - self.coordinator._discover_keywords
+      - self.coordinator.scan
+      - self.coordinator.store.load
+      - self.discovery_loop.apply_reflection_result
+      - self.discovery_loop.cycle
+      - self.discovery_loop.deterministic_reflection
+      - self.discovery_loop.prepare
+      - self.discovery_loop.reflection_work_request
+      - self.discovery_loop.summary
+      - self.learning.record_reflection_request
+      - self.learning.reflection_request
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/runtime.py
+        symbol: _required_string
+      - *id009
+      - path: src/nerve_center/plugins/job_scout/configuration.py
+        symbol: JobScoutCoordinator._discover_keywords
+      - path: tests/test_job_scout_query_portfolio.py
+        symbol: _Coordinator._discover_keywords
+      - *id007
+      - *id008
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop.apply_reflection_result
+      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: SourceAwareJobScoutDiscoveryLoop.apply_reflection_result
+      - path: src/nerve_center/plugins/job_scout/attachment_discovery.py
+        symbol: AttachmentAwareJobScoutDiscoveryLoop.cycle
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop.cycle
+      - path: src/nerve_center/plugins/job_scout/location_discovery.py
+        symbol: LocationAwareJobScoutDiscoveryLoop.cycle
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop.deterministic_reflection
+      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: SourceAwareJobScoutDiscoveryLoop.deterministic_reflection
+      - path: src/nerve_center/plugins/job_scout/attachment_discovery.py
+        symbol: AttachmentAwareJobScoutDiscoveryLoop.prepare
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop.prepare
+      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: SourceAwareJobScoutDiscoveryLoop.prepare
+      - path: src/nerve_center/plugins/job_scout/location_discovery.py
+        symbol: LocationAwareJobScoutDiscoveryLoop.prepare
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop.reflection_work_request
+      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: SourceAwareJobScoutDiscoveryLoop.reflection_work_request
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop.summary
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.record_reflection_request
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.reflection_request
+    - name: _required_string
+      kind: function
+      line_start: 162
+      line_end: 166
+      signature: '_required_string(payload: Mapping[str, Any], field: str) -> str'
+      inputs:
+      - 'payload: Mapping[str, Any]'
+      - 'field: str'
+      output: str
+      dependencies:
+      - ValueError
+      - payload.get
+      - str
+      - str(payload.get(field, '')).strip
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/plugins/synthetic.py
+    analysis_version: 1
+    language: python
+    content_hash: 55bd6c7e693893f53958b0191b02a3f0d0a64d48
+    dependencies:
+    - __future__
+    - asyncio
+    - datetime
+    - nerve_center.domain.task
+    provides:
+    - SyntheticTaskPlugin.run
+    symbols:
+    - name: SyntheticTaskPlugin.run
+      kind: method
+      line_start: 15
+      line_end: 51
+      signature: 'SyntheticTaskPlugin.run(self, context: TaskContext) -> TaskResult'
+      inputs:
+      - self
+      - 'context: TaskContext'
+      output: TaskResult
+      dependencies:
+      - TaskResult
+      - asyncio.sleep
+      - context.cancellation_requested
+      - context.checkpoint.get
+      - context.configuration.get
+      - context.resources.consume_llm_call
+      - context.resources.consume_request
+      - context.resources.work_slot
+      - context.save_checkpoint
+      - datetime.now
+      - int
+      - max
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService._execute.cancellation_requested
+      - path: src/nerve_center/domain/budget.py
+        symbol: ResourceBudgetTracker.consume_llm_call
+      - path: src/nerve_center/domain/budget.py
+        symbol: ResourceBudgetTracker.consume_request
+      - path: src/nerve_center/domain/budget.py
+        symbol: ResourceBudgetTracker.work_slot
+      - path: src/nerve_center/persistence/runs.py
+        symbol: RunRepository.save_checkpoint
+      - path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService._execute.save_checkpoint
+  - path: tests/test_live_runner_progress.py
+    analysis_version: 1
+    language: python
+    content_hash: 5382df61880f583c5c073d189ec9d91ea28acd39
+    dependencies:
+    - pathlib
+    - pytest
+    - runpy
+    provides:
+    - test_progress_counts_are_ordered_and_limited_to_known_metrics
+    - test_reporter_emits_transitions_and_periodic_heartbeat
+    - test_manager_queue_changes_emit_immediately
+    - test_resumable_session_requires_an_actionable_job_scout_run
+    - test_remaining_session_seconds_uses_fallback_for_invalid_deadline
+    - test_monitor_returns_scored_terminal_run_without_waiting_for_open_manager
+    - test_monitor_returns_scored_terminal_run_without_waiting_for_open_manager.request
+    - test_monitor_submits_explicit_resource_policy
+    - test_monitor_submits_explicit_resource_policy.request
+    - test_monitor_tolerates_bounded_transient_status_timeout
+    - test_monitor_tolerates_bounded_transient_status_timeout.request
+    - test_monitor_fails_after_consecutive_status_timeout_limit
+    - test_monitor_fails_after_consecutive_status_timeout_limit.request
+    - test_workspace_configuration_preserves_effective_market_and_failure_limit
+    - test_workspace_configuration_preserves_effective_market_and_failure_limit.request
+    - test_efficiency_summary_exposes_scoring_independent_marginal_pacing
+    - test_planned_manager_wind_down_counts_as_duration_completion
+    - test_location_family_evidence_groups_source_and_hypothesis
+    symbols:
+    - name: test_progress_counts_are_ordered_and_limited_to_known_metrics
+      kind: function
+      line_start: 19
+      line_end: 27
+      signature: test_progress_counts_are_ordered_and_limited_to_known_metrics() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - _progress_counts
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/run_job_scout_live.py
+        symbol: _progress_counts
+    - name: test_reporter_emits_transitions_and_periodic_heartbeat
+      kind: function
+      line_start: 30
+      line_end: 62
+      signature: test_reporter_emits_transitions_and_periodic_heartbeat(capsys) -> None
+      inputs:
+      - capsys
+      output: None
+      dependencies:
+      - ProgressReporter
+      - capsys.readouterr
+      - output.count
+      - reporter.observe_run
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/run_job_scout_live.py
+        symbol: ProgressReporter.observe_run
+    - name: test_manager_queue_changes_emit_immediately
+      kind: function
+      line_start: 65
+      line_end: 75
+      signature: test_manager_queue_changes_emit_immediately() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - ProgressReporter
+      - reporter.observe_manager
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/run_job_scout_live.py
+        symbol: ProgressReporter.observe_manager
+    - name: test_resumable_session_requires_an_actionable_job_scout_run
+      kind: function
+      line_start: 78
+      line_end: 96
+      signature: test_resumable_session_requires_an_actionable_job_scout_run() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - _resumable_job_scout_session
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/run_job_scout_live.py
+        symbol: _resumable_job_scout_session
+    - name: test_remaining_session_seconds_uses_fallback_for_invalid_deadline
+      kind: function
+      line_start: 99
+      line_end: 100
+      signature: test_remaining_session_seconds_uses_fallback_for_invalid_deadline() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - _remaining_session_seconds
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/run_job_scout_live.py
+        symbol: _remaining_session_seconds
+    - name: test_monitor_returns_scored_terminal_run_without_waiting_for_open_manager
+      kind: function
+      line_start: 103
+      line_end: 124
+      signature: test_monitor_returns_scored_terminal_run_without_waiting_for_open_manager(tmp_path, monkeypatch)
+      inputs:
+      - tmp_path
+      - monkeypatch
+      output: unspecified
+      dependencies:
+      - AssertionError
+      - calls.append
+      - monitor
+      - monkeypatch.setitem
+      - path.startswith
+      parser: python-ast
+      dependency_targets:
+      - *id009
+    - name: test_monitor_returns_scored_terminal_run_without_waiting_for_open_manager.request
+      kind: function
+      line_start: 109
+      line_end: 118
+      signature: test_monitor_returns_scored_terminal_run_without_waiting_for_open_manager.request(endpoint, path, method,
+        payload)
+      inputs:
+      - endpoint
+      - path
+      - method
+      - payload
+      output: unspecified
+      dependencies:
+      - AssertionError
+      - calls.append
+      - path.startswith
+      parser: python-ast
+      dependency_targets:
+      - *id009
+    - name: test_monitor_submits_explicit_resource_policy
+      kind: function
+      line_start: 127
+      line_end: 169
+      signature: test_monitor_submits_explicit_resource_policy(tmp_path, monkeypatch)
+      inputs:
+      - tmp_path
+      - monkeypatch
+      output: unspecified
+      dependencies:
+      - AssertionError
+      - monitor
+      - monkeypatch.setitem
+      - path.startswith
+      - submitted.append
+      parser: python-ast
+      dependency_targets:
+      - *id009
+    - name: test_monitor_submits_explicit_resource_policy.request
+      kind: function
+      line_start: 131
+      line_end: 148
+      signature: test_monitor_submits_explicit_resource_policy.request(endpoint, path, method, payload)
+      inputs:
+      - endpoint
+      - path
+      - method
+      - payload
+      output: unspecified
+      dependencies:
+      - AssertionError
+      - path.startswith
+      - submitted.append
+      parser: python-ast
+      dependency_targets:
+      - *id009
+    - name: test_monitor_tolerates_bounded_transient_status_timeout
+      kind: function
+      line_start: 172
+      line_end: 209
+      signature: test_monitor_tolerates_bounded_transient_status_timeout(tmp_path, monkeypatch, capsys)
+      inputs:
+      - tmp_path
+      - monkeypatch
+      - capsys
+      output: unspecified
+      dependencies:
+      - AssertionError
+      - TimeoutError
+      - capsys.readouterr
+      - monitor
+      - monkeypatch.setitem
+      - path.startswith
+      parser: python-ast
+      dependency_targets: []
+    - name: test_monitor_tolerates_bounded_transient_status_timeout.request
+      kind: function
+      line_start: 178
+      line_end: 194
+      signature: test_monitor_tolerates_bounded_transient_status_timeout.request(_endpoint, path, method, payload)
+      inputs:
+      - _endpoint
+      - path
+      - method
+      - payload
+      output: unspecified
+      dependencies:
+      - AssertionError
+      - TimeoutError
+      - path.startswith
+      parser: python-ast
+      dependency_targets: []
+    - name: test_monitor_fails_after_consecutive_status_timeout_limit
+      kind: function
+      line_start: 212
+      line_end: 234
+      signature: test_monitor_fails_after_consecutive_status_timeout_limit(tmp_path, monkeypatch)
+      inputs:
+      - tmp_path
+      - monkeypatch
+      output: unspecified
+      dependencies:
+      - AssertionError
+      - TimeoutError
+      - monitor
+      - monkeypatch.setitem
+      - path.startswith
+      - pytest.raises
+      parser: python-ast
+      dependency_targets: []
+    - name: test_monitor_fails_after_consecutive_status_timeout_limit.request
+      kind: function
+      line_start: 217
+      line_end: 226
+      signature: test_monitor_fails_after_consecutive_status_timeout_limit.request(_endpoint, path, method, payload)
+      inputs:
+      - _endpoint
+      - path
+      - method
+      - payload
+      output: unspecified
+      dependencies:
+      - AssertionError
+      - TimeoutError
+      - path.startswith
+      parser: python-ast
+      dependency_targets: []
+    - name: test_workspace_configuration_preserves_effective_market_and_failure_limit
+      kind: function
+      line_start: 237
+      line_end: 268
+      signature: test_workspace_configuration_preserves_effective_market_and_failure_limit(monkeypatch) -> None
+      inputs:
+      - monkeypatch
+      output: None
+      dependencies:
+      - configure_workspace
+      - monkeypatch.setitem
+      - written.append
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/run_job_scout_live.py
+        symbol: configure_workspace
+      - *id009
+    - name: test_workspace_configuration_preserves_effective_market_and_failure_limit.request
+      kind: function
+      line_start: 242
+      line_end: 250
+      signature: test_workspace_configuration_preserves_effective_market_and_failure_limit.request(endpoint, path, method,
+        payload, timeout)
+      inputs:
+      - endpoint
+      - path
+      - method
+      - payload
+      - timeout
+      output: unspecified
+      dependencies:
+      - written.append
+      parser: python-ast
+      dependency_targets:
+      - *id009
+    - name: test_efficiency_summary_exposes_scoring_independent_marginal_pacing
+      kind: function
+      line_start: 271
+      line_end: 306
+      signature: test_efficiency_summary_exposes_scoring_independent_marginal_pacing() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - _efficiency_summary
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/run_job_scout_live.py
+        symbol: _efficiency_summary
+    - name: test_planned_manager_wind_down_counts_as_duration_completion
+      kind: function
+      line_start: 309
+      line_end: 317
+      signature: test_planned_manager_wind_down_counts_as_duration_completion() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - _completion_flags
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/run_job_scout_live.py
+        symbol: _completion_flags
+    - name: test_location_family_evidence_groups_source_and_hypothesis
+      kind: function
+      line_start: 320
+      line_end: 360
+      signature: test_location_family_evidence_groups_source_and_hypothesis() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - _location_family_evidence
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/run_job_scout_live.py
+        symbol: _location_family_evidence
+  - path: tests/test_model_lab.py
+    analysis_version: 1
+    language: python
+    content_hash: 26083a95175e8a202f5725cf9fbe00c246ba6841
+    dependencies:
+    - asyncio
+    - datetime
+    - fastapi.testclient
+    - nerve_center.api.app
+    - nerve_center.config
+    - nerve_center.domain.run_window
+    - nerve_center.domain.work_queue
+    - nerve_center.model_lab.service
+    - nerve_center.persistence.database
+    - nerve_center.persistence.model_lab
+    - nerve_center.persistence.providers
+    - nerve_center.persistence.runs
+    - nerve_center.persistence.work_queue
+    - nerve_center.providers.base
+    - nerve_center.providers.manager
+    - nerve_center.scheduler.work_queue
+    - pathlib
+    - pytest
+    - typing
+    provides:
+    - FakeJsonProvider.__init__
+    - FakeJsonProvider.list_models
+    - FakeJsonProvider.generate_json
+    - _context
+    - _completed_request
+    - test_harvest_is_deduplicated_local_and_secret_safe
+    - test_request_and_module_capture_opt_outs_are_respected
+    - test_benchmark_replay_is_persistent_and_does_not_change_production_evidence
+    - test_exploration_budget_and_production_queue_block_replay
+    - test_disabled_model_lab_does_not_change_normal_provider_routing
+    - test_model_lab_api_exposes_catalog_and_disabled_state
+    symbols:
+    - name: FakeJsonProvider.__init__
+      kind: method
+      line_start: 36
+      line_end: 38
+      signature: 'FakeJsonProvider.__init__(self, value: dict[str, Any] | None) -> None'
+      inputs:
+      - self
+      - 'value: dict[str, Any] | None'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: FakeJsonProvider.list_models
+      kind: method
+      line_start: 40
+      line_end: 48
+      signature: FakeJsonProvider.list_models(self) -> list[ProviderModel]
+      inputs:
+      - self
+      output: list[ProviderModel]
+      dependencies:
+      - ProviderModel
+      parser: python-ast
+      dependency_targets: []
+    - name: FakeJsonProvider.generate_json
+      kind: method
+      line_start: 50
+      line_end: 73
+      signature: 'FakeJsonProvider.generate_json(self, model: str, system_prompt: str, user_prompt: str, output_schema: dict[str,
+        Any], contract_version: str) -> JsonGenerationResult'
+      inputs:
+      - self
+      - 'model: str'
+      - 'system_prompt: str'
+      - 'user_prompt: str'
+      - 'output_schema: dict[str, Any]'
+      - 'contract_version: str'
+      output: JsonGenerationResult
+      dependencies:
+      - JsonGenerationResult
+      - ProviderCallMetadata
+      - datetime.now
+      - len
+      - self.selected_models.append
+      parser: python-ast
+      dependency_targets:
+      - *id009
+    - name: _context
+      kind: function
+      line_start: 76
+      line_end: 95
+      signature: '_context(tmp_path: Path) -> tuple[Database, WorkQueueService, ModelEvidenceRepository, ModelLabRepository,
+        ModelLabService, ProviderManager, str]'
+      inputs:
+      - 'tmp_path: Path'
+      output: tuple[Database, WorkQueueService, ModelEvidenceRepository, ModelLabRepository, ModelLabService, ProviderManager,
+        str]
+      dependencies:
+      - Database
+      - DurationRunWindow
+      - FakeJsonProvider
+      - ModelEvidenceRepository
+      - ModelLabRepository
+      - ModelLabService
+      - ProviderManager
+      - RunRepository
+      - RunRepository(database).create
+      - Settings
+      - WorkQueueRepository
+      - WorkQueueService
+      - database.initialize
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/runs.py
+        symbol: RunRepository.create
+      - path: src/nerve_center/persistence/sessions.py
+        symbol: SessionRepository.create
+      - &id017
+        path: src/nerve_center/persistence/database.py
+        symbol: Database.initialize
+    - name: _completed_request
+      kind: function
+      line_start: 98
+      line_end: 142
+      signature: '_completed_request(queue: WorkQueueService, run_id: str, module_id: str, idempotency_key: str, requirements:
+        dict[str, Any] | None, user_prompt: str) -> str'
+      inputs:
+      - 'queue: WorkQueueService'
+      - 'run_id: str'
+      - 'module_id: str'
+      - 'idempotency_key: str'
+      - 'requirements: dict[str, Any] | None'
+      - 'user_prompt: str'
+      output: str
+      dependencies:
+      - WorkRequestSpec
+      - queue.claim_next
+      - queue.complete
+      - queue.submit
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.claim_next
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.claim_next
+    - name: test_harvest_is_deduplicated_local_and_secret_safe
+      kind: function
+      line_start: 145
+      line_end: 165
+      signature: 'test_harvest_is_deduplicated_local_and_secret_safe(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - _completed_request
+      - _context
+      - len
+      - repository.list_corpus
+      - service.harvest
+      parser: python-ast
+      dependency_targets:
+      - &id012
+        path: tests/test_model_lab.py
+        symbol: _completed_request
+      - &id013
+        path: tests/test_model_lab.py
+        symbol: _context
+      - &id015
+        path: src/nerve_center/persistence/model_lab.py
+        symbol: ModelLabRepository.list_corpus
+      - &id014
+        path: src/nerve_center/model_lab/service.py
+        symbol: ModelLabService.harvest
+    - name: test_request_and_module_capture_opt_outs_are_respected
+      kind: function
+      line_start: 168
+      line_end: 190
+      signature: 'test_request_and_module_capture_opt_outs_are_respected(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - _completed_request
+      - _context
+      - repository.corpus_count
+      - service.harvest
+      - service.update_settings
+      parser: python-ast
+      dependency_targets:
+      - *id012
+      - *id013
+      - &id016
+        path: src/nerve_center/persistence/model_lab.py
+        symbol: ModelLabRepository.corpus_count
+      - *id014
+      - &id021
+        path: src/nerve_center/model_lab/api.py
+        symbol: register_model_lab_routes.update_settings
+      - &id022
+        path: src/nerve_center/model_lab/service.py
+        symbol: ModelLabService.update_settings
+      - &id023
+        path: src/nerve_center/persistence/model_lab.py
+        symbol: ModelLabRepository.update_settings
+    - name: test_benchmark_replay_is_persistent_and_does_not_change_production_evidence
+      kind: function
+      line_start: 193
+      line_end: 225
+      signature: 'test_benchmark_replay_is_persistent_and_does_not_change_production_evidence(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Database
+      - ModelLabRepository
+      - Settings
+      - _completed_request
+      - _context
+      - asyncio.run
+      - evidence.record_outcome
+      - evidence.task_evidence
+      - len
+      - repository.list_corpus
+      - repository.list_results
+      - restarted_repository.corpus_count
+      - restarted_repository.database.initialize
+      - restarted_repository.list_results
+      - service.harvest
+      - service.replay
+      - service.start_exploration
+      parser: python-ast
+      dependency_targets:
+      - *id012
+      - *id013
+      - path: src/nerve_center/persistence/providers.py
+        symbol: ModelEvidenceRepository.record_outcome
+      - path: src/nerve_center/persistence/providers.py
+        symbol: ModelEvidenceRepository.task_evidence
+      - *id015
+      - path: src/nerve_center/persistence/model_lab.py
+        symbol: ModelLabRepository.list_results
+      - *id016
+      - *id017
+      - *id014
+      - &id018
+        path: src/nerve_center/model_lab/api.py
+        symbol: register_model_lab_routes.replay
+      - &id019
+        path: src/nerve_center/model_lab/service.py
+        symbol: ModelLabService.replay
+      - &id020
+        path: src/nerve_center/model_lab/service.py
+        symbol: ModelLabService.start_exploration
+    - name: test_exploration_budget_and_production_queue_block_replay
+      kind: function
+      line_start: 228
+      line_end: 257
+      signature: 'test_exploration_budget_and_production_queue_block_replay(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - WorkRequestSpec
+      - _completed_request
+      - _context
+      - asyncio.run
+      - next
+      - pytest.raises
+      - queue.cancel
+      - queue.list_requests
+      - queue.submit
+      - repository.list_corpus
+      - service.harvest
+      - service.replay
+      - service.start_exploration
+      parser: python-ast
+      dependency_targets:
+      - *id012
+      - *id013
+      - path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.cancel
+      - path: src/nerve_center/scheduler/runner.py
+        symbol: RunnerService.cancel
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.cancel
+      - path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.list_requests
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.list_requests
+      - *id015
+      - *id014
+      - *id018
+      - *id019
+      - *id020
+    - name: test_disabled_model_lab_does_not_change_normal_provider_routing
+      kind: function
+      line_start: 260
+      line_end: 278
+      signature: 'test_disabled_model_lab_does_not_change_normal_provider_routing(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - ModelBlindRequest
+      - _context
+      - asyncio.run
+      - manager.execute
+      - pytest.raises
+      - service.start_exploration
+      - service.update_settings
+      parser: python-ast
+      dependency_targets:
+      - *id013
+      - path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager.execute
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.execute
+      - path: tests/test_scheduler.py
+        symbol: test_tick_starts_due_fixed_run.execute
+      - *id020
+      - *id021
+      - *id022
+      - *id023
+    - name: test_model_lab_api_exposes_catalog_and_disabled_state
+      kind: function
+      line_start: 281
+      line_end: 303
+      signature: 'test_model_lab_api_exposes_catalog_and_disabled_state(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - FakeJsonProvider
+      - Settings
+      - TestClient
+      - client.get
+      - client.post
+      - client.put
+      - create_app
+      - overview.json
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/discovery.py
+        symbol: SearchCacheRepository.put
+      - path: src/nerve_center/api/app.py
+        symbol: create_app

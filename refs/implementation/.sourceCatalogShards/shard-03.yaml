@@ -1,0 +1,236 @@
+version: 1
+schema: refs/schemas/schemaRegistry.yaml
+source_catalog:
+  format_version: 1
+  bucket: '03'
+  files:
+  - path: desktop/src-tauri/build.rs
+    analysis_version: 1
+    language: rust
+    content_hash: d860e1e6a7cac333c3cc0bc9cb67faf286b07d69
+    dependencies: []
+    provides:
+    - main
+    symbols:
+    - name: main
+      kind: function
+      line_start: 1
+      line_end: 3
+      signature: main()
+      inputs: []
+      output: unspecified
+      dependencies:
+      - build
+      parser: rust-pattern
+      dependency_targets: []
+  - path: desktop/src/StartupGate.tsx
+    analysis_version: 1
+    language: typescript
+    content_hash: cd881b43d1f6acbaffd36c2c55243aebb94d916d
+    dependencies:
+    - '@tauri-apps/api/core'
+    - react
+    provides:
+    - runningInTauri
+    - browserHealth
+    - readStartupStatus
+    - StartupGate
+    - refresh
+    - retry
+    symbols:
+    - name: runningInTauri
+      kind: function
+      line_start: 18
+      line_end: 21
+      signature: runningInTauri() -> boolean
+      inputs: []
+      output: boolean
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: browserHealth
+      kind: function
+      line_start: 22
+      line_end: 53
+      signature: browserHealth() -> Promise<StartupStatus>
+      inputs: []
+      output: Promise<StartupStatus>
+      dependencies:
+      - Date.now
+      - Error
+      - String
+      - fetch
+      - response.json
+      parser: typescript-pattern
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/reference_attachments.py
+        symbol: PublicAttachmentFetcher.fetch
+      - path: tests/test_job_scout_reference_attachments.py
+        symbol: _FixtureAttachmentFetcher.fetch
+    - name: readStartupStatus
+      kind: function
+      line_start: 54
+      line_end: 60
+      signature: readStartupStatus() -> Promise<StartupStatus>
+      inputs: []
+      output: Promise<StartupStatus>
+      dependencies:
+      - browserHealth
+      - runningInTauri
+      parser: typescript-pattern
+      dependency_targets:
+      - path: desktop/src/StartupGate.tsx
+        symbol: browserHealth
+      - &id002
+        path: desktop/src/StartupGate.tsx
+        symbol: runningInTauri
+    - name: StartupGate
+      kind: function
+      line_start: 61
+      line_end: 62
+      signature: 'StartupGate({ children }: { children: ReactNode })'
+      inputs:
+      - '{ children }: { children: ReactNode }'
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
+    - name: refresh
+      kind: function
+      line_start: 68
+      line_end: 88
+      signature: refresh()
+      inputs: []
+      output: unspecified
+      dependencies:
+      - Date.now
+      - String
+      - readStartupStatus
+      - setStatus
+      parser: typescript-pattern
+      dependency_targets:
+      - &id001
+        path: desktop/src/StartupGate.tsx
+        symbol: readStartupStatus
+    - name: retry
+      kind: function
+      line_start: 97
+      line_end: 108
+      signature: retry()
+      inputs: []
+      output: unspecified
+      dependencies:
+      - invoke
+      - readStartupStatus
+      - runningInTauri
+      - setRetrying
+      - setStatus
+      parser: typescript-pattern
+      dependency_targets:
+      - *id001
+      - *id002
+  - path: src/nerve_center/domain/module_runtime.py
+    analysis_version: 1
+    language: python
+    content_hash: 8851c4e958cf4c3d26a05f2c821f7c7241c0dc6e
+    dependencies:
+    - __future__
+    - dataclasses
+    - datetime
+    - enum
+    - typing
+    provides:
+    - ModuleRuntimeReport.to_dict
+    - ModuleRunAssignment.to_dict
+    symbols:
+    - name: ModuleRuntimeReport.to_dict
+      kind: method
+      line_start: 41
+      line_end: 42
+      signature: ModuleRuntimeReport.to_dict(self) -> dict[str, Any]
+      inputs:
+      - self
+      output: dict[str, Any]
+      dependencies:
+      - asdict
+      parser: python-ast
+      dependency_targets: []
+    - name: ModuleRunAssignment.to_dict
+      kind: method
+      line_start: 62
+      line_end: 63
+      signature: ModuleRunAssignment.to_dict(self) -> dict[str, Any]
+      inputs:
+      - self
+      output: dict[str, Any]
+      dependencies:
+      - asdict
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/profile/__init__.py
+    analysis_version: 1
+    language: python
+    content_hash: 45764725fc71adf0d4dd72f33bf59b19b1269a02
+    dependencies:
+    - nerve_center.profile.documents
+    - nerve_center.profile.models
+    provides: []
+    symbols: []
+  - path: tests/test_profile_persistence.py
+    analysis_version: 1
+    language: python
+    content_hash: 0f457dd257f3752cbfe6b623ab86d67dde8124d9
+    dependencies:
+    - nerve_center.config
+    - nerve_center.persistence.database
+    - nerve_center.persistence.profile
+    - nerve_center.profile.documents
+    - nerve_center.profile.models
+    - pathlib
+    provides:
+    - test_profile_and_document_persist_outside_checkout
+    symbols:
+    - name: test_profile_and_document_persist_outside_checkout
+      kind: function
+      line_start: 10
+      line_end: 28
+      signature: 'test_profile_and_document_persist_outside_checkout(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - CanonicalCareerProfile
+      - CareerProfileRepository
+      - Database
+      - Settings
+      - SourceDocumentRepository
+      - SourceDocumentRepository(database).get
+      - SourceDocumentRepository(database).save
+      - connection.exec_driver_sql
+      - connection.exec_driver_sql('SELECT version FROM schema_state').scalar_one
+      - database.engine.connect
+      - database.initialize
+      - import_source_document
+      - profile_store.get_profile
+      - profile_store.save_profile
+      - source.write_text
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/database.py
+        symbol: Database.initialize
+      - path: src/nerve_center/profile/documents.py
+        symbol: import_source_document
+      - path: src/nerve_center/persistence/profile.py
+        symbol: CareerProfileRepository.get_profile
+      - path: src/nerve_center/profile/api.py
+        symbol: register_profile_routes.get_profile
+      - path: src/nerve_center/profile/service.py
+        symbol: CareerProfileStore.get_profile
+      - path: tests/test_profile_service.py
+        symbol: MemoryStore.get_profile
+      - path: src/nerve_center/persistence/profile.py
+        symbol: CareerProfileRepository.save_profile
+      - path: src/nerve_center/profile/service.py
+        symbol: CareerProfileStore.save_profile
+      - path: tests/test_profile_service.py
+        symbol: MemoryStore.save_profile
