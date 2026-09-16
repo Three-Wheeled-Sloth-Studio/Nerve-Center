@@ -255,7 +255,11 @@ def validate_source_catalog(policy: dict[str, Any], errors: list[str]) -> None:
     try:
         ok, problems = check_catalog(ROOT)
     except SystemExit as exc:
-        add_error(errors, "refs/implementation/sourceCatalog/index.yaml", f"could not generate source catalog: {exc}")
+        add_error(
+            errors,
+            "refs/implementation/sourceCatalog/index.yaml",
+            f"could not generate source catalog: {exc}",
+        )
         return
     if not ok:
         for problem in problems:

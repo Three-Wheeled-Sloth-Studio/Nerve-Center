@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Generate/check/query a deterministic sharded source catalog for bounded agent discovery."""
+# ruff: noqa: E401, E501, E701, E702, I001, SIM105
 from __future__ import annotations
 import argparse, ast, hashlib, re, subprocess
 from pathlib import Path
