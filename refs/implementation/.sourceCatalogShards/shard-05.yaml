@@ -108,7 +108,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/discovery_learning.py
     analysis_version: 1
     language: python
-    content_hash: a1822d55746915cc32a587b75b7801ce708226b4
+    content_hash: 2286c4d9ecd3c38f61f3ad2b61c0d1668d898b3f
     dependencies:
     - __future__
     - dataclasses
