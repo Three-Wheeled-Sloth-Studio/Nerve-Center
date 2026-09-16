@@ -493,7 +493,7 @@ source_catalog:
   - path: tests/test_job_scout_discovery_learning.py
     analysis_version: 1
     language: python
-    content_hash: e3968c9387e9ba70835c6e65bc9174e6ad93e5b7
+    content_hash: 1ae530442035fa0b71e3273f1ecf333566b326b6
     dependencies:
     - datetime
     - nerve_center.applications.models
