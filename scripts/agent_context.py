@@ -24,10 +24,10 @@ except ImportError as error:  # pragma: no cover - repository integrity guard
     raise SystemExit("refs/tools/generate_source_catalog.py is required") from error
 
 DEFAULT_MAX_CHARS = 8_000
-DEFAULT_MAX_DECISIONS = 8
-DEFAULT_MAX_HANDOFF_SNIPPETS = 6
+DEFAULT_MAX_DECISIONS = 5
+DEFAULT_MAX_HANDOFF_SNIPPETS = 3
 DEFAULT_MAX_CHANGED_PATHS = 12
-DEFAULT_MAX_SOURCE_MATCHES = 6
+DEFAULT_MAX_SOURCE_MATCHES = 4
 
 _TOKEN_RE = re.compile(r"[a-z0-9]+")
 _DECISION_RE = re.compile(r"^\|\s*(NC-\d+)\s*\|\s*([^|]+?)\s*\|\s*(.*?)\s*\|\s*$")
@@ -257,7 +257,7 @@ def _handoff_snippets(
     return preferred[:limit]
 
 
-def _truncate(value: str, limit: int = 360) -> str:
+def _truncate(value: str, limit: int = 300) -> str:
     normalized = " ".join(value.split())
     if len(normalized) <= limit:
         return normalized
@@ -388,7 +388,7 @@ def build_packet(
 
     lines.extend(["", "## Relevant accepted decisions"])
     for decision_id, decision in decisions:
-        lines.append(f"- **{decision_id}:** {_truncate(decision, 300)}")
+        lines.append(f"- **{decision_id}:** {_truncate(decision, 260)}")
 
     if source_matches:
         lines.extend(["", "## Source-catalog matches"])
@@ -400,7 +400,7 @@ def build_packet(
                 continue
             dependencies = symbol.get("dependencies") or []
             suffix = (
-                f"; calls {', '.join(str(value) for value in dependencies[:5])}"
+                f"; calls {', '.join(str(value) for value in dependencies[:4])}"
                 if dependencies
                 else ""
             )
@@ -408,12 +408,12 @@ def build_packet(
             if targets:
                 suffix += "; targets " + ", ".join(
                     f"{target.get('path')}:{target.get('symbol')}"
-                    for target in targets[:3]
+                    for target in targets[:2]
                     if isinstance(target, dict)
                 )
             signature = _truncate(
                 str(symbol.get("signature") or symbol.get("name") or "symbol"),
-                220,
+                180,
             )
             lines.append(
                 f"- `{path}:{symbol.get('line_start', '?')}-{symbol.get('line_end', '?')}` "
