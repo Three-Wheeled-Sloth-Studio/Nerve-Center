@@ -1,26 +1,39 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
 instructions:
-  - For routine continuation or reset, run scripts/agent_context.py with a short task focus before rereading large refs; treat its packet as derived orientation only, never as project truth.
-  - After the packet, read the active issue/task and only the source/ref paths it identifies as relevant; expand to broader refs when the task crosses those boundaries or the packet is insufficient.
+  - For routine continuation or reset, run `python scripts/agent_context.py --focus "<short task phrase>" --issue <issue-number>` before rereading large refs or source; treat its packet as derived orientation only, never as project truth.
+  - The re-entry generator refreshes the deterministic source catalog before ordinary packet generation. Use source-catalog matches and handoff required reads before opening implementation files.
+  - If the packet is insufficient, query `python refs/tools/generate_source_catalog.py --query "<task or symbol>"` before broad repository search.
+  - Start with the smallest evidence set capable of resolving the task. Expand context only for a concrete dependency, ambiguity, failing test, system boundary, or authoritative reference.
+  - Prefer symbol-level and targeted line-range reads. Do not open a whole source file when the relevant symbol, test, or range is sufficient.
+  - Do not recursively read or summarize the repository as routine task preparation. Broad repository reads are justified only by genuinely repository-wide work such as architecture migration, dependency audit, or cross-cutting refactor.
   - Read refs/project.yaml when project identity, phase, or source-of-truth routing matters.
   - Read refs/planning/mvp-roadmap.md and refs/planning/decision-register.md when changing roadmap scope or when the packet identifies relevant decisions that require full context.
   - Read refs/planning/product-vision-and-architecture.md and refs/planning/module-package-contract.md before changing system boundaries or module ownership.
-  - Read refs/implementation/fileMap.yaml before searching broadly.
-  - Conserve coding-agent context and tokens by using diff-first continuation, targeted reads/searches, avoiding repeated reads of unchanged large files, preferring deterministic searches/tests over repeated reasoning, and extracting repeated diagnostics or workflows into reusable scripts/tools.
-  - If substantially the same diagnostic, search, or transformation is performed twice in one development arc, make it reusable before doing it a third time.
+  - Read refs/implementation/fileMap.yaml before searching broadly when source-catalog evidence is insufficient.
+  - Conserve coding-agent context and tokens by using diff-first continuation, source-catalog queries, targeted reads/searches, deterministic diagnostics, and tests instead of repeated broad reads.
+  - When the environment supports sub-agents, delegate independent bounded work by default when delegation reduces parent-agent context consumption, enables useful parallel work, or isolates a specialized task.
+  - Use the least expensive capable sub-agent/model for delegated work. Prefer lower-cost agents for bounded search, call-site discovery, test inspection, diagnostics, documentation checks, and other tasks that do not require the primary agent's full reasoning context.
+  - Do not delegate when coordination cost exceeds the task, when the work requires the parent's full context, or when parallel writes create material merge/conflict risk. Prefer read-only sub-agent tasks when agents could touch overlapping files.
+  - The parent agent remains responsible for integrating, verifying, and validating sub-agent results; delegation never transfers final correctness responsibility.
+  - If substantially the same diagnostic, search, comparison, or transformation is performed twice, make it a reusable script/helper/test before doing it a third time unless the operation is genuinely one-off.
   - Treat accepted decisions as inputs unless new runtime/test evidence contradicts them; do not spend context re-deriving settled choices.
   - Read refs/testing/validationCommands.yaml before finalizing changes.
+  - Regenerate the source catalog after source changes and require `python refs/tools/generate_source_catalog.py --check` to pass before finalizing.
   - Use refs/index.md as the OKF discovery surface, but do not substitute it for authoritative refs.
   - Keep durable decisions, handoffs, validation notes, and context-heavy project facts in refs.
+  - Keep the active handoff delta-oriented and include a narrow `Required Reads For Next Slice` section that names only files, symbols, or line ranges the next agent actually needs and says why each is required.
   - Preserve OKF frontmatter on every non-reserved Markdown concept under refs.
   - Do not hand-edit generated index.md files; regenerate them with refs/tools/generate_okf_indexes.py.
+  - Never hand-edit refs/implementation/sourceCatalog/index.yaml or refs/implementation/.sourceCatalogShards/shard-*.yaml; regenerate them with refs/tools/generate_source_catalog.py.
   - Never infer OKF verified status from generation, passing tests, Git history, or refs validation.
   - Do not store secrets or machine-local credentials in refs.
   - Preserve Nerve Center's established refs taxonomy instead of creating duplicate Agent Academy template state.
   - Record durable product and architecture decisions in refs/planning/decision-register.md with rationale and consequences.
   - Update refs/handoffs/currentHandoff.md when stopping with incomplete or context-heavy work.
-  - Follow refs/engineering/ci-and-agent-workflow.md for draft pull requests and CI signal discipline.
+  - Follow refs/engineering/ci-and-agent-workflow.md for CI signal discipline and coding-agent operating rules.
+  - Prefer one cohesive responsibility per hand-authored source module. Split independently evolving orchestration, domain logic, persistence, adapters, presentation, state, and pure transformations when doing so keeps changes bounded and testable.
+  - Avoid adding an independent responsibility to an already mixed-purpose file. Treat difficulty summarizing/testing a file or repeated broad reads for small changes as decomposition evidence; line count alone is not the rule.
   - Never create, rename, or retain two tracked paths that differ only by letter casing.
   - Treat git ls-files as the authority for case-collision checks and run refs/tools/check_case_collisions.py through the normal validation path.
   - Match import and reference casing exactly to the tracked path; use semantic suffixes rather than capitalization-only filename distinctions.

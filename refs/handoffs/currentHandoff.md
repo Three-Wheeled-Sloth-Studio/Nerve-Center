@@ -11,6 +11,7 @@ tags: [nerve-center, handoff]
 
 - Work directly on `dev`; do not create a feature branch or PR unless explicitly requested.
 - Application version is `0.12.26`.
+- Agent Academy alignment baseline is `e4118f96cc0138490b950402ba711399580ee854`; bounded source discovery, handoff required reads, capability-aware sub-agent guidance, and source-modularity rules are now part of Nerve Center's engineering contract.
 - Issue #57 remains open. Do not close it until an overnight/current-run audit shows civic-derived employer deepening reaching normal company/career discovery.
 - Job Scout remains an iterative market-research loop: `expand -> converge -> deepen -> reflect -> re-expand`. Discovery optimizes recall; ranking/scoring provides precision.
 - Extracted employer names are hypotheses only. They must pass through ordinary public search and official-career resolution before becoming durable company/location evidence.
@@ -109,10 +110,19 @@ Do not tune scoring unless the overnight artifact identifies scoring as the bloc
 
 Code Shop Issue #54 remains staged behind this acceptance work. Its contract is `refs/planning/code-shop-foundation.md`.
 
+## Required Reads For Next Slice
+
+- `refs/handoffs/currentHandoff.md` — authoritative accepted baseline, runtime evidence, and overnight acceptance questions.
+- `refs/handoffs/next-dev-prompt.md` — exact bounded execution/audit instructions for the next coding-agent session.
+- `src/nerve_center/plugins/job_scout/discovery_loop.py` — only the employer-deepening/public-search symbols identified by the source catalog; required to interpret query failback and official-career resolution telemetry.
+- `src/nerve_center/plugins/job_scout/discovery_learning.py` — only scheduler selection/cooldown symbols identified by the source catalog; required if overnight evidence shows civic hypotheses did not execute.
+- `scripts/run_job_scout_live.py` — only report/audit collection symbols identified by the source catalog; required to interpret the overnight artifact, not to reopen runner design broadly.
+- Latest Issue #57 comments and the overnight `run-*.json` — current-run evidence is authoritative for deciding the next behavior slice.
+
 ## Re-entry
 
 ```powershell
 python scripts/agent_context.py --focus "job scout overnight employer fallback official career audit" --issue 57
 ```
 
-Read the generated packet, this handoff, the newest Issue #57 comments, the overnight report, and only directly relevant query/learning files.
+Start with the generated packet's required reads and source-catalog matches. Query the source catalog again before broader search if a concrete dependency remains unresolved.

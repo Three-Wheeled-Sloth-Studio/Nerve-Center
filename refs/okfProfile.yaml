@@ -1,6 +1,6 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: 2026-09-04
+updated: 2026-09-16
 okf:
   version: "0.2"
   canonical_repository: https://github.com/GoogleCloudPlatform/open-knowledge-format
@@ -14,7 +14,7 @@ bundle:
 agent_academy:
   profile: agent-academy-okf-v1
   source_repository: https://github.com/Three-Wheeled-Sloth-Studio/Agent-Academy
-  source_baseline: 16691651776151a7eb1ebf13d99a92658e0684e6
+  source_baseline: e4118f96cc0138490b950402ba711399580ee854
   authority:
     operating_instructions: refs/agents.yaml
     deterministic_state:
@@ -38,6 +38,14 @@ indexes:
   generator: python refs/tools/generate_okf_indexes.py
   check: python refs/tools/generate_okf_indexes.py --check
   manual_edits_allowed: false
+source_catalog:
+  generated: true
+  committed: true
+  generator: python refs/tools/generate_source_catalog.py
+  check: python refs/tools/generate_source_catalog.py --check
+  query: python refs/tools/generate_source_catalog.py --query "<task or symbol>"
+  manual_edits_allowed: false
+  authority: Derived static-analysis discovery only; source files and tests remain authoritative.
 provenance:
   rules:
     - Do not infer verified status from generation, Git history, tests, or refs validation.

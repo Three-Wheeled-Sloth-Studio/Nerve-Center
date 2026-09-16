@@ -26,13 +26,24 @@ jobs:
           cache: pip
       - name: Install
         run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+      - name: Bootstrap generated source catalog
+        run: python refs/tools/generate_source_catalog.py
       - name: Validate refs and tracked paths
         run: |
           python refs/tools/check_case_collisions.py
+          python refs/tools/generate_source_catalog.py --check
           python refs/tools/generate_okf_indexes.py --check
           python refs/tools/validate_refs.py --mode initialized
       - name: Validate agent context
         run: python scripts/agent_context.py --focus "job scout scoring domain fit" --check
+      - name: Upload source catalog bootstrap
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-catalog-bootstrap
+          path: |
+            refs/implementation/sourceCatalog
+            refs/implementation/.sourceCatalogShards
+          if-no-files-found: error
       - name: Lint
         run: ruff check .
       - name: Validate packaging command

@@ -15,10 +15,19 @@ try:
 except ImportError as error:  # pragma: no cover - developer setup guard
     raise SystemExit("PyYAML is required; install the repository dev dependencies.") from error
 
+_TOOLS_DIR = Path(__file__).resolve().parents[1] / "refs" / "tools"
+if str(_TOOLS_DIR) not in sys.path:
+    sys.path.insert(0, str(_TOOLS_DIR))
+try:
+    from generate_source_catalog import check_catalog, query_catalog, refresh_catalog
+except ImportError as error:  # pragma: no cover - repository integrity guard
+    raise SystemExit("refs/tools/generate_source_catalog.py is required") from error
+
 DEFAULT_MAX_CHARS = 8_000
 DEFAULT_MAX_DECISIONS = 8
 DEFAULT_MAX_HANDOFF_SNIPPETS = 6
 DEFAULT_MAX_CHANGED_PATHS = 12
+DEFAULT_MAX_SOURCE_MATCHES = 6
 
 _TOKEN_RE = re.compile(r"[a-z0-9]+")
 _DECISION_RE = re.compile(r"^\|\s*(NC-\d+)\s*\|\s*([^|]+?)\s*\|\s*(.*?)\s*\|\s*$")
@@ -190,6 +199,14 @@ def _markdown_blocks(path: Path) -> list[tuple[str, str]]:
     return blocks
 
 
+def _required_reads(path: Path, limit: int = 10) -> list[str]:
+    return [
+        text
+        for section, text in _markdown_blocks(path)
+        if section == "Required Reads For Next Slice"
+    ][:limit]
+
+
 def _handoff_snippets(
     path: Path,
     focus_tokens: set[str],
@@ -198,6 +215,7 @@ def _handoff_snippets(
     excluded_sections = {
         "Coding-agent reset path",
         "Read before implementation",
+        "Required Reads For Next Slice",
         "Validation boundary",
     }
     blocks = [item for item in _markdown_blocks(path) if item[0] not in excluded_sections]
@@ -205,6 +223,7 @@ def _handoff_snippets(
         "Active product correction": 4,
         "Next implementation slice": 3,
         "Immediate implementation slice": 3,
+        "Next bounded slice": 3,
         "Do not reopen without new evidence": 2,
         "Architectural constraints": 2,
         "Current state": 1,
@@ -230,6 +249,7 @@ def _handoff_snippets(
         "Active product correction",
         "Next implementation slice",
         "Immediate implementation slice",
+        "Next bounded slice",
     }
     preferred = [
         item for _index, item in ranked if item[0] in preferred_sections
@@ -305,15 +325,22 @@ def build_packet(
     issue_number = issue or _infer_issue(git.branch)
     focus_tokens = _tokens(focus)
     project_name, phase = _project_summary(repo_root / "refs/project.yaml")
+    handoff_path = repo_root / "refs/handoffs/currentHandoff.md"
+    required_reads = _required_reads(handoff_path)
     decisions = _decisions(
         repo_root / "refs/planning/decision-register.md",
         focus_tokens,
         max_decisions,
     )
     snippets = _handoff_snippets(
-        repo_root / "refs/handoffs/currentHandoff.md",
+        handoff_path,
         focus_tokens,
         max_handoff_snippets,
+    )
+    source_matches = (
+        query_catalog(repo_root, focus, DEFAULT_MAX_SOURCE_MATCHES)
+        if focus.strip()
+        else []
     )
     file_hints = _file_hints(
         repo_root / "refs/implementation/fileMap.yaml",
@@ -350,6 +377,11 @@ def build_packet(
         if len(changed) > max_changed_paths:
             lines.append(f"- … {len(changed) - max_changed_paths} more")
 
+    if required_reads:
+        lines.extend(["", "## Required reads for next slice"])
+        for item in required_reads:
+            lines.append(f"- {_truncate(item)}")
+
     lines.extend(["", "## Current handoff highlights"])
     for section, text in snippets:
         lines.append(f"- **{section}:** {_truncate(text)}")
@@ -357,6 +389,36 @@ def build_packet(
     lines.extend(["", "## Relevant accepted decisions"])
     for decision_id, decision in decisions:
         lines.append(f"- **{decision_id}:** {_truncate(decision, 300)}")
+
+    if source_matches:
+        lines.extend(["", "## Source-catalog matches"])
+        for item in source_matches:
+            symbol = item.get("symbol")
+            path = str(item.get("path") or "unknown")
+            if not isinstance(symbol, dict):
+                lines.append(f"- `{path}` (file match)")
+                continue
+            dependencies = symbol.get("dependencies") or []
+            suffix = (
+                f"; calls {', '.join(str(value) for value in dependencies[:5])}"
+                if dependencies
+                else ""
+            )
+            targets = symbol.get("dependency_targets") or []
+            if targets:
+                suffix += "; targets " + ", ".join(
+                    f"{target.get('path')}:{target.get('symbol')}"
+                    for target in targets[:3]
+                    if isinstance(target, dict)
+                )
+            signature = _truncate(
+                str(symbol.get("signature") or symbol.get("name") or "symbol"),
+                220,
+            )
+            lines.append(
+                f"- `{path}:{symbol.get('line_start', '?')}-{symbol.get('line_end', '?')}` "
+                f"— `{signature}`{suffix}"
+            )
 
     lines.extend(["", "## File-map hints"])
     for task, paths in file_hints:
@@ -372,8 +434,18 @@ def build_packet(
             "",
             "## Context discipline",
             (
-                "- Start with the paths above; use targeted search/line ranges before "
-                "whole-file reads."
+                "- Start with required reads and source-catalog matches. Expand context only "
+                "for a concrete dependency, ambiguity, failing test, system boundary, or "
+                "authoritative reference."
+            ),
+            (
+                "- If the packet is insufficient, query `python refs/tools/"
+                "generate_source_catalog.py --query \"<task or symbol>\"` before broad "
+                "repository search."
+            ),
+            (
+                "- Prefer symbol-level or targeted line-range reads. Do not open a whole "
+                "source file when the relevant symbol or range is sufficient."
             ),
             (
                 "- Treat accepted decisions as inputs. Reopen them only when new runtime/test "
@@ -384,12 +456,14 @@ def build_packet(
                 "reconstructing unchanged repository state."
             ),
             (
-                "- If substantially the same diagnostic/search/transformation is performed "
-                "twice, make it reusable before doing it a third time."
+                "- When the environment supports sub-agents, delegate bounded independent "
+                "work when that reduces parent context or enables useful parallel work; use "
+                "the least expensive capable model and keep the parent responsible for "
+                "integration and validation."
             ),
             (
-                "- Expand to roadmap/architecture/full handoff documents only when the task "
-                "crosses those boundaries or the packet is insufficient."
+                "- If substantially the same diagnostic/search/transformation is performed "
+                "twice, make it reusable before doing it a third time."
             ),
         ]
     )
@@ -422,7 +496,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument(
         "--check",
         action="store_true",
-        help="Validate packet generation and the default size budget without printing the packet.",
+        help="Validate catalog freshness, packet generation, and the default size budget.",
     )
     return result
 
@@ -432,6 +506,12 @@ def main() -> int:
     if args.max_chars < 2_000:
         raise SystemExit("--max-chars must be at least 2000")
     repo_root = _repo_root()
+    if args.check:
+        ok, problems = check_catalog(repo_root)
+        if not ok:
+            raise SystemExit("Source catalog is stale:\n- " + "\n- ".join(problems))
+    else:
+        refresh_catalog(repo_root)
     packet = build_packet(
         repo_root,
         focus=args.focus,
@@ -441,7 +521,8 @@ def main() -> int:
     if len(packet) > args.max_chars:
         raise SystemExit(
             f"Generated packet is {len(packet)} characters; budget is {args.max_chars}. "
-            "Tighten the selectors instead of increasing routine reset context."
+            "Tighten the handoff, selectors, or source structure instead of increasing "
+            "routine reset context."
         )
     if args.check:
         print(f"agent context check ok: {len(packet)} characters")

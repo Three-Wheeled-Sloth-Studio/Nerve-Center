@@ -1,10 +1,14 @@
 version: 1
 schema: refs/schemas/schemaRegistry.yaml
-updated: 2026-09-08
+updated: 2026-09-16
 commands:
   - id: tracked-path-case-collisions
     command: python refs/tools/check_case_collisions.py
     verifies: No distinct tracked paths collapse to the same case-folded path on Windows or default macOS filesystems.
+    required: true
+  - id: source-catalog
+    command: python refs/tools/generate_source_catalog.py --check
+    verifies: Committed deterministic sharded implementation file/function discovery exactly matches current Git-visible source.
     required: true
   - id: refs-indexes
     command: python refs/tools/generate_okf_indexes.py --check
@@ -12,11 +16,11 @@ commands:
     required: true
   - id: refs-validation
     command: python refs/tools/validate_refs.py --mode initialized
-    verifies: Required refs files, YAML schemas, OKF concept metadata, profile consistency, generated indexes, portability, and path safety.
+    verifies: Required refs files, YAML schemas, Agent Academy/OKF profile consistency, generated source/catalog indexes, portability, and path safety.
     required: true
   - id: agent-context
     command: python scripts/agent_context.py --focus "job scout scoring domain fit" --check
-    verifies: The compact coding-agent reset packet can be generated from authoritative refs and remains within its routine size budget.
+    verifies: The compact coding-agent reset packet can be generated from authoritative refs plus source-catalog discovery and remains within its routine size budget.
     required: true
   - id: python-lint
     command: ruff check .

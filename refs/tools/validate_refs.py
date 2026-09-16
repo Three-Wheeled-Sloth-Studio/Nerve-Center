@@ -17,6 +17,7 @@ except ImportError as exc:  # pragma: no cover
 try:
     from check_case_collisions import collision_groups, tracked_paths
     from generate_okf_indexes import expected_indexes
+    from generate_source_catalog import check_catalog
 except ImportError as exc:  # pragma: no cover
     raise SystemExit("Nerve Center refs tools are incomplete") from exc
 
@@ -248,6 +249,19 @@ def validate_indexes(errors: list[str]) -> None:
         add_error(errors, path, "unexpected generated OKF index")
 
 
+def validate_source_catalog(policy: dict[str, Any], errors: list[str]) -> None:
+    if not policy.get("validation", {}).get("source_catalog_must_match_generator"):
+        return
+    try:
+        ok, problems = check_catalog(ROOT)
+    except SystemExit as exc:
+        add_error(errors, "refs/implementation/sourceCatalog/index.yaml", f"could not generate source catalog: {exc}")
+        return
+    if not ok:
+        for problem in problems:
+            add_error(errors, "refs/implementation/sourceCatalog/index.yaml", problem)
+
+
 def validate_case_collisions(errors: list[str]) -> None:
     try:
         groups = collision_groups(tracked_paths())
@@ -278,6 +292,7 @@ def main() -> int:
     validate_concepts(errors)
     validate_profile(loaded, errors)
     validate_indexes(errors)
+    validate_source_catalog(policy, errors)
     validate_case_collisions(errors)
 
     if errors:
@@ -285,8 +300,7 @@ def main() -> int:
         for error in errors:
             print(f"- {error}", file=sys.stderr)
         return 1
-
-    print(f"refs validation passed ({args.mode} mode, Agent Academy OKF-compatible)")
+    print("refs validation passed (initialized mode, Agent Academy OKF-compatible)")
     return 0
 
 
