@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   python:
@@ -30,17 +30,22 @@ jobs:
         run: |
           python refs/tools/generate_source_catalog.py
           python refs/tools/generate_okf_indexes.py
-      - name: Upload source catalog bootstrap
-        uses: actions/upload-artifact@v4
-        with:
-          name: source-catalog-bootstrap
-          path: |
-            refs/implementation/sourceCatalog
-            refs/implementation/.sourceCatalogShards
-            refs/implementation/index.md
+      - name: Commit bootstrap generated state
+        if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            refs/implementation/sourceCatalog \
+            refs/implementation/.sourceCatalogShards \
+            refs/implementation/index.md \
             refs/tools/index.md
-          if-no-files-found: error
-          include-hidden-files: true
+          if git diff --cached --quiet; then
+            echo "Generated discovery surfaces are already committed."
+          else
+            git commit -m "Commit generated source catalog"
+            git push origin HEAD:dev
+          fi
       - name: Validate refs and tracked paths
         run: |
           python refs/tools/check_case_collisions.py
