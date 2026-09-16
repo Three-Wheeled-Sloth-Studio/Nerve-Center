@@ -564,16 +564,16 @@ class JobScoutDiscoveryRepository:
                         replace_families={"local_employer_deepen"},
                     )
 
-            # Regional vocabulary probes are bounded public-reference work.
-            # Keep one slot while such hypotheses are eligible so normal
-            # portfolio weight cannot indefinitely starve this coverage gap.
+            # Regional vocabulary probes get a bounded first-pass coverage slot.
+            # After each probe has run once, let normal portfolio learning
+            # reallocate capacity instead of reserving a permanent regional slot.
             if count > 3:
                 regional_candidates = sorted(
                     (
                         item
                         for item in candidates
                         if item.dimensions.get("hypothesis_family")
-                        == "regional_alias_probe"
+                        == "regional_alias_probe" and item.attempts == 0
                     ),
                     key=lambda item: (
                         item.attempts,
