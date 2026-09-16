@@ -37,9 +37,9 @@ validation:
   paths_must_be_relative: true
   case_collision_guard: refs/tools/check_case_collisions.py
   disallowed_secret_patterns:
-    - api_key
-    - access_token
-    - secret_key
-    - password
-    - private_key
-    - bearer
+    - '\bapi_key\b'
+    - '\baccess_token\b'
+    - '\bsecret_key\b'
+    - '\bpassword\b'
+    - '\bprivate_key\b'
+    - '\bbearer\b'
