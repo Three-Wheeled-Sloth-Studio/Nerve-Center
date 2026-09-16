@@ -355,20 +355,20 @@ def test_market_exploration_covers_distinct_locations_and_regional_probe(
         origin="market",
     )
     learning.record_attempt(
-        "prior-run",
-        1,
-        first_market[0].id,
-        "expand",
-        StrategyOutcome(companies_discovered=1),
+        "prior-run", 1, first_market[0].id, "expand", StrategyOutcome(companies_discovered=1)
     )
-
     selected = learning.select_strategies("run-1", limit=4, exploration_floor=0.25)
     selected_ids = {item.id for item in selected}
-
     assert company.id in selected_ids
     assert adjacent.id in selected_ids
     assert regional.id in selected_ids
     assert first_market[1].id not in selected_ids
+
+    learning.record_attempt("prior-run", 2, regional.id, "expand", StrategyOutcome())
+    selected_after_probe = learning.select_strategies(
+        "run-2", limit=4, exploration_floor=0.25
+    )
+    assert regional.id not in {item.id for item in selected_after_probe}
 
 
 def test_market_exploration_prefers_current_query_revision(tmp_path: Path) -> None:
