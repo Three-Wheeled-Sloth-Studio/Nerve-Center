@@ -126,6 +126,7 @@ class PublicWebSearchAdapter:
         self._cooldown_messages: dict[str, str] = {}
         self.last_provider = ""
         self.last_provider_fallback_used = False
+        self.last_search_transport = ""
 
     async def search(self, query: str) -> list[SearchResult]:
         return await self._search(query, include_other=False)
@@ -316,6 +317,9 @@ class PublicWebSearchAdapter:
         *,
         include_other: bool,
     ) -> list[SearchResult]:
+        self.last_provider = ""
+        self.last_provider_fallback_used = False
+        self.last_search_transport = ""
         builtin_query = _board_native_query(query, "builtin.com")
         result_scope = "references" if include_other else "hiring"
         if builtin_query is not None:
@@ -334,13 +338,18 @@ class PublicWebSearchAdapter:
                     )
                 )
         else:
-            provider, cache_provider, cached = self._select_public_provider(
-                query, result_scope
-            )
+            try:
+                provider, cache_provider, cached = self._select_public_provider(
+                    query, result_scope
+                )
+            except SearchChallengeError:
+                self.last_search_transport = "cooldown"
+                raise
             self.last_provider = provider
             self.last_provider_fallback_used = provider == self.fallback_provider
 
         if cached is not None and cached.get("status") == "succeeded":
+            self.last_search_transport = "cache"
             return _rehydrate_cached_results(
                 cached.get("results", []),
                 include_other=include_other,
@@ -355,6 +364,7 @@ class PublicWebSearchAdapter:
         else:
             search_url = "https://html.duckduckgo.com/html/"
             params = {"q": query, "source": "web"}
+        self.last_search_transport = "network"
         try:
             response = await self.fetcher.get(
                 search_url,

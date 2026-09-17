@@ -71,6 +71,7 @@ def test_public_search_rotates_to_bing_after_duckduckgo_challenge() -> None:
     assert primary_hosts == ["html.duckduckgo.com"]
     assert adapter.last_provider == "duckduckgo_html"
     assert adapter.last_provider_fallback_used is False
+    assert adapter.last_search_transport == "network"
     assert cache.get("public_search_provider_health:v1", "duckduckgo_html") is not None
 
     fallback_hosts: list[str] = []
@@ -99,6 +100,7 @@ def test_public_search_rotates_to_bing_after_duckduckgo_challenge() -> None:
     assert fallback_hosts == ["www.bing.com"]
     assert fresh_adapter.last_provider == "bing_html"
     assert fresh_adapter.last_provider_fallback_used is True
+    assert fresh_adapter.last_search_transport == "network"
     assert [item.url for item in results] == ["https://example.com/careers"]
 
 
@@ -129,3 +131,42 @@ def test_bing_tracking_redirect_is_normalized_to_public_target() -> None:
     encoded = "aHR0cHM6Ly9leGFtcGxlLmNvbS9jYXJlZXJz"
     value = f"https://www.bing.com/ck/a?u=a1{encoded}"
     assert normalize_public_search_result_url(value) == "https://example.com/careers"
+
+
+def test_nonempty_primary_cache_remains_reusable_during_provider_cooldown() -> None:
+    cache = MemorySearchCache()
+    query = "cached employer query"
+    cache.put(
+        "duckduckgo_html:5:references",
+        query,
+        {
+            "status": "succeeded",
+            "results": [
+                {
+                    "title": "Cached Employer Careers",
+                    "url": "https://cached.example/careers",
+                    "snippet": "",
+                    "classification": "company_career",
+                    "domain": "cached.example",
+                }
+            ],
+        },
+    )
+    cache.put(
+        "public_search_provider_health:v1",
+        "duckduckgo_html",
+        {"status": "challenged", "message": "cooling down"},
+    )
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        raise AssertionError("cache reuse must not issue a network request")
+
+    fetcher, client = _fetcher(handler)
+    adapter = PublicWebSearchAdapter(cache, fetcher=fetcher, max_results=5)  # type: ignore[arg-type]
+    results = asyncio.run(adapter.search_references(query))
+    asyncio.run(client.aclose())
+
+    assert [item.url for item in results] == ["https://cached.example/careers"]
+    assert adapter.last_provider == "duckduckgo_html"
+    assert adapter.last_provider_fallback_used is False
+    assert adapter.last_search_transport == "cache"

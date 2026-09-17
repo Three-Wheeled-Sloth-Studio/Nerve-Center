@@ -1140,6 +1140,28 @@ source_catalog:
       - value.casefold
       parser: python-ast
       dependency_targets: []
+  - path: tests/test_job_scout_location_fallback_telemetry.py
+    analysis_version: 1
+    language: python
+    content_hash: 77fa1ce34c2edc5fc6e32b54f8b33c2128e32a18
+    dependencies:
+    - inspect
+    - nerve_center.plugins.job_scout.location_discovery
+    provides:
+    - test_location_cycle_carries_search_provider_fallback_counter
+    symbols:
+    - name: test_location_cycle_carries_search_provider_fallback_counter
+      kind: function
+      line_start: 8
+      line_end: 10
+      signature: test_location_cycle_carries_search_provider_fallback_counter() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - inspect.getsource
+      - source.count
+      parser: python-ast
+      dependency_targets: []
   - path: tests/test_location_awareness.py
     analysis_version: 1
     language: python

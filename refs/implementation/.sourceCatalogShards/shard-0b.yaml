@@ -22,7 +22,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/bootstrap.py
     analysis_version: 1
     language: python
-    content_hash: 21637c2ae653c40fa07bfc2a37f73bfd7ed15bc0
+    content_hash: 3c09fd49258ecbd3ee110d059446c36cae036ac4
     dependencies:
     - dataclasses
     - fastapi
@@ -47,6 +47,7 @@ source_catalog:
     provides:
     - install_job_scout
     - _recent_reference_attempt_evidence
+    - _recent_public_search_attempt_evidence
     - _register_discovery_learning_routes
     - _register_discovery_learning_routes.list_discovery_strategies
     - _register_discovery_learning_routes.get_discovery_audit
@@ -136,27 +137,71 @@ source_catalog:
       - statement.where
       parser: python-ast
       dependency_targets:
-      - &id003
+      - &id001
         path: src/nerve_center/persistence/scoring.py
         symbol: OpportunityScoreRepository.append
-      - &id001
+      - &id002
         path: src/nerve_center/persistence/database.py
         symbol: Database.session
-      - &id002
+      - &id003
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.session
-      - path: src/nerve_center/providers/manager.py
+      - &id004
+        path: src/nerve_center/providers/manager.py
         symbol: ProviderManager.select
-      - path: src/nerve_center/providers/manager.py
+      - &id005
+        path: src/nerve_center/providers/manager.py
         symbol: ProviderManager.execute
-      - path: src/nerve_center/runtime/supervisor.py
+      - &id006
+        path: src/nerve_center/runtime/supervisor.py
         symbol: ModuleSupervisor.execute
-      - path: tests/test_scheduler.py
+      - &id007
+        path: tests/test_scheduler.py
         symbol: test_tick_starts_due_fixed_run.execute
-    - name: _register_discovery_learning_routes
+    - name: _recent_public_search_attempt_evidence
       kind: function
       line_start: 189
-      line_end: 253
+      line_end: 250
+      signature: '_recent_public_search_attempt_evidence(learning: DiscoveryQualityRepository, run_id: str | None, limit:
+        int) -> list[dict[str, object]]'
+      inputs:
+      - 'learning: DiscoveryQualityRepository'
+      - 'run_id: str | None'
+      - 'limit: int'
+      output: list[dict[str, object]]
+      dependencies:
+      - StrategyAttemptModel.finished_at.desc
+      - bool
+      - detail.get
+      - dimensions.get
+      - event.get
+      - evidence.append
+      - int
+      - isinstance
+      - learning.database.session
+      - len
+      - max
+      - select
+      - select(StrategyAttemptModel, DiscoveryStrategyModel).join
+      - session.execute
+      - session.execute(statement.order_by(StrategyAttemptModel.finished_at.desc()).limit(scan_limit)).all
+      - statement.order_by
+      - statement.order_by(StrategyAttemptModel.finished_at.desc()).limit
+      - statement.where
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+      - *id007
+    - name: _register_discovery_learning_routes
+      kind: function
+      line_start: 253
+      line_end: 323
       signature: '_register_discovery_learning_routes(application: FastAPI, learning: DiscoveryQualityRepository) -> None'
       inputs:
       - 'application: FastAPI'
@@ -164,6 +209,7 @@ source_catalog:
       output: None
       dependencies:
       - HTTPException
+      - _recent_public_search_attempt_evidence
       - _recent_reference_attempt_evidence
       - application.get
       - dict
@@ -177,28 +223,31 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - &id006
+      - &id010
+        path: src/nerve_center/plugins/job_scout/bootstrap.py
+        symbol: _recent_public_search_attempt_evidence
+      - &id011
         path: src/nerve_center/plugins/job_scout/bootstrap.py
         symbol: _recent_reference_attempt_evidence
-      - &id007
+      - &id012
         path: src/nerve_center/plugins/job_scout/discovery_quality.py
         symbol: DiscoveryQualityRepository.discovery_audit
-      - &id004
-        path: src/nerve_center/plugins/job_scout/discovery_learning.py
-        symbol: JobScoutDiscoveryRepository.list_strategies
-      - &id005
-        path: src/nerve_center/plugins/job_scout/discovery_learning.py
-        symbol: JobScoutDiscoveryRepository.list_strategy_families
       - &id008
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.list_strategies
+      - &id009
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.list_strategy_families
+      - &id013
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.reflection_hypotheses
-      - *id001
       - *id002
       - *id003
+      - *id001
     - name: _register_discovery_learning_routes.list_discovery_strategies
       kind: function
-      line_start: 194
-      line_end: 233
+      line_start: 258
+      line_end: 297
       signature: _register_discovery_learning_routes.list_discovery_strategies() -> list[dict[str, object]]
       inputs: []
       output: list[dict[str, object]]
@@ -210,30 +259,32 @@ source_catalog:
       - rows.append
       parser: python-ast
       dependency_targets:
-      - *id004
-      - *id005
-      - *id003
+      - *id008
+      - *id009
+      - *id001
     - name: _register_discovery_learning_routes.get_discovery_audit
       kind: function
-      line_start: 236
-      line_end: 242
+      line_start: 300
+      line_end: 312
       signature: '_register_discovery_learning_routes.get_discovery_audit(run_id: str | None) -> dict[str, object]'
       inputs:
       - 'run_id: str | None'
       output: dict[str, object]
       dependencies:
+      - _recent_public_search_attempt_evidence
       - _recent_reference_attempt_evidence
       - application.get
       - dict
       - learning.discovery_audit
       parser: python-ast
       dependency_targets:
-      - *id006
-      - *id007
+      - *id010
+      - *id011
+      - *id012
     - name: _register_discovery_learning_routes.get_discovery_session
       kind: function
-      line_start: 245
-      line_end: 249
+      line_start: 315
+      line_end: 319
       signature: '_register_discovery_learning_routes.get_discovery_session(run_id: str) -> object'
       inputs:
       - 'run_id: str'
@@ -245,12 +296,12 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - *id001
       - *id002
+      - *id003
     - name: _register_discovery_learning_routes.list_reflection_hypotheses
       kind: function
-      line_start: 252
-      line_end: 253
+      line_start: 322
+      line_end: 323
       signature: '_register_discovery_learning_routes.list_reflection_hypotheses(run_id: str) -> list[dict[str, object]]'
       inputs:
       - 'run_id: str'
@@ -260,7 +311,7 @@ source_catalog:
       - learning.reflection_hypotheses
       parser: python-ast
       dependency_targets:
-      - *id008
+      - *id013
   - path: src/nerve_center/providers/__init__.py
     analysis_version: 1
     language: python
@@ -343,10 +394,10 @@ source_catalog:
       - task.add_done_callback
       parser: python-ast
       dependency_targets:
-      - &id009
+      - &id014
         path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService._execute
-      - &id010
+      - &id015
         path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService._prepare_start
     - name: RunnerService.execute_now
@@ -364,8 +415,8 @@ source_catalog:
       - self._prepare_start
       parser: python-ast
       dependency_targets:
-      - *id009
-      - *id010
+      - *id014
+      - *id015
     - name: RunnerService.cancel
       kind: method
       line_start: 56
@@ -379,7 +430,7 @@ source_catalog:
       - self.repository.request_cancel
       parser: python-ast
       dependency_targets:
-      - &id011
+      - &id016
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.request_cancel
     - name: RunnerService.wait
@@ -420,7 +471,7 @@ source_catalog:
         symbol: RunnerService.wait
       - path: tests/test_module_runtime.py
         symbol: StubProcess.wait
-      - *id011
+      - *id016
       - path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository.cancel
       - path: src/nerve_center/scheduler/runner.py
@@ -453,8 +504,8 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/scheduler/registry.py
         symbol: TaskRegistry.module_for_task
-      - *id011
-      - &id012
+      - *id016
+      - &id017
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.transition
     - name: RunnerService._execute
@@ -496,7 +547,7 @@ source_catalog:
         symbol: RunRepository.save_checkpoint
       - path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService._execute.save_checkpoint
-      - *id012
+      - *id017
     - name: RunnerService._execute.cancellation_requested
       kind: method
       line_start: 147
@@ -535,7 +586,7 @@ source_catalog:
       - self.repository.transition
       parser: python-ast
       dependency_targets:
-      - *id012
+      - *id017
   - path: tests/test_documents.py
     analysis_version: 1
     language: python
@@ -566,7 +617,7 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - &id013
+      - &id018
         path: src/nerve_center/profile/documents.py
         symbol: import_source_document
     - name: test_imports_docx
@@ -584,7 +635,7 @@ source_catalog:
       - import_source_document
       parser: python-ast
       dependency_targets:
-      - *id013
+      - *id018
     - name: test_imports_pdf
       kind: function
       line_start: 35
@@ -602,4 +653,4 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - *id013
+      - *id018

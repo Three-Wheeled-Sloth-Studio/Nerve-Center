@@ -7,6 +7,17 @@ tags: [nerve-center, handoff]
 ---
 # Current Handoff
 
+## 2026-09-17 - Issue #57 accepted; provider evidence follow-up #60
+
+Exact-runtime run `8b646b11-d5ba-4725-991c-5eb2eb36c36a` completed successfully via planned `admission_draining` on Git `5155a82099c516eb403630fa72d30b297062a154` with checkout-source identity proven. It used 55 / 150 requests and 5 / 30 LLM calls, completed five full scores with zero failures, completed 31 / 33 source scans, returned 73 public-search results, inspected 319 postings, retained four opportunities, and resolved three career sources.
+
+The decisive Issue #57 acceptance condition is now satisfied: six normalized civic/PDF-OCR `local_employer_deepen` strategies executed through ordinary location-free employer-career search, and the attachment-backed `City of High Point` hypothesis returned public career results and resolved three career sources. Issue #57 is closed as completed.
+
+The run reported `search_provider_fallbacks=0`, but audit of the runtime path exposed an accounting/observability gap rather than evidence for another discovery-policy change. `LocationAwareJobScoutDiscoveryLoop.cycle` predated the fallback counter and did not aggregate it, and the live report could not distinguish reusable search-cache results from fresh provider transport. Issue #60 owns the bounded correction: preserve DDG primary/Bing fallback behavior, expose one run-scoped evidence row per actual public-search call with provider/fallback/cache-vs-network status, and carry fallback counts through the location-aware runtime cycle.
+
+Do not retune search wording, scoring, scheduler weights, cooldown duration, extraction rules, or request caps from this evidence. The low-intent `Human-Centered Design company` Wikipedia references are a separate relevance-quality observation if they persist.
+
+
 ## 2026-09-17 - Bounded public-search fallback checkpoint
 
 Live acceptance run `e107e4a4-5f1c-4cd0-806e-001b4c97fd3a` completed through planned `admission_draining` with 51 / 150 requests, 6 / 30 LLM calls, four full scores with zero scoring failures, and 31 / 31 source scans completed. The gate proves the previous two fixes are alive: clean `local_employer_deepen` work executed for `Volvo Group North America` (four public results) and `HAECO Americas` (eight public results), while DuckDuckGo bot/challenge responses surfaced as `challenged` instead of valid empty searches for Durham-Chapel Hill, Mount Airy, and Danville.
@@ -34,7 +45,7 @@ The next acceptance gate remains an isolated five-minute run. It should prove th
 - Application version is `0.12.26`.
 - Agent Academy alignment baseline is `e4118f96cc0138490b950402ba711399580ee854`; bounded source discovery, handoff required reads, capability-aware sub-agent guidance, and source-modularity rules are now part of Nerve Center's engineering contract.
 - The current local-acquisition implementation checkpoint is `fe1608e5e7bc4f309d8a823340f78200a9886ba6`. Exact-runtime gates are pinned to the checkout source; clean employer deepening and truthful provider-challenge accounting are proven; DuckDuckGo challenge state now opens a bounded provider circuit breaker so later strategies can use Bing public HTML without adding a same-strategy retry. Targeted validation passed in workflow `35270065108`; full helper-free exact-head CI is required before the next live gate.
-- Issue #57 remains open. Do not close it until current-run evidence shows the local employer/alias acquisition path produces usable hypotheses that proceed through ordinary company/career discovery.
+- Issue #57 is closed as completed from exact-runtime run `8b646b11-d5ba-4725-991c-5eb2eb36c36a`. Issue #60 is the active bounded provider/cache observability follow-up.
 - Job Scout remains an iterative market-research loop: `expand -> converge -> deepen -> reflect -> re-expand`. Discovery optimizes recall; ranking/scoring provides precision.
 - Extracted employer names are hypotheses only. They must pass through ordinary public search and official-career resolution before becoming durable company/location evidence.
 - No named employer, city, or region exception exists in production logic.
@@ -224,31 +235,17 @@ No named company, city, or region exception was added. No extra network path or 
 
 ## Next bounded slice
 
-Pull `dev` after full clean-head CI is green, then run one isolated five-minute exact-runtime gate. Do not run a 30-minute or long soak yet.
+Issue #60 is the only remaining Job Scout acceptance follow-up before returning to staged Code Shop Issue #54. The implementation must remain observability/accounting-only:
 
-```powershell
-.\.venv\Scripts\python.exe scripts\run_job_scout_live.py `
-  --duration-seconds 300 `
-  --max-requests 150 `
-  --max-llm-calls 30 `
-  --score-limit 10 `
-  --score-failure-limit 5
-```
+1. preserve DuckDuckGo primary and Bing public-HTML fallback semantics exactly;
+2. expose current-run `public_search_attempt_evidence` with query, provider, fallback flag, cache-vs-network transport, status, and result count for every actual search call, including employer deepening failback queries;
+3. aggregate `search_provider_fallbacks` through the location-aware runtime cycle;
+4. keep successful non-empty primary cache reuse valid during provider cooldown;
+5. add no third provider and no same-query provider retry.
 
-Do not run process-level tests, packaging smoke, or another API-owning command concurrently with the gate. Audit only the new current run:
+After clean exact-head CI, run one isolated five-minute gate only if a fresh local run is available. Audit the new `discovery_audit.public_search_attempt_evidence`: after any provider challenge, every later search must be explainable as cache reuse, DDG network, Bing fallback, or provider cooldown. If an uncached post-challenge search executes, require `bing_html` with `search_provider_fallback_used=true` and matching aggregate fallback accounting. If all later searches are cache hits, record that truthfully rather than forcing transport solely to make the counter nonzero.
 
-1. verify `runtime_identity.uses_checkout_source` is true and `runtime_identity.git_commit` equals the exact pulled `dev` head;
-2. verify fresh `regional_alias_probe` and `local_employer` strategies remain reachable while one revisit is preserved;
-3. verify a clean normalized attachment/current-revision `local_employer_deepen` strategy can execute despite an older equivalent legacy row inside cooldown, and verify stale HTML/navigation hypotheses remain absent;
-4. if deepening executes, verify it proceeds through ordinary location-free employer-career resolution and remains hypothesis-first until official career evidence succeeds;
-5. inspect provider warnings and search failure/challenge counts. A DuckDuckGo bot/challenge response must no longer appear as a successful zero-result search;
-6. an ordinary non-challenge empty result page may still legitimately report zero results; do not convert all empty search responses into failures;
-7. if DuckDuckGo challenge responses dominate the gate, investigate bounded provider fallback/transport behavior next rather than changing extraction, scoring, scheduler weights, cooldowns, or request caps;
-8. return to a 30-minute gate only after clean deepening execution and trustworthy public-search result accounting are proven.
-
-Keep Issue #57 open. Do not add named company, city, aggregator, page-heading, provider-result, or region exceptions. Preserve public-source safety, the 24-hour cooldown, existing request bounds, and the rule that extracted employer names remain hypotheses until ordinary public company/career validation succeeds.
-
-Code Shop Issue #54 remains staged behind this acceptance work. Its contract is `refs/planning/code-shop-foundation.md`.
+Keep Issue #60 open until that live evidence is available. Code Shop Issue #54 remains staged immediately behind it.
 
 ## Required Reads For Next Slice
 

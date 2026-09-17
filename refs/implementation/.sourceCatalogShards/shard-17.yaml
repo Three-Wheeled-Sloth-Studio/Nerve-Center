@@ -104,7 +104,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/location_discovery.py
     analysis_version: 1
     language: python
-    content_hash: 4ca9703cf896b3ca4b4da1edc6ea6353f1218496
+    content_hash: 89ba158acb788021a242ac7fa39470203d2ad0ca
     dependencies:
     - __future__
     - dataclasses
@@ -140,7 +140,7 @@ source_catalog:
     - name: LocationAwareJobScoutDiscoveryLoop.cycle
       kind: method
       line_start: 34
-      line_end: 225
+      line_end: 227
       signature: 'LocationAwareJobScoutDiscoveryLoop.cycle(self, run_id: str, cycle: int, request_limit: int | None) -> DiscoveryCycleSummary'
       inputs:
       - self
@@ -205,8 +205,8 @@ source_catalog:
         symbol: _ConfigStore.load
     - name: _normalize_legacy_location_strategy_yield
       kind: function
-      line_start: 228
-      line_end: 271
+      line_start: 230
+      line_end: 273
       signature: '_normalize_legacy_location_strategy_yield(learning: JobScoutDiscoveryRepository) -> int'
       inputs:
       - 'learning: JobScoutDiscoveryRepository'
@@ -242,8 +242,8 @@ source_catalog:
         symbol: ProviderManager.select
     - name: _clamp
       kind: function
-      line_start: 274
-      line_end: 275
+      line_start: 276
+      line_end: 277
       signature: '_clamp(value: float, minimum: float, maximum: float) -> float'
       inputs:
       - 'value: float'

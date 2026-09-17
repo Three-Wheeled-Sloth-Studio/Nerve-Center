@@ -488,6 +488,7 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
             **outcome.detail,
             "query": compiled.query,
             "queries_attempted": compiled_adapter.queries_attempted,
+            "search_attempt_evidence": compiled_adapter.search_attempt_evidence,
             "query_failback_reason": compiled_adapter.failback_reason,
             "hypothesis_family": strategy.dimensions.get(
                 "hypothesis_family", "legacy"
@@ -708,6 +709,36 @@ class _CompiledQueryAdapter:
         self.failbacks_used = 0
         self.failback_reason = ""
         self.warnings: list[str] = []
+        self.search_attempt_evidence: list[dict[str, Any]] = []
+
+    @property
+    def last_provider(self) -> str:
+        return str(getattr(self.delegate, "last_provider", "") or "")
+
+    @property
+    def last_provider_fallback_used(self) -> bool:
+        return bool(getattr(self.delegate, "last_provider_fallback_used", False))
+
+    @property
+    def last_search_transport(self) -> str:
+        return str(getattr(self.delegate, "last_search_transport", "") or "")
+
+    def _record_search_attempt(
+        self,
+        query: str,
+        status: str,
+        results: list[SearchResult] | None = None,
+    ) -> None:
+        self.search_attempt_evidence.append(
+            {
+                "query": query,
+                "search_provider": self.last_provider,
+                "search_provider_fallback_used": self.last_provider_fallback_used,
+                "search_transport": self.last_search_transport,
+                "status": status,
+                "result_count": len(results or []),
+            }
+        )
 
     async def search(self, _legacy_query: str) -> Any:
         combined: list[SearchResult] = []
@@ -723,10 +754,15 @@ class _CompiledQueryAdapter:
             try:
                 results = await self.delegate.search(query)
             except (RuntimeError, SearchChallengeError) as error:
+                self._record_search_attempt(
+                    query,
+                    "challenged" if isinstance(error, SearchChallengeError) else "failed",
+                )
                 if index == 0:
                     raise
                 self.warnings.append(f"employer query failback deferred: {error}")
                 break
+            self._record_search_attempt(query, "succeeded", list(results))
             self.search_requests_completed += 1
             direct_results = [
                 item for item in results if _is_direct_employer_result(item)
@@ -750,8 +786,17 @@ class _CompiledQueryAdapter:
 
     async def search_references(self, _legacy_query: str) -> Any:
         method = getattr(self.delegate, "search_references", self.delegate.search)
-        self.queries_attempted.append(self.queries[0])
-        results = await method(self.queries[0])
+        query = self.queries[0]
+        self.queries_attempted.append(query)
+        try:
+            results = await method(query)
+        except (RuntimeError, SearchChallengeError) as error:
+            self._record_search_attempt(
+                query,
+                "challenged" if isinstance(error, SearchChallengeError) else "failed",
+            )
+            raise
+        self._record_search_attempt(query, "succeeded", list(results))
         self.search_requests_completed += 1
         return results
 

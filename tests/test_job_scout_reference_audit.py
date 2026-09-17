@@ -2,7 +2,10 @@ from pathlib import Path
 
 from nerve_center.config import Settings
 from nerve_center.persistence.database import Database
-from nerve_center.plugins.job_scout.bootstrap import _recent_reference_attempt_evidence
+from nerve_center.plugins.job_scout.bootstrap import (
+    _recent_public_search_attempt_evidence,
+    _recent_reference_attempt_evidence,
+)
 from nerve_center.plugins.job_scout.discovery_learning import StrategyOutcome
 from nerve_center.plugins.job_scout.discovery_quality import DiscoveryQualityRepository
 
@@ -111,3 +114,82 @@ def test_reference_attempt_evidence_is_bounded_and_run_attributed(tmp_path: Path
     references = row["employer_reference_evidence"]
     assert isinstance(references, list)
     assert references[0]["candidate_count"] == 3
+
+
+def test_public_search_attempt_evidence_is_run_scoped_and_transport_explicit(
+    tmp_path: Path,
+) -> None:
+    learning = _learning(tmp_path)
+    strategy = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer_deepen",
+            "anchor": "Example Systems",
+            "location": "Example Metro, NC",
+            "source_domain": "web",
+        },
+        origin="fixture",
+    )
+    learning.record_attempt(
+        "run-search",
+        2,
+        strategy.id,
+        "deepen",
+        StrategyOutcome(
+            detail={
+                "search_attempt_evidence": [
+                    {
+                        "query": '"Example Systems" careers',
+                        "search_provider": "duckduckgo_html",
+                        "search_provider_fallback_used": False,
+                        "search_transport": "cache",
+                        "status": "succeeded",
+                        "result_count": 3,
+                    },
+                    {
+                        "query": '"Example Systems" official careers',
+                        "search_provider": "bing_html",
+                        "search_provider_fallback_used": True,
+                        "search_transport": "network",
+                        "status": "succeeded",
+                        "result_count": 2,
+                    },
+                ]
+            }
+        ),
+    )
+    learning.record_attempt(
+        "run-other",
+        3,
+        strategy.id,
+        "deepen",
+        StrategyOutcome(
+            detail={
+                "search_attempt_evidence": [
+                    {
+                        "query": "other",
+                        "search_provider": "duckduckgo_html",
+                        "search_provider_fallback_used": False,
+                        "search_transport": "network",
+                        "status": "succeeded",
+                        "result_count": 1,
+                    }
+                ]
+            }
+        ),
+    )
+
+    rows = _recent_public_search_attempt_evidence(
+        learning,
+        run_id="run-search",
+        limit=64,
+    )
+
+    assert len(rows) == 2
+    assert {row["run_id"] for row in rows} == {"run-search"}
+    assert [row["search_transport"] for row in rows] == ["cache", "network"]
+    assert [row["search_provider"] for row in rows] == [
+        "duckduckgo_html",
+        "bing_html",
+    ]
+    assert rows[1]["search_provider_fallback_used"] is True

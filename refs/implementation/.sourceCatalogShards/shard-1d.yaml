@@ -1430,7 +1430,7 @@ source_catalog:
   - path: tests/test_job_scout_reference_audit.py
     analysis_version: 1
     language: python
-    content_hash: 087a91c3c5c493fc560ebb582bf2d067f9f328a4
+    content_hash: c34c3368cfb82ad425de6d6530e89b0211a69626
     dependencies:
     - nerve_center.config
     - nerve_center.persistence.database
@@ -1441,11 +1441,12 @@ source_catalog:
     provides:
     - _learning
     - test_reference_attempt_evidence_is_bounded_and_run_attributed
+    - test_public_search_attempt_evidence_is_run_scoped_and_transport_explicit
     symbols:
     - name: _learning
       kind: function
-      line_start: 10
-      line_end: 13
+      line_start: 13
+      line_end: 16
       signature: '_learning(tmp_path: Path) -> DiscoveryQualityRepository'
       inputs:
       - 'tmp_path: Path'
@@ -1460,8 +1461,8 @@ source_catalog:
       - *id031
     - name: test_reference_attempt_evidence_is_bounded_and_run_attributed
       kind: function
-      line_start: 16
-      line_end: 113
+      line_start: 19
+      line_end: 116
       signature: 'test_reference_attempt_evidence_is_bounded_and_run_attributed(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1476,15 +1477,41 @@ source_catalog:
       - len
       parser: python-ast
       dependency_targets:
-      - path: tests/test_job_scout_reference_audit.py
+      - &id033
+        path: tests/test_job_scout_reference_audit.py
         symbol: _learning
       - path: src/nerve_center/plugins/job_scout/bootstrap.py
         symbol: _recent_reference_attempt_evidence
       - *id032
-      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+      - &id034
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.record_attempt
-      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
+      - &id035
+        path: src/nerve_center/plugins/job_scout/discovery_quality.py
         symbol: DiscoveryQualityRepository.record_attempt
+    - name: test_public_search_attempt_evidence_is_run_scoped_and_transport_explicit
+      kind: function
+      line_start: 119
+      line_end: 195
+      signature: 'test_public_search_attempt_evidence_is_run_scoped_and_transport_explicit(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - StrategyOutcome
+      - _learning
+      - _recent_public_search_attempt_evidence
+      - learning.ensure_strategy
+      - learning.record_attempt
+      - len
+      parser: python-ast
+      dependency_targets:
+      - *id033
+      - path: src/nerve_center/plugins/job_scout/bootstrap.py
+        symbol: _recent_public_search_attempt_evidence
+      - *id032
+      - *id034
+      - *id035
   - path: tests/test_module_contracts.py
     analysis_version: 1
     language: python
@@ -1533,7 +1560,7 @@ source_catalog:
         symbol: ModuleManifest.from_dict
       - path: src/nerve_center/domain/session.py
         symbol: RecurrenceRule.from_dict
-      - &id033
+      - &id036
         path: tests/test_module_contracts.py
         symbol: manifest
       - *id020
@@ -1556,7 +1583,7 @@ source_catalog:
       - replace
       parser: python-ast
       dependency_targets:
-      - *id033
+      - *id036
     - name: test_manifest_rejects_unsupported_contract_version
       kind: function
       line_start: 82
@@ -1570,4 +1597,4 @@ source_catalog:
       - replace
       parser: python-ast
       dependency_targets:
-      - *id033
+      - *id036

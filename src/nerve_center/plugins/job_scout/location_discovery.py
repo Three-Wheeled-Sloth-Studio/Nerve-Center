@@ -89,6 +89,7 @@ class LocationAwareJobScoutDiscoveryLoop(SourceAwareJobScoutDiscoveryLoop):
             "public_searches_executed": 0,
             "search_requests_completed": 0,
             "search_requests_failed": 0,
+            "search_provider_fallbacks": 0,
             "search_results_returned": 0,
             "search_results_eligible": 0,
             "search_sources_registered": 0,
@@ -178,6 +179,7 @@ class LocationAwareJobScoutDiscoveryLoop(SourceAwareJobScoutDiscoveryLoop):
                 for key in (
                     "search_requests_completed",
                     "search_requests_failed",
+                    "search_provider_fallbacks",
                     "search_results_returned",
                     "search_results_eligible",
                     "search_sources_registered",

@@ -677,7 +677,7 @@ source_catalog:
   - path: tests/test_public_search_fallback.py
     analysis_version: 1
     language: python
-    content_hash: 87586c0b0e65e0e2c7fe3f2bccc5d798917b4feb
+    content_hash: 70f52961541559121008b6680d5bc19f35f6b1f7
     dependencies:
     - __future__
     - asyncio
@@ -697,6 +697,8 @@ source_catalog:
     - test_ordinary_empty_duckduckgo_result_does_not_rotate_provider
     - test_ordinary_empty_duckduckgo_result_does_not_rotate_provider.handler
     - test_bing_tracking_redirect_is_normalized_to_public_target
+    - test_nonempty_primary_cache_remains_reusable_during_provider_cooldown
+    - test_nonempty_primary_cache_remains_reusable_during_provider_cooldown.handler
     symbols:
     - name: MemorySearchCache.__init__
       kind: method
@@ -761,7 +763,7 @@ source_catalog:
     - name: test_public_search_rotates_to_bing_after_duckduckgo_challenge
       kind: function
       line_start: 50
-      line_end: 102
+      line_end: 104
       signature: test_public_search_rotates_to_bing_after_duckduckgo_challenge() -> None
       inputs: []
       output: None
@@ -802,8 +804,8 @@ source_catalog:
       - *id006
     - name: test_public_search_rotates_to_bing_after_duckduckgo_challenge.bing_handler
       kind: function
-      line_start: 78
-      line_end: 88
+      line_start: 79
+      line_end: 89
       signature: 'test_public_search_rotates_to_bing_after_duckduckgo_challenge.bing_handler(request: httpx.Request) -> httpx.Response'
       inputs:
       - 'request: httpx.Request'
@@ -816,8 +818,8 @@ source_catalog:
       - *id006
     - name: test_ordinary_empty_duckduckgo_result_does_not_rotate_provider
       kind: function
-      line_start: 105
-      line_end: 125
+      line_start: 107
+      line_end: 127
       signature: test_ordinary_empty_duckduckgo_result_does_not_rotate_provider() -> None
       inputs: []
       output: None
@@ -836,8 +838,8 @@ source_catalog:
       - *id006
     - name: test_ordinary_empty_duckduckgo_result_does_not_rotate_provider.handler
       kind: function
-      line_start: 109
-      line_end: 115
+      line_start: 111
+      line_end: 117
       signature: 'test_ordinary_empty_duckduckgo_result_does_not_rotate_provider.handler(request: httpx.Request) -> httpx.Response'
       inputs:
       - 'request: httpx.Request'
@@ -850,8 +852,8 @@ source_catalog:
       - *id006
     - name: test_bing_tracking_redirect_is_normalized_to_public_target
       kind: function
-      line_start: 128
-      line_end: 131
+      line_start: 130
+      line_end: 133
       signature: test_bing_tracking_redirect_is_normalized_to_public_target() -> None
       inputs: []
       output: None
@@ -861,3 +863,39 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/discovery/search.py
         symbol: normalize_public_search_result_url
+    - name: test_nonempty_primary_cache_remains_reusable_during_provider_cooldown
+      kind: function
+      line_start: 136
+      line_end: 172
+      signature: test_nonempty_primary_cache_remains_reusable_during_provider_cooldown() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - AssertionError
+      - MemorySearchCache
+      - PublicWebSearchAdapter
+      - _fetcher
+      - adapter.search_references
+      - asyncio.run
+      - cache.put
+      - client.aclose
+      parser: python-ast
+      dependency_targets:
+      - *id009
+      - path: src/nerve_center/persistence/discovery.py
+        symbol: SearchCacheRepository.put
+      - path: tests/test_public_search_fallback.py
+        symbol: MemorySearchCache.put
+    - name: test_nonempty_primary_cache_remains_reusable_during_provider_cooldown.handler
+      kind: function
+      line_start: 161
+      line_end: 162
+      signature: 'test_nonempty_primary_cache_remains_reusable_during_provider_cooldown.handler(_request: httpx.Request) ->
+        httpx.Response'
+      inputs:
+      - '_request: httpx.Request'
+      output: httpx.Response
+      dependencies:
+      - AssertionError
+      parser: python-ast
+      dependency_targets: []

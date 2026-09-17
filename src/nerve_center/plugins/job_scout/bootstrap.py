@@ -186,6 +186,70 @@ def _recent_reference_attempt_evidence(
     return evidence
 
 
+def _recent_public_search_attempt_evidence(
+    learning: DiscoveryQualityRepository,
+    *,
+    run_id: str | None = None,
+    limit: int = 128,
+) -> list[dict[str, object]]:
+    """Return bounded per-search provider/cache evidence, optionally scoped to one run."""
+
+    scan_limit = max(limit * 2, 64)
+    evidence: list[dict[str, object]] = []
+    with learning.database.session() as session:
+        statement = select(
+            StrategyAttemptModel,
+            DiscoveryStrategyModel,
+        ).join(
+            DiscoveryStrategyModel,
+            StrategyAttemptModel.strategy_id == DiscoveryStrategyModel.id,
+        )
+        if run_id is not None:
+            statement = statement.where(StrategyAttemptModel.run_id == run_id)
+        rows = session.execute(
+            statement.order_by(StrategyAttemptModel.finished_at.desc()).limit(scan_limit)
+        ).all()
+        for attempt, strategy in rows:
+            detail = attempt.detail if isinstance(attempt.detail, dict) else {}
+            events = detail.get("search_attempt_evidence")
+            if not isinstance(events, list):
+                continue
+            dimensions = (
+                strategy.dimensions if isinstance(strategy.dimensions, dict) else {}
+            )
+            for event in events:
+                if not isinstance(event, dict):
+                    continue
+                evidence.append(
+                    {
+                        "attempt_id": attempt.id,
+                        "run_id": attempt.run_id,
+                        "strategy_id": attempt.strategy_id,
+                        "cycle": attempt.cycle,
+                        "phase": attempt.phase,
+                        "finished_at": attempt.finished_at,
+                        "hypothesis_family": dimensions.get(
+                            "hypothesis_family", "legacy"
+                        ),
+                        "anchor": dimensions.get("anchor", ""),
+                        "location": dimensions.get("location", ""),
+                        "query": str(event.get("query") or ""),
+                        "search_provider": str(event.get("search_provider") or ""),
+                        "search_provider_fallback_used": bool(
+                            event.get("search_provider_fallback_used", False)
+                        ),
+                        "search_transport": str(
+                            event.get("search_transport") or ""
+                        ),
+                        "status": str(event.get("status") or ""),
+                        "result_count": max(int(event.get("result_count") or 0), 0),
+                    }
+                )
+                if len(evidence) >= limit:
+                    return evidence
+    return evidence
+
+
 def _register_discovery_learning_routes(
     application: FastAPI,
     learning: DiscoveryQualityRepository,
@@ -238,6 +302,12 @@ def _register_discovery_learning_routes(
         audit["reference_attempt_evidence"] = _recent_reference_attempt_evidence(
             learning,
             run_id=run_id,
+        )
+        audit["public_search_attempt_evidence"] = (
+            _recent_public_search_attempt_evidence(
+                learning,
+                run_id=run_id,
+            )
         )
         return audit
 
