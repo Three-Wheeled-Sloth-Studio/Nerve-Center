@@ -1,7 +1,7 @@
 ---
 type: Development Prompt
 title: Next Development Prompt
-description: Ready-to-use prompt for the Job Scout reserved acquisition-lane acceptance gate.
+description: Ready-to-use prompt for the Job Scout employer-evidence revision acceptance gate.
 status: stable
 tags: [nerve-center, handoff, job-scout, discovery, live-test]
 ---
@@ -12,42 +12,42 @@ Continue Issue #57 directly on `dev`. Do not create a feature branch or PR, and 
 Start with:
 
 ```powershell
-python scripts/agent_context.py --focus "job scout local employer deepening regional alias reserved acquisition lanes" --issue 57
+python scripts/agent_context.py --focus "job scout employer evidence revision exact runtime local acquisition" --issue 57
 ```
 
 Use packet-first/progressive loading. Read `refs/handoffs/currentHandoff.md`, the latest Issue #57 comments, the next current-run live report, and only source-catalog matches needed for the evidence. Do not reread repository history.
 
-Application version remains `0.12.26`. The latest bounded implementation checkpoint is `857bbfae2a2822039956ffabcb336dac3b400a2c`. Targeted validation workflow `35243110817` passed the touched discovery-learning and discovery-loop tests, Ruff, and deterministic source-catalog regeneration.
+Application version remains `0.12.26`. The latest implementation checkpoint is `8d7f9477caec1874d8cd5f81d1f6b709100f073d`. Targeted validation workflow `35256387208` passed Ruff, discovery-learning/loop tests, the existing v6 revision/cooldown regression, and deterministic source-catalog validation.
 
-The completed v6 gate is run `14011cec-0ee2-4d63-b593-0dc7f318c832`. It reached planned `admission_draining` successfully with 133 requests and 43 LLM calls. The decisive result is that `market_reference_v6` `local_employer` discovery is now alive: 21 current-run local-employer reference attempts returned search evidence across the bounded market family, inspected employer-reference pages, and produced employer hypotheses. High Point's civic `2022 Largest Employers` PDF was parsed through the existing bounded OCR path and yielded 12 employer-name hypotheses.
+The exact-runtime diagnostic gate is run `7e9184d1-30d7-4d25-8379-852b613d112f`. It reached planned `admission_draining` with 46 requests, seven LLM calls, four successful full scores, 25 completed searches, 16 completed source scans, five revisits, and 20 strategy attempts. Runtime identity proved the exact pulled checkout executed: Git `8c61f2c75b69b39ec6a6eb7d121a8807f802de00`, `uses_checkout_source=true`, and both the imported `nerve_center` module and managed API resolved the repository `src` tree.
 
-The same gate exposed two narrower defects. All eight fresh v6 `regional_alias_probe` strategies remained unattempted, and newly produced `local_employer_deepen` hypotheses did not receive a current-run attempt. Scheduler audit showed why: reserved non-company lanes could replace ordinary non-company work but could not displace any `company_revisit`, so multiple high-weight revisits could consume the remaining four-slot wave. Separately, one HTML Major Employers page produced 12 false employer hypotheses from subordinate navigation/section labels such as `Strategic Location`, `Higher Education`, `Facebook`, and `LinkedIn`.
+The scheduler is now accepted. Each of the five cycles selected exactly one legacy/revisit, one fresh v6 `regional_alias_probe`, one `local_employer_deepen`, and one v6 `local_employer`. Do not reopen scheduler weighting/cooldown tuning from this evidence.
 
-The bounded correction at `857bbfae...` does not retune general scoring, cooldowns, or request caps. It allows a reserved non-company acquisition lane to displace an excess company revisit only when more than one revisit is already selected, preserving one company-revisit slot. Regression coverage proves a four-slot portfolio can contain exactly one company revisit plus `local_employer`, evidence-backed `local_employer_deepen`, and first-pass `regional_alias_probe`. HTML employer-list extraction now rejects shallow subordinate headings and generic social-navigation labels while leaving structured JSON and PDF/OCR extraction unchanged.
+The gate instead exposed durable stale employer evidence. Its five deepening slots were consumed by old HTML-derived false hypotheses created before the current extractor precision fix: `In this section`, `Strategic Location`, `Transportation Infrastructure`, `Innovation & Research`, and `Vibrant Businesses Major Employers`. The current extractor would not create those rows, but persistence still made them schedulable.
 
-After full CI is green, pull `dev` and rerun the same isolated 30-minute gate:
+Checkpoint `8d7f947...` adds `EMPLOYER_LANDSCAPE_EVIDENCE_REVISION = "employer_landscape_v2"`. New HTML/structured employer hypotheses carry that revision. Unversioned non-attachment `local_employer_deepen` rows remain durable audit history but are excluded from selection. Existing legacy `civic_attachment` and normalized `civic` + `attachment` PDF/OCR evidence remains eligible. Canonical public-search dedup prefers current evidence semantics over equivalent stale deepening identities. No named company, location, page, or heading exception was added.
+
+After full clean-head CI is green, pull `dev` and run another isolated five-minute gate:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\run_job_scout_live.py `
-  --duration-seconds 1800 `
-  --max-requests 500 `
-  --max-llm-calls 80 `
-  --score-limit 25 `
+  --duration-seconds 300 `
+  --max-requests 150 `
+  --max-llm-calls 30 `
+  --score-limit 10 `
   --score-failure-limit 5
 ```
 
-Do not run process-level tests, packaging smoke, or another API-owning command concurrently with the gate.
+Do not run process-level tests, packaging smoke, or another API-owning command concurrently with the gate. Audit only the new run, in this order:
 
-Audit only the new current run, in this order:
+1. verify `runtime_identity.uses_checkout_source` is true and `runtime_identity.git_commit` equals the exact pulled `dev` head;
+2. verify fresh `regional_alias_probe` and `local_employer` lanes remain reachable with one revisit preserved;
+3. verify none of the stale unversioned HTML/navigation deepening hypotheses execute;
+4. if `local_employer_deepen` executes, verify its provenance is either current `employer_landscape_v2` HTML/structured evidence or legitimate legacy/normalized attachment/PDF-OCR evidence;
+5. if a current employer reference produces a candidate, verify `employer_evidence_revision=employer_landscape_v2` and ordinary location-free employer-career resolution;
+6. note that the previous exact-runtime gate completed 25 public searches with zero results. If this repeats, investigate public-search provider/cache/query behavior before changing extraction, scoring, scheduler allocation, cooldowns, or request caps;
+7. only return to a longer gate after the current evidence path is clean and producing usable reference results.
 
-1. verify at least one fresh `regional_alias_probe` executes through its first-pass protected lane;
-2. verify at least one evidence-backed `local_employer_deepen` hypothesis executes while a company revisit is still preserved;
-3. verify HTML employer-list extraction no longer promotes shallow section/navigation/social labels as employer hypotheses;
-4. verify the working PDF/OCR employer path remains intact;
-5. if employer deepening executes, verify it enters the ordinary location-free official-career resolution path and records truthful company/source/posting evidence;
-6. if regional and deepening lanes execute but produce no usable downstream evidence, diagnose those acquisition/deepening paths next rather than retuning general scoring or search allocation;
-7. consider another long soak only after the regional and employer-deepening paths are proven alive.
+Preserve public-source safety, the `gemma3:4b` general model with schema-failure fallback to `qwen2.5:7b-instruct`, and the rule that extracted employer names remain hypotheses until ordinary public company/career validation succeeds.
 
-Do not add named company, city, aggregator, or region exceptions. Do not weaken the 24-hour cooldown or retune general scoring without new evidence. Preserve request bounds, public-source safety, the `gemma3:4b` general model plus schema-failure fallback to `qwen2.5:7b-instruct`, and the rule that extracted employer names remain hypotheses until ordinary public company/career validation succeeds.
-
-Update both handoffs and Issue #57 with the next gate run ID, exact head/CI, regional/deepening attempts, candidate quality, reference evidence, and the next evidence-backed slice. Keep Issue #57 open until usable current-run employer/alias evidence proceeds through ordinary company/career discovery.
+Update both handoffs and Issue #57 with the next run ID, exact runtime identity, strategy mix, evidence provenance, search-result eligibility, exact head/CI, and the next evidence-backed slice. Keep Issue #57 open until usable current-run employer/alias evidence proceeds through ordinary company/career discovery.
