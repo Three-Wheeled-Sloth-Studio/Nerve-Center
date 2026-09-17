@@ -22,7 +22,7 @@ jobs:
           python-version: '3.12'
       - name: Install project dependencies
         run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
-      - name: Advance durable market query revision and add cooldown regression
+      - name: Advance durable market query revision and preserve current canonical identity
         shell: python
         run: |
           from pathlib import Path
@@ -34,10 +34,20 @@ jobs:
           new = 'MARKET_REFERENCE_QUERY_REVISION = "market_reference_v6"'
           if old not in text:
               raise SystemExit("market reference revision marker not found")
+          text = text.replace(old, new, 1)
+
+          old = '''        existing = canonical.get(identity)\n        if existing is None or (model.created_at, model.id) < (\n            existing.created_at,\n            existing.id,\n        ):\n            canonical[identity] = model\n'''
+          new = '''        existing = canonical.get(identity)\n        model_is_current_market = (\n            model.dimensions.get("hypothesis_family")\n            in {"local_employer", "regional_alias_probe"}\n            and model.dimensions.get("query_revision")\n            == MARKET_REFERENCE_QUERY_REVISION\n        )\n        existing_is_current_market = (\n            existing is not None\n            and existing.dimensions.get("hypothesis_family")\n            in {"local_employer", "regional_alias_probe"}\n            and existing.dimensions.get("query_revision")\n            == MARKET_REFERENCE_QUERY_REVISION\n        )\n        if (\n            existing is None\n            or (model_is_current_market and not existing_is_current_market)\n            or (\n                model_is_current_market == existing_is_current_market\n                and (model.created_at, model.id)\n                < (existing.created_at, existing.id)\n            )\n        ):\n            canonical[identity] = model\n'''
+          if old not in text:
+              raise SystemExit("canonical public search comparator not found")
           source.write_text(text.replace(old, new, 1), encoding="utf-8")
 
           test = Path("tests/test_job_scout_discovery_learning.py")
           text = test.read_text(encoding="utf-8")
+          text = text.replace(
+              '"query_revision": "market_reference_v5"',
+              '"query_revision": "market_reference_v6"',
+          )
           addition = dedent(
               '''
 
@@ -54,6 +64,7 @@ jobs:
                           "anchor": "major employers",
                           "location": "Example, NC",
                           "source_domain": "web",
+                          "source_path": "broad_web",
                           "market_rank": "0",
                           "query_revision": "market_reference_v5",
                       },
@@ -65,6 +76,7 @@ jobs:
                           "hypothesis_family": "regional_alias_probe",
                           "anchor": "Example, NC Metro Area",
                           "source_domain": "web",
+                          "source_path": "broad_web_reference",
                           "market_rank": "1",
                           "query_revision": "market_reference_v5",
                       },
@@ -94,6 +106,7 @@ jobs:
                           "anchor": "major employers",
                           "location": "Example, NC",
                           "source_domain": "web",
+                          "source_path": "broad_web",
                           "market_rank": "0",
                           "query_revision": "market_reference_v6",
                       },
@@ -105,6 +118,7 @@ jobs:
                           "hypothesis_family": "regional_alias_probe",
                           "anchor": "Example, NC Metro Area",
                           "source_domain": "web",
+                          "source_path": "broad_web_reference",
                           "market_rank": "1",
                           "query_revision": "market_reference_v6",
                       },
