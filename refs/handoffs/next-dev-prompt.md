@@ -17,7 +17,7 @@ python scripts/agent_context.py --focus "job scout deepening canonical evidence 
 
 Use packet-first/progressive loading. Read `refs/handoffs/currentHandoff.md`, the latest Issue #57 comments, the next current-run live report, and only source-catalog matches needed for the evidence. Do not reread repository history.
 
-Application version remains `0.12.26`. The latest implementation checkpoint is `1c50972bbd84d072c3c21fa63a163770d26638c5`. Targeted validation workflow `35262867619` passed Ruff, discovery-learning/connectors tests, the normalized-attachment-vs-legacy cooldown regression, both DuckDuckGo challenge/ordinary-empty regressions, and deterministic source-catalog validation.
+Application version remains `0.12.26`. The latest implementation checkpoint is `1c50972bbd84d072c3c21fa63a163770d26638c5`. Targeted validation workflow `35262867619` passed Ruff, discovery-learning/connectors tests, the normalized-attachment-vs-legacy cooldown regression, both DuckDuckGo challenge/ordinary-empty regressions, and deterministic source-catalog validation. The handoff/OKF refresh is clean; after pulling, use the exact `git rev-parse HEAD` value as the runtime-identity target for the next gate.
 
 The most recent live gate is run `6b582fdf-dba9-43fe-9929-576a97e6ffa8`. It ran the exact pulled checkout `267dd6c16cae70a942ca8e42131e8cf02604b41e` with `uses_checkout_source=true`, consumed 48 requests and seven LLM calls, completed five full scores with zero scoring failures, completed 31 source scans, and attempted 20 strategies across five cycles. The stale HTML/navigation hypotheses from the previous run were absent, proving the `employer_landscape_v2` exclusion works.
 
