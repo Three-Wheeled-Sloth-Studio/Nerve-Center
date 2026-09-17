@@ -244,7 +244,7 @@ def compile_strategy_query(
         "company headquarters",
     }:
         market_terms = _market_search_terms(location)
-        tail = anchor.casefold()
+        tail = f'"{anchor.casefold()}"'
         return CompiledQuery(
             " ".join(clean_list([market_terms, tail])),
             "broad_web_reference",
