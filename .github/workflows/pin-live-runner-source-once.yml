@@ -49,14 +49,15 @@ jobs:
               raise SystemExit("runner helper insertion point not found")
           runner = runner.replace(helper_anchor, helpers + helper_anchor, 1)
 
-          fit_reference = '''            (item.get("score") or {}).get("calculation", {}).get("fit_model") == model\n            and (item.get("score") or {})\n            .get("calculation", {})\n            .get("fit_contract_version")\n            == FIT_ANALYSIS_CONTRACT_VERSION\n'''
-          fit_replacement = '''            (item.get("score") or {}).get("calculation", {}).get("fit_model") == model\n            and (item.get("score") or {})\n            .get("calculation", {})\n            .get("fit_contract_version")\n            == _fit_analysis_contract_version()\n'''
-          if fit_reference not in runner:
-              raise SystemExit("fit contract reference not found")
-          runner = runner.replace(fit_reference, fit_replacement, 1)
+          if runner.count("FIT_ANALYSIS_CONTRACT_VERSION") != 2:
+              raise SystemExit("unexpected fit contract reference count")
+          runner = runner.replace(
+              "FIT_ANALYSIS_CONTRACT_VERSION",
+              "_fit_analysis_contract_version()",
+          )
 
           score_anchor = '''def score_candidates(\n'''
-          fit_helper = '''def _fit_analysis_contract_version() -> int:\n    from nerve_center.scoring.fit import FIT_ANALYSIS_CONTRACT_VERSION\n\n    return FIT_ANALYSIS_CONTRACT_VERSION\n\n\n'''
+          fit_helper = '''def _fit_analysis_contract_version() -> str:\n    from nerve_center.scoring.fit import FIT_ANALYSIS_CONTRACT_VERSION\n\n    return FIT_ANALYSIS_CONTRACT_VERSION\n\n\n'''
           if score_anchor not in runner:
               raise SystemExit("score helper insertion point not found")
           runner = runner.replace(score_anchor, fit_helper + score_anchor, 1)
