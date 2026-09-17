@@ -1,0 +1,67 @@
+name: Expand local acquisition extractors once
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - .github/workflows/expand-local-acquisition-extractors-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pyyaml ruff
+      - name: Expand generic local acquisition evidence patterns
+        shell: python
+        run: |
+          from pathlib import Path
+
+          source = Path("src/nerve_center/plugins/job_scout/discovery_loop.py")
+          text = source.read_text(encoding="utf-8")
+          old = '''_REGIONAL_ORGANIZATION = re.compile(\n    r"(?P<name>[A-Z][A-Za-z0-9&' .-]{2,80}?)\\s+Regional\\s+"\n    r"(?:Council|Partnership|Commission|Authority|Planning\\b)",\n    re.IGNORECASE,\n)\n'''
+          new = '''_REGIONAL_ORGANIZATION = re.compile(\n    r"(?P<name>[A-Z][A-Za-z0-9&' .-]{2,80}?)\\s+"\n    r"(?:Regional\\s+(?:Council|Partnership|Commission|Authority|Planning\\b)|"\n    r"Council\\s+of\\s+Governments|Planning\\s+Commission|Development\\s+District)",\n    re.IGNORECASE,\n)\n'''
+          if old not in text:
+              raise SystemExit("regional organization pattern not found")
+          text = text.replace(old, new, 1)
+          old = '        if re.search(r"\\b(?:major|top|largest)\\s+employers?\\b", normalized):\n'
+          new = '''        if re.search(\n            r"\\b(?:(?:major|largest|leading|key|principal|top(?:\\s+\\d+)?)\\s+"\n            r"(?:private\\s+)?employers?|employer\\s+(?:directory|list))\\b",\n            normalized,\n        ):\n'''
+          if old not in text:
+              raise SystemExit("employer heading pattern not found")
+          source.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          test = Path("tests/test_job_scout_discovery_loop.py")
+          text = test.read_text(encoding="utf-8")
+          marker = '''def test_schema_org_organization_names_are_extracted_without_heading() -> None:\n'''
+          addition = '''def test_common_employer_list_headings_create_bounded_hypotheses() -> None:\n    ranked = _extract_employer_landscape_names(\n        """\n        <h2>Top 25 Private Employers</h2>\n        <table><tr><td>Example Manufacturing</td></tr>\n        <tr><td>Sample Health System</td></tr></table>\n        <h2>Contact</h2>\n        """\n    )\n    directory = _extract_employer_landscape_names(\n        """\n        <h2>Employer Directory</h2>\n        <ul><li>Atlas Systems</li><li>Beacon Analytics</li></ul>\n        <h2>Resources</h2>\n        """\n    )\n\n    assert ranked == ["Example Manufacturing", "Sample Health System"]\n    assert directory == ["Atlas Systems", "Beacon Analytics"]\n\n\n'''
+          if marker not in text:
+              raise SystemExit("schema test marker not found")
+          text = text.replace(marker, addition + marker, 1)
+          old = '''            return [\n                SearchResult(\n                    title="Piedmont Triad Regional Council",\n                    url="https://region.example/triad",\n                )\n            ]\n'''
+          new = '''            return [\n                SearchResult(\n                    title="Piedmont Triad Regional Council",\n                    url="https://region.example/triad",\n                ),\n                SearchResult(\n                    title="Triangle J Council of Governments",\n                    url="https://region.example/triangle-j",\n                ),\n            ]\n'''
+          if old not in text:
+              raise SystemExit("regional fixture pattern not found")
+          text = text.replace(old, new, 1)
+          old = '''    assert outcome.detail["stages"]["regional_aliases_discovered"] == 1\n    assert aliases[0].dimensions["location"] == "Piedmont Triad"\n    assert aliases[0].dimensions["alias_provenance_url"] == (\n        "https://region.example/triad"\n    )\n'''
+          new = '''    assert outcome.detail["stages"]["regional_aliases_discovered"] == 2\n    assert {item.dimensions["location"] for item in aliases} == {\n        "Piedmont Triad",\n        "Triangle J",\n    }\n    assert {item.dimensions["alias_provenance_url"] for item in aliases} == {\n        "https://region.example/triad",\n        "https://region.example/triangle-j",\n    }\n'''
+          if old not in text:
+              raise SystemExit("regional assertion pattern not found")
+          test.write_text(text.replace(old, new, 1), encoding="utf-8")
+      - run: ruff check src/nerve_center/plugins/job_scout/discovery_loop.py tests/test_job_scout_discovery_loop.py
+      - run: python refs/tools/generate_source_catalog.py
+      - name: Commit extractor update and generated catalog
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/nerve_center/plugins/job_scout/discovery_loop.py tests/test_job_scout_discovery_loop.py refs/implementation/.sourceCatalogShards refs/implementation/sourceCatalog/index.yaml
+          git commit -m "Expand local acquisition evidence patterns"
+          git push origin HEAD:dev
