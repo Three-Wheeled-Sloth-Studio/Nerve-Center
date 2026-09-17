@@ -21,7 +21,7 @@ The accepted source run is `8b646b11-d5ba-4725-991c-5eb2eb36c36a` from exact Git
 
 Issue #60 exists because that report could not distinguish provider cache reuse from network transport and the location-aware runtime cycle omitted the `search_provider_fallbacks` aggregate counter. The bounded fix records per-search provider/cache evidence and restores truthful fallback aggregation without changing provider policy.
 
-After exact-head CI is green, run one isolated five-minute gate:
+When exact-head CI is green, run one isolated five-minute gate:
 
 ```powershell
 git pull
