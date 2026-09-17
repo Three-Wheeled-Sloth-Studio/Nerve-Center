@@ -172,7 +172,7 @@ def test_market_strategies_cover_employment_centers_and_region_alias_probes(
     assert durham.dimensions["query_revision"] == "market_reference_v5"
     landscape_query = compile_strategy_query(durham.dimensions)
     assert landscape_query.source_path == "broad_web_reference"
-    assert landscape_query.query == "Durham NC major employers"
+    assert landscape_query.query == 'Durham NC "major employers"'
     assert "chamber" not in landscape_query.query
     assert "economic development" not in landscape_query.query
     local_queries = {
@@ -182,18 +182,18 @@ def test_market_strategies_cover_employment_centers_and_region_alias_probes(
         and item.dimensions.get("location") == "Durham, NC"
     }
     assert local_queries == {
-        "major employers": "Durham NC major employers",
-        "largest employers": "Durham NC largest employers",
-        "top employers": "Durham NC top employers",
-        "employer directory": "Durham NC employer directory",
-        "company headquarters": "Durham NC company headquarters",
+        "major employers": 'Durham NC "major employers"',
+        "largest employers": 'Durham NC "largest employers"',
+        "top employers": 'Durham NC "top employers"',
+        "employer directory": 'Durham NC "employer directory"',
+        "company headquarters": 'Durham NC "company headquarters"',
     }
     assert [item.dimensions["anchor"] for item in probes] == [
         "Durham-Chapel Hill, NC"
     ]
     regional_query = compile_strategy_query(probes[0].dimensions)
     assert regional_query.query == (
-        "Durham Chapel Hill NC regional partnership council"
+        'Durham Chapel Hill NC "regional council" OR "regional partnership" OR "council of governments"'
     )
     assert all("volvo" not in str(item.dimensions).casefold() for item in strategies)
     assert all("wolfspeed" not in str(item.dimensions).casefold() for item in strategies)
