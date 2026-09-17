@@ -34,7 +34,7 @@ Checkpoint `fe1608e5...` adds bounded ordinary-public provider fallback only:
 - Attempt detail records `search_provider` and `search_provider_fallback_used`; aggregate coverage records `search_provider_fallbacks`.
 - If Bing also challenges, it receives its own cooldown. Do not automatically add a third provider.
 
-After full helper-free exact-head CI is green, pull `dev` and run another isolated five-minute gate:
+Once full helper-free exact-head CI is green, pull `dev` and run another isolated five-minute gate:
 
 ```powershell
 git pull
