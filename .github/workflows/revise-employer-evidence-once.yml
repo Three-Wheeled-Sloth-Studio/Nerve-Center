@@ -41,7 +41,7 @@ jobs:
           learning = learning.replace(old_constant, new_constant, 1)
 
           old_candidate = '''                and (\n                    item.dimensions.get("kind") != "public_search"\n                    or item.id in canonical_public_search_ids\n                )\n            ]\n'''
-          new_candidate = '''                and (\n                    item.dimensions.get("kind") != "public_search"\n                    or item.id in canonical_public_search_ids\n                )\n                and _employer_deepening_evidence_is_current(item.dimensions)\n            ]\n'''
+          new_candidate = '''                and (\n                    item.dimensions.get("kind") != "public_search"\n                    or item.id in canonical_public_search_ids\n                )\n                and (\n                    item.dimensions.get("hypothesis_family")\n                    != "local_employer_deepen"\n                    or _employer_deepening_evidence_is_current(item.dimensions)\n                )\n            ]\n'''
           if old_candidate not in learning:
               raise SystemExit("candidate filter anchor not found")
           learning = learning.replace(old_candidate, new_candidate, 1)
@@ -53,7 +53,7 @@ jobs:
           learning = learning.replace(old_current, new_current, 1)
 
           helper_anchor = '''def _canonical_public_search_ids(\n    models: list[DiscoveryStrategyModel],\n) -> set[str]:\n'''
-          helper = '''def _employer_deepening_evidence_is_current(dimensions: dict[str, str]) -> bool:\n    if dimensions.get("hypothesis_family") != "local_employer_deepen":\n        return True\n    authority = dimensions.get("employer_evidence_authority", "")\n    medium = dimensions.get("employer_evidence_medium", "")\n    extraction_method = dimensions.get("employer_evidence_extraction_method", "")\n    if (\n        authority == "civic_attachment"\n        or medium == "attachment"\n        or extraction_method.startswith(("pdf_", "attachment_"))\n    ):\n        return True\n    return (\n        dimensions.get("employer_evidence_revision")\n        == EMPLOYER_LANDSCAPE_EVIDENCE_REVISION\n    )\n\n\n'''
+          helper = '''def _employer_deepening_evidence_is_current(dimensions: dict[str, str]) -> bool:\n    if dimensions.get("hypothesis_family") != "local_employer_deepen":\n        return False\n    authority = dimensions.get("employer_evidence_authority", "")\n    medium = dimensions.get("employer_evidence_medium", "")\n    extraction_method = dimensions.get("employer_evidence_extraction_method", "")\n    if (\n        authority == "civic_attachment"\n        or medium == "attachment"\n        or extraction_method.startswith(("pdf_", "attachment_"))\n    ):\n        return True\n    return (\n        dimensions.get("employer_evidence_revision")\n        == EMPLOYER_LANDSCAPE_EVIDENCE_REVISION\n    )\n\n\n'''
           if helper_anchor not in learning:
               raise SystemExit("canonical helper anchor not found")
           learning = learning.replace(helper_anchor, helper + helper_anchor, 1)
