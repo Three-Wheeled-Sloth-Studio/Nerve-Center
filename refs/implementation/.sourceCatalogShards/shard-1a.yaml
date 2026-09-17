@@ -7,7 +7,7 @@ source_catalog:
   - path: tests/test_job_scout_query_portfolio.py
     analysis_version: 1
     language: python
-    content_hash: d3008db86bdb94935fdcf359510b5dedb0fe5076
+    content_hash: 03f32f488e85c7fd52224281ae2a031e5326c68b
     dependencies:
     - asyncio
     - nerve_center.config

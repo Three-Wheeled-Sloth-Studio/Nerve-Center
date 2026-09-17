@@ -687,7 +687,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/query_portfolio.py
     analysis_version: 1
     language: python
-    content_hash: 6d346f928480bd63717daeb0c52a95c0b835e9cd
+    content_hash: 93e646a86ff9dca3cc33528935bacc39625e1dd3
     dependencies:
     - __future__
     - collections.abc
