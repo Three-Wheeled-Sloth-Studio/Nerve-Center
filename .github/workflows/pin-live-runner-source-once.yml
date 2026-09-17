@@ -1,0 +1,101 @@
+name: Pin live runner source once
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - .github/workflows/pin-live-runner-source-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install development dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Pin live runner to checkout source and record runtime identity
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          runner_path = Path("scripts/run_job_scout_live.py")
+          runner = runner_path.read_text(encoding="utf-8")
+
+          old_import = "from platformdirs import user_data_path\n\nfrom nerve_center.scoring.fit import FIT_ANALYSIS_CONTRACT_VERSION\n"
+          new_import = '''from platformdirs import user_data_path\n\nREPO_ROOT = Path(__file__).resolve().parents[1]\nSOURCE_ROOT = REPO_ROOT / "src"\n\n\ndef _pin_checkout_source() -> None:\n    source = str(SOURCE_ROOT)\n    if not sys.path or sys.path[0] != source:\n        with suppress(ValueError):\n            sys.path.remove(source)\n        sys.path.insert(0, source)\n\n\n_pin_checkout_source()\n'''
+          if old_import not in runner:
+              raise SystemExit("runner import insertion point not found")
+          runner = runner.replace(old_import, new_import, 1)
+
+          managed_anchor = '''        environment = os.environ.copy()\n        environment["NERVE_CENTER_HOST"] = "127.0.0.1"\n'''
+          managed_replacement = '''        environment = _managed_api_environment()\n        environment["NERVE_CENTER_HOST"] = "127.0.0.1"\n'''
+          if managed_anchor not in runner:
+              raise SystemExit("managed API environment insertion point not found")
+          runner = runner.replace(managed_anchor, managed_replacement, 1)
+
+          helper_anchor = '''def write_report(path: Path, report: dict[str, Any]) -> None:\n'''
+          helpers = '''def _managed_api_environment(\n    base_environment: dict[str, str] | None = None,\n) -> dict[str, str]:\n    environment = dict(base_environment if base_environment is not None else os.environ)\n    existing = environment.get("PYTHONPATH", "").strip()\n    environment["PYTHONPATH"] = os.pathsep.join(\n        [str(SOURCE_ROOT), existing] if existing else [str(SOURCE_ROOT)]\n    )\n    return environment\n\n\ndef _runtime_identity() -> dict[str, Any]:\n    import nerve_center\n\n    module_path = Path(nerve_center.__file__ or "").resolve()\n    try:\n        uses_checkout_source = module_path.is_relative_to(SOURCE_ROOT.resolve())\n    except ValueError:\n        uses_checkout_source = False\n    try:\n        completed = subprocess.run(\n            ["git", "rev-parse", "HEAD"],\n            cwd=REPO_ROOT,\n            capture_output=True,\n            check=False,\n            text=True,\n            timeout=5,\n        )\n    except (OSError, subprocess.TimeoutExpired):\n        git_commit = ""\n    else:\n        git_commit = completed.stdout.strip() if completed.returncode == 0 else ""\n    return {\n        "git_commit": git_commit,\n        "module_path": str(module_path),\n        "source_root": str(SOURCE_ROOT.resolve()),\n        "uses_checkout_source": uses_checkout_source,\n        "managed_api_pythonpath_first": str(SOURCE_ROOT),\n    }\n\n\n'''
+          if helper_anchor not in runner:
+              raise SystemExit("runner helper insertion point not found")
+          runner = runner.replace(helper_anchor, helpers + helper_anchor, 1)
+
+          fit_reference = '''            (item.get("score") or {}).get("calculation", {}).get("fit_model") == model\n            and (item.get("score") or {})\n            .get("calculation", {})\n            .get("fit_contract_version")\n            == FIT_ANALYSIS_CONTRACT_VERSION\n'''
+          fit_replacement = '''            (item.get("score") or {}).get("calculation", {}).get("fit_model") == model\n            and (item.get("score") or {})\n            .get("calculation", {})\n            .get("fit_contract_version")\n            == _fit_analysis_contract_version()\n'''
+          if fit_reference not in runner:
+              raise SystemExit("fit contract reference not found")
+          runner = runner.replace(fit_reference, fit_replacement, 1)
+
+          score_anchor = '''def score_candidates(\n'''
+          fit_helper = '''def _fit_analysis_contract_version() -> int:\n    from nerve_center.scoring.fit import FIT_ANALYSIS_CONTRACT_VERSION\n\n    return FIT_ANALYSIS_CONTRACT_VERSION\n\n\n'''
+          if score_anchor not in runner:
+              raise SystemExit("score helper insertion point not found")
+          runner = runner.replace(score_anchor, fit_helper + score_anchor, 1)
+
+          report_anchor = '''        "default_model": args.model,\n    }\n'''
+          report_replacement = '''        "default_model": args.model,\n        "runtime_identity": _runtime_identity(),\n    }\n'''
+          if report_anchor not in runner:
+              raise SystemExit("report identity insertion point not found")
+          runner = runner.replace(report_anchor, report_replacement, 1)
+          runner_path.write_text(runner, encoding="utf-8")
+
+          test_path = Path("tests/test_live_runner_progress.py")
+          tests = test_path.read_text(encoding="utf-8")
+          export_anchor = '''_location_family_evidence = _SCRIPT["_location_family_evidence"]\n_progress_counts = _SCRIPT["_progress_counts"]\n'''
+          export_replacement = '''_location_family_evidence = _SCRIPT["_location_family_evidence"]\n_managed_api_environment = _SCRIPT["_managed_api_environment"]\n_progress_counts = _SCRIPT["_progress_counts"]\n_runtime_identity = _SCRIPT["_runtime_identity"]\n'''
+          if export_anchor not in tests:
+              raise SystemExit("test export insertion point not found")
+          tests = tests.replace(export_anchor, export_replacement, 1)
+
+          test_anchor = '''def test_progress_counts_are_ordered_and_limited_to_known_metrics() -> None:\n'''
+          new_tests = '''def test_live_runner_pins_checkout_source_for_parent_and_managed_api() -> None:\n    source_root = Path(_SCRIPT["SOURCE_ROOT"]).resolve()\n    identity = _runtime_identity()\n    module_path = Path(identity["module_path"]).resolve()\n    environment = _managed_api_environment({"PYTHONPATH": "fixture-path"})\n\n    assert identity["uses_checkout_source"] is True\n    assert module_path.is_relative_to(source_root)\n    assert environment["PYTHONPATH"].split(_SCRIPT["os"].pathsep)[0] == str(source_root)\n    assert identity["managed_api_pythonpath_first"] == str(source_root)\n    assert len(identity["git_commit"]) == 40\n\n\n'''
+          if test_anchor not in tests:
+              raise SystemExit("test insertion point not found")
+          tests = tests.replace(test_anchor, new_tests + test_anchor, 1)
+          test_path.write_text(tests, encoding="utf-8")
+          PY
+      - name: Refresh deterministic source catalog
+        run: python refs/tools/generate_source_catalog.py
+      - name: Targeted validation
+        run: |
+          ruff check scripts/run_job_scout_live.py tests/test_live_runner_progress.py
+          pytest tests/test_live_runner_progress.py tests/test_job_scout_discovery_learning.py
+          python refs/tools/generate_source_catalog.py --check
+      - name: Remove temporary workflow and commit
+        shell: bash
+        run: |
+          rm .github/workflows/pin-live-runner-source-once.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Pin live gate to checkout source"
+          git push origin dev
