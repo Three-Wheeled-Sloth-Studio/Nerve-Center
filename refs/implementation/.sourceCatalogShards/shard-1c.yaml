@@ -568,7 +568,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/discovery_loop.py
     analysis_version: 1
     language: python
-    content_hash: 175d4ea41f70c6fd5db126436e9e0e852cd13a74
+    content_hash: 820f64f7d6cd444cb3bafc728ab4c8f382d9c206
     dependencies:
     - __future__
     - dataclasses
@@ -640,8 +640,8 @@ source_catalog:
     symbols:
     - name: MarketExpander.expand
       kind: method
-      line_start: 49
-      line_end: 49
+      line_start: 50
+      line_end: 50
       signature: 'MarketExpander.expand(self, locations: list[str], **kwargs: Any) -> list[MarketAlias]'
       inputs:
       - self
@@ -653,8 +653,8 @@ source_catalog:
       dependency_targets: []
     - name: SurfaceResolver.resolve
       kind: method
-      line_start: 53
-      line_end: 53
+      line_start: 54
+      line_end: 54
       signature: 'SurfaceResolver.resolve(self, company: Company) -> list[str]'
       inputs:
       - self
@@ -665,8 +665,8 @@ source_catalog:
       dependency_targets: []
     - name: _RequestAllowance.__init__
       kind: method
-      line_start: 74
-      line_end: 78
+      line_start: 75
+      line_end: 79
       signature: '_RequestAllowance.__init__(self, limit: int | None) -> None'
       inputs:
       - self
@@ -678,8 +678,8 @@ source_catalog:
       dependency_targets: []
     - name: _RequestAllowance.exhausted
       kind: method
-      line_start: 81
-      line_end: 82
+      line_start: 82
+      line_end: 83
       signature: _RequestAllowance.exhausted(self) -> bool
       inputs:
       - self
@@ -689,8 +689,8 @@ source_catalog:
       dependency_targets: []
     - name: _RequestAllowance.reserve
       kind: method
-      line_start: 84
-      line_end: 87
+      line_start: 85
+      line_end: 88
       signature: _RequestAllowance.reserve(self) -> None
       inputs:
       - self
@@ -700,8 +700,8 @@ source_catalog:
       dependency_targets: []
     - name: PublicCareerSurfaceResolver.__init__
       kind: method
-      line_start: 100
-      line_end: 101
+      line_start: 101
+      line_end: 102
       signature: 'PublicCareerSurfaceResolver.__init__(self, discovery: DiscoveryService) -> None'
       inputs:
       - self
@@ -712,8 +712,8 @@ source_catalog:
       dependency_targets: []
     - name: PublicCareerSurfaceResolver.resolve
       kind: method
-      line_start: 103
-      line_end: 116
+      line_start: 104
+      line_end: 117
       signature: 'PublicCareerSurfaceResolver.resolve(self, company: Company) -> list[str]'
       inputs:
       - self
@@ -741,8 +741,8 @@ source_catalog:
         symbol: ModuleRuntimeClient.close
     - name: _CareerLinkParser.__init__
       kind: method
-      line_start: 120
-      line_end: 123
+      line_start: 121
+      line_end: 124
       signature: '_CareerLinkParser.__init__(self, base_url: str) -> None'
       inputs:
       - self
@@ -754,8 +754,8 @@ source_catalog:
       dependency_targets: []
     - name: _CareerLinkParser.handle_starttag
       kind: method
-      line_start: 125
-      line_end: 140
+      line_start: 126
+      line_end: 141
       signature: '_CareerLinkParser.handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None'
       inputs:
       - self
@@ -778,8 +778,8 @@ source_catalog:
       - *id006
     - name: _EmployerLandscapeParser.__init__
       kind: method
-      line_start: 146
-      line_end: 152
+      line_start: 147
+      line_end: 153
       signature: _EmployerLandscapeParser.__init__(self) -> None
       inputs:
       - self
@@ -790,8 +790,8 @@ source_catalog:
       dependency_targets: []
     - name: _EmployerLandscapeParser.handle_starttag
       kind: method
-      line_start: 154
-      line_end: 161
+      line_start: 155
+      line_end: 162
       signature: '_EmployerLandscapeParser.handle_starttag(self, tag: str, _attrs: list[tuple[str, str | None]]) -> None'
       inputs:
       - self
@@ -807,8 +807,8 @@ source_catalog:
       dependency_targets: []
     - name: _EmployerLandscapeParser.handle_data
       kind: method
-      line_start: 163
-      line_end: 165
+      line_start: 164
+      line_end: 166
       signature: '_EmployerLandscapeParser.handle_data(self, data: str) -> None'
       inputs:
       - self
@@ -821,8 +821,8 @@ source_catalog:
       - *id006
     - name: _EmployerLandscapeParser.handle_endtag
       kind: method
-      line_start: 167
-      line_end: 177
+      line_start: 168
+      line_end: 178
       signature: '_EmployerLandscapeParser.handle_endtag(self, tag: str) -> None'
       inputs:
       - self
@@ -839,8 +839,8 @@ source_catalog:
       - *id006
     - name: JobScoutDiscoveryLoop.__init__
       kind: method
-      line_start: 183
-      line_end: 215
+      line_start: 184
+      line_end: 216
       signature: 'JobScoutDiscoveryLoop.__init__(self, settings: Settings, coordinator: JobScoutCoordinator, discovery: DiscoveryService,
         companies: CompanyRepository, sources: DiscoverySourceRepository, jobs: JobOpeningRepository, learning: JobScoutDiscoveryRepository,
         market: MarketExpander | None, search_adapter: SearchAdapter | None, surface_resolver: SurfaceResolver | None, exploration_floor:
@@ -869,8 +869,8 @@ source_catalog:
       dependency_targets: []
     - name: JobScoutDiscoveryLoop.prepare
       kind: method
-      line_start: 217
-      line_end: 266
+      line_start: 218
+      line_end: 267
       signature: 'JobScoutDiscoveryLoop.prepare(self, run_id: str) -> dict[str, Any]'
       inputs:
       - self
@@ -941,8 +941,8 @@ source_catalog:
       - *id006
     - name: JobScoutDiscoveryLoop.cycle
       kind: method
-      line_start: 268
-      line_end: 420
+      line_start: 269
+      line_end: 421
       signature: 'JobScoutDiscoveryLoop.cycle(self, run_id: str, cycle: int, request_limit: int | None) -> DiscoveryCycleSummary'
       inputs:
       - self
@@ -1007,8 +1007,8 @@ source_catalog:
       - *id017
     - name: JobScoutDiscoveryLoop.deterministic_reflection
       kind: method
-      line_start: 422
-      line_end: 476
+      line_start: 423
+      line_end: 477
       signature: 'JobScoutDiscoveryLoop.deterministic_reflection(self, run_id: str, cycle: int) -> dict[str, Any]'
       inputs:
       - self
@@ -1042,8 +1042,8 @@ source_catalog:
       - *id017
     - name: JobScoutDiscoveryLoop.reflection_work_request
       kind: method
-      line_start: 478
-      line_end: 522
+      line_start: 479
+      line_end: 523
       signature: 'JobScoutDiscoveryLoop.reflection_work_request(self, run_id: str, cycle: int) -> dict[str, Any]'
       inputs:
       - self
@@ -1064,8 +1064,8 @@ source_catalog:
       - *id011
     - name: JobScoutDiscoveryLoop.apply_reflection_result
       kind: method
-      line_start: 524
-      line_end: 563
+      line_start: 525
+      line_end: 564
       signature: 'JobScoutDiscoveryLoop.apply_reflection_result(self, request_id: str, value: dict[str, Any]) -> int'
       inputs:
       - self
@@ -1103,8 +1103,8 @@ source_catalog:
       - *id017
     - name: JobScoutDiscoveryLoop.summary
       kind: method
-      line_start: 565
-      line_end: 572
+      line_start: 566
+      line_end: 573
       signature: 'JobScoutDiscoveryLoop.summary(self, run_id: str) -> dict[str, Any]'
       inputs:
       - self
@@ -1118,8 +1118,8 @@ source_catalog:
       - *id011
     - name: JobScoutDiscoveryLoop._seed_search_strategies
       kind: method
-      line_start: 574
-      line_end: 597
+      line_start: 575
+      line_end: 598
       signature: 'JobScoutDiscoveryLoop._seed_search_strategies(self, anchors: list[str], locations: list[str], boards: list[str])
         -> None'
       inputs:
@@ -1140,8 +1140,8 @@ source_catalog:
       - *id004
     - name: JobScoutDiscoveryLoop._seed_market_strategies
       kind: method
-      line_start: 599
-      line_end: 600
+      line_start: 600
+      line_end: 601
       signature: 'JobScoutDiscoveryLoop._seed_market_strategies(self, aliases: list[MarketAlias]) -> None'
       inputs:
       - self
@@ -1152,8 +1152,8 @@ source_catalog:
       dependency_targets: []
     - name: JobScoutDiscoveryLoop._seed_known_company_strategies
       kind: method
-      line_start: 602
-      line_end: 619
+      line_start: 603
+      line_end: 620
       signature: JobScoutDiscoveryLoop._seed_known_company_strategies(self) -> None
       inputs:
       - self
@@ -1176,8 +1176,8 @@ source_catalog:
       - *id004
     - name: JobScoutDiscoveryLoop._seed_due_source_strategies
       kind: method
-      line_start: 621
-      line_end: 628
+      line_start: 622
+      line_end: 629
       signature: JobScoutDiscoveryLoop._seed_due_source_strategies(self) -> None
       inputs:
       - self
@@ -1195,8 +1195,8 @@ source_catalog:
         symbol: DiscoverySourceRepository.list_due
     - name: JobScoutDiscoveryLoop._execute_strategy
       kind: method
-      line_start: 630
-      line_end: 643
+      line_start: 631
+      line_end: 644
       signature: 'JobScoutDiscoveryLoop._execute_strategy(self, strategy: DiscoveryStrategySnapshot, allowance: _RequestAllowance
         | None) -> tuple[StrategyOutcome, int, list[str]]'
       inputs:
@@ -1225,8 +1225,8 @@ source_catalog:
         symbol: JobScoutDiscoveryLoop._execute_source_revisit
     - name: JobScoutDiscoveryLoop._execute_public_search
       kind: method
-      line_start: 645
-      line_end: 990
+      line_start: 646
+      line_end: 994
       signature: 'JobScoutDiscoveryLoop._execute_public_search(self, strategy: DiscoveryStrategySnapshot, allowance: _RequestAllowance
         | None) -> tuple[StrategyOutcome, int, list[str]]'
       inputs:
@@ -1283,8 +1283,8 @@ source_catalog:
         symbol: JobScoutDiscoveryLoop._deepen_company
     - name: JobScoutDiscoveryLoop._execute_company_revisit
       kind: method
-      line_start: 992
-      line_end: 1064
+      line_start: 996
+      line_end: 1068
       signature: 'JobScoutDiscoveryLoop._execute_company_revisit(self, strategy: DiscoveryStrategySnapshot, allowance: _RequestAllowance
         | None) -> tuple[StrategyOutcome, int, list[str]]'
       inputs:
@@ -1335,8 +1335,8 @@ source_catalog:
       - *id018
     - name: JobScoutDiscoveryLoop._execute_source_revisit
       kind: method
-      line_start: 1066
-      line_end: 1123
+      line_start: 1070
+      line_end: 1127
       signature: 'JobScoutDiscoveryLoop._execute_source_revisit(self, strategy: DiscoveryStrategySnapshot, allowance: _RequestAllowance
         | None) -> tuple[StrategyOutcome, int, list[str]]'
       inputs:
@@ -1366,8 +1366,8 @@ source_catalog:
       - *id031
     - name: JobScoutDiscoveryLoop._scan_source
       kind: method
-      line_start: 1125
-      line_end: 1153
+      line_start: 1129
+      line_end: 1157
       signature: 'JobScoutDiscoveryLoop._scan_source(self, source: DiscoverySource, allowance: _RequestAllowance | None) ->
         tuple[Any | None, int]'
       inputs:
@@ -1389,8 +1389,8 @@ source_catalog:
         symbol: DiscoveryService.scan_source
     - name: JobScoutDiscoveryLoop._deepen_company
       kind: method
-      line_start: 1155
-      line_end: 1199
+      line_start: 1159
+      line_end: 1203
       signature: 'JobScoutDiscoveryLoop._deepen_company(self, company: Company, strategy_id: str, allowance: _RequestAllowance
         | None) -> tuple[set[str], int, int]'
       inputs:
@@ -1440,8 +1440,8 @@ source_catalog:
       - *id018
     - name: JobScoutDiscoveryLoop._register_sitemap
       kind: method
-      line_start: 1201
-      line_end: 1220
+      line_start: 1205
+      line_end: 1224
       signature: 'JobScoutDiscoveryLoop._register_sitemap(self, company: Company, url: str, strategy_id: str) -> DiscoverySource'
       inputs:
       - self
@@ -1468,8 +1468,8 @@ source_catalog:
         symbol: stable_source_id
     - name: JobScoutDiscoveryLoop._attribute_source
       kind: method
-      line_start: 1222
-      line_end: 1230
+      line_start: 1226
+      line_end: 1234
       signature: 'JobScoutDiscoveryLoop._attribute_source(self, source: DiscoverySource, strategy_id: str) -> DiscoverySource'
       inputs:
       - self
@@ -1493,8 +1493,8 @@ source_catalog:
       - *id037
     - name: JobScoutDiscoveryLoop._career_source_ids
       kind: method
-      line_start: 1232
-      line_end: 1233
+      line_start: 1236
+      line_end: 1237
       signature: JobScoutDiscoveryLoop._career_source_ids(self) -> set[str]
       inputs:
       - self
@@ -1507,8 +1507,8 @@ source_catalog:
       - *id024
     - name: _strategy_query
       kind: function
-      line_start: 1236
-      line_end: 1243
+      line_start: 1240
+      line_end: 1247
       signature: '_strategy_query(strategy: DiscoveryStrategySnapshot) -> str'
       inputs:
       - 'strategy: DiscoveryStrategySnapshot'
@@ -1525,8 +1525,8 @@ source_catalog:
       dependency_targets: []
     - name: _clean_domain
       kind: function
-      line_start: 1246
-      line_end: 1249
+      line_start: 1250
+      line_end: 1253
       signature: '_clean_domain(value: str) -> str'
       inputs:
       - 'value: str'
@@ -1542,8 +1542,8 @@ source_catalog:
       dependency_targets: []
     - name: _is_employer_source
       kind: function
-      line_start: 1252
-      line_end: 1255
+      line_start: 1256
+      line_end: 1259
       signature: '_is_employer_source(source: DiscoverySource) -> bool'
       inputs:
       - 'source: DiscoverySource'
@@ -1555,8 +1555,8 @@ source_catalog:
       dependency_targets: []
     - name: _extract_regional_alias_evidence
       kind: function
-      line_start: 1267
-      line_end: 1310
+      line_start: 1271
+      line_end: 1314
       signature: '_extract_regional_alias_evidence(results: list[Any], anchor: str) -> list[dict[str, str]]'
       inputs:
       - 'results: list[Any]'
@@ -1586,8 +1586,8 @@ source_catalog:
       - *id018
     - name: _extract_employer_landscape_names
       kind: function
-      line_start: 1313
-      line_end: 1367
+      line_start: 1317
+      line_end: 1371
       signature: '_extract_employer_landscape_names(content: str, content_type: str) -> list[str]'
       inputs:
       - 'content: str'
@@ -1622,8 +1622,8 @@ source_catalog:
       - *id018
     - name: _as_reference_document
       kind: function
-      line_start: 1370
-      line_end: 1378
+      line_start: 1374
+      line_end: 1382
       signature: '_as_reference_document(url: str, fetched: Any) -> ReferenceDocument'
       inputs:
       - 'url: str'
@@ -1637,8 +1637,8 @@ source_catalog:
       dependency_targets: []
     - name: _extract_structured_employer_names
       kind: function
-      line_start: 1381
-      line_end: 1471
+      line_start: 1385
+      line_end: 1475
       signature: '_extract_structured_employer_names(content: str, content_type: str) -> list[str]'
       inputs:
       - 'content: str'
@@ -1675,8 +1675,8 @@ source_catalog:
       - *id006
     - name: _extract_structured_employer_names.add
       kind: function
-      line_start: 1405
-      line_end: 1410
+      line_start: 1409
+      line_end: 1414
       signature: '_extract_structured_employer_names.add(value: Any) -> None'
       inputs:
       - 'value: Any'
@@ -1695,8 +1695,8 @@ source_catalog:
       - *id006
     - name: _extract_structured_employer_names.walk
       kind: function
-      line_start: 1412
-      line_end: 1467
+      line_start: 1416
+      line_end: 1471
       signature: '_extract_structured_employer_names.walk(value: Any, directory_context: bool, organization_context: bool)
         -> None'
       inputs:
@@ -1720,8 +1720,8 @@ source_catalog:
       - *id018
     - name: _is_civic_reference_result
       kind: function
-      line_start: 1474
-      line_end: 1482
+      line_start: 1478
+      line_end: 1486
       signature: '_is_civic_reference_result(result: Any) -> bool'
       inputs:
       - 'result: Any'
@@ -1738,8 +1738,8 @@ source_catalog:
       dependency_targets: []
     - name: _civic_reference_rank
       kind: function
-      line_start: 1485
-      line_end: 1494
+      line_start: 1489
+      line_end: 1498
       signature: '_civic_reference_rank(result: Any) -> tuple[int, str]'
       inputs:
       - 'result: Any'
@@ -1755,8 +1755,8 @@ source_catalog:
       dependency_targets: []
     - name: _reflection_schema
       kind: function
-      line_start: 1497
-      line_end: 1520
+      line_start: 1501
+      line_end: 1524
       signature: _reflection_schema() -> dict[str, Any]
       inputs: []
       output: dict[str, Any]

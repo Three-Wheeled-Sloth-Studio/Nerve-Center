@@ -268,6 +268,7 @@ DEFAULT_COVERAGE: dict[str, Any] = {
 }
 
 MARKET_REFERENCE_QUERY_REVISION = "market_reference_v6"
+EMPLOYER_LANDSCAPE_EVIDENCE_REVISION = "employer_landscape_v2"
 
 
 _FEEDBACK_MAGNITUDE = {
@@ -398,6 +399,11 @@ class JobScoutDiscoveryRepository:
                 and (
                     item.dimensions.get("kind") != "public_search"
                     or item.id in canonical_public_search_ids
+                )
+                and (
+                    item.dimensions.get("hypothesis_family")
+                    != "local_employer_deepen"
+                    or _employer_deepening_evidence_is_current(item.dimensions)
                 )
             ]
             has_current_market_reference = any(
@@ -1015,6 +1021,24 @@ def _family_learned_weight(
     return _clamp(target - health_penalty, 0.2, 4.0)
 
 
+def _employer_deepening_evidence_is_current(dimensions: dict[str, str]) -> bool:
+    if dimensions.get("hypothesis_family") != "local_employer_deepen":
+        return False
+    authority = dimensions.get("employer_evidence_authority", "")
+    medium = dimensions.get("employer_evidence_medium", "")
+    extraction_method = dimensions.get("employer_evidence_extraction_method", "")
+    if (
+        authority == "civic_attachment"
+        or medium == "attachment"
+        or extraction_method.startswith(("pdf_", "attachment_"))
+    ):
+        return True
+    return (
+        dimensions.get("employer_evidence_revision")
+        == EMPLOYER_LANDSCAPE_EVIDENCE_REVISION
+    )
+
+
 def _canonical_public_search_ids(
     models: list[DiscoveryStrategyModel],
 ) -> set[str]:
@@ -1033,24 +1057,32 @@ def _canonical_public_search_ids(
             continue
         identity = (compiled.source_path, compiled.query.casefold())
         existing = canonical.get(identity)
-        model_is_current_market = (
-            model.dimensions.get("hypothesis_family")
-            in {"local_employer", "regional_alias_probe"}
-            and model.dimensions.get("query_revision")
-            == MARKET_REFERENCE_QUERY_REVISION
+        model_is_current_semantics = (
+            (
+                model.dimensions.get("hypothesis_family")
+                in {"local_employer", "regional_alias_probe"}
+                and model.dimensions.get("query_revision")
+                == MARKET_REFERENCE_QUERY_REVISION
+            )
+            or _employer_deepening_evidence_is_current(model.dimensions)
         )
-        existing_is_current_market = (
+        existing_is_current_semantics = (
             existing is not None
-            and existing.dimensions.get("hypothesis_family")
-            in {"local_employer", "regional_alias_probe"}
-            and existing.dimensions.get("query_revision")
-            == MARKET_REFERENCE_QUERY_REVISION
+            and (
+                (
+                    existing.dimensions.get("hypothesis_family")
+                    in {"local_employer", "regional_alias_probe"}
+                    and existing.dimensions.get("query_revision")
+                    == MARKET_REFERENCE_QUERY_REVISION
+                )
+                or _employer_deepening_evidence_is_current(existing.dimensions)
+            )
         )
         if (
             existing is None
-            or (model_is_current_market and not existing_is_current_market)
+            or (model_is_current_semantics and not existing_is_current_semantics)
             or (
-                model_is_current_market == existing_is_current_market
+                model_is_current_semantics == existing_is_current_semantics
                 and (model.created_at, model.id)
                 < (existing.created_at, existing.id)
             )

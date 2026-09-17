@@ -22,7 +22,10 @@ from nerve_center.persistence.discovery import (
     JobOpeningRepository,
 )
 from nerve_center.plugins.job_scout.configuration import JobScoutCoordinator
-from nerve_center.plugins.job_scout.discovery_learning import JobScoutDiscoveryRepository
+from nerve_center.plugins.job_scout.discovery_learning import (
+    EMPLOYER_LANDSCAPE_EVIDENCE_REVISION,
+    JobScoutDiscoveryRepository,
+)
 from nerve_center.plugins.job_scout.discovery_loop import (
     MAX_REFERENCE_NETWORK_FETCH_ATTEMPTS,
     JobScoutDiscoveryLoop,
@@ -434,6 +437,9 @@ def test_local_employer_landscape_creates_evidence_backed_deepening_searches(
     ]
     assert candidates[0].dimensions["anchor"] == "Example Systems"
     assert candidates[0].dimensions["employer_evidence_authority"] == "civic"
+    assert candidates[0].dimensions["employer_evidence_revision"] == (
+        EMPLOYER_LANDSCAPE_EVIDENCE_REVISION
+    )
     assert candidates[0].dimensions["employer_evidence_url"] == (
         "https://region.example.gov/employers"
     )

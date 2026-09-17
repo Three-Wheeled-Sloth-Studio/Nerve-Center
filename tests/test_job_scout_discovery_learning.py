@@ -19,6 +19,7 @@ from nerve_center.persistence.discovery import (
     JobOpeningRepository,
 )
 from nerve_center.plugins.job_scout.discovery_learning import (
+    EMPLOYER_LANDSCAPE_EVIDENCE_REVISION,
     JobScoutDiscoveryRepository,
     StrategyOutcome,
 )
@@ -780,6 +781,73 @@ def test_new_market_reference_revision_bypasses_prior_revision_cooldown(
     assert stale_local.id not in selected_ids
     assert stale_regional.id not in selected_ids
 
+def test_stale_html_employer_evidence_is_not_scheduled_but_current_and_attachment_are(
+    tmp_path: Path,
+) -> None:
+    learning = JobScoutDiscoveryRepository(_database(tmp_path))
+    stale = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer_deepen",
+            "anchor": "Navigation Heading",
+            "location": "Example, NC",
+            "source_domain": "web",
+            "employer_evidence_authority": "civic",
+        },
+        origin="public_employer_landscape_evidence",
+        base_weight=4.0,
+    )
+    current = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer_deepen",
+            "anchor": "Current Systems",
+            "location": "Current, NC",
+            "source_domain": "web",
+            "employer_evidence_authority": "civic",
+            "employer_evidence_revision": EMPLOYER_LANDSCAPE_EVIDENCE_REVISION,
+        },
+        origin="public_employer_landscape_evidence",
+        base_weight=0.2,
+    )
+    legacy_attachment = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer_deepen",
+            "anchor": "Attachment Manufacturing",
+            "location": "Attachment, NC",
+            "source_domain": "web",
+            "employer_evidence_authority": "civic_attachment",
+            "employer_evidence_extraction_method": "pdf_ocr_ranked_employers",
+        },
+        origin="public_employer_attachment_evidence",
+        base_weight=0.2,
+    )
+    normalized_attachment = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer_deepen",
+            "anchor": "Normalized Health",
+            "location": "Normalized, NC",
+            "source_domain": "web",
+            "employer_evidence_authority": "civic",
+            "employer_evidence_medium": "attachment",
+        },
+        origin="public_employer_attachment_evidence",
+        base_weight=0.2,
+    )
+
+    selected = learning.select_strategies(
+        "run-1", limit=4, exploration_floor=1.0
+    )
+    selected_ids = {item.id for item in selected}
+
+    assert stale.id not in selected_ids
+    assert current.id in selected_ids
+    assert legacy_attachment.id in selected_ids
+    assert normalized_attachment.id in selected_ids
+
+
 def test_reserved_acquisition_lanes_can_displace_extra_company_revisits(
     tmp_path: Path,
 ) -> None:
@@ -814,6 +882,7 @@ def test_reserved_acquisition_lanes_can_displace_extra_company_revisits(
             "location": "Example, NC",
             "source_domain": "web",
             "employer_evidence_authority": "civic",
+            "employer_evidence_revision": EMPLOYER_LANDSCAPE_EVIDENCE_REVISION,
         },
         origin="public_employer_landscape_evidence",
         base_weight=0.2,

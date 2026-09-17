@@ -37,6 +37,7 @@ from nerve_center.persistence.discovery import (
 )
 from nerve_center.plugins.job_scout.configuration import JobScoutCoordinator
 from nerve_center.plugins.job_scout.discovery_learning import (
+    EMPLOYER_LANDSCAPE_EVIDENCE_REVISION,
     DiscoveryStrategySnapshot,
     JobScoutDiscoveryRepository,
     StrategyOutcome,
@@ -866,6 +867,9 @@ class JobScoutDiscoveryLoop:
                             "source_path": "broad_web",
                             "employer_evidence_url": result.url,
                             "employer_evidence_authority": "civic",
+                            "employer_evidence_revision": (
+                                EMPLOYER_LANDSCAPE_EVIDENCE_REVISION
+                            ),
                             "market_provenance": strategy.dimensions.get(
                                 "market_provenance", ""
                             ),
