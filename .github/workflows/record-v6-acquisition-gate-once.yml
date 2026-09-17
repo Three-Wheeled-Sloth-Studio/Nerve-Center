@@ -104,7 +104,7 @@ jobs:
           pattern = re.compile(r"## Next bounded slice\n.*?## Required Reads For Next Slice\n", re.DOTALL)
           if not pattern.search(text):
               raise SystemExit("next bounded slice section not found")
-          text = pattern.sub(replacement + "\n", text, count=1)
+          text = pattern.sub(lambda _: replacement + "\n", text, count=1)
           path.write_text(text, encoding="utf-8")
       - name: Commit handoff and remove helper
         run: |
