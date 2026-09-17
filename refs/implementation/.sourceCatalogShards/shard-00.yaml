@@ -378,7 +378,7 @@ source_catalog:
   - path: tests/test_job_scout_discovery_loop.py
     analysis_version: 1
     language: python
-    content_hash: 62050aa1edfdf7f42f48b8a9fa55f473fe5e50a6
+    content_hash: a820f4cf27f227f32c6922d78303516e48671147
     dependencies:
     - asyncio
     - nerve_center.config
@@ -418,6 +418,7 @@ source_catalog:
     - test_structured_public_directory_creates_only_evidence_backed_hypotheses.StructuredReferenceSearch.search_references
     - test_structured_public_directory_creates_only_evidence_backed_hypotheses.StructuredReferenceSearch.fetch_reference
     - test_structured_public_directory_creates_only_evidence_backed_hypotheses.StructuredReferenceSearch.reference_cache_status
+    - test_common_employer_list_headings_create_bounded_hypotheses
     - test_schema_org_organization_names_are_extracted_without_heading
     - test_schema_org_page_publisher_is_not_an_employer_directory
     - test_deferred_reference_does_not_displace_an_eligible_directory
@@ -924,10 +925,22 @@ source_catalog:
       dependencies: []
       parser: python-ast
       dependency_targets: []
-    - name: test_schema_org_organization_names_are_extracted_without_heading
+    - name: test_common_employer_list_headings_create_bounded_hypotheses
       kind: function
       line_start: 503
-      line_end: 515
+      line_end: 521
+      signature: test_common_employer_list_headings_create_bounded_hypotheses() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - _extract_employer_landscape_names
+      parser: python-ast
+      dependency_targets:
+      - *id018
+    - name: test_schema_org_organization_names_are_extracted_without_heading
+      kind: function
+      line_start: 524
+      line_end: 536
       signature: test_schema_org_organization_names_are_extracted_without_heading() -> None
       inputs: []
       output: None
@@ -938,8 +951,8 @@ source_catalog:
       - *id018
     - name: test_schema_org_page_publisher_is_not_an_employer_directory
       kind: function
-      line_start: 518
-      line_end: 527
+      line_start: 539
+      line_end: 548
       signature: test_schema_org_page_publisher_is_not_an_employer_directory() -> None
       inputs: []
       output: None
@@ -950,8 +963,8 @@ source_catalog:
       - *id018
     - name: test_deferred_reference_does_not_displace_an_eligible_directory
       kind: function
-      line_start: 530
-      line_end: 589
+      line_start: 551
+      line_end: 610
       signature: 'test_deferred_reference_does_not_displace_an_eligible_directory(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -976,8 +989,8 @@ source_catalog:
       - *id001
     - name: test_deferred_reference_does_not_displace_an_eligible_directory.RetryAwareReferenceSearch.search
       kind: method
-      line_start: 536
-      line_end: 537
+      line_start: 557
+      line_end: 558
       signature: 'test_deferred_reference_does_not_displace_an_eligible_directory.RetryAwareReferenceSearch.search(self, query:
         str) -> list[SearchResult]'
       inputs:
@@ -990,8 +1003,8 @@ source_catalog:
       dependency_targets: []
     - name: test_deferred_reference_does_not_displace_an_eligible_directory.RetryAwareReferenceSearch.search_references
       kind: method
-      line_start: 539
-      line_end: 548
+      line_start: 560
+      line_end: 569
       signature: 'test_deferred_reference_does_not_displace_an_eligible_directory.RetryAwareReferenceSearch.search_references(self,
         _query: str) -> list[SearchResult]'
       inputs:
@@ -1004,8 +1017,8 @@ source_catalog:
       dependency_targets: []
     - name: test_deferred_reference_does_not_displace_an_eligible_directory.RetryAwareReferenceSearch.reference_cache_status
       kind: method
-      line_start: 550
-      line_end: 553
+      line_start: 571
+      line_end: 574
       signature: 'test_deferred_reference_does_not_displace_an_eligible_directory.RetryAwareReferenceSearch.reference_cache_status(self,
         url: str) -> str'
       inputs:
@@ -1017,8 +1030,8 @@ source_catalog:
       dependency_targets: []
     - name: test_deferred_reference_does_not_displace_an_eligible_directory.RetryAwareReferenceSearch.fetch_reference
       kind: method
-      line_start: 555
-      line_end: 558
+      line_start: 576
+      line_end: 579
       signature: 'test_deferred_reference_does_not_displace_an_eligible_directory.RetryAwareReferenceSearch.fetch_reference(self,
         url: str) -> str'
       inputs:
@@ -1032,8 +1045,8 @@ source_catalog:
       - *id001
     - name: test_reference_network_failures_fall_through_only_to_explicit_cap
       kind: function
-      line_start: 592
-      line_end: 645
+      line_start: 613
+      line_end: 666
       signature: 'test_reference_network_failures_fall_through_only_to_explicit_cap(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1061,8 +1074,8 @@ source_catalog:
       - *id001
     - name: test_reference_network_failures_fall_through_only_to_explicit_cap.FailingReferenceSearch.search
       kind: method
-      line_start: 598
-      line_end: 599
+      line_start: 619
+      line_end: 620
       signature: 'test_reference_network_failures_fall_through_only_to_explicit_cap.FailingReferenceSearch.search(self, query:
         str) -> list[SearchResult]'
       inputs:
@@ -1075,8 +1088,8 @@ source_catalog:
       dependency_targets: []
     - name: test_reference_network_failures_fall_through_only_to_explicit_cap.FailingReferenceSearch.search_references
       kind: method
-      line_start: 601
-      line_end: 608
+      line_start: 622
+      line_end: 629
       signature: 'test_reference_network_failures_fall_through_only_to_explicit_cap.FailingReferenceSearch.search_references(self,
         _query: str) -> list[SearchResult]'
       inputs:
@@ -1090,8 +1103,8 @@ source_catalog:
       dependency_targets: []
     - name: test_reference_network_failures_fall_through_only_to_explicit_cap.FailingReferenceSearch.reference_cache_status
       kind: method
-      line_start: 610
-      line_end: 611
+      line_start: 631
+      line_end: 632
       signature: 'test_reference_network_failures_fall_through_only_to_explicit_cap.FailingReferenceSearch.reference_cache_status(self,
         _url: str) -> str'
       inputs:
@@ -1103,8 +1116,8 @@ source_catalog:
       dependency_targets: []
     - name: test_reference_network_failures_fall_through_only_to_explicit_cap.FailingReferenceSearch.fetch_reference
       kind: method
-      line_start: 613
-      line_end: 615
+      line_start: 634
+      line_end: 636
       signature: 'test_reference_network_failures_fall_through_only_to_explicit_cap.FailingReferenceSearch.fetch_reference(self,
         url: str) -> str'
       inputs:
@@ -1119,8 +1132,8 @@ source_catalog:
       - *id001
     - name: test_regional_alias_probe_creates_learned_role_searches
       kind: function
-      line_start: 648
-      line_end: 690
+      line_start: 669
+      line_end: 719
       signature: 'test_regional_alias_probe_creates_learned_role_searches(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1144,8 +1157,8 @@ source_catalog:
       - *id017
     - name: test_regional_alias_probe_creates_learned_role_searches.ReferenceSearch.search
       kind: method
-      line_start: 650
-      line_end: 651
+      line_start: 671
+      line_end: 672
       signature: 'test_regional_alias_probe_creates_learned_role_searches.ReferenceSearch.search(self, _query: str) -> list[SearchResult]'
       inputs:
       - self
@@ -1156,8 +1169,8 @@ source_catalog:
       dependency_targets: []
     - name: test_regional_alias_probe_creates_learned_role_searches.ReferenceSearch.search_references
       kind: method
-      line_start: 653
-      line_end: 659
+      line_start: 674
+      line_end: 684
       signature: 'test_regional_alias_probe_creates_learned_role_searches.ReferenceSearch.search_references(self, _query:
         str) -> list[SearchResult]'
       inputs:
@@ -1170,8 +1183,8 @@ source_catalog:
       dependency_targets: []
     - name: test_company_deepening_attributes_ashby_source_to_known_employer
       kind: function
-      line_start: 693
-      line_end: 724
+      line_start: 722
+      line_end: 753
       signature: 'test_company_deepening_attributes_ashby_source_to_known_employer(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1199,8 +1212,8 @@ source_catalog:
         symbol: JobScoutDiscoveryLoop._deepen_company
     - name: test_company_deepening_attributes_ashby_source_to_known_employer.AshbySurface.resolve
       kind: method
-      line_start: 712
-      line_end: 713
+      line_start: 741
+      line_end: 742
       signature: 'test_company_deepening_attributes_ashby_source_to_known_employer.AshbySurface.resolve(self, _company: Company)
         -> list[str]'
       inputs:
@@ -1212,8 +1225,8 @@ source_catalog:
       dependency_targets: []
     - name: test_major_board_results_are_retained_as_secondary_provenance
       kind: function
-      line_start: 727
-      line_end: 751
+      line_start: 756
+      line_end: 780
       signature: 'test_major_board_results_are_retained_as_secondary_provenance(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1240,8 +1253,8 @@ source_catalog:
       - *id012
     - name: test_search_challenge_does_not_block_known_source_path
       kind: function
-      line_start: 754
-      line_end: 788
+      line_start: 783
+      line_end: 817
       signature: 'test_search_challenge_does_not_block_known_source_path(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1277,8 +1290,8 @@ source_catalog:
       - *id012
     - name: test_exhaustion_reflects_then_accepts_manager_routed_strategy
       kind: function
-      line_start: 791
-      line_end: 831
+      line_start: 820
+      line_end: 860
       signature: 'test_exhaustion_reflects_then_accepts_manager_routed_strategy(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'

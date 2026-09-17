@@ -500,6 +500,27 @@ def test_structured_public_directory_creates_only_evidence_backed_hypotheses(
     assert outcome.detail["stages"]["employer_candidates_discovered"] == 2
 
 
+def test_common_employer_list_headings_create_bounded_hypotheses() -> None:
+    ranked = _extract_employer_landscape_names(
+        """
+        <h2>Top 25 Private Employers</h2>
+        <table><tr><td>Example Manufacturing</td></tr>
+        <tr><td>Sample Health System</td></tr></table>
+        <h2>Contact</h2>
+        """
+    )
+    directory = _extract_employer_landscape_names(
+        """
+        <h2>Employer Directory</h2>
+        <ul><li>Atlas Systems</li><li>Beacon Analytics</li></ul>
+        <h2>Resources</h2>
+        """
+    )
+
+    assert ranked == ["Example Manufacturing", "Sample Health System"]
+    assert directory == ["Atlas Systems", "Beacon Analytics"]
+
+
 def test_schema_org_organization_names_are_extracted_without_heading() -> None:
     names = _extract_employer_landscape_names(
         """
@@ -655,7 +676,11 @@ def test_regional_alias_probe_creates_learned_role_searches(tmp_path: Path) -> N
                 SearchResult(
                     title="Piedmont Triad Regional Council",
                     url="https://region.example/triad",
-                )
+                ),
+                SearchResult(
+                    title="Triangle J Council of Governments",
+                    url="https://region.example/triangle-j",
+                ),
             ]
 
     loop, learning, *_rest = _build_loop(
@@ -683,11 +708,15 @@ def test_regional_alias_probe_creates_learned_role_searches(tmp_path: Path) -> N
         if item.dimensions.get("hypothesis_family") == "regional_alias"
     ]
     assert requests == 1
-    assert outcome.detail["stages"]["regional_aliases_discovered"] == 1
-    assert aliases[0].dimensions["location"] == "Piedmont Triad"
-    assert aliases[0].dimensions["alias_provenance_url"] == (
-        "https://region.example/triad"
-    )
+    assert outcome.detail["stages"]["regional_aliases_discovered"] == 2
+    assert {item.dimensions["location"] for item in aliases} == {
+        "Piedmont Triad",
+        "Triangle J",
+    }
+    assert {item.dimensions["alias_provenance_url"] for item in aliases} == {
+        "https://region.example/triad",
+        "https://region.example/triangle-j",
+    }
 
 
 def test_company_deepening_attributes_ashby_source_to_known_employer(tmp_path: Path) -> None:

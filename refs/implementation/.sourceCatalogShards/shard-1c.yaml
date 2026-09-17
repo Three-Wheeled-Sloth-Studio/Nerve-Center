@@ -568,7 +568,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/discovery_loop.py
     analysis_version: 1
     language: python
-    content_hash: a55f977525002a53d1d3da4a508a2685d81d6947
+    content_hash: b0016a7ebb29720b23f44ba7299725e44ee42659
     dependencies:
     - __future__
     - dataclasses
@@ -1555,8 +1555,8 @@ source_catalog:
       dependency_targets: []
     - name: _extract_regional_alias_evidence
       kind: function
-      line_start: 1266
-      line_end: 1309
+      line_start: 1267
+      line_end: 1310
       signature: '_extract_regional_alias_evidence(results: list[Any], anchor: str) -> list[dict[str, str]]'
       inputs:
       - 'results: list[Any]'
@@ -1586,8 +1586,8 @@ source_catalog:
       - *id018
     - name: _extract_employer_landscape_names
       kind: function
-      line_start: 1312
-      line_end: 1353
+      line_start: 1313
+      line_end: 1358
       signature: '_extract_employer_landscape_names(content: str, content_type: str) -> list[str]'
       inputs:
       - 'content: str'
@@ -1622,8 +1622,8 @@ source_catalog:
       - *id018
     - name: _as_reference_document
       kind: function
-      line_start: 1356
-      line_end: 1364
+      line_start: 1361
+      line_end: 1369
       signature: '_as_reference_document(url: str, fetched: Any) -> ReferenceDocument'
       inputs:
       - 'url: str'
@@ -1637,8 +1637,8 @@ source_catalog:
       dependency_targets: []
     - name: _extract_structured_employer_names
       kind: function
-      line_start: 1367
-      line_end: 1457
+      line_start: 1372
+      line_end: 1462
       signature: '_extract_structured_employer_names(content: str, content_type: str) -> list[str]'
       inputs:
       - 'content: str'
@@ -1675,8 +1675,8 @@ source_catalog:
       - *id006
     - name: _extract_structured_employer_names.add
       kind: function
-      line_start: 1391
-      line_end: 1396
+      line_start: 1396
+      line_end: 1401
       signature: '_extract_structured_employer_names.add(value: Any) -> None'
       inputs:
       - 'value: Any'
@@ -1695,8 +1695,8 @@ source_catalog:
       - *id006
     - name: _extract_structured_employer_names.walk
       kind: function
-      line_start: 1398
-      line_end: 1453
+      line_start: 1403
+      line_end: 1458
       signature: '_extract_structured_employer_names.walk(value: Any, directory_context: bool, organization_context: bool)
         -> None'
       inputs:
@@ -1720,8 +1720,8 @@ source_catalog:
       - *id018
     - name: _is_civic_reference_result
       kind: function
-      line_start: 1460
-      line_end: 1468
+      line_start: 1465
+      line_end: 1473
       signature: '_is_civic_reference_result(result: Any) -> bool'
       inputs:
       - 'result: Any'
@@ -1738,8 +1738,8 @@ source_catalog:
       dependency_targets: []
     - name: _civic_reference_rank
       kind: function
-      line_start: 1471
-      line_end: 1480
+      line_start: 1476
+      line_end: 1485
       signature: '_civic_reference_rank(result: Any) -> tuple[int, str]'
       inputs:
       - 'result: Any'
@@ -1755,8 +1755,8 @@ source_catalog:
       dependency_targets: []
     - name: _reflection_schema
       kind: function
-      line_start: 1483
-      line_end: 1506
+      line_start: 1488
+      line_end: 1511
       signature: _reflection_schema() -> dict[str, Any]
       inputs: []
       output: dict[str, Any]

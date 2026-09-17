@@ -1256,8 +1256,9 @@ def _is_employer_source(source: DiscoverySource) -> bool:
 
 
 _REGIONAL_ORGANIZATION = re.compile(
-    r"(?P<name>[A-Z][A-Za-z0-9&' .-]{2,80}?)\s+Regional\s+"
-    r"(?:Council|Partnership|Commission|Authority|Planning\b)",
+    r"(?P<name>[A-Z][A-Za-z0-9&' .-]{2,80}?)\s+"
+    r"(?:Regional\s+(?:Council|Partnership|Commission|Authority|Planning\b)|"
+    r"Council\s+of\s+Governments|Planning\s+Commission|Development\s+District)",
     re.IGNORECASE,
 )
 _REGIONAL_ACRONYM = re.compile(r"\b(?P<name>[A-Z]{2,6})\s+(?:Region|Area)\b")
@@ -1325,7 +1326,11 @@ def _extract_employer_landscape_names(
         if level is None:
             continue
         normalized = " ".join(text.casefold().split())
-        if re.search(r"\b(?:major|top|largest)\s+employers?\b", normalized):
+        if re.search(
+            r"\b(?:(?:major|largest|leading|key|principal|top(?:\s+\d+)?)\s+"
+            r"(?:private\s+)?employers?|employer\s+(?:directory|list))\b",
+            normalized,
+        ):
             marker = (index, level)
             break
     if marker is None:
