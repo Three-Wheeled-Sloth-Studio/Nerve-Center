@@ -12,7 +12,7 @@ tags: [nerve-center, handoff]
 - Work directly on `dev`; do not create a feature branch or PR unless explicitly requested.
 - Application version is `0.12.26`.
 - Agent Academy alignment baseline is `e4118f96cc0138490b950402ba711399580ee854`; bounded source discovery, handoff required reads, capability-aware sub-agent guidance, and source-modularity rules are now part of Nerve Center's engineering contract.
-- The local-acquisition persistence checkpoint is `5240bf5f820772277dfacba5a14c6ed6064c393a`. It advances market-reference strategy identity to `market_reference_v6` and makes canonical public-search dedup prefer the current local/regional market revision. Targeted Ruff, discovery-learning tests, and deterministic source-catalog regeneration passed in workflow `35230212850`; full CI is required on the following user-authored documentation head before the next live gate.
+- The current acquisition-lane checkpoint is `857bbfae2a2822039956ffabcb336dac3b400a2c`. It preserves one company revisit while allowing bounded `local_employer`, evidence-backed `local_employer_deepen`, and first-pass `regional_alias_probe` reservations to displace excess revisit crowding. It also rejects shallow HTML navigation/social labels from employer-list hypotheses while leaving structured and PDF/OCR extraction intact. Targeted validation passed in workflow `35243110817`; full CI is required before the next live gate.
 - Issue #57 remains open. Do not close it until current-run evidence shows the local employer/alias acquisition path produces usable hypotheses that proceed through ordinary company/career discovery.
 - Job Scout remains an iterative market-research loop: `expand -> converge -> deepen -> reflect -> re-expand`. Discovery optimizes recall; ranking/scoring provides precision.
 - Extracted employer names are hypotheses only. They must pass through ordinary public search and official-career resolution before becoming durable company/location evidence.
@@ -41,6 +41,7 @@ The accepted behavior now includes:
 17. regional alias probes receive protected scheduler capacity only for first-pass coverage. After a regional probe has executed once, it remains eligible through normal learned-weight, exploration-floor, and cooldown selection but no longer owns a guaranteed slot;
 18. local-employer reference queries preserve exact discovery intent with quoted employer phrases, regional probes cover common public regional vocabulary, and the evidence extractors recognize broader generic regional-organization and employer-list heading forms without named-market exceptions.
 19. changed local/regional query semantics advance the durable market-reference revision, and canonical public-search dedup prefers that current revision so stale strategy identities cannot mask new behavior behind prior-run cooldown history.
+20. reserved acquisition lanes may displace excess company revisits while preserving one revisit, and HTML employer-list parsing rejects shallow navigation/social labels before they become employer hypotheses.
 
 OCR is generic and structural. It requires employer-list heading evidence plus monotonic ranked rows. OCR output becomes `local_employer_deepen` work; it does not directly create companies.
 
@@ -64,6 +65,7 @@ OCR is generic and structural. It requires employer-list heading evidence plus m
 - `708484842782fa91bc84a81fed6a72cec016e7a2`: expanded generic regional-organization and employer-list evidence patterns with deterministic regression coverage.
 - `fa5cfd0f0558daab0b2a76a059679bf7db4c6b28`: clean local-acquisition implementation checkpoint after temporary helper cleanup.
 - `5240bf5f820772277dfacba5a14c6ed6064c393a`: `market_reference_v6`, current-revision canonical preference for local/regional public-search identities, cooldown regression coverage, and refreshed deterministic source catalog.
+- `857bbfae2a2822039956ffabcb336dac3b400a2c`: reserved acquisition lanes can displace excess company revisits while preserving one revisit; HTML employer-list parsing rejects shallow navigation/social labels; regression coverage and deterministic source catalog refreshed.
 - CI `35219112384` is green: refs/tracked paths, agent context, Ruff, packaging command, full Python tests, desktop web, and desktop Rust/Tauri all passed.
 - The self-contained Windows backend builds and passes health, workspace, and module-runtime smoke tests. OCR increases the backend executable to about 155.8 MiB.
 
@@ -127,6 +129,25 @@ The current-run strategy mix was 73 `legacy`, seven `employer_archetype`, seven 
 Audit of durable selection showed the new query semantics were still using `market_reference_v5`. Prior v5 attempts remained inside the 24-hour cooldown, and canonical compiled-query dedup could retain the older identity even after a revision bump because equivalent queries were previously resolved oldest-first. This is a persistence/identity defect, not evidence that the regional first-pass reservation or general scheduler weights are wrong.
 
 The bounded correction is `market_reference_v6` plus current-revision preference during canonical dedup for `local_employer` and `regional_alias_probe`. Unrelated public-search identities keep oldest-first canonicalization, and the 24-hour cooldown remains unchanged.
+## 30-minute v6 acquisition gate
+
+Run `14011cec-0ee2-4d63-b593-0dc7f318c832` completed successfully at planned `admission_draining` after the v6 identity correction:
+
+- 133 / 500 requests;
+- 43 / 80 LLM calls;
+- duration and planned wind-down both completed without budget exhaustion;
+- 21 current-run `local_employer` reference attempts across the bounded local market family;
+- employer-reference pages were inspected and evidence-backed employer hypotheses were produced;
+- the High Point civic `2022 Largest Employers` PDF was parsed through the existing bounded OCR path and yielded 12 employer-name hypotheses;
+- all eight fresh `market_reference_v6` `regional_alias_probe` strategies remained at zero attempts;
+- newly available `local_employer_deepen` hypotheses also received no current-run attempt.
+
+This proves the v6 persistence/canonicalization correction worked for `local_employer`: the acquisition query/reference/extraction path is alive. It also isolates the next scheduler defect. In a four-slot wave, reserved non-company acquisition lanes could not displace any `company_revisit`, so multiple high-weight revisits could occupy the remaining capacity after local-employer reservation and starve both employer deepening and regional first-pass coverage.
+
+The same run exposed an HTML extraction precision defect. One public Major Employers page produced 12 hypotheses from subordinate navigation/section labels such as `Strategic Location`, `Higher Education`, `Facebook`, and `LinkedIn`. Those are not accepted as employer truth. The working civic PDF/OCR path remains valid evidence and must not be weakened.
+
+The bounded correction at `857bbfae...` allows a reserved non-company acquisition lane to replace an excess company revisit only when more than one revisit is selected, preserving one revisit lane. Regression coverage proves a four-slot wave can contain one company revisit plus `local_employer`, evidence-backed `local_employer_deepen`, and first-pass `regional_alias_probe`. HTML extraction now rejects shallow subordinate headings and generic social-navigation labels while structured JSON and PDF/OCR paths remain unchanged.
+
 ## Regional saturation checkpoint
 
 The scheduler previously reserved one `regional_alias_probe` slot whenever any such strategy was eligible. In a four-strategy wave, that could become a permanent 25 percent capacity reservation even after regional vocabulary had already been sampled and marginal yield had fallen.
@@ -149,7 +170,7 @@ No named company, city, or region exception was added. No extra network path or 
 
 ## Next bounded slice
 
-Pull `dev` after full CI is green, then rerun the same isolated 30-minute local-acquisition gate. Do not run another long soak yet.
+Pull `dev` after full CI is green, then rerun the same isolated 30-minute gate. Do not run another long soak yet.
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\run_job_scout_live.py `
@@ -162,13 +183,13 @@ Pull `dev` after full CI is green, then rerun the same isolated 30-minute local-
 
 Audit only the new current run:
 
-1. verify fresh `market_reference_v6` `local_employer` strategies execute despite recent v5 history;
-2. verify fresh v6 `regional_alias_probe` strategies receive first-pass coverage;
-3. inspect whether the broadened local/regional queries return search results and recognizable reference evidence;
-4. if searches execute but still return zero results, investigate public-search/provider/query behavior before changing extraction;
-5. if high-intent references are inspected but aliases/employer candidates remain zero, improve HTML/table/list extraction next;
-6. if aliases or employer candidates appear, verify employer candidates become `local_employer_deepen` hypotheses and proceed through ordinary official-career resolution;
-7. only then consider another long soak.
+1. verify at least one fresh `regional_alias_probe` executes through its first-pass protected lane;
+2. verify at least one evidence-backed `local_employer_deepen` hypothesis executes while a company revisit is still preserved;
+3. verify HTML employer-list extraction no longer promotes shallow section/navigation/social labels as employer hypotheses;
+4. verify the working PDF/OCR employer path remains intact;
+5. if employer deepening executes, verify it enters ordinary location-free official-career resolution and records truthful company/source/posting evidence;
+6. if the regional and deepening lanes execute but produce no usable downstream evidence, diagnose those paths next rather than retuning general scoring or search allocation;
+7. only after those acquisition/deepening paths are alive should another long soak be considered.
 
 Keep Issue #57 open. Do not weaken the 24-hour cooldown, retune general scoring, or add named company/city/region exceptions without new evidence.
 
@@ -176,18 +197,18 @@ Code Shop Issue #54 remains staged behind this acceptance work. Its contract is 
 
 ## Required Reads For Next Slice
 
-- `refs/handoffs/currentHandoff.md` - authoritative accepted baseline, completed long-soak evidence, local-acquisition correction, and current short-gate questions.
+- `refs/handoffs/currentHandoff.md` - authoritative accepted baseline, completed long-soak evidence, completed v6 gate evidence, acquisition-lane correction, and current short-gate questions.
 - `refs/handoffs/next-dev-prompt.md` - exact bounded execution/audit instructions for the next coding-agent session.
 - Latest Issue #57 comments and the next current-head `run-*.json` - current-run evidence is authoritative for deciding the next behavior slice.
 - `src/nerve_center/plugins/job_scout/query_portfolio.py` - only local-employer and regional-probe query compilation symbols returned by the source catalog.
 - `src/nerve_center/plugins/job_scout/discovery_loop.py` - only regional-alias extraction, civic employer-landscape extraction, and employer-deepening symbols returned by the source catalog.
-- `src/nerve_center/plugins/job_scout/discovery_learning.py` - only `select_strategies` and directly related scheduler/cooldown symbols if the short gate shows local strategies are not executing.
+- `src/nerve_center/plugins/job_scout/discovery_learning.py` - only `select_strategies`, reservation logic, and directly related scheduler/cooldown symbols if the short gate shows regional/deepening lanes are not executing.
 - `scripts/run_job_scout_live.py` - only report/audit collection symbols returned by the source catalog; use to interpret or improve reusable local-acquisition diagnostics.
 
 ## Re-entry
 
 ```powershell
-python scripts/agent_context.py --focus "job scout local employer regional alias acquisition employer candidates" --issue 57
+python scripts/agent_context.py --focus "job scout local employer deepening regional alias reserved acquisition lanes" --issue 57
 ```
 
 Start with the generated packet's required reads and source-catalog matches. Query the source catalog again before broader search if a concrete dependency remains unresolved.
