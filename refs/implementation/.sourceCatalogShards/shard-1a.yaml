@@ -7,7 +7,7 @@ source_catalog:
   - path: tests/test_job_scout_query_portfolio.py
     analysis_version: 1
     language: python
-    content_hash: 03f32f488e85c7fd52224281ae2a031e5326c68b
+    content_hash: e7eb6b2f36669bc0af88bb303e9cc64753760b4f
     dependencies:
     - asyncio
     - nerve_center.config
@@ -111,7 +111,7 @@ source_catalog:
     - name: test_market_strategies_cover_employment_centers_and_region_alias_probes
       kind: function
       line_start: 127
-      line_end: 199
+      line_end: 200
       signature: 'test_market_strategies_cover_employment_centers_and_region_alias_probes(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -154,8 +154,8 @@ source_catalog:
         symbol: SourceAwareJobScoutDiscoveryLoop._seed_market_strategies
     - name: test_local_employer_deepening_resolves_career_surface_before_location
       kind: function
-      line_start: 202
-      line_end: 220
+      line_start: 203
+      line_end: 221
       signature: test_local_employer_deepening_resolves_career_surface_before_location() -> None
       inputs: []
       output: None
@@ -166,8 +166,8 @@ source_catalog:
       - *id002
     - name: test_local_employer_deepening_has_bounded_canonical_career_failbacks
       kind: function
-      line_start: 223
-      line_end: 238
+      line_start: 224
+      line_end: 239
       signature: test_local_employer_deepening_has_bounded_canonical_career_failbacks() -> None
       inputs: []
       output: None
@@ -179,8 +179,8 @@ source_catalog:
         symbol: compile_employer_deepening_queries
     - name: test_employer_query_failback_stops_at_first_direct_career_result
       kind: function
-      line_start: 241
-      line_end: 278
+      line_start: 242
+      line_end: 279
       signature: test_employer_query_failback_stops_at_first_direct_career_result() -> None
       inputs: []
       output: None
@@ -199,8 +199,8 @@ source_catalog:
         symbol: _RequestAllowance.reserve
     - name: test_employer_query_failback_stops_at_first_direct_career_result.Search.search
       kind: method
-      line_start: 243
-      line_end: 258
+      line_start: 244
+      line_end: 259
       signature: 'test_employer_query_failback_stops_at_first_direct_career_result.Search.search(self, query: str) -> list[SearchResult]'
       inputs:
       - self
@@ -213,8 +213,8 @@ source_catalog:
       dependency_targets: []
     - name: test_query_linter_rejects_contradictions_and_unsupported_requirements
       kind: function
-      line_start: 281
-      line_end: 310
+      line_start: 282
+      line_end: 311
       signature: test_query_linter_rejects_contradictions_and_unsupported_requirements() -> None
       inputs: []
       output: None
@@ -225,8 +225,8 @@ source_catalog:
       - *id002
     - name: _NoNetworkSearch.__init__
       kind: method
-      line_start: 314
-      line_end: 315
+      line_start: 315
+      line_end: 316
       signature: _NoNetworkSearch.__init__(self) -> None
       inputs:
       - self
@@ -236,8 +236,8 @@ source_catalog:
       dependency_targets: []
     - name: _NoNetworkSearch.search
       kind: method
-      line_start: 317
-      line_end: 319
+      line_start: 318
+      line_end: 320
       signature: '_NoNetworkSearch.search(self, _query: str) -> list[object]'
       inputs:
       - self
@@ -248,8 +248,8 @@ source_catalog:
       dependency_targets: []
     - name: _ConfigStore.load
       kind: method
-      line_start: 323
-      line_end: 330
+      line_start: 324
+      line_end: 331
       signature: _ConfigStore.load(self) -> JobScoutConfiguration
       inputs:
       - self
@@ -260,8 +260,8 @@ source_catalog:
       dependency_targets: []
     - name: _Coordinator.__init__
       kind: method
-      line_start: 334
-      line_end: 335
+      line_start: 335
+      line_end: 336
       signature: _Coordinator.__init__(self) -> None
       inputs:
       - self
@@ -272,8 +272,8 @@ source_catalog:
       dependency_targets: []
     - name: _Coordinator._discover_keywords
       kind: method
-      line_start: 337
-      line_end: 338
+      line_start: 338
+      line_end: 339
       signature: '_Coordinator._discover_keywords(self, _configuration: JobScoutConfiguration) -> SimpleNamespace'
       inputs:
       - self
@@ -285,8 +285,8 @@ source_catalog:
       dependency_targets: []
     - name: test_invalid_strategy_is_rejected_before_network_request
       kind: function
-      line_start: 341
-      line_end: 359
+      line_start: 342
+      line_end: 360
       signature: test_invalid_strategy_is_rejected_before_network_request() -> None
       inputs: []
       output: None
@@ -307,8 +307,8 @@ source_catalog:
         symbol: SourceAwareJobScoutDiscoveryLoop._execute_public_search
     - name: test_cross_strategy_convergence_promotes_deepening_not_fit
       kind: function
-      line_start: 362
-      line_end: 393
+      line_start: 363
+      line_end: 394
       signature: 'test_cross_strategy_convergence_promotes_deepening_not_fit(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -348,8 +348,8 @@ source_catalog:
         symbol: DiscoveryQualityRepository.record_company_evidence
     - name: test_strategy_attempt_audit_records_weight_movement
       kind: function
-      line_start: 396
-      line_end: 431
+      line_start: 397
+      line_end: 432
       signature: 'test_strategy_attempt_audit_records_weight_movement(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -380,8 +380,8 @@ source_catalog:
         symbol: DiscoveryQualityRepository.record_attempt
     - name: test_structured_refresh_gets_one_time_initial_preference
       kind: function
-      line_start: 434
-      line_end: 448
+      line_start: 435
+      line_end: 449
       signature: 'test_structured_refresh_gets_one_time_initial_preference(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -408,8 +408,8 @@ source_catalog:
       - *id010
     - name: test_due_structured_source_is_preferred_through_real_seeding_path
       kind: function
-      line_start: 451
-      line_end: 473
+      line_start: 452
+      line_end: 474
       signature: 'test_due_structured_source_is_preferred_through_real_seeding_path(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -439,8 +439,8 @@ source_catalog:
         symbol: SourceAwareJobScoutDiscoveryLoop._seed_due_source_strategies
     - name: test_unhealthy_structured_source_gets_no_initial_priority_bonus
       kind: function
-      line_start: 476
-      line_end: 499
+      line_start: 477
+      line_end: 500
       signature: 'test_unhealthy_structured_source_gets_no_initial_priority_bonus(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -466,8 +466,8 @@ source_catalog:
       - *id013
     - name: test_coverage_gaps_are_explicit_and_bounded
       kind: function
-      line_start: 502
-      line_end: 560
+      line_start: 503
+      line_end: 561
       signature: 'test_coverage_gaps_are_explicit_and_bounded(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -497,8 +497,8 @@ source_catalog:
       - *id010
     - name: test_reflection_work_is_explicitly_gap_driven
       kind: function
-      line_start: 563
-      line_end: 581
+      line_start: 564
+      line_end: 582
       signature: 'test_reflection_work_is_explicitly_gap_driven(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'

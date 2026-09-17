@@ -687,7 +687,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/query_portfolio.py
     analysis_version: 1
     language: python
-    content_hash: 93e646a86ff9dca3cc33528935bacc39625e1dd3
+    content_hash: 9afc501fc772304de73ad7690052e96d33c3bd56
     dependencies:
     - __future__
     - collections.abc
@@ -805,7 +805,7 @@ source_catalog:
     - name: compile_strategy_query
       kind: function
       line_start: 208
-      line_end: 297
+      line_end: 301
       signature: 'compile_strategy_query(dimensions: dict[str, str], evidence_terms: Iterable[str]) -> CompiledQuery'
       inputs:
       - 'dimensions: dict[str, str]'
@@ -850,8 +850,8 @@ source_catalog:
         symbol: lint_query_dimensions
     - name: compile_employer_deepening_queries
       kind: function
-      line_start: 300
-      line_end: 329
+      line_start: 304
+      line_end: 333
       signature: 'compile_employer_deepening_queries(dimensions: dict[str, str], evidence_terms: Iterable[str]) -> tuple[CompiledQuery,
         ...]'
       inputs:
@@ -875,8 +875,8 @@ source_catalog:
       - *id009
     - name: _market_search_terms
       kind: function
-      line_start: 332
-      line_end: 335
+      line_start: 336
+      line_end: 339
       signature: '_market_search_terms(value: str) -> str'
       inputs:
       - 'value: str'
@@ -889,8 +889,8 @@ source_catalog:
       dependency_targets: []
     - name: lint_query_dimensions
       kind: function
-      line_start: 338
-      line_end: 388
+      line_start: 342
+      line_end: 392
       signature: 'lint_query_dimensions(dimensions: dict[str, str], evidence_terms: Iterable[str], capabilities: SourceCapabilities
         | None) -> QueryLintResult'
       inputs:
@@ -934,8 +934,8 @@ source_catalog:
       - *id013
     - name: build_coverage_gap_profile
       kind: function
-      line_start: 391
-      line_end: 502
+      line_start: 395
+      line_end: 506
       signature: 'build_coverage_gap_profile(target_titles: list[str], keywords: list[str], locations: list[str], remote_preference:
         str, strategies: list[DiscoveryStrategySnapshot], openings: list[NormalizedJobOpening], sources: list[DiscoverySource])
         -> dict[str, list[str]]'
@@ -984,8 +984,8 @@ source_catalog:
         symbol: opening_matches_market
     - name: preferred_structured_source_ids
       kind: function
-      line_start: 505
-      line_end: 510
+      line_start: 509
+      line_end: 514
       signature: 'preferred_structured_source_ids(sources: list[DiscoverySource]) -> set[str]'
       inputs:
       - 'sources: list[DiscoverySource]'
@@ -995,8 +995,8 @@ source_catalog:
       dependency_targets: []
     - name: _source_domain_observed
       kind: function
-      line_start: 513
-      line_end: 523
+      line_start: 517
+      line_end: 527
       signature: '_source_domain_observed(domain: str, sources: list[DiscoverySource]) -> bool'
       inputs:
       - 'domain: str'
@@ -1012,8 +1012,8 @@ source_catalog:
       - *id007
     - name: _adjacent_anchors
       kind: function
-      line_start: 526
-      line_end: 547
+      line_start: 530
+      line_end: 551
       signature: '_adjacent_anchors(target_titles: list[str], capability_terms: list[str]) -> list[str]'
       inputs:
       - 'target_titles: list[str]'
@@ -1031,8 +1031,8 @@ source_catalog:
       - *id013
     - name: _seniority_variants
       kind: function
-      line_start: 550
-      line_end: 562
+      line_start: 554
+      line_end: 566
       signature: '_seniority_variants(target_titles: list[str]) -> list[str]'
       inputs:
       - 'target_titles: list[str]'
@@ -1048,8 +1048,8 @@ source_catalog:
       - *id008
     - name: _archetype_terms
       kind: function
-      line_start: 565
-      line_end: 578
+      line_start: 569
+      line_end: 582
       signature: '_archetype_terms(capability_terms: list[str]) -> list[str]'
       inputs:
       - 'capability_terms: list[str]'
@@ -1064,8 +1064,8 @@ source_catalog:
       - *id013
     - name: _seniority_levels
       kind: function
-      line_start: 581
-      line_end: 595
+      line_start: 585
+      line_end: 599
       signature: '_seniority_levels(value: str) -> list[str]'
       inputs:
       - 'value: str'
@@ -1079,8 +1079,8 @@ source_catalog:
       - *id013
     - name: _generic_anchor
       kind: function
-      line_start: 598
-      line_end: 600
+      line_start: 602
+      line_end: 604
       signature: '_generic_anchor(value: str) -> bool'
       inputs:
       - 'value: str'
@@ -1093,8 +1093,8 @@ source_catalog:
       dependency_targets: []
     - name: _split_terms
       kind: function
-      line_start: 603
-      line_end: 604
+      line_start: 607
+      line_end: 608
       signature: '_split_terms(value: str) -> list[str]'
       inputs:
       - 'value: str'
@@ -1108,8 +1108,8 @@ source_catalog:
       - *id008
     - name: _tokens
       kind: function
-      line_start: 607
-      line_end: 612
+      line_start: 611
+      line_end: 616
       signature: '_tokens(value: str) -> set[str]'
       inputs:
       - 'value: str'
@@ -1123,8 +1123,8 @@ source_catalog:
       - *id015
     - name: _normalize_term
       kind: function
-      line_start: 615
-      line_end: 621
+      line_start: 619
+      line_end: 625
       signature: '_normalize_term(value: str) -> str'
       inputs:
       - 'value: str'
@@ -1137,8 +1137,8 @@ source_catalog:
       dependency_targets: []
     - name: _normalize_phrase
       kind: function
-      line_start: 624
-      line_end: 625
+      line_start: 628
+      line_end: 629
       signature: '_normalize_phrase(value: str) -> str'
       inputs:
       - 'value: str'
@@ -1151,8 +1151,8 @@ source_catalog:
       dependency_targets: []
     - name: _coverage_overlap
       kind: function
-      line_start: 628
-      line_end: 629
+      line_start: 632
+      line_end: 633
       signature: '_coverage_overlap(left: set[str], right: set[str]) -> float'
       inputs:
       - 'left: set[str]'
@@ -1165,8 +1165,8 @@ source_catalog:
       dependency_targets: []
     - name: _clean_domain
       kind: function
-      line_start: 632
-      line_end: 637
+      line_start: 636
+      line_end: 641
       signature: '_clean_domain(value: str) -> str'
       inputs:
       - 'value: str'

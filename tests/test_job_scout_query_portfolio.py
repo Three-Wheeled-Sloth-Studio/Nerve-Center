@@ -193,7 +193,8 @@ def test_market_strategies_cover_employment_centers_and_region_alias_probes(
     ]
     regional_query = compile_strategy_query(probes[0].dimensions)
     assert regional_query.query == (
-        'Durham Chapel Hill NC "regional council" OR "regional partnership" OR "council of governments"'
+        'Durham Chapel Hill NC "regional council" OR '
+        '"regional partnership" OR "council of governments"'
     )
     assert all("volvo" not in str(item.dimensions).casefold() for item in strategies)
     assert all("wolfspeed" not in str(item.dimensions).casefold() for item in strategies)

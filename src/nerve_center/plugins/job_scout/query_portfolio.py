@@ -229,8 +229,12 @@ def compile_strategy_query(
 
     if dimensions.get("hypothesis_family") == "regional_alias_probe":
         market_terms = _market_search_terms(anchor)
+        regional_query = (
+            f'{market_terms} "regional council" OR '
+            '"regional partnership" OR "council of governments"'
+        )
         return CompiledQuery(
-            f'{market_terms} "regional council" OR "regional partnership" OR "council of governments"',
+            regional_query,
             "broad_web_reference",
             tuple(clean_list(warnings)),
             True,
