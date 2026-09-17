@@ -858,3 +858,18 @@ def test_exhaustion_reflects_then_accepts_manager_routed_strategy(tmp_path: Path
     assert created == 1
     assert learning.reflection_request("request-1")["status"] == "applied"
     assert learning.session("run-1").coverage["reflection_hypotheses"] == 1
+
+def test_employer_landscape_ignores_navigation_subheadings_and_social_links() -> None:
+    names = _extract_employer_landscape_names(
+        """
+        <h1>Major Employers</h1>
+        <h2>In this section</h2>
+        <h2>Strategic Location</h2>
+        <ul><li>Facebook</li><li>LinkedIn</li></ul>
+        <table><tr><td>Example Systems</td></tr></table>
+        <h1>Contact</h1>
+        """
+    )
+
+    assert names == ["Example Systems"]
+

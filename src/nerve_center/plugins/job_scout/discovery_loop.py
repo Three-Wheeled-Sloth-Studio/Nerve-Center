@@ -1344,9 +1344,18 @@ def _extract_employer_landscape_names(
         candidate = " ".join(text.split()).strip(" |:-")
         key = candidate.casefold()
         if (
-            not 2 <= len(candidate) <= 100
+            (level is not None and level < marker_level + 2)
+            or not 2 <= len(candidate) <= 100
             or not 1 <= len(candidate.split()) <= 10
             or key in seen
+            or key in {
+                "facebook",
+                "instagram",
+                "linkedin",
+                "please follow us",
+                "twitter",
+                "youtube",
+            }
             or key.startswith(("contact ", "learn ", "about "))
             or (tag in {"li", "td"} and len(candidate.split()) > 8)
         ):

@@ -780,3 +780,69 @@ def test_new_market_reference_revision_bypasses_prior_revision_cooldown(
     assert stale_local.id not in selected_ids
     assert stale_regional.id not in selected_ids
 
+def test_reserved_acquisition_lanes_can_displace_extra_company_revisits(
+    tmp_path: Path,
+) -> None:
+    learning = JobScoutDiscoveryRepository(_database(tmp_path))
+    companies = [
+        learning.ensure_strategy(
+            {"kind": "company_revisit", "company_id": f"company-{index}"},
+            origin="known_company",
+            base_weight=4.0,
+        )
+        for index in range(6)
+    ]
+    local = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer",
+            "anchor": "major employers",
+            "location": "Example, NC",
+            "source_domain": "web",
+            "market_kind": "configured",
+            "market_rank": "0",
+            "query_revision": "market_reference_v6",
+        },
+        origin="market",
+        base_weight=0.2,
+    )
+    employer = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer_deepen",
+            "anchor": "Example Systems",
+            "location": "Example, NC",
+            "source_domain": "web",
+            "employer_evidence_authority": "civic",
+        },
+        origin="public_employer_landscape_evidence",
+        base_weight=0.2,
+    )
+    regional = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "regional_alias_probe",
+            "anchor": "Example, NC Metro Area",
+            "source_domain": "web",
+            "market_kind": "metro_alias",
+            "market_rank": "1",
+            "query_revision": "market_reference_v6",
+        },
+        origin="public_regional_alias_probe",
+        base_weight=0.2,
+    )
+
+    selected = learning.select_strategies(
+        "run-1", limit=4, exploration_floor=0.0
+    )
+    selected_ids = {item.id for item in selected}
+
+    assert local.id in selected_ids
+    assert employer.id in selected_ids
+    assert regional.id in selected_ids
+    assert sum(
+        item.dimensions.get("kind") == "company_revisit"
+        for item in selected
+    ) == 1
+    assert selected_ids & {item.id for item in companies}
+

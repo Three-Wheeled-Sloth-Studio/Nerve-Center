@@ -108,7 +108,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/discovery_learning.py
     analysis_version: 1
     language: python
-    content_hash: 82014cf7391c9b726e282b17cfd153dc7f50a2db
+    content_hash: 21690405446c555a87cdc1ade2d5a8920d80c46c
     dependencies:
     - __future__
     - dataclasses
@@ -1045,7 +1045,7 @@ source_catalog:
     - name: _reserve_strategy
       kind: function
       line_start: 1214
-      line_end: 1243
+      line_end: 1254
       signature: '_reserve_strategy(selected: list[DiscoveryStrategyModel], candidate: DiscoveryStrategyModel, protected_families:
         set[str], replace_families: set[str]) -> None'
       inputs:
@@ -1056,6 +1056,7 @@ source_catalog:
       output: None
       dependencies:
       - any
+      - candidate.dimensions.get
       - enumerate
       - item.dimensions.get
       - len
@@ -1066,8 +1067,8 @@ source_catalog:
       dependency_targets: []
     - name: _utc_sort_value
       kind: function
-      line_start: 1246
-      line_end: 1249
+      line_start: 1257
+      line_end: 1260
       signature: '_utc_sort_value(value: datetime | None) -> float'
       inputs:
       - 'value: datetime | None'
@@ -1082,8 +1083,8 @@ source_catalog:
       - *id018
     - name: _as_utc
       kind: function
-      line_start: 1252
-      line_end: 1253
+      line_start: 1263
+      line_end: 1264
       signature: '_as_utc(value: datetime) -> datetime'
       inputs:
       - 'value: datetime'
@@ -1094,8 +1095,8 @@ source_catalog:
       dependency_targets: []
     - name: _as_utc_optional
       kind: function
-      line_start: 1256
-      line_end: 1257
+      line_start: 1267
+      line_end: 1268
       signature: '_as_utc_optional(value: datetime | None) -> datetime | None'
       inputs:
       - 'value: datetime | None'
@@ -1109,8 +1110,8 @@ source_catalog:
       - *id018
     - name: _clamp
       kind: function
-      line_start: 1260
-      line_end: 1261
+      line_start: 1271
+      line_end: 1272
       signature: '_clamp(value: float, minimum: float, maximum: float) -> float'
       inputs:
       - 'value: float'

@@ -493,7 +493,7 @@ source_catalog:
   - path: tests/test_job_scout_discovery_learning.py
     analysis_version: 1
     language: python
-    content_hash: 2d42ad43f61b4ec46fc7272c9eddbdc6fa4cc8e8
+    content_hash: 77d5cdf943fa7dbf1db7b9782d9df4bdf74455e6
     dependencies:
     - datetime
     - nerve_center.applications.models
@@ -523,6 +523,7 @@ source_catalog:
     - test_application_feedback_updates_discovery_strategy_without_ranking_mutation
     - test_session_coverage_and_reflection_state_are_restart_safe
     - test_new_market_reference_revision_bypasses_prior_revision_cooldown
+    - test_reserved_acquisition_lanes_can_displace_extra_company_revisits
     symbols:
     - name: _database
       kind: function
@@ -1034,4 +1035,28 @@ source_catalog:
       - *id009
       - *id010
       - *id011
+      - *id012
+    - name: test_reserved_acquisition_lanes_can_displace_extra_company_revisits
+      kind: function
+      line_start: 783
+      line_end: 847
+      signature: 'test_reserved_acquisition_lanes_can_displace_extra_company_revisits(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - JobScoutDiscoveryRepository
+      - _database
+      - item.dimensions.get
+      - learning.ensure_strategy
+      - learning.select_strategies
+      - range
+      - sum
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id009
       - *id012

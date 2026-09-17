@@ -378,7 +378,7 @@ source_catalog:
   - path: tests/test_job_scout_discovery_loop.py
     analysis_version: 1
     language: python
-    content_hash: a820f4cf27f227f32c6922d78303516e48671147
+    content_hash: 4097d0520df71b60f4d3f218985bf48c699258d5
     dependencies:
     - asyncio
     - nerve_center.config
@@ -439,6 +439,7 @@ source_catalog:
     - test_major_board_results_are_retained_as_secondary_provenance
     - test_search_challenge_does_not_block_known_source_path
     - test_exhaustion_reflects_then_accepts_manager_routed_strategy
+    - test_employer_landscape_ignores_navigation_subheadings_and_social_links
     symbols:
     - name: _FixtureConnector.__init__
       kind: method
@@ -1338,6 +1339,18 @@ source_catalog:
         symbol: JobScoutDiscoveryLoop.reflection_work_request
       - path: src/nerve_center/plugins/job_scout/discovery_quality.py
         symbol: SourceAwareJobScoutDiscoveryLoop.reflection_work_request
+    - name: test_employer_landscape_ignores_navigation_subheadings_and_social_links
+      kind: function
+      line_start: 862
+      line_end: 874
+      signature: test_employer_landscape_ignores_navigation_subheadings_and_social_links() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - _extract_employer_landscape_names
+      parser: python-ast
+      dependency_targets:
+      - *id018
   - path: tests/test_ollama_provider.py
     analysis_version: 1
     language: python

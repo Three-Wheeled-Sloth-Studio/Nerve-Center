@@ -1239,6 +1239,17 @@ def _reserve_strategy(
             ),
             None,
         )
+    if (
+        replace_at is None
+        and candidate.dimensions.get("kind") != "company_revisit"
+    ):
+        company_indexes = [
+            index
+            for index, item in enumerate(selected)
+            if item.dimensions.get("kind") == "company_revisit"
+        ]
+        if len(company_indexes) > 1:
+            replace_at = company_indexes[-1]
     if replace_at is not None:
         selected[replace_at] = candidate
 

@@ -568,7 +568,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/discovery_loop.py
     analysis_version: 1
     language: python
-    content_hash: b0016a7ebb29720b23f44ba7299725e44ee42659
+    content_hash: 175d4ea41f70c6fd5db126436e9e0e852cd13a74
     dependencies:
     - __future__
     - dataclasses
@@ -1587,7 +1587,7 @@ source_catalog:
     - name: _extract_employer_landscape_names
       kind: function
       line_start: 1313
-      line_end: 1358
+      line_end: 1367
       signature: '_extract_employer_landscape_names(content: str, content_type: str) -> list[str]'
       inputs:
       - 'content: str'
@@ -1622,8 +1622,8 @@ source_catalog:
       - *id018
     - name: _as_reference_document
       kind: function
-      line_start: 1361
-      line_end: 1369
+      line_start: 1370
+      line_end: 1378
       signature: '_as_reference_document(url: str, fetched: Any) -> ReferenceDocument'
       inputs:
       - 'url: str'
@@ -1637,8 +1637,8 @@ source_catalog:
       dependency_targets: []
     - name: _extract_structured_employer_names
       kind: function
-      line_start: 1372
-      line_end: 1462
+      line_start: 1381
+      line_end: 1471
       signature: '_extract_structured_employer_names(content: str, content_type: str) -> list[str]'
       inputs:
       - 'content: str'
@@ -1675,8 +1675,8 @@ source_catalog:
       - *id006
     - name: _extract_structured_employer_names.add
       kind: function
-      line_start: 1396
-      line_end: 1401
+      line_start: 1405
+      line_end: 1410
       signature: '_extract_structured_employer_names.add(value: Any) -> None'
       inputs:
       - 'value: Any'
@@ -1695,8 +1695,8 @@ source_catalog:
       - *id006
     - name: _extract_structured_employer_names.walk
       kind: function
-      line_start: 1403
-      line_end: 1458
+      line_start: 1412
+      line_end: 1467
       signature: '_extract_structured_employer_names.walk(value: Any, directory_context: bool, organization_context: bool)
         -> None'
       inputs:
@@ -1720,8 +1720,8 @@ source_catalog:
       - *id018
     - name: _is_civic_reference_result
       kind: function
-      line_start: 1465
-      line_end: 1473
+      line_start: 1474
+      line_end: 1482
       signature: '_is_civic_reference_result(result: Any) -> bool'
       inputs:
       - 'result: Any'
@@ -1738,8 +1738,8 @@ source_catalog:
       dependency_targets: []
     - name: _civic_reference_rank
       kind: function
-      line_start: 1476
-      line_end: 1485
+      line_start: 1485
+      line_end: 1494
       signature: '_civic_reference_rank(result: Any) -> tuple[int, str]'
       inputs:
       - 'result: Any'
@@ -1755,8 +1755,8 @@ source_catalog:
       dependency_targets: []
     - name: _reflection_schema
       kind: function
-      line_start: 1488
-      line_end: 1511
+      line_start: 1497
+      line_end: 1520
       signature: _reflection_schema() -> dict[str, Any]
       inputs: []
       output: dict[str, Any]
