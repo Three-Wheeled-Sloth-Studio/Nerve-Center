@@ -398,7 +398,7 @@ def test_market_exploration_prefers_current_query_revision(tmp_path: Path) -> No
             "location": "Current Market, NC",
             "source_domain": "web",
             "market_rank": "1",
-            "query_revision": "market_reference_v5",
+            "query_revision": "market_reference_v6",
         },
         origin="market",
     )
@@ -420,7 +420,7 @@ def test_current_market_attempt_moves_selection_to_next_market(tmp_path: Path) -
             "location": "First Market, NC",
             "source_domain": "web",
             "market_rank": "0",
-            "query_revision": "market_reference_v5",
+            "query_revision": "market_reference_v6",
         },
         origin="market",
     )
@@ -432,7 +432,7 @@ def test_current_market_attempt_moves_selection_to_next_market(tmp_path: Path) -
             "location": "First Market, NC",
             "source_domain": "web",
             "market_rank": "0",
-            "query_revision": "market_reference_v5",
+            "query_revision": "market_reference_v6",
         },
         origin="market",
     )
@@ -444,7 +444,7 @@ def test_current_market_attempt_moves_selection_to_next_market(tmp_path: Path) -
             "location": "Second Market, NC",
             "source_domain": "web",
             "market_rank": "1",
-            "query_revision": "market_reference_v5",
+            "query_revision": "market_reference_v6",
         },
         origin="market",
     )
@@ -691,3 +691,92 @@ def test_session_coverage_and_reflection_state_are_restart_safe(tmp_path: Path) 
     }
     restarted.mark_reflection_applied("request-1")
     assert restarted.reflection_request("request-1")["status"] == "applied"
+
+
+def test_new_market_reference_revision_bypasses_prior_revision_cooldown(
+    tmp_path: Path,
+) -> None:
+    learning = JobScoutDiscoveryRepository(_database(tmp_path))
+    attempted_at = datetime(2026, 9, 17, 12, 0, tzinfo=UTC)
+    stale_local = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer",
+            "anchor": "major employers",
+            "location": "Example, NC",
+            "source_domain": "web",
+            "source_path": "broad_web",
+            "market_rank": "0",
+            "query_revision": "market_reference_v5",
+        },
+        origin="market",
+    )
+    stale_regional = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "regional_alias_probe",
+            "anchor": "Example, NC Metro Area",
+            "source_domain": "web",
+            "source_path": "broad_web_reference",
+            "market_rank": "1",
+            "query_revision": "market_reference_v5",
+        },
+        origin="market",
+    )
+    learning.record_attempt(
+        "prior-run",
+        1,
+        stale_local.id,
+        "expand",
+        StrategyOutcome(),
+        finished_at=attempted_at,
+    )
+    learning.record_attempt(
+        "prior-run",
+        2,
+        stale_regional.id,
+        "expand",
+        StrategyOutcome(),
+        finished_at=attempted_at,
+    )
+
+    current_local = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer",
+            "anchor": "major employers",
+            "location": "Example, NC",
+            "source_domain": "web",
+            "source_path": "broad_web",
+            "market_rank": "0",
+            "query_revision": "market_reference_v6",
+        },
+        origin="market",
+    )
+    current_regional = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "regional_alias_probe",
+            "anchor": "Example, NC Metro Area",
+            "source_domain": "web",
+            "source_path": "broad_web_reference",
+            "market_rank": "1",
+            "query_revision": "market_reference_v6",
+        },
+        origin="market",
+    )
+
+    selected = learning.select_strategies(
+        "current-run",
+        limit=4,
+        exploration_floor=0.25,
+        revisit_after_seconds=86400,
+        now=attempted_at + timedelta(minutes=5),
+    )
+    selected_ids = {item.id for item in selected}
+
+    assert current_local.id in selected_ids
+    assert current_regional.id in selected_ids
+    assert stale_local.id not in selected_ids
+    assert stale_regional.id not in selected_ids
+

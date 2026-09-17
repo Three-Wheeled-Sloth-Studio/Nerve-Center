@@ -267,7 +267,7 @@ DEFAULT_COVERAGE: dict[str, Any] = {
     "provider_warnings": [],
 }
 
-MARKET_REFERENCE_QUERY_REVISION = "market_reference_v5"
+MARKET_REFERENCE_QUERY_REVISION = "market_reference_v6"
 
 
 _FEEDBACK_MAGNITUDE = {
@@ -1033,9 +1033,27 @@ def _canonical_public_search_ids(
             continue
         identity = (compiled.source_path, compiled.query.casefold())
         existing = canonical.get(identity)
-        if existing is None or (model.created_at, model.id) < (
-            existing.created_at,
-            existing.id,
+        model_is_current_market = (
+            model.dimensions.get("hypothesis_family")
+            in {"local_employer", "regional_alias_probe"}
+            and model.dimensions.get("query_revision")
+            == MARKET_REFERENCE_QUERY_REVISION
+        )
+        existing_is_current_market = (
+            existing is not None
+            and existing.dimensions.get("hypothesis_family")
+            in {"local_employer", "regional_alias_probe"}
+            and existing.dimensions.get("query_revision")
+            == MARKET_REFERENCE_QUERY_REVISION
+        )
+        if (
+            existing is None
+            or (model_is_current_market and not existing_is_current_market)
+            or (
+                model_is_current_market == existing_is_current_market
+                and (model.created_at, model.id)
+                < (existing.created_at, existing.id)
+            )
         ):
             canonical[identity] = model
     return {*retained, *(item.id for item in canonical.values())}

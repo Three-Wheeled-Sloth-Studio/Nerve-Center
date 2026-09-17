@@ -108,7 +108,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/discovery_learning.py
     analysis_version: 1
     language: python
-    content_hash: 2286c4d9ecd3c38f61f3ad2b61c0d1668d898b3f
+    content_hash: 82014cf7391c9b726e282b17cfd153dc7f50a2db
     dependencies:
     - __future__
     - dataclasses
@@ -846,7 +846,7 @@ source_catalog:
     - name: _canonical_public_search_ids
       kind: function
       line_start: 1018
-      line_end: 1041
+      line_end: 1059
       signature: '_canonical_public_search_ids(models: list[DiscoveryStrategyModel]) -> set[str]'
       inputs:
       - 'models: list[DiscoveryStrategyModel]'
@@ -857,6 +857,7 @@ source_catalog:
       - compile_strategy_query
       - compiled.query.casefold
       - dict
+      - existing.dimensions.get
       - model.dimensions.get
       - retained.add
       - set
@@ -867,8 +868,8 @@ source_catalog:
       - *id010
     - name: _strategy_snapshot
       kind: function
-      line_start: 1044
-      line_end: 1062
+      line_start: 1062
+      line_end: 1080
       signature: '_strategy_snapshot(model: DiscoveryStrategyModel) -> DiscoveryStrategySnapshot'
       inputs:
       - 'model: DiscoveryStrategyModel'
@@ -884,8 +885,8 @@ source_catalog:
         symbol: _as_utc_optional
     - name: _coverage_snapshot
       kind: function
-      line_start: 1065
-      line_end: 1072
+      line_start: 1083
+      line_end: 1090
       signature: '_coverage_snapshot(model: DiscoverySessionModel) -> DiscoveryCoverageSnapshot'
       inputs:
       - 'model: DiscoverySessionModel'
@@ -898,8 +899,8 @@ source_catalog:
       - *id014
     - name: _new_coverage
       kind: function
-      line_start: 1075
-      line_end: 1076
+      line_start: 1093
+      line_end: 1094
       signature: _new_coverage() -> dict[str, Any]
       inputs: []
       output: dict[str, Any]
@@ -908,8 +909,8 @@ source_catalog:
       dependency_targets: []
     - name: _merge_coverage
       kind: function
-      line_start: 1079
-      line_end: 1099
+      line_start: 1097
+      line_end: 1117
       signature: '_merge_coverage(current: dict[str, Any] | None, increments: dict[str, int] | None, warnings: list[str] |
         None) -> dict[str, Any]'
       inputs:
@@ -937,8 +938,8 @@ source_catalog:
       - *id001
     - name: _strategy_ids_for_job
       kind: function
-      line_start: 1102
-      line_end: 1118
+      line_start: 1120
+      line_end: 1136
       signature: '_strategy_ids_for_job(session: Any, job_id: str) -> set[str]'
       inputs:
       - 'session: Any'
@@ -963,8 +964,8 @@ source_catalog:
       - *id005
     - name: _attempt_target_weight
       kind: function
-      line_start: 1121
-      line_end: 1136
+      line_start: 1139
+      line_end: 1154
       signature: '_attempt_target_weight(outcome: StrategyOutcome) -> float'
       inputs:
       - 'outcome: StrategyOutcome'
@@ -979,8 +980,8 @@ source_catalog:
       - *id009
     - name: _strategy_score
       kind: function
-      line_start: 1139
-      line_end: 1173
+      line_start: 1157
+      line_end: 1191
       signature: '_strategy_score(model: DiscoveryStrategyModel, now: datetime, family_weight: float) -> float'
       inputs:
       - 'model: DiscoveryStrategyModel'
@@ -1000,8 +1001,8 @@ source_catalog:
       - *id018
     - name: _normalized_market
       kind: function
-      line_start: 1176
-      line_end: 1177
+      line_start: 1194
+      line_end: 1195
       signature: '_normalized_market(model: DiscoveryStrategyModel) -> str'
       inputs:
       - 'model: DiscoveryStrategyModel'
@@ -1016,8 +1017,8 @@ source_catalog:
       dependency_targets: []
     - name: _market_kind_priority
       kind: function
-      line_start: 1180
-      line_end: 1186
+      line_start: 1198
+      line_end: 1204
       signature: '_market_kind_priority(model: DiscoveryStrategyModel) -> int'
       inputs:
       - 'model: DiscoveryStrategyModel'
@@ -1030,8 +1031,8 @@ source_catalog:
       dependency_targets: []
     - name: _market_rank
       kind: function
-      line_start: 1189
-      line_end: 1193
+      line_start: 1207
+      line_end: 1211
       signature: '_market_rank(model: DiscoveryStrategyModel) -> int'
       inputs:
       - 'model: DiscoveryStrategyModel'
@@ -1043,8 +1044,8 @@ source_catalog:
       dependency_targets: []
     - name: _reserve_strategy
       kind: function
-      line_start: 1196
-      line_end: 1225
+      line_start: 1214
+      line_end: 1243
       signature: '_reserve_strategy(selected: list[DiscoveryStrategyModel], candidate: DiscoveryStrategyModel, protected_families:
         set[str], replace_families: set[str]) -> None'
       inputs:
@@ -1065,8 +1066,8 @@ source_catalog:
       dependency_targets: []
     - name: _utc_sort_value
       kind: function
-      line_start: 1228
-      line_end: 1231
+      line_start: 1246
+      line_end: 1249
       signature: '_utc_sort_value(value: datetime | None) -> float'
       inputs:
       - 'value: datetime | None'
@@ -1081,8 +1082,8 @@ source_catalog:
       - *id018
     - name: _as_utc
       kind: function
-      line_start: 1234
-      line_end: 1235
+      line_start: 1252
+      line_end: 1253
       signature: '_as_utc(value: datetime) -> datetime'
       inputs:
       - 'value: datetime'
@@ -1093,8 +1094,8 @@ source_catalog:
       dependency_targets: []
     - name: _as_utc_optional
       kind: function
-      line_start: 1238
-      line_end: 1239
+      line_start: 1256
+      line_end: 1257
       signature: '_as_utc_optional(value: datetime | None) -> datetime | None'
       inputs:
       - 'value: datetime | None'
@@ -1108,8 +1109,8 @@ source_catalog:
       - *id018
     - name: _clamp
       kind: function
-      line_start: 1242
-      line_end: 1243
+      line_start: 1260
+      line_end: 1261
       signature: '_clamp(value: float, minimum: float, maximum: float) -> float'
       inputs:
       - 'value: float'

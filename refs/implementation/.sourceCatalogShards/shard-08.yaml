@@ -493,7 +493,7 @@ source_catalog:
   - path: tests/test_job_scout_discovery_learning.py
     analysis_version: 1
     language: python
-    content_hash: 1ae530442035fa0b71e3273f1ecf333566b326b6
+    content_hash: 2d42ad43f61b4ec46fc7272c9eddbdc6fa4cc8e8
     dependencies:
     - datetime
     - nerve_center.applications.models
@@ -522,6 +522,7 @@ source_catalog:
     - test_company_is_retained_as_strategy_evidence_with_zero_openings
     - test_application_feedback_updates_discovery_strategy_without_ranking_mutation
     - test_session_coverage_and_reflection_state_are_restart_safe
+    - test_new_market_reference_revision_bypasses_prior_revision_cooldown
     symbols:
     - name: _database
       kind: function
@@ -1007,3 +1008,30 @@ source_catalog:
         symbol: Database.session
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.session
+    - name: test_new_market_reference_revision_bypasses_prior_revision_cooldown
+      kind: function
+      line_start: 696
+      line_end: 781
+      signature: 'test_new_market_reference_revision_bypasses_prior_revision_cooldown(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - JobScoutDiscoveryRepository
+      - StrategyOutcome
+      - _database
+      - datetime
+      - learning.ensure_strategy
+      - learning.record_attempt
+      - learning.select_strategies
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - *id010
+      - *id011
+      - *id012
