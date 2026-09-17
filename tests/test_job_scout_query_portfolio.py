@@ -169,7 +169,7 @@ def test_market_strategies_cover_employment_centers_and_region_alias_probes(
     assert durham.dimensions["market_kind"] == "metro_core"
     assert durham.dimensions["market_distance_miles"] == "50.0"
     assert durham.dimensions["market_rank"] == "1"
-    assert durham.dimensions["query_revision"] == "market_reference_v5"
+    assert durham.dimensions["query_revision"] == "market_reference_v6"
     landscape_query = compile_strategy_query(durham.dimensions)
     assert landscape_query.source_path == "broad_web_reference"
     assert landscape_query.query == 'Durham NC "major employers"'
