@@ -26,6 +26,7 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
+          from textwrap import dedent
 
           source = Path("src/nerve_center/plugins/job_scout/discovery_learning.py")
           text = source.read_text(encoding="utf-8")
@@ -37,92 +38,94 @@ jobs:
 
           test = Path("tests/test_job_scout_discovery_learning.py")
           text = test.read_text(encoding="utf-8")
-          addition = r'''
+          addition = dedent(
+              '''
 
 
-def test_new_market_reference_revision_bypasses_prior_revision_cooldown(
-    tmp_path: Path,
-) -> None:
-    learning = JobScoutDiscoveryRepository(_database(tmp_path))
-    attempted_at = datetime(2026, 9, 17, 12, 0, tzinfo=UTC)
-    stale_local = learning.ensure_strategy(
-        {
-            "kind": "public_search",
-            "hypothesis_family": "local_employer",
-            "anchor": "major employers",
-            "location": "Example, NC",
-            "source_domain": "web",
-            "market_rank": "0",
-            "query_revision": "market_reference_v5",
-        },
-        origin="market",
-    )
-    stale_regional = learning.ensure_strategy(
-        {
-            "kind": "public_search",
-            "hypothesis_family": "regional_alias_probe",
-            "anchor": "Example, NC Metro Area",
-            "source_domain": "web",
-            "market_rank": "1",
-            "query_revision": "market_reference_v5",
-        },
-        origin="market",
-    )
-    learning.record_attempt(
-        "prior-run",
-        1,
-        stale_local.id,
-        "expand",
-        StrategyOutcome(),
-        finished_at=attempted_at,
-    )
-    learning.record_attempt(
-        "prior-run",
-        2,
-        stale_regional.id,
-        "expand",
-        StrategyOutcome(),
-        finished_at=attempted_at,
-    )
+              def test_new_market_reference_revision_bypasses_prior_revision_cooldown(
+                  tmp_path: Path,
+              ) -> None:
+                  learning = JobScoutDiscoveryRepository(_database(tmp_path))
+                  attempted_at = datetime(2026, 9, 17, 12, 0, tzinfo=UTC)
+                  stale_local = learning.ensure_strategy(
+                      {
+                          "kind": "public_search",
+                          "hypothesis_family": "local_employer",
+                          "anchor": "major employers",
+                          "location": "Example, NC",
+                          "source_domain": "web",
+                          "market_rank": "0",
+                          "query_revision": "market_reference_v5",
+                      },
+                      origin="market",
+                  )
+                  stale_regional = learning.ensure_strategy(
+                      {
+                          "kind": "public_search",
+                          "hypothesis_family": "regional_alias_probe",
+                          "anchor": "Example, NC Metro Area",
+                          "source_domain": "web",
+                          "market_rank": "1",
+                          "query_revision": "market_reference_v5",
+                      },
+                      origin="market",
+                  )
+                  learning.record_attempt(
+                      "prior-run",
+                      1,
+                      stale_local.id,
+                      "expand",
+                      StrategyOutcome(),
+                      finished_at=attempted_at,
+                  )
+                  learning.record_attempt(
+                      "prior-run",
+                      2,
+                      stale_regional.id,
+                      "expand",
+                      StrategyOutcome(),
+                      finished_at=attempted_at,
+                  )
 
-    current_local = learning.ensure_strategy(
-        {
-            "kind": "public_search",
-            "hypothesis_family": "local_employer",
-            "anchor": "major employers",
-            "location": "Example, NC",
-            "source_domain": "web",
-            "market_rank": "0",
-            "query_revision": "market_reference_v6",
-        },
-        origin="market",
-    )
-    current_regional = learning.ensure_strategy(
-        {
-            "kind": "public_search",
-            "hypothesis_family": "regional_alias_probe",
-            "anchor": "Example, NC Metro Area",
-            "source_domain": "web",
-            "market_rank": "1",
-            "query_revision": "market_reference_v6",
-        },
-        origin="market",
-    )
+                  current_local = learning.ensure_strategy(
+                      {
+                          "kind": "public_search",
+                          "hypothesis_family": "local_employer",
+                          "anchor": "major employers",
+                          "location": "Example, NC",
+                          "source_domain": "web",
+                          "market_rank": "0",
+                          "query_revision": "market_reference_v6",
+                      },
+                      origin="market",
+                  )
+                  current_regional = learning.ensure_strategy(
+                      {
+                          "kind": "public_search",
+                          "hypothesis_family": "regional_alias_probe",
+                          "anchor": "Example, NC Metro Area",
+                          "source_domain": "web",
+                          "market_rank": "1",
+                          "query_revision": "market_reference_v6",
+                      },
+                      origin="market",
+                  )
 
-    selected = learning.select_strategies(
-        "current-run",
-        limit=4,
-        exploration_floor=0.25,
-        revisit_after_seconds=86400,
-        now=attempted_at + timedelta(minutes=5),
-    )
-    selected_ids = {item.id for item in selected}
+                  selected = learning.select_strategies(
+                      "current-run",
+                      limit=4,
+                      exploration_floor=0.25,
+                      revisit_after_seconds=86400,
+                      now=attempted_at + timedelta(minutes=5),
+                  )
+                  selected_ids = {item.id for item in selected}
 
-    assert current_local.id in selected_ids
-    assert current_regional.id in selected_ids
-    assert stale_local.id not in selected_ids
-    assert stale_regional.id not in selected_ids
-'''
+                  assert current_local.id in selected_ids
+                  assert current_regional.id in selected_ids
+                  assert stale_local.id not in selected_ids
+                  assert stale_regional.id not in selected_ids
+              '''
+          )
           if "test_new_market_reference_revision_bypasses_prior_revision_cooldown" in text:
               raise SystemExit("regression test already present")
           test.write_text(text.rstrip() + addition + "\n", encoding="utf-8")
