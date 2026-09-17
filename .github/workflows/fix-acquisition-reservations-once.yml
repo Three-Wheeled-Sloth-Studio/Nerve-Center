@@ -26,66 +26,68 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
+          from textwrap import dedent
 
           learning_path = Path("src/nerve_center/plugins/job_scout/discovery_learning.py")
           learning = learning_path.read_text(encoding="utf-8")
-          old_reserve = '''    if replace_at is not None:
-              selected[replace_at] = candidate
-          '''
-          new_reserve = '''    if (
-              replace_at is None
-              and candidate.dimensions.get("kind") != "company_revisit"
-          ):
-              company_indexes = [
-                  index
-                  for index, item in enumerate(selected)
-                  if item.dimensions.get("kind") == "company_revisit"
-              ]
-              if len(company_indexes) > 1:
-                  replace_at = company_indexes[-1]
-          if replace_at is not None:
-              selected[replace_at] = candidate
-          '''
+          old_reserve = "    if replace_at is not None:\n        selected[replace_at] = candidate\n"
+          new_reserve = (
+              "    if (\n"
+              "        replace_at is None\n"
+              "        and candidate.dimensions.get(\"kind\") != \"company_revisit\"\n"
+              "    ):\n"
+              "        company_indexes = [\n"
+              "            index\n"
+              "            for index, item in enumerate(selected)\n"
+              "            if item.dimensions.get(\"kind\") == \"company_revisit\"\n"
+              "        ]\n"
+              "        if len(company_indexes) > 1:\n"
+              "            replace_at = company_indexes[-1]\n"
+              "    if replace_at is not None:\n"
+              "        selected[replace_at] = candidate\n"
+          )
           if old_reserve not in learning:
               raise SystemExit("reserve replacement target not found")
-          learning = learning.replace(old_reserve, new_reserve, 1)
-          learning_path.write_text(learning, encoding="utf-8")
+          learning_path.write_text(
+              learning.replace(old_reserve, new_reserve, 1), encoding="utf-8"
+          )
 
           loop_path = Path("src/nerve_center/plugins/job_scout/discovery_loop.py")
           loop = loop_path.read_text(encoding="utf-8")
-          old_filter = '''        if (
-              not 2 <= len(candidate) <= 100
-              or not 1 <= len(candidate.split()) <= 10
-              or key in seen
-              or key.startswith(("contact ", "learn ", "about "))
-              or (tag in {"li", "td"} and len(candidate.split()) > 8)
-          ):
-          '''
-          new_filter = '''        if (
-              (level is not None and level < marker_level + 2)
-              or not 2 <= len(candidate) <= 100
-              or not 1 <= len(candidate.split()) <= 10
-              or key in seen
-              or key in {
-                  "facebook",
-                  "instagram",
-                  "linkedin",
-                  "please follow us",
-                  "twitter",
-                  "youtube",
-              }
-              or key.startswith(("contact ", "learn ", "about "))
-              or (tag in {"li", "td"} and len(candidate.split()) > 8)
-          ):
-          '''
+          old_filter = (
+              "        if (\n"
+              "            not 2 <= len(candidate) <= 100\n"
+              "            or not 1 <= len(candidate.split()) <= 10\n"
+              "            or key in seen\n"
+              "            or key.startswith((\"contact \", \"learn \", \"about \"))\n"
+              "            or (tag in {\"li\", \"td\"} and len(candidate.split()) > 8)\n"
+              "        ):\n"
+          )
+          new_filter = (
+              "        if (\n"
+              "            (level is not None and level < marker_level + 2)\n"
+              "            or not 2 <= len(candidate) <= 100\n"
+              "            or not 1 <= len(candidate.split()) <= 10\n"
+              "            or key in seen\n"
+              "            or key in {\n"
+              "                \"facebook\",\n"
+              "                \"instagram\",\n"
+              "                \"linkedin\",\n"
+              "                \"please follow us\",\n"
+              "                \"twitter\",\n"
+              "                \"youtube\",\n"
+              "            }\n"
+              "            or key.startswith((\"contact \", \"learn \", \"about \"))\n"
+              "            or (tag in {\"li\", \"td\"} and len(candidate.split()) > 8)\n"
+              "        ):\n"
+          )
           if old_filter not in loop:
               raise SystemExit("employer filter target not found")
-          loop = loop.replace(old_filter, new_filter, 1)
-          loop_path.write_text(loop, encoding="utf-8")
+          loop_path.write_text(loop.replace(old_filter, new_filter, 1), encoding="utf-8")
 
           learning_test_path = Path("tests/test_job_scout_discovery_learning.py")
           learning_tests = learning_test_path.read_text(encoding="utf-8")
-          learning_test = '''
+          learning_test = dedent('''
 
           def test_reserved_acquisition_lanes_can_displace_extra_company_revisits(
               tmp_path: Path,
@@ -152,16 +154,15 @@ jobs:
                   for item in selected
               ) == 1
               assert selected_ids & {item.id for item in companies}
-          '''
+          ''')
           if "def test_reserved_acquisition_lanes_can_displace_extra_company_revisits" not in learning_tests:
               learning_test_path.write_text(
-                  learning_tests.rstrip() + learning_test + "\n",
-                  encoding="utf-8",
+                  learning_tests.rstrip() + learning_test + "\n", encoding="utf-8"
               )
 
           loop_test_path = Path("tests/test_job_scout_discovery_loop.py")
           loop_tests = loop_test_path.read_text(encoding="utf-8")
-          loop_test = '''
+          loop_test = dedent('''
 
           def test_employer_landscape_ignores_navigation_subheadings_and_social_links() -> None:
               names = _extract_employer_landscape_names(
@@ -176,11 +177,10 @@ jobs:
               )
 
               assert names == ["Example Systems"]
-          '''
+          ''')
           if "def test_employer_landscape_ignores_navigation_subheadings_and_social_links" not in loop_tests:
               loop_test_path.write_text(
-                  loop_tests.rstrip() + loop_test + "\n",
-                  encoding="utf-8",
+                  loop_tests.rstrip() + loop_test + "\n", encoding="utf-8"
               )
       - name: Remove one-shot helper before catalog generation
         run: git rm .github/workflows/fix-acquisition-reservations-once.yml
