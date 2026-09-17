@@ -24,7 +24,19 @@ from typing import Any
 
 from platformdirs import user_data_path
 
-from nerve_center.scoring.fit import FIT_ANALYSIS_CONTRACT_VERSION
+REPO_ROOT = Path(__file__).resolve().parents[1]
+SOURCE_ROOT = REPO_ROOT / "src"
+
+
+def _pin_checkout_source() -> None:
+    source = str(SOURCE_ROOT)
+    if not sys.path or sys.path[0] != source:
+        with suppress(ValueError):
+            sys.path.remove(source)
+        sys.path.insert(0, source)
+
+
+_pin_checkout_source()
 
 TERMINAL_STATUSES = {"succeeded", "partial", "failed", "cancelled"}
 HEARTBEAT_SECONDS = 60.0
@@ -186,7 +198,7 @@ class ManagedApi:
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
         self._log = self.log_path.open("ab")
-        environment = os.environ.copy()
+        environment = _managed_api_environment()
         environment["NERVE_CENTER_HOST"] = "127.0.0.1"
         environment["NERVE_CENTER_PORT"] = str(parsed.port)
         environment["NERVE_CENTER_DATA_DIR"] = str(self.data_dir)
@@ -230,6 +242,47 @@ class ManagedApi:
                 self.process.kill()
         if self._log is not None:
             self._log.close()
+
+
+def _managed_api_environment(
+    base_environment: dict[str, str] | None = None,
+) -> dict[str, str]:
+    environment = dict(base_environment if base_environment is not None else os.environ)
+    existing = environment.get("PYTHONPATH", "").strip()
+    environment["PYTHONPATH"] = os.pathsep.join(
+        [str(SOURCE_ROOT), existing] if existing else [str(SOURCE_ROOT)]
+    )
+    return environment
+
+
+def _runtime_identity() -> dict[str, Any]:
+    import nerve_center
+
+    module_path = Path(nerve_center.__file__ or "").resolve()
+    try:
+        uses_checkout_source = module_path.is_relative_to(SOURCE_ROOT.resolve())
+    except ValueError:
+        uses_checkout_source = False
+    try:
+        completed = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            check=False,
+            text=True,
+            timeout=5,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        git_commit = ""
+    else:
+        git_commit = completed.stdout.strip() if completed.returncode == 0 else ""
+    return {
+        "git_commit": git_commit,
+        "module_path": str(module_path),
+        "source_root": str(SOURCE_ROOT.resolve()),
+        "uses_checkout_source": uses_checkout_source,
+        "managed_api_pythonpath_first": str(SOURCE_ROOT),
+    }
 
 
 def write_report(path: Path, report: dict[str, Any]) -> None:
@@ -567,6 +620,12 @@ def _remaining_session_seconds(
     return max((ending - datetime.now().astimezone()).total_seconds(), 0.0)
 
 
+def _fit_analysis_contract_version() -> str:
+    from nerve_center.scoring.fit import FIT_ANALYSIS_CONTRACT_VERSION
+
+    return FIT_ANALYSIS_CONTRACT_VERSION
+
+
 def score_candidates(
     endpoint: str,
     opportunities: list[dict[str, Any]],
@@ -583,7 +642,7 @@ def score_candidates(
             and (item.get("score") or {})
             .get("calculation", {})
             .get("fit_contract_version")
-            == FIT_ANALYSIS_CONTRACT_VERSION
+            == _fit_analysis_contract_version()
         )
     ][:limit]
     scored: list[dict[str, Any]] = []
@@ -646,6 +705,7 @@ def run(args: argparse.Namespace) -> int:
             "full_score_failure_limit": args.score_failure_limit,
         },
         "default_model": args.model,
+        "runtime_identity": _runtime_identity(),
     }
     write_report(report_path, report)
     print_progress(
@@ -811,7 +871,7 @@ def run(args: argparse.Namespace) -> int:
                     args.endpoint,
                     f"/api/v1/providers/evidence/{urllib.parse.quote(task_id, safe='')}",
                 )
-                for task_id in ("job_scout.discovery.reflect", FIT_ANALYSIS_CONTRACT_VERSION)
+                for task_id in ("job_scout.discovery.reflect", _fit_analysis_contract_version())
             }
             report["ranked_opportunities"] = request_json(
                 args.endpoint,

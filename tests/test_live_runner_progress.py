@@ -11,9 +11,24 @@ _completion_flags = _SCRIPT["_completion_flags"]
 configure_workspace = _SCRIPT["configure_workspace"]
 _efficiency_summary = _SCRIPT["_efficiency_summary"]
 _location_family_evidence = _SCRIPT["_location_family_evidence"]
+_managed_api_environment = _SCRIPT["_managed_api_environment"]
 _progress_counts = _SCRIPT["_progress_counts"]
+_runtime_identity = _SCRIPT["_runtime_identity"]
 _remaining_session_seconds = _SCRIPT["_remaining_session_seconds"]
 _resumable_job_scout_session = _SCRIPT["_resumable_job_scout_session"]
+
+
+def test_live_runner_pins_checkout_source_for_parent_and_managed_api() -> None:
+    source_root = Path(_SCRIPT["SOURCE_ROOT"]).resolve()
+    identity = _runtime_identity()
+    module_path = Path(identity["module_path"]).resolve()
+    environment = _managed_api_environment({"PYTHONPATH": "fixture-path"})
+
+    assert identity["uses_checkout_source"] is True
+    assert module_path.is_relative_to(source_root)
+    assert environment["PYTHONPATH"].split(_SCRIPT["os"].pathsep)[0] == str(source_root)
+    assert identity["managed_api_pythonpath_first"] == str(source_root)
+    assert len(identity["git_commit"]) == 40
 
 
 def test_progress_counts_are_ordered_and_limited_to_known_metrics() -> None:

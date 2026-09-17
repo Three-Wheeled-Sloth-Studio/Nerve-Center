@@ -7,7 +7,7 @@ source_catalog:
   - path: scripts/run_job_scout_live.py
     analysis_version: 1
     language: python
-    content_hash: 8c37d4b020e53c84f84a1342ecdf908639989351
+    content_hash: ff7ac37c2c8a11a2ff88612bb0deb939b0e949af
     dependencies:
     - __future__
     - argparse
@@ -15,6 +15,7 @@ source_catalog:
     - contextlib
     - datetime
     - json
+    - nerve_center
     - nerve_center.scoring.fit
     - os
     - pathlib
@@ -27,6 +28,7 @@ source_catalog:
     - urllib.parse
     - urllib.request
     provides:
+    - _pin_checkout_source
     - print_progress
     - ProgressReporter.__init__
     - ProgressReporter.observe_run
@@ -37,6 +39,8 @@ source_catalog:
     - ManagedApi.__init__
     - ManagedApi.__enter__
     - ManagedApi.__exit__
+    - _managed_api_environment
+    - _runtime_identity
     - write_report
     - archive_report
     - _efficiency_summary
@@ -46,15 +50,30 @@ source_catalog:
     - monitor_session
     - _resumable_job_scout_session
     - _remaining_session_seconds
+    - _fit_analysis_contract_version
     - score_candidates
     - run
     - parser
     - main
     symbols:
+    - name: _pin_checkout_source
+      kind: function
+      line_start: 31
+      line_end: 36
+      signature: _pin_checkout_source() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - str
+      - suppress
+      - sys.path.insert
+      - sys.path.remove
+      parser: python-ast
+      dependency_targets: []
     - name: print_progress
       kind: function
-      line_start: 34
-      line_end: 36
+      line_start: 46
+      line_end: 48
       signature: 'print_progress(message: str) -> None'
       inputs:
       - 'message: str'
@@ -68,8 +87,8 @@ source_catalog:
       dependency_targets: []
     - name: ProgressReporter.__init__
       kind: method
-      line_start: 42
-      line_end: 51
+      line_start: 54
+      line_end: 63
       signature: 'ProgressReporter.__init__(self, heartbeat_seconds: float, clock: Callable[[], float]) -> None'
       inputs:
       - self
@@ -81,8 +100,8 @@ source_catalog:
       dependency_targets: []
     - name: ProgressReporter.observe_run
       kind: method
-      line_start: 53
-      line_end: 68
+      line_start: 65
+      line_end: 80
       signature: 'ProgressReporter.observe_run(self, run: dict[str, Any]) -> str | None'
       inputs:
       - self
@@ -105,8 +124,8 @@ source_catalog:
         symbol: ProgressReporter._observe
     - name: ProgressReporter.observe_manager
       kind: method
-      line_start: 70
-      line_end: 82
+      line_start: 82
+      line_end: 94
       signature: 'ProgressReporter.observe_manager(self, session: dict[str, Any], queue: dict[str, Any]) -> str | None'
       inputs:
       - self
@@ -124,8 +143,8 @@ source_catalog:
       - *id001
     - name: ProgressReporter._observe
       kind: method
-      line_start: 84
-      line_end: 100
+      line_start: 96
+      line_end: 112
       signature: 'ProgressReporter._observe(self, signature: tuple[object, ...], detail: str, counts: tuple[tuple[str, int],
         ...]) -> str | None'
       inputs:
@@ -145,8 +164,8 @@ source_catalog:
         symbol: print_progress
     - name: _progress_counts
       kind: function
-      line_start: 103
-      line_end: 135
+      line_start: 115
+      line_end: 147
       signature: '_progress_counts(values: dict[str, Any]) -> tuple[tuple[str, int], ...]'
       inputs:
       - 'values: dict[str, Any]'
@@ -159,8 +178,8 @@ source_catalog:
       dependency_targets: []
     - name: request_json
       kind: function
-      line_start: 138
-      line_end: 156
+      line_start: 150
+      line_end: 168
       signature: 'request_json(endpoint: str, path: str, method: str, payload: dict[str, Any] | None, timeout: float) -> Any'
       inputs:
       - 'endpoint: str'
@@ -185,8 +204,8 @@ source_catalog:
       dependency_targets: []
     - name: ManagedApi.__init__
       kind: method
-      line_start: 160
-      line_end: 173
+      line_start: 172
+      line_end: 185
       signature: 'ManagedApi.__init__(self, endpoint: str, data_dir: Path, log_path: Path, default_model: str) -> None'
       inputs:
       - self
@@ -200,8 +219,8 @@ source_catalog:
       dependency_targets: []
     - name: ManagedApi.__enter__
       kind: method
-      line_start: 175
-      line_end: 215
+      line_start: 187
+      line_end: 227
       signature: ManagedApi.__enter__(self) -> ManagedApi
       inputs:
       - self
@@ -209,7 +228,7 @@ source_catalog:
       dependencies:
       - RuntimeError
       - ValueError
-      - os.environ.copy
+      - _managed_api_environment
       - request_json
       - self.data_dir.mkdir
       - self.log_path.open
@@ -222,6 +241,8 @@ source_catalog:
       - urllib.parse.urlsplit
       parser: python-ast
       dependency_targets:
+      - path: scripts/run_job_scout_live.py
+        symbol: _managed_api_environment
       - &id002
         path: scripts/run_job_scout_live.py
         symbol: request_json
@@ -233,8 +254,8 @@ source_catalog:
         symbol: request_json
     - name: ManagedApi.__exit__
       kind: method
-      line_start: 217
-      line_end: 232
+      line_start: 229
+      line_end: 244
       signature: 'ManagedApi.__exit__(self, *_exc: object) -> None'
       inputs:
       - self
@@ -265,10 +286,43 @@ source_catalog:
         symbol: RunnerService.wait
       - path: tests/test_module_runtime.py
         symbol: StubProcess.wait
+    - name: _managed_api_environment
+      kind: function
+      line_start: 247
+      line_end: 255
+      signature: '_managed_api_environment(base_environment: dict[str, str] | None) -> dict[str, str]'
+      inputs:
+      - 'base_environment: dict[str, str] | None'
+      output: dict[str, str]
+      dependencies:
+      - dict
+      - environment.get
+      - environment.get('PYTHONPATH', '').strip
+      - os.pathsep.join
+      - str
+      parser: python-ast
+      dependency_targets: []
+    - name: _runtime_identity
+      kind: function
+      line_start: 258
+      line_end: 285
+      signature: _runtime_identity() -> dict[str, Any]
+      inputs: []
+      output: dict[str, Any]
+      dependencies:
+      - Path
+      - Path(nerve_center.__file__ or '').resolve
+      - SOURCE_ROOT.resolve
+      - completed.stdout.strip
+      - module_path.is_relative_to
+      - str
+      - subprocess.run
+      parser: python-ast
+      dependency_targets: []
     - name: write_report
       kind: function
-      line_start: 235
-      line_end: 239
+      line_start: 288
+      line_end: 292
       signature: 'write_report(path: Path, report: dict[str, Any]) -> None'
       inputs:
       - 'path: Path'
@@ -284,8 +338,8 @@ source_catalog:
       dependency_targets: []
     - name: archive_report
       kind: function
-      line_start: 242
-      line_end: 246
+      line_start: 295
+      line_end: 299
       signature: 'archive_report(path: Path, report: dict[str, Any]) -> None'
       inputs:
       - 'path: Path'
@@ -305,8 +359,8 @@ source_catalog:
         symbol: write_report
     - name: _efficiency_summary
       kind: function
-      line_start: 249
-      line_end: 288
+      line_start: 302
+      line_end: 341
       signature: '_efficiency_summary(checkpoint: dict[str, Any]) -> dict[str, Any]'
       inputs:
       - 'checkpoint: dict[str, Any]'
@@ -321,8 +375,8 @@ source_catalog:
       dependency_targets: []
     - name: _completion_flags
       kind: function
-      line_start: 291
-      line_end: 300
+      line_start: 344
+      line_end: 353
       signature: '_completion_flags(terminal_reason: str) -> dict[str, bool]'
       inputs:
       - 'terminal_reason: str'
@@ -332,8 +386,8 @@ source_catalog:
       dependency_targets: []
     - name: _location_family_evidence
       kind: function
-      line_start: 303
-      line_end: 363
+      line_start: 356
+      line_end: 416
       signature: '_location_family_evidence(families: list[dict[str, Any]]) -> dict[str, Any]'
       inputs:
       - 'families: list[dict[str, Any]]'
@@ -365,8 +419,8 @@ source_catalog:
         symbol: OpportunityScoreRepository.append
     - name: configure_workspace
       kind: function
-      line_start: 366
-      line_end: 400
+      line_start: 419
+      line_end: 453
       signature: 'configure_workspace(endpoint: str, resume: Path | None, analyze_resume: bool, target_titles: list[str],
         locations: list[str], remote_preference: str, score_limit: int, score_failure_limit: int) -> dict[str, Any]'
       inputs:
@@ -392,8 +446,8 @@ source_catalog:
       - *id004
     - name: monitor_session
       kind: function
-      line_start: 403
-      line_end: 533
+      line_start: 456
+      line_end: 586
       signature: 'monitor_session(endpoint: str, duration_seconds: int, poll_seconds: float, report_path: Path, report: dict[str,
         Any], on_session: Callable[[str], None] | None, max_requests: int, max_llm_calls: int) -> tuple[dict[str, Any], str]'
       inputs:
@@ -447,8 +501,8 @@ source_catalog:
       - *id007
     - name: _resumable_job_scout_session
       kind: function
-      line_start: 536
-      line_end: 551
+      line_start: 589
+      line_end: 604
       signature: '_resumable_job_scout_session(sessions: object) -> dict[str, Any] | None'
       inputs:
       - 'sessions: object'
@@ -463,8 +517,8 @@ source_catalog:
       dependency_targets: []
     - name: _remaining_session_seconds
       kind: function
-      line_start: 554
-      line_end: 567
+      line_start: 607
+      line_end: 620
       signature: '_remaining_session_seconds(session: dict[str, Any], fallback_seconds: int) -> float'
       inputs:
       - 'session: dict[str, Any]'
@@ -483,10 +537,20 @@ source_catalog:
       - session.get
       parser: python-ast
       dependency_targets: []
+    - name: _fit_analysis_contract_version
+      kind: function
+      line_start: 623
+      line_end: 626
+      signature: _fit_analysis_contract_version() -> str
+      inputs: []
+      output: str
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
     - name: score_candidates
       kind: function
-      line_start: 570
-      line_end: 628
+      line_start: 629
+      line_end: 687
       signature: 'score_candidates(endpoint: str, opportunities: list[dict[str, Any]], limit: int, model: str, report_path:
         Path, report: dict[str, Any]) -> list[dict[str, Any]]'
       inputs:
@@ -500,6 +564,7 @@ source_catalog:
       dependencies:
       - (item.get('score') or {}).get
       - (item.get('score') or {}).get('calculation', {}).get
+      - _fit_analysis_contract_version
       - dict
       - entry.get
       - enumerate
@@ -516,6 +581,9 @@ source_catalog:
       - write_report
       parser: python-ast
       dependency_targets:
+      - &id008
+        path: scripts/run_job_scout_live.py
+        symbol: _fit_analysis_contract_version
       - *id005
       - *id002
       - *id003
@@ -524,8 +592,8 @@ source_catalog:
       - *id007
     - name: run
       kind: function
-      line_start: 631
-      line_end: 842
+      line_start: 690
+      line_end: 902
       signature: 'run(args: argparse.Namespace) -> int'
       inputs:
       - 'args: argparse.Namespace'
@@ -538,7 +606,9 @@ source_catalog:
       - ManagedApi
       - _completion_flags
       - _efficiency_summary
+      - _fit_analysis_contract_version
       - _location_family_evidence
+      - _runtime_identity
       - archive_report
       - args.data_dir.resolve
       - bool
@@ -553,27 +623,27 @@ source_catalog:
       - len
       - list
       - monitor_session
-      - print_progress
-      - report.get
       parser: python-ast
       dependency_targets:
       - path: scripts/run_job_scout_live.py
         symbol: _completion_flags
       - path: scripts/run_job_scout_live.py
         symbol: _efficiency_summary
+      - *id008
       - path: scripts/run_job_scout_live.py
         symbol: _location_family_evidence
+      - path: scripts/run_job_scout_live.py
+        symbol: _runtime_identity
       - path: scripts/run_job_scout_live.py
         symbol: archive_report
       - path: scripts/run_job_scout_live.py
         symbol: configure_workspace
       - path: scripts/run_job_scout_live.py
         symbol: monitor_session
-      - *id005
     - name: parser
       kind: function
-      line_start: 845
-      line_end: 871
+      line_start: 905
+      line_end: 931
       signature: parser() -> argparse.ArgumentParser
       inputs: []
       output: argparse.ArgumentParser
@@ -585,8 +655,8 @@ source_catalog:
       dependency_targets: []
     - name: main
       kind: function
-      line_start: 874
-      line_end: 888
+      line_start: 934
+      line_end: 948
       signature: main() -> int
       inputs: []
       output: int

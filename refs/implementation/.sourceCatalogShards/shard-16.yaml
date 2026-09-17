@@ -438,12 +438,13 @@ source_catalog:
   - path: tests/test_live_runner_progress.py
     analysis_version: 1
     language: python
-    content_hash: 5382df61880f583c5c073d189ec9d91ea28acd39
+    content_hash: 8052a3828187f3ff781af37b0314ead3b6a06bef
     dependencies:
     - pathlib
     - pytest
     - runpy
     provides:
+    - test_live_runner_pins_checkout_source_for_parent_and_managed_api
     - test_progress_counts_are_ordered_and_limited_to_known_metrics
     - test_reporter_emits_transitions_and_periodic_heartbeat
     - test_manager_queue_changes_emit_immediately
@@ -463,10 +464,33 @@ source_catalog:
     - test_planned_manager_wind_down_counts_as_duration_completion
     - test_location_family_evidence_groups_source_and_hypothesis
     symbols:
+    - name: test_live_runner_pins_checkout_source_for_parent_and_managed_api
+      kind: function
+      line_start: 21
+      line_end: 31
+      signature: test_live_runner_pins_checkout_source_for_parent_and_managed_api() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - Path
+      - Path(_SCRIPT['SOURCE_ROOT']).resolve
+      - Path(identity['module_path']).resolve
+      - _managed_api_environment
+      - _runtime_identity
+      - environment['PYTHONPATH'].split
+      - len
+      - module_path.is_relative_to
+      - str
+      parser: python-ast
+      dependency_targets:
+      - path: scripts/run_job_scout_live.py
+        symbol: _managed_api_environment
+      - path: scripts/run_job_scout_live.py
+        symbol: _runtime_identity
     - name: test_progress_counts_are_ordered_and_limited_to_known_metrics
       kind: function
-      line_start: 19
-      line_end: 27
+      line_start: 34
+      line_end: 42
       signature: test_progress_counts_are_ordered_and_limited_to_known_metrics() -> None
       inputs: []
       output: None
@@ -478,8 +502,8 @@ source_catalog:
         symbol: _progress_counts
     - name: test_reporter_emits_transitions_and_periodic_heartbeat
       kind: function
-      line_start: 30
-      line_end: 62
+      line_start: 45
+      line_end: 77
       signature: test_reporter_emits_transitions_and_periodic_heartbeat(capsys) -> None
       inputs:
       - capsys
@@ -495,8 +519,8 @@ source_catalog:
         symbol: ProgressReporter.observe_run
     - name: test_manager_queue_changes_emit_immediately
       kind: function
-      line_start: 65
-      line_end: 75
+      line_start: 80
+      line_end: 90
       signature: test_manager_queue_changes_emit_immediately() -> None
       inputs: []
       output: None
@@ -509,8 +533,8 @@ source_catalog:
         symbol: ProgressReporter.observe_manager
     - name: test_resumable_session_requires_an_actionable_job_scout_run
       kind: function
-      line_start: 78
-      line_end: 96
+      line_start: 93
+      line_end: 111
       signature: test_resumable_session_requires_an_actionable_job_scout_run() -> None
       inputs: []
       output: None
@@ -522,8 +546,8 @@ source_catalog:
         symbol: _resumable_job_scout_session
     - name: test_remaining_session_seconds_uses_fallback_for_invalid_deadline
       kind: function
-      line_start: 99
-      line_end: 100
+      line_start: 114
+      line_end: 115
       signature: test_remaining_session_seconds_uses_fallback_for_invalid_deadline() -> None
       inputs: []
       output: None
@@ -535,8 +559,8 @@ source_catalog:
         symbol: _remaining_session_seconds
     - name: test_monitor_returns_scored_terminal_run_without_waiting_for_open_manager
       kind: function
-      line_start: 103
-      line_end: 124
+      line_start: 118
+      line_end: 139
       signature: test_monitor_returns_scored_terminal_run_without_waiting_for_open_manager(tmp_path, monkeypatch)
       inputs:
       - tmp_path
@@ -553,8 +577,8 @@ source_catalog:
       - *id009
     - name: test_monitor_returns_scored_terminal_run_without_waiting_for_open_manager.request
       kind: function
-      line_start: 109
-      line_end: 118
+      line_start: 124
+      line_end: 133
       signature: test_monitor_returns_scored_terminal_run_without_waiting_for_open_manager.request(endpoint, path, method,
         payload)
       inputs:
@@ -572,8 +596,8 @@ source_catalog:
       - *id009
     - name: test_monitor_submits_explicit_resource_policy
       kind: function
-      line_start: 127
-      line_end: 169
+      line_start: 142
+      line_end: 184
       signature: test_monitor_submits_explicit_resource_policy(tmp_path, monkeypatch)
       inputs:
       - tmp_path
@@ -590,8 +614,8 @@ source_catalog:
       - *id009
     - name: test_monitor_submits_explicit_resource_policy.request
       kind: function
-      line_start: 131
-      line_end: 148
+      line_start: 146
+      line_end: 163
       signature: test_monitor_submits_explicit_resource_policy.request(endpoint, path, method, payload)
       inputs:
       - endpoint
@@ -608,8 +632,8 @@ source_catalog:
       - *id009
     - name: test_monitor_tolerates_bounded_transient_status_timeout
       kind: function
-      line_start: 172
-      line_end: 209
+      line_start: 187
+      line_end: 224
       signature: test_monitor_tolerates_bounded_transient_status_timeout(tmp_path, monkeypatch, capsys)
       inputs:
       - tmp_path
@@ -627,8 +651,8 @@ source_catalog:
       dependency_targets: []
     - name: test_monitor_tolerates_bounded_transient_status_timeout.request
       kind: function
-      line_start: 178
-      line_end: 194
+      line_start: 193
+      line_end: 209
       signature: test_monitor_tolerates_bounded_transient_status_timeout.request(_endpoint, path, method, payload)
       inputs:
       - _endpoint
@@ -644,8 +668,8 @@ source_catalog:
       dependency_targets: []
     - name: test_monitor_fails_after_consecutive_status_timeout_limit
       kind: function
-      line_start: 212
-      line_end: 234
+      line_start: 227
+      line_end: 249
       signature: test_monitor_fails_after_consecutive_status_timeout_limit(tmp_path, monkeypatch)
       inputs:
       - tmp_path
@@ -662,8 +686,8 @@ source_catalog:
       dependency_targets: []
     - name: test_monitor_fails_after_consecutive_status_timeout_limit.request
       kind: function
-      line_start: 217
-      line_end: 226
+      line_start: 232
+      line_end: 241
       signature: test_monitor_fails_after_consecutive_status_timeout_limit.request(_endpoint, path, method, payload)
       inputs:
       - _endpoint
@@ -679,8 +703,8 @@ source_catalog:
       dependency_targets: []
     - name: test_workspace_configuration_preserves_effective_market_and_failure_limit
       kind: function
-      line_start: 237
-      line_end: 268
+      line_start: 252
+      line_end: 283
       signature: test_workspace_configuration_preserves_effective_market_and_failure_limit(monkeypatch) -> None
       inputs:
       - monkeypatch
@@ -696,8 +720,8 @@ source_catalog:
       - *id009
     - name: test_workspace_configuration_preserves_effective_market_and_failure_limit.request
       kind: function
-      line_start: 242
-      line_end: 250
+      line_start: 257
+      line_end: 265
       signature: test_workspace_configuration_preserves_effective_market_and_failure_limit.request(endpoint, path, method,
         payload, timeout)
       inputs:
@@ -714,8 +738,8 @@ source_catalog:
       - *id009
     - name: test_efficiency_summary_exposes_scoring_independent_marginal_pacing
       kind: function
-      line_start: 271
-      line_end: 306
+      line_start: 286
+      line_end: 321
       signature: test_efficiency_summary_exposes_scoring_independent_marginal_pacing() -> None
       inputs: []
       output: None
@@ -727,8 +751,8 @@ source_catalog:
         symbol: _efficiency_summary
     - name: test_planned_manager_wind_down_counts_as_duration_completion
       kind: function
-      line_start: 309
-      line_end: 317
+      line_start: 324
+      line_end: 332
       signature: test_planned_manager_wind_down_counts_as_duration_completion() -> None
       inputs: []
       output: None
@@ -740,8 +764,8 @@ source_catalog:
         symbol: _completion_flags
     - name: test_location_family_evidence_groups_source_and_hypothesis
       kind: function
-      line_start: 320
-      line_end: 360
+      line_start: 335
+      line_end: 375
       signature: test_location_family_evidence_groups_source_and_hypothesis() -> None
       inputs: []
       output: None
