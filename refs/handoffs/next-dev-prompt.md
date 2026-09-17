@@ -12,38 +12,36 @@ Continue Issue #57 directly on `dev`. Do not create a feature branch or PR, and 
 Start with:
 
 ```powershell
-python scripts/agent_context.py --focus "job scout regional coverage diminishing returns saturation reallocation" --issue 57
+python scripts/agent_context.py --focus "job scout local employer regional alias acquisition employer candidates" --issue 57
 ```
 
-Use the packet-first/progressive-loading rules in `AGENTS.md`. Read `refs/handoffs/currentHandoff.md`, the newest Issue #57 comments, the latest current-head live report, and only source-catalog matches directly relevant to the evidence. Do not reread repository history.
+Use packet-first/progressive loading. Read `refs/handoffs/currentHandoff.md`, the latest Issue #57 comments, the current-run live report, and only source-catalog matches needed for the evidence. Do not reread repository history.
 
-Current application version remains `0.12.26`. The validated regional-saturation implementation checkpoint is `a1632ff3e497b5c699eb5d4ca12609430d215ba6`, with CI run `35137884078` green across strict refs/source-catalog/agent-context validation, the full Python suite, desktop web, and desktop Rust/Tauri.
+Application version remains `0.12.26`. The local-acquisition implementation checkpoint is `fa5cfd0f0558daab0b2a76a059679bf7db4c6b28`, with behavior through `708484842782fa91bc84a81fed6a72cec016e7a2`. CI `35219112384` is green across strict refs/source-catalog/agent-context validation, Ruff, packaging validation, the full Python suite, desktop web, and Rust/Tauri.
 
-The scheduler now protects `regional_alias_probe` only for first-pass coverage. After a regional probe has executed once, it remains eligible through ordinary learned-weight, exploration-floor, and cooldown selection but no longer receives a guaranteed slot. This is intentionally structural: do not replace it with a named-market rule or an arbitrary saturation threshold unless current-run evidence demonstrates a general threshold is necessary.
+The completed long soak established that general reliability is healthy: 1,574 requests, 159 LLM calls, 100/100 successful full scores, 221 successful searches with zero failures, 674 results, 732 postings inspected, six companies, and 18 retained opportunities. Efficiency improved to 87 requests per retained opportunity from 365. All 102 intermittent monitoring timeouts recovered. The run reached planned wind-down cleanly and left no process or API listener running.
 
-The final bounded pre-soak gate remains `78b7e242-8aee-450f-a373-5f73600f8326`: planned `admission_draining`, 59 requests, seven LLM calls, 5/5 successful full scores, 10 unique public queries, 90 search results, 38 successful scans, 124 postings inspected, five retained roles, 12 employer hypotheses, and five career sources. The later long soak from pre-alignment head `ad34249` survived a host reboot and resumed from durable state, but its exact final report/counts were not present in the bounded repository/Issue #57 evidence used for this handoff. Do not treat that run as the acceptance artifact for the new scheduler behavior.
+The remaining defect is local acquisition: zero regional aliases, zero employer candidates, and only two conditioned location-family yields across 1,467 attempts, despite 200 low-performing families being correctly down-weighted. Do not change general search or scoring unless new evidence contradicts this diagnosis.
 
-Run the isolated current-head long acceptance session:
+The current slice now uses exact quoted local-employer intent phrases, a broader regional-reference query (`regional council`, `regional partnership`, `council of governments`), broader regional organization-name recognition, and broader employer-list heading recognition such as `Top 25 Private Employers`, `Leading Employers`, and `Employer Directory`. Extracted names remain hypotheses only.
+
+Run this isolated short gate, not another eight-hour soak:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\run_job_scout_live.py `
-  --duration-seconds 28800 `
-  --max-requests 3000 `
-  --max-llm-calls 500 `
-  --score-limit 100 `
-  --score-failure-limit 20
+  --duration-seconds 1800 `
+  --max-requests 500 `
+  --max-llm-calls 80 `
+  --score-limit 25 `
+  --score-failure-limit 5
 ```
 
-Do not run process-level tests, packaging smoke, or another API-owning command concurrently with the soak.
+Do not run process-level tests, packaging smoke, or another API-owning command concurrently with the gate.
 
-Audit only the current run. Verify first-pass regional coverage, then show that attempted regional probes stop consuming guaranteed capacity. Confirm they can still reappear through normal portfolio selection when warranted. Compare regional-probe attempts against `regional_aliases_discovered` over time, and verify released slots move toward useful local-employer, employer-deepening, company-revisit, or other productive work instead of another low-yield family.
+Audit only the current run. First determine whether `regional_alias_probe` and `local_employer` strategies execute. If they do not, investigate learned-weight/cooldown allocation. If they execute, inspect query/result/reference evidence, `regional_aliases_discovered`, and `employer_candidates_discovered`. If high-intent references are inspected but candidate yield stays zero, the next slice is HTML/table/list extraction. If candidates appear, verify they become `local_employer_deepen` hypotheses and enter ordinary official-career resolution.
 
-Continue the existing employer-path acceptance audit in the same artifact: civic/OCR `local_employer_deepen` strategies should execute after cooldown, official employer or ATS career resolution should remain plausible, compiled public queries should remain unique, and source growth should remain proportional to posting yield.
-
-Do not add named company, city, aggregator, or region exceptions. Let result classification, official-domain/career evidence, posting yield, persisted learning, and generic scheduler rules reject or down-weight weak hypotheses. Do not retune scoring unless runtime evidence identifies scoring as the blocker.
-
-Preserve all public-source safety boundaries, the `gemma3:4b` general model plus schema-failure fallback to `qwen2.5:7b-instruct`, and the rule that extracted names are hypotheses rather than company truth.
+Do not add named company, city, aggregator, or region exceptions. Preserve request bounds, public-source safety, the `gemma3:4b` general model plus schema-failure fallback to `qwen2.5:7b-instruct`, and the rule that extracted employer names do not directly create company truth.
 
 If this audit requires the same diagnostic aggregation more than once, extend or add reusable reporting rather than repeating manual database archaeology.
 
-Update both handoffs and Issue #57 with the exact current-head run ID, head SHA, CI run, budgets, counts, regional marginal-yield evidence, employer-path evidence, and next evidence-backed slice. Keep Issue #57 open until the current-head audit proves both capacity reallocation and plausible civic-employer career resolution without source amplification.
+Update both handoffs and Issue #57 with the short-gate run ID, exact head/CI, local strategy attempts, alias/candidate counts, reference evidence, and the next evidence-backed slice. A longer soak is warranted only after this short gate proves the local acquisition path is producing evidence.
