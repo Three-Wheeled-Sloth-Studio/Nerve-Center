@@ -1,7 +1,7 @@
 ---
 type: Development Prompt
 title: Next Development Prompt
-description: Ready-to-use prompt for the Job Scout employer-evidence revision acceptance gate.
+description: Ready-to-use prompt for the Job Scout deepening-canonicalization and provider-challenge acceptance gate.
 status: stable
 tags: [nerve-center, handoff, job-scout, discovery, live-test]
 ---
@@ -12,20 +12,18 @@ Continue Issue #57 directly on `dev`. Do not create a feature branch or PR, and 
 Start with:
 
 ```powershell
-python scripts/agent_context.py --focus "job scout employer evidence revision exact runtime local acquisition" --issue 57
+python scripts/agent_context.py --focus "job scout deepening canonical evidence DDG challenge accounting" --issue 57
 ```
 
 Use packet-first/progressive loading. Read `refs/handoffs/currentHandoff.md`, the latest Issue #57 comments, the next current-run live report, and only source-catalog matches needed for the evidence. Do not reread repository history.
 
-Application version remains `0.12.26`. The latest implementation checkpoint is `8d7f9477caec1874d8cd5f81d1f6b709100f073d`. Targeted validation workflow `35256387208` passed Ruff, discovery-learning/loop tests, the existing v6 revision/cooldown regression, and deterministic source-catalog validation.
+Application version remains `0.12.26`. The latest implementation checkpoint is `1c50972bbd84d072c3c21fa63a163770d26638c5`. Targeted validation workflow `35262867619` passed Ruff, discovery-learning/connectors tests, the normalized-attachment-vs-legacy cooldown regression, both DuckDuckGo challenge/ordinary-empty regressions, and deterministic source-catalog validation.
 
-The exact-runtime diagnostic gate is run `7e9184d1-30d7-4d25-8379-852b613d112f`. It reached planned `admission_draining` with 46 requests, seven LLM calls, four successful full scores, 25 completed searches, 16 completed source scans, five revisits, and 20 strategy attempts. Runtime identity proved the exact pulled checkout executed: Git `8c61f2c75b69b39ec6a6eb7d121a8807f802de00`, `uses_checkout_source=true`, and both the imported `nerve_center` module and managed API resolved the repository `src` tree.
+The most recent live gate is run `6b582fdf-dba9-43fe-9929-576a97e6ffa8`. It ran the exact pulled checkout `267dd6c16cae70a942ca8e42131e8cf02604b41e` with `uses_checkout_source=true`, consumed 48 requests and seven LLM calls, completed five full scores with zero scoring failures, completed 31 source scans, and attempted 20 strategies across five cycles. The stale HTML/navigation hypotheses from the previous run were absent, proving the `employer_landscape_v2` exclusion works.
 
-The scheduler is now accepted. Each of the five cycles selected exactly one legacy/revisit, one fresh v6 `regional_alias_probe`, one `local_employer_deepen`, and one v6 `local_employer`. Do not reopen scheduler weighting/cooldown tuning from this evidence.
+Two narrower defects remained. First, no `local_employer_deepen` strategy executed even though legitimate attachment/PDF-OCR hypotheses were durable. Equivalent normalized attachment and older PDF/OCR strategies were both considered current during canonical dedup, so oldest-first selection could retain the older row and inherit its 24-hour cooldown. Second, all eight public-search requests completed successfully but returned zero results, repeating the previous exact-runtime zero-result pattern. Audit isolated DuckDuckGo HTTP-200 bot/challenge HTML as a response class that was not trustworthy as a valid empty search.
 
-The gate instead exposed durable stale employer evidence. Its five deepening slots were consumed by old HTML-derived false hypotheses created before the current extractor precision fix: `In this section`, `Strategic Location`, `Transportation Infrastructure`, `Innovation & Research`, and `Vibrant Businesses Major Employers`. The current extractor would not create those rows, but persistence still made them schedulable.
-
-Checkpoint `8d7f947...` adds `EMPLOYER_LANDSCAPE_EVIDENCE_REVISION = "employer_landscape_v2"`. New HTML/structured employer hypotheses carry that revision. Unversioned non-attachment `local_employer_deepen` rows remain durable audit history but are excluded from selection. Existing legacy `civic_attachment` and normalized `civic` + `attachment` PDF/OCR evidence remains eligible. Canonical public-search dedup prefers current evidence semantics over equivalent stale deepening identities. No named company, location, page, or heading exception was added.
+Checkpoint `1c50972...` fixes those without changing scoring, query weights, scheduler capacity, request caps, or the cooldown. Equivalent employer-deepening strategies now compare evidence-semantics priority before age: normalized attachment/current-revision evidence outranks an older equivalent legacy PDF/OCR row, while legacy attachment evidence remains eligible when it is the best available equivalent. Shared HTTP acquisition also detects DuckDuckGo bot/challenge response language as `challenged`; an ordinary empty DuckDuckGo HTML response remains non-challenged.
 
 After full clean-head CI is green, pull `dev` and run another isolated five-minute gate:
 
@@ -40,14 +38,15 @@ After full clean-head CI is green, pull `dev` and run another isolated five-minu
 
 Do not run process-level tests, packaging smoke, or another API-owning command concurrently with the gate. Audit only the new run, in this order:
 
-1. verify `runtime_identity.uses_checkout_source` is true and `runtime_identity.git_commit` equals the exact pulled `dev` head;
-2. verify fresh `regional_alias_probe` and `local_employer` lanes remain reachable with one revisit preserved;
-3. verify none of the stale unversioned HTML/navigation deepening hypotheses execute;
-4. if `local_employer_deepen` executes, verify its provenance is either current `employer_landscape_v2` HTML/structured evidence or legitimate legacy/normalized attachment/PDF-OCR evidence;
-5. if a current employer reference produces a candidate, verify `employer_evidence_revision=employer_landscape_v2` and ordinary location-free employer-career resolution;
-6. note that the previous exact-runtime gate completed 25 public searches with zero results. If this repeats, investigate public-search provider/cache/query behavior before changing extraction, scoring, scheduler allocation, cooldowns, or request caps;
-7. only return to a longer gate after the current evidence path is clean and producing usable reference results.
+1. verify exact runtime identity against the pulled `dev` head;
+2. verify regional and local-employer acquisition lanes remain reachable with one revisit preserved;
+3. verify clean normalized attachment/current-revision `local_employer_deepen` work executes despite older equivalent legacy strategy history, and stale HTML/navigation hypotheses remain absent;
+4. verify any clean deepening attempt uses ordinary location-free employer-career resolution and stays hypothesis-first until official career evidence succeeds;
+5. verify DuckDuckGo bot/challenge responses surface as challenged/search-failure/provider-warning evidence rather than successful zero-result searches;
+6. do not treat an ordinary non-challenge empty response as a challenge;
+7. if provider challenge dominates, investigate bounded provider fallback/transport behavior before changing query semantics, extraction, scoring, scheduler allocation, cooldowns, or request caps;
+8. only return to a longer gate after clean deepening execution and trustworthy public-search accounting are proven.
 
 Preserve public-source safety, the `gemma3:4b` general model with schema-failure fallback to `qwen2.5:7b-instruct`, and the rule that extracted employer names remain hypotheses until ordinary public company/career validation succeeds.
 
-Update both handoffs and Issue #57 with the next run ID, exact runtime identity, strategy mix, evidence provenance, search-result eligibility, exact head/CI, and the next evidence-backed slice. Keep Issue #57 open until usable current-run employer/alias evidence proceeds through ordinary company/career discovery.
+Update both handoffs and Issue #57 with the next run ID, exact runtime identity, strategy mix, evidence provenance, provider challenge/search-result evidence, exact head/CI, and the next evidence-backed slice. Keep Issue #57 open until usable current-run employer/alias evidence proceeds through ordinary company/career discovery.

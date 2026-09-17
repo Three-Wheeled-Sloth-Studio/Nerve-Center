@@ -12,7 +12,7 @@ tags: [nerve-center, handoff]
 - Work directly on `dev`; do not create a feature branch or PR unless explicitly requested.
 - Application version is `0.12.26`.
 - Agent Academy alignment baseline is `e4118f96cc0138490b950402ba711399580ee854`; bounded source discovery, handoff required reads, capability-aware sub-agent guidance, and source-modularity rules are now part of Nerve Center's engineering contract.
-- The current local-acquisition checkpoint is `8d7f9477caec1874d8cd5f81d1f6b709100f073d`. The live gate now pins the checkout source and reports exact runtime identity; reserved regional/local/deepening lanes are proven reachable under that exact runtime; stale pre-fix non-attachment employer hypotheses are excluded unless they carry current `employer_landscape_v2` evidence semantics, while legacy/normalized PDF-OCR attachment evidence remains eligible. Targeted validation passed in workflow `35256387208`; full clean-head CI is required before the next live gate.
+- The current local-acquisition checkpoint is `1c50972bbd84d072c3c21fa63a163770d26638c5`. Exact-runtime gates are pinned to the checkout source; regional/local/deepening reservations are proven reachable; canonical deepening now prefers normalized attachment/current-revision evidence over older equivalent legacy rows; and DuckDuckGo bot/challenge HTML is classified as challenged instead of a valid zero-result search. Targeted validation passed in workflow `35262867619`; full clean-head CI is required before the next live gate.
 - Issue #57 remains open. Do not close it until current-run evidence shows the local employer/alias acquisition path produces usable hypotheses that proceed through ordinary company/career discovery.
 - Job Scout remains an iterative market-research loop: `expand -> converge -> deepen -> reflect -> re-expand`. Discovery optimizes recall; ranking/scoring provides precision.
 - Extracted employer names are hypotheses only. They must pass through ordinary public search and official-career resolution before becoming durable company/location evidence.
@@ -43,7 +43,8 @@ The accepted behavior now includes:
 19. changed local/regional query semantics advance the durable market-reference revision, and canonical public-search dedup prefers that current revision so stale strategy identities cannot mask new behavior behind prior-run cooldown history.
 20. reserved acquisition lanes may displace excess company revisits while preserving one revisit, and HTML employer-list parsing rejects shallow navigation/social labels before they become employer hypotheses.
 21. live acceptance gates pin the repository `src` tree for both the runner and managed API and record the resolved module path plus Git SHA, so runtime/code identity is explicit rather than inferred from the application version.
-22. persisted non-attachment `local_employer_deepen` strategies are schedulable only when they carry the current `employer_landscape_v2` evidence revision; legacy and normalized attachment/PDF-OCR evidence remains eligible, and current evidence wins canonical identity over stale equivalents.
+22. persisted non-attachment `local_employer_deepen` strategies are schedulable only when they carry the current `employer_landscape_v2` evidence revision; legacy and normalized attachment/PDF-OCR evidence remains eligible.
+23. canonical deepening resolves equivalent durable employer hypotheses by evidence-semantics priority so normalized attachment/current-revision evidence outranks older legacy PDF/OCR rows before cooldown is applied; DuckDuckGo bot/challenge HTML is reported as challenged rather than cached as a legitimate zero-result search, while ordinary empty HTML remains non-challenged.
 
 OCR is generic and structural. It requires employer-list heading evidence plus monotonic ranked rows. OCR output becomes `local_employer_deepen` work; it does not directly create companies.
 
@@ -70,6 +71,7 @@ OCR is generic and structural. It requires employer-list heading evidence plus m
 - `857bbfae2a2822039956ffabcb336dac3b400a2c`: reserved acquisition lanes can displace excess company revisits while preserving one revisit; HTML employer-list parsing rejects shallow navigation/social labels; regression coverage and deterministic source catalog refreshed.
 - `d71f316414f0de5a121f7359d87c53fba7b00d98`: live runner and managed API are pinned to the checkout `src` tree; live reports record `runtime_identity` with module path, source root, checkout-source flag, managed-API first path, and exact Git SHA.
 - `8d7f9477caec1874d8cd5f81d1f6b709100f073d`: durable employer-landscape evidence revisioning; stale unversioned non-attachment deepening rows are excluded from scheduling, current evidence is preferred during canonical dedup, and legacy/normalized attachment/PDF-OCR evidence remains eligible. Targeted validation workflow `35256387208` passed Ruff, discovery-learning/loop tests, and deterministic source-catalog validation.
+- `1c50972bbd84d072c3c21fa63a163770d26638c5`: equivalent `local_employer_deepen` strategies now use evidence-semantics priority during canonical public-search dedup, allowing normalized attachment/current evidence to bypass an older equivalent row's cooldown. `HttpFetcher` also detects DuckDuckGo bot/challenge response language without treating an ordinary empty DuckDuckGo HTML page as challenged. Targeted validation workflow `35262867619` passed Ruff, discovery-learning/connectors tests, and deterministic source-catalog validation.
 - CI `35219112384` is green: refs/tracked paths, agent context, Ruff, packaging command, full Python tests, desktop web, and desktop Rust/Tauri all passed.
 - The self-contained Windows backend builds and passes health, workspace, and module-runtime smoke tests. OCR increases the backend executable to about 155.8 MiB.
 
@@ -166,6 +168,17 @@ The gate exposed a narrower persistence defect: all five deepening slots were co
 
 All 25 public-search requests in this five-minute gate completed without provider failure but returned zero results. This is not yet enough to change query/provider policy because the immediately preceding gate returned 21 raw results. If another exact-head short gate repeats zero public results after the stale-evidence cleanup, investigate public-result provider/cache/query behavior before changing extraction or scoring.
 
+
+## Post-evidence-revision five-minute gate
+
+Run `6b582fdf-dba9-43fe-9929-576a97e6ffa8` completed the requested five-minute gate from exact checkout `267dd6c16cae70a942ca8e42131e8cf02604b41e`: `runtime_identity.uses_checkout_source=true`, the imported module resolved `D:\Apps\Nerve-Center\src`, and the managed API used that same source root. The run consumed 48 requests and seven LLM calls, completed five full scores with zero scoring failures, completed 31 source scans, and attempted 20 strategies across five cycles.
+
+The stale HTML/navigation hypotheses were absent from current-run execution, confirming the `employer_landscape_v2` exclusion worked. However, no `local_employer_deepen` strategy executed even though the durable inventory still contained legitimate attachment/PDF-OCR employer hypotheses. Audit showed normalized attachment rows were being canonicalized against older equivalent PDF/OCR rows that were also considered current. Oldest-first tie resolution therefore retained the legacy row, and its prior attempt could place the canonical identity inside the 24-hour cooldown. This was a canonical persistence defect, not a scheduler-capacity defect.
+
+The same run repeated the public-search anomaly: eight search requests completed, zero failed, and all eight returned zero results. With two consecutive exact-runtime short gates showing this pattern, provider handling became the next bounded investigation. DuckDuckGo bot/challenge HTML can return HTTP 200 and was previously indistinguishable from a valid empty result page in coverage accounting.
+
+Checkpoint `1c50972...` addresses both findings without retuning scoring, query weights, scheduler allocation, cooldown duration, or request caps. Equivalent deepening strategies now compare evidence-semantics priority before age, so normalized attachment/current-revision evidence wins over an older equivalent legacy PDF/OCR row. Legacy attachment evidence remains eligible when no higher-priority equivalent exists. Shared HTTP acquisition now marks DuckDuckGo bot/challenge response language as challenged while a regression proves an ordinary empty DuckDuckGo HTML page remains non-challenged.
+
 ## Regional saturation checkpoint
 
 The scheduler previously reserved one `regional_alias_probe` slot whenever any such strategy was eligible. In a four-strategy wave, that could become a permanent 25 percent capacity reservation even after regional vocabulary had already been sampled and marginal yield had fallen.
@@ -188,7 +201,7 @@ No named company, city, or region exception was added. No extra network path or 
 
 ## Next bounded slice
 
-Pull `dev` after full clean-head CI is green, then run one more isolated five-minute exact-runtime gate. Do not run a 30-minute or long soak yet.
+Pull `dev` after full clean-head CI is green, then run one isolated five-minute exact-runtime gate. Do not run a 30-minute or long soak yet.
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\run_job_scout_live.py `
@@ -203,13 +216,14 @@ Do not run process-level tests, packaging smoke, or another API-owning command c
 
 1. verify `runtime_identity.uses_checkout_source` is true and `runtime_identity.git_commit` equals the exact pulled `dev` head;
 2. verify fresh `regional_alias_probe` and `local_employer` strategies remain reachable while one revisit is preserved;
-3. verify none of the stale unversioned HTML/navigation `local_employer_deepen` hypotheses execute;
-4. if `local_employer_deepen` executes, verify it is either current `employer_landscape_v2` evidence or legitimate legacy/normalized attachment/PDF-OCR evidence;
-5. if a current HTML/structured employer reference yields a candidate, verify the new durable strategy carries `employer_evidence_revision=employer_landscape_v2` and enters ordinary location-free employer-career resolution;
-6. if all public-search requests again return zero results, investigate provider/cache/query behavior before changing extraction, scoring, scheduler weights, cooldowns, or request caps;
-7. return to a 30-minute gate only after the current evidence path is clean and producing usable reference results.
+3. verify a clean normalized attachment/current-revision `local_employer_deepen` strategy can execute despite an older equivalent legacy row inside cooldown, and verify stale HTML/navigation hypotheses remain absent;
+4. if deepening executes, verify it proceeds through ordinary location-free employer-career resolution and remains hypothesis-first until official career evidence succeeds;
+5. inspect provider warnings and search failure/challenge counts. A DuckDuckGo bot/challenge response must no longer appear as a successful zero-result search;
+6. an ordinary non-challenge empty result page may still legitimately report zero results; do not convert all empty search responses into failures;
+7. if DuckDuckGo challenge responses dominate the gate, investigate bounded provider fallback/transport behavior next rather than changing extraction, scoring, scheduler weights, cooldowns, or request caps;
+8. return to a 30-minute gate only after clean deepening execution and trustworthy public-search result accounting are proven.
 
-Keep Issue #57 open. Do not add named company, city, aggregator, page-heading, or region exceptions. Preserve public-source safety, the 24-hour cooldown, existing request bounds, and the rule that extracted employer names remain hypotheses until ordinary public company/career validation succeeds.
+Keep Issue #57 open. Do not add named company, city, aggregator, page-heading, provider-result, or region exceptions. Preserve public-source safety, the 24-hour cooldown, existing request bounds, and the rule that extracted employer names remain hypotheses until ordinary public company/career validation succeeds.
 
 Code Shop Issue #54 remains staged behind this acceptance work. Its contract is `refs/planning/code-shop-foundation.md`.
 
@@ -226,7 +240,7 @@ Code Shop Issue #54 remains staged behind this acceptance work. Its contract is 
 ## Re-entry
 
 ```powershell
-python scripts/agent_context.py --focus "job scout employer evidence revision exact runtime local acquisition" --issue 57
+python scripts/agent_context.py --focus "job scout deepening canonical evidence DDG challenge accounting" --issue 57
 ```
 
 Start with the generated packet's required reads and source-catalog matches. Query the source catalog again before broader search if a concrete dependency remains unresolved.
