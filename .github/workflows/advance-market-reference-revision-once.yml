@@ -1,0 +1,142 @@
+name: Advance market reference revision once
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - .github/workflows/advance-market-reference-revision-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install validation dependencies
+        run: pip install pyyaml ruff pytest
+      - name: Advance durable market query revision and add cooldown regression
+        shell: python
+        run: |
+          from pathlib import Path
+
+          source = Path("src/nerve_center/plugins/job_scout/discovery_learning.py")
+          text = source.read_text(encoding="utf-8")
+          old = 'MARKET_REFERENCE_QUERY_REVISION = "market_reference_v5"'
+          new = 'MARKET_REFERENCE_QUERY_REVISION = "market_reference_v6"'
+          if old not in text:
+              raise SystemExit("market reference revision marker not found")
+          source.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          test = Path("tests/test_job_scout_discovery_learning.py")
+          text = test.read_text(encoding="utf-8")
+          addition = r'''
+
+
+def test_new_market_reference_revision_bypasses_prior_revision_cooldown(
+    tmp_path: Path,
+) -> None:
+    learning = JobScoutDiscoveryRepository(_database(tmp_path))
+    attempted_at = datetime(2026, 9, 17, 12, 0, tzinfo=UTC)
+    stale_local = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer",
+            "anchor": "major employers",
+            "location": "Example, NC",
+            "source_domain": "web",
+            "market_rank": "0",
+            "query_revision": "market_reference_v5",
+        },
+        origin="market",
+    )
+    stale_regional = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "regional_alias_probe",
+            "anchor": "Example, NC Metro Area",
+            "source_domain": "web",
+            "market_rank": "1",
+            "query_revision": "market_reference_v5",
+        },
+        origin="market",
+    )
+    learning.record_attempt(
+        "prior-run",
+        1,
+        stale_local.id,
+        "expand",
+        StrategyOutcome(),
+        finished_at=attempted_at,
+    )
+    learning.record_attempt(
+        "prior-run",
+        2,
+        stale_regional.id,
+        "expand",
+        StrategyOutcome(),
+        finished_at=attempted_at,
+    )
+
+    current_local = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer",
+            "anchor": "major employers",
+            "location": "Example, NC",
+            "source_domain": "web",
+            "market_rank": "0",
+            "query_revision": "market_reference_v6",
+        },
+        origin="market",
+    )
+    current_regional = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "regional_alias_probe",
+            "anchor": "Example, NC Metro Area",
+            "source_domain": "web",
+            "market_rank": "1",
+            "query_revision": "market_reference_v6",
+        },
+        origin="market",
+    )
+
+    selected = learning.select_strategies(
+        "current-run",
+        limit=4,
+        exploration_floor=0.25,
+        revisit_after_seconds=86400,
+        now=attempted_at + timedelta(minutes=5),
+    )
+    selected_ids = {item.id for item in selected}
+
+    assert current_local.id in selected_ids
+    assert current_regional.id in selected_ids
+    assert stale_local.id not in selected_ids
+    assert stale_regional.id not in selected_ids
+'''
+          if "test_new_market_reference_revision_bypasses_prior_revision_cooldown" in text:
+              raise SystemExit("regression test already present")
+          test.write_text(text.rstrip() + addition + "\n", encoding="utf-8")
+      - name: Validate targeted change
+        run: |
+          ruff check src/nerve_center/plugins/job_scout/discovery_learning.py tests/test_job_scout_discovery_learning.py
+          pytest -q tests/test_job_scout_discovery_learning.py
+      - name: Refresh deterministic source catalog
+        run: python refs/tools/generate_source_catalog.py
+      - name: Commit implementation and remove helper
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/nerve_center/plugins/job_scout/discovery_learning.py tests/test_job_scout_discovery_learning.py refs/implementation/.sourceCatalogShards refs/implementation/sourceCatalog/index.yaml
+          git rm .github/workflows/advance-market-reference-revision-once.yml
+          git commit -m "Advance local acquisition query revision"
+          git push origin HEAD:dev
