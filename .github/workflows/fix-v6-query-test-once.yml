@@ -1,0 +1,43 @@
+name: Fix v6 query test once
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - .github/workflows/fix-v6-query-test-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pyyaml
+      - name: Update v6 query revision assertion
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path("tests/test_job_scout_query_portfolio.py")
+          text = path.read_text(encoding="utf-8")
+          old = 'assert durham.dimensions["query_revision"] == "market_reference_v5"'
+          new = 'assert durham.dimensions["query_revision"] == "market_reference_v6"'
+          if old not in text:
+              raise SystemExit("v5 assertion not found")
+          path.write_text(text.replace(old, new, 1), encoding="utf-8")
+      - name: Refresh deterministic source catalog
+        run: python refs/tools/generate_source_catalog.py
+      - name: Commit test and catalog
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/test_job_scout_query_portfolio.py refs/implementation/.sourceCatalogShards refs/implementation/sourceCatalog/index.yaml
+          git commit -m "Align query portfolio test with v6 revision"
+          git push origin HEAD:dev
