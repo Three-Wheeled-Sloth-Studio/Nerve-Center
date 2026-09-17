@@ -402,15 +402,16 @@ def test_cached_browser_challenge_prevents_repeated_headless_attempts(
         asyncio.run(adapter.search("product manager"))
 
 
-def test_public_search_challenge_cools_down_remaining_queries(tmp_path: Path) -> None:
+def test_public_search_challenge_rotates_later_query_to_fallback_provider(
+    tmp_path: Path,
+) -> None:
     database = Database(Settings(data_dir=tmp_path / "runtime"))
     database.initialize()
-    calls = 0
+    calls: list[str] = []
 
     class ChallengedFetcher:
         async def get(self, url: str, **kwargs: object) -> FetchResponse:
-            nonlocal calls
-            calls += 1
+            calls.append(url)
             return FetchResponse(
                 url=url,
                 status_code=429,
@@ -429,7 +430,10 @@ def test_public_search_challenge_cools_down_remaining_queries(tmp_path: Path) ->
     with pytest.raises(SearchChallengeError):
         asyncio.run(adapter.search("second query"))
 
-    assert calls == 1
+    assert calls == [
+        "https://html.duckduckgo.com/html/",
+        "https://www.bing.com/search",
+    ]
 
 
 def test_public_search_challenge_does_not_cool_down_another_provider(

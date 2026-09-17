@@ -902,7 +902,7 @@ source_catalog:
   - path: tests/test_discovery_service.py
     analysis_version: 1
     language: python
-    content_hash: b6426839a40bde3ec78a9d347c1a4f13871cbafd
+    content_hash: 92d784ed4339ccc1b45c110c1b50e0ea9250ea4e
     dependencies:
     - asyncio
     - datetime
@@ -940,8 +940,8 @@ source_catalog:
     - test_public_reference_challenge_is_persistently_cooled_down
     - test_public_reference_challenge_is_persistently_cooled_down.ChallengedFetcher.get
     - test_cached_browser_challenge_prevents_repeated_headless_attempts
-    - test_public_search_challenge_cools_down_remaining_queries
-    - test_public_search_challenge_cools_down_remaining_queries.ChallengedFetcher.get
+    - test_public_search_challenge_rotates_later_query_to_fallback_provider
+    - test_public_search_challenge_rotates_later_query_to_fallback_provider.ChallengedFetcher.get
     - test_public_search_challenge_does_not_cool_down_another_provider
     - test_public_search_challenge_does_not_cool_down_another_provider.PortfolioFetcher.get
     symbols:
@@ -1362,11 +1362,11 @@ source_catalog:
       - *id024
       - *id025
       - *id023
-    - name: test_public_search_challenge_cools_down_remaining_queries
+    - name: test_public_search_challenge_rotates_later_query_to_fallback_provider
       kind: function
       line_start: 405
-      line_end: 432
-      signature: 'test_public_search_challenge_cools_down_remaining_queries(tmp_path: Path) -> None'
+      line_end: 436
+      signature: 'test_public_search_challenge_rotates_later_query_to_fallback_provider(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
       output: None
@@ -1379,17 +1379,19 @@ source_catalog:
       - Settings
       - adapter.search
       - asyncio.run
+      - calls.append
       - database.initialize
       - pytest.raises
       parser: python-ast
       dependency_targets:
+      - *id001
       - *id023
-    - name: test_public_search_challenge_cools_down_remaining_queries.ChallengedFetcher.get
+    - name: test_public_search_challenge_rotates_later_query_to_fallback_provider.ChallengedFetcher.get
       kind: method
-      line_start: 411
-      line_end: 421
-      signature: 'test_public_search_challenge_cools_down_remaining_queries.ChallengedFetcher.get(self, url: str, **kwargs:
-        object) -> FetchResponse'
+      line_start: 413
+      line_end: 422
+      signature: 'test_public_search_challenge_rotates_later_query_to_fallback_provider.ChallengedFetcher.get(self, url: str,
+        **kwargs: object) -> FetchResponse'
       inputs:
       - self
       - 'url: str'
@@ -1397,12 +1399,14 @@ source_catalog:
       output: FetchResponse
       dependencies:
       - FetchResponse
+      - calls.append
       parser: python-ast
-      dependency_targets: []
+      dependency_targets:
+      - *id001
     - name: test_public_search_challenge_does_not_cool_down_another_provider
       kind: function
-      line_start: 435
-      line_end: 473
+      line_start: 439
+      line_end: 477
       signature: 'test_public_search_challenge_does_not_cool_down_another_provider(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1425,8 +1429,8 @@ source_catalog:
       - *id023
     - name: test_public_search_challenge_does_not_cool_down_another_provider.PortfolioFetcher.get
       kind: method
-      line_start: 443
-      line_end: 462
+      line_start: 447
+      line_end: 466
       signature: 'test_public_search_challenge_does_not_cool_down_another_provider.PortfolioFetcher.get(self, url: str, **kwargs:
         object) -> FetchResponse'
       inputs:
