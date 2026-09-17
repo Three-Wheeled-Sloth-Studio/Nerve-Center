@@ -20,6 +20,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install index dependency
+        run: python -m pip install pyyaml
       - name: Update handoffs
         run: python .github/update_job_scout_handoff_once.py
       - name: Remove helper and refresh OKF indexes
