@@ -1,7 +1,7 @@
 ---
 type: Development Prompt
 title: Next Development Prompt
-description: Ready-to-use prompt for the Job Scout regional saturation and employer-path acceptance audit.
+description: Ready-to-use prompt for the Job Scout v6 local acquisition acceptance gate.
 status: stable
 tags: [nerve-center, handoff, job-scout, discovery, live-test]
 ---
@@ -12,20 +12,20 @@ Continue Issue #57 directly on `dev`. Do not create a feature branch or PR, and 
 Start with:
 
 ```powershell
-python scripts/agent_context.py --focus "job scout local employer regional alias acquisition employer candidates" --issue 57
+python scripts/agent_context.py --focus "job scout v6 local employer regional alias acquisition persistence" --issue 57
 ```
 
-Use packet-first/progressive loading. Read `refs/handoffs/currentHandoff.md`, the latest Issue #57 comments, the current-run live report, and only source-catalog matches needed for the evidence. Do not reread repository history.
+Use packet-first/progressive loading. Read `refs/handoffs/currentHandoff.md`, the latest Issue #57 comments, the next current-run live report, and only source-catalog matches needed for the evidence. Do not reread repository history.
 
-Application version remains `0.12.26`. The local-acquisition implementation checkpoint is `fa5cfd0f0558daab0b2a76a059679bf7db4c6b28`, with behavior through `708484842782fa91bc84a81fed6a72cec016e7a2`. CI `35219112384` is green across strict refs/source-catalog/agent-context validation, Ruff, packaging validation, the full Python suite, desktop web, and Rust/Tauri.
+Application version remains `0.12.26`. The local-acquisition persistence implementation checkpoint is `5240bf5f820772277dfacba5a14c6ed6064c393a`. It advances durable market-reference identity to `market_reference_v6` and makes compiled-query canonicalization prefer the current revision for `local_employer` and `regional_alias_probe`, while preserving oldest-first canonicalization for unrelated searches and preserving the 24-hour cooldown. Targeted Ruff, discovery-learning tests, and deterministic source-catalog regeneration passed in workflow `35230212850`.
 
-The completed long soak established that general reliability is healthy: 1,574 requests, 159 LLM calls, 100/100 successful full scores, 221 successful searches with zero failures, 674 results, 732 postings inspected, six companies, and 18 retained opportunities. Efficiency improved to 87 requests per retained opportunity from 365. All 102 intermittent monitoring timeouts recovered. The run reached planned wind-down cleanly and left no process or API listener running.
+The prior 30-minute gate was run `2adf0558-f86f-4d03-8a8c-0a4477dd2dad`. It completed successfully at planned `admission_draining` with 139 requests, 43 LLM calls, 25/25 successful full scores, 25 successful public searches with zero failures, 58 completed source scans, 71 known-company revisits, 96 strategy attempts, 10 recovered polling timeouts, and three low-marginal-yield backoffs. However, all 25 searches returned zero results and the run produced zero companies, career sources, postings, retained opportunities, regional aliases, employer candidates, or inspected employer-reference pages.
 
-The remaining defect is local acquisition: zero regional aliases, zero employer candidates, and only two conditioned location-family yields across 1,467 attempts, despite 200 low-performing families being correctly down-weighted. Do not change general search or scoring unless new evidence contradicts this diagnosis.
+The decisive evidence is strategy reachability: the run attempted 73 `legacy`, seven `employer_archetype`, seven `gap_reflection`, five `direct_role`, three `adjacent_role`, and one `domain_capability` strategies, but zero `local_employer` and zero `regional_alias_probe` strategies. The broadened local/regional acquisition behavior therefore was not exercised.
 
-The current slice now uses exact quoted local-employer intent phrases, a broader regional-reference query (`regional council`, `regional partnership`, `council of governments`), broader regional organization-name recognition, and broader employer-list heading recognition such as `Top 25 Private Employers`, `Leading Employers`, and `Employer Directory`. Extracted names remain hypotheses only.
+Repository audit showed this was a durable identity/canonicalization problem, not evidence that the regional reservation or general scheduler weights are wrong. The changed queries were still attached to `market_reference_v5`; recent v5 attempts remained inside the normal 24-hour cooldown, and equivalent compiled queries could still canonicalize to the older durable identity. The v6 checkpoint fixes both sides without weakening cooldowns or retuning scoring.
 
-Run this isolated short gate, not another eight-hour soak:
+Pull the latest `dev` after the current full CI is green, then rerun the same isolated 30-minute gate. Do not run another long soak yet:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\run_job_scout_live.py `
@@ -38,10 +38,16 @@ Run this isolated short gate, not another eight-hour soak:
 
 Do not run process-level tests, packaging smoke, or another API-owning command concurrently with the gate.
 
-Audit only the current run. First determine whether `regional_alias_probe` and `local_employer` strategies execute. If they do not, investigate learned-weight/cooldown allocation. If they execute, inspect query/result/reference evidence, `regional_aliases_discovered`, and `employer_candidates_discovered`. If high-intent references are inspected but candidate yield stays zero, the next slice is HTML/table/list extraction. If candidates appear, verify they become `local_employer_deepen` hypotheses and enter ordinary official-career resolution.
+Audit only the new current run, in this order:
 
-Do not add named company, city, aggregator, or region exceptions. Preserve request bounds, public-source safety, the `gemma3:4b` general model plus schema-failure fallback to `qwen2.5:7b-instruct`, and the rule that extracted employer names do not directly create company truth.
+1. verify fresh `market_reference_v6` `local_employer` strategies execute despite recent v5 history;
+2. verify fresh v6 `regional_alias_probe` strategies receive first-pass coverage;
+3. inspect whether the broadened local/regional queries return search results and recognizable reference evidence;
+4. if those targeted searches execute but still return zero results, investigate public-search provider/query behavior before changing extraction;
+5. if high-intent references are inspected but aliases/employer candidates remain zero, improve HTML/table/list extraction next;
+6. if aliases or employer candidates appear, verify employer candidates become `local_employer_deepen` hypotheses and enter ordinary official-career resolution;
+7. only after the acquisition path is alive should another long soak be considered.
 
-If this audit requires the same diagnostic aggregation more than once, extend or add reusable reporting rather than repeating manual database archaeology.
+Do not add named company, city, aggregator, or region exceptions. Do not weaken the 24-hour cooldown or retune general scoring without new evidence. Preserve request bounds, public-source safety, the `gemma3:4b` general model plus schema-failure fallback to `qwen2.5:7b-instruct`, and the rule that extracted employer names remain hypotheses until ordinary public company/career validation succeeds.
 
-Update both handoffs and Issue #57 with the short-gate run ID, exact head/CI, local strategy attempts, alias/candidate counts, reference evidence, and the next evidence-backed slice. A longer soak is warranted only after this short gate proves the local acquisition path is producing evidence.
+Update both handoffs and Issue #57 with the new gate run ID, exact head/CI, v6 local/regional attempts, search-result counts, alias/candidate counts, reference evidence, and the next evidence-backed slice. Keep Issue #57 open until the local acquisition path produces usable current-run evidence.
