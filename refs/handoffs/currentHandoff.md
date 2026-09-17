@@ -12,8 +12,8 @@ tags: [nerve-center, handoff]
 - Work directly on `dev`; do not create a feature branch or PR unless explicitly requested.
 - Application version is `0.12.26`.
 - Agent Academy alignment baseline is `e4118f96cc0138490b950402ba711399580ee854`; bounded source discovery, handoff required reads, capability-aware sub-agent guidance, and source-modularity rules are now part of Nerve Center's engineering contract.
-- The regional-saturation implementation checkpoint is `a1632ff3e497b5c699eb5d4ca12609430d215ba6`. CI run `35137884078` is green across Python, strict refs/source-catalog/agent-context validation, the full test suite, desktop web, and desktop Rust/Tauri.
-- Issue #57 remains open. Do not close it until a current-head long-run audit shows civic-derived employer deepening reaches normal company/career discovery and regional coverage capacity reallocates after first-pass exploration.
+- The local-acquisition implementation checkpoint is `fa5cfd0f0558daab0b2a76a059679bf7db4c6b28`, with behavior through `708484842782fa91bc84a81fed6a72cec016e7a2`. CI run `35219112384` is green across Python, strict refs/source-catalog/agent-context validation, the full test suite, desktop web, and desktop Rust/Tauri.
+- Issue #57 remains open. Do not close it until current-run evidence shows the local employer/alias acquisition path produces usable hypotheses that proceed through ordinary company/career discovery.
 - Job Scout remains an iterative market-research loop: `expand -> converge -> deepen -> reflect -> re-expand`. Discovery optimizes recall; ranking/scoring provides precision.
 - Extracted employer names are hypotheses only. They must pass through ordinary public search and official-career resolution before becoming durable company/location evidence.
 - No named employer, city, or region exception exists in production logic.
@@ -30,15 +30,16 @@ The accepted behavior now includes:
 6. local OCR for image-only PDFs, limited to four pages and a 1,600-pixel long edge, followed by the existing ranked-employer structural parser and 12-candidate cap;
 7. bounded runner tolerance for up to three consecutive status-poll timeouts;
 8. normalized evidence semantics: `employer_evidence_authority=civic` and `employer_evidence_medium=attachment`, with a bounded migration for old `civic_attachment` hypotheses;
-9. a reserved scheduler slot for both old and normalized civic attachment employer hypotheses.
+9. a reserved scheduler slot for both old and normalized civic attachment employer hypotheses;
 10. employer deepening resolves the canonical career surface without a location term, while preserving civic location evidence for downstream validation;
 11. direct-career and sitemap URL qualification uses discrete route evidence rather than substring matches such as `career-advice` or `job-interview`;
-12. sitemap child registration defaults to 50 and is hard-capped at 250; source-only expansion without postings is down-weighted rather than rewarded.
-13. durable search-cache rows are reclassified through current URL policy before use, so stale classifications cannot recreate rejected editorial sources.
+12. sitemap child registration defaults to 50 and is hard-capped at 250; source-only expansion without postings is down-weighted rather than rewarded;
+13. durable search-cache rows are reclassified through current URL policy before use, so stale classifications cannot recreate rejected editorial sources;
 14. employer-career resolution uses a bounded three-query sequence (`careers`, `official careers`, `employment opportunities`) only when earlier results contain no direct employer/ATS surface;
 15. all public-search strategies are deduplicated by compiled `(source_path, query)` identity while their raw civic/OCR provenance rows remain durable;
 16. tenant-keyed shared career-portal listing routes remain aggregator evidence, and aggregator-only companies are excluded from employer revisit scheduling;
-17. regional alias probes receive protected scheduler capacity only for first-pass coverage. After a regional probe has executed once, it remains eligible through normal learned-weight, exploration-floor, and cooldown selection but no longer owns a guaranteed slot.
+17. regional alias probes receive protected scheduler capacity only for first-pass coverage. After a regional probe has executed once, it remains eligible through normal learned-weight, exploration-floor, and cooldown selection but no longer owns a guaranteed slot;
+18. local-employer reference queries preserve exact discovery intent with quoted employer phrases, regional probes cover common public regional vocabulary, and the evidence extractors recognize broader generic regional-organization and employer-list heading forms without named-market exceptions.
 
 OCR is generic and structural. It requires employer-list heading evidence plus monotonic ranked rows. OCR output becomes `local_employer_deepen` work; it does not directly create companies.
 
@@ -58,8 +59,10 @@ OCR is generic and structural. It requires employer-list heading evidence plus m
 - `12ed92d`: compiled-query deduplication across all public-search revisions and provenance (`0.12.26`).
 - `12a566f2661beee677a125e1236487d62d922ed4`: first-pass-only protected capacity for `regional_alias_probe` strategies.
 - `f1f144e07cfe2ccc170f78313607f5d8b2f41e8c`: regression coverage proving initial regional coverage remains protected but the slot is released after the first attempt.
-- `a1632ff3e497b5c699eb5d4ca12609430d215ba6`: refreshed deterministic source-catalog shards for the implementation/test changes.
-- CI `35137884078` is green: refs/tracked paths, agent context, Ruff, packaging command, full Python tests, desktop web, and desktop Rust/Tauri all passed.
+- `a1632ff3e497b5c699eb5d4ca12609430d215ba6`: refreshed deterministic source-catalog shards for the regional-saturation implementation/test changes.
+- `708484842782fa91bc84a81fed6a72cec016e7a2`: expanded generic regional-organization and employer-list evidence patterns with deterministic regression coverage.
+- `fa5cfd0f0558daab0b2a76a059679bf7db4c6b28`: clean local-acquisition implementation checkpoint after temporary helper cleanup.
+- CI `35219112384` is green: refs/tracked paths, agent context, Ruff, packaging command, full Python tests, desktop web, and desktop Rust/Tauri all passed.
 - The self-contained Windows backend builds and passes health, workspace, and module-runtime smoke tests. OCR increases the backend executable to about 155.8 MiB.
 
 ## Runtime evidence
@@ -86,7 +89,22 @@ Run `4d882157-ae48-477a-9139-aed0a2281816` (`0.12.24`) was stopped after a false
 
 Run `78b7e242-8aee-450f-a373-5f73600f8326` (`0.12.26`) is the final bounded pre-soak gate. It reached planned `admission_draining` with 59 requests, seven LLM calls, 5/5 successful full scores, 10 searches, 90 results, 38 successful source scans, 124 postings inspected, five retained roles, 12 evidence-backed employer hypotheses, and five career sources. All 10 public queries were unique, the shared-portal company remained absent, and source growth stayed proportional to posting yield.
 
-The subsequent long soak was launched from pre-Agent-Academy-alignment head `ad34249`. The host rebooted during the run and Job Scout resumed correctly from durable state without requiring a restart. That is positive recovery evidence. The exact final soak report/counts were not present in the bounded repository/Issue #57 sources available during the 2026-09-16 continuation, so this checkpoint does not claim current-run acceptance from that soak.
+The subsequent long soak was launched from pre-Agent-Academy-alignment head `ad34249`. The host rebooted during the run and Job Scout resumed correctly from durable state without requiring a restart. That is positive recovery evidence.
+
+The completed long soak then reached planned wind-down cleanly at 10:52 PM EDT with no process or API listener left running. The exact run ID was not supplied with the final report, so none is inferred here. Final counts were:
+
+- 1,574 / 3,000 requests;
+- 159 / 500 LLM calls;
+- 100 / 100 full scores, zero failures;
+- 221 successful searches, zero failed;
+- 674 search results returned;
+- 732 postings inspected;
+- six companies discovered;
+- 18 retained opportunities;
+- 87 requests per retained opportunity, improved from 365 in the previous soak;
+- 102 intermittent monitoring timeouts, all recovered.
+
+This clears general search reliability, scoring reliability, planned wind-down, and timeout recovery as active blockers. The remaining weakness is local acquisition: zero regional aliases and zero employer candidates. The location-family audit produced only two conditioned yields across 1,467 attempts while correctly down-weighting 200 poorly performing families.
 
 ## Regional saturation checkpoint
 
@@ -96,34 +114,58 @@ The accepted correction is structural rather than threshold-based: each regional
 
 The regression test proves both sides of the invariant: a never-attempted regional probe is included in the initial protected portfolio, and after one attempt it is no longer forced into the next four-strategy wave.
 
+## Local acquisition correction
+
+The current bounded correction addresses the newly isolated acquisition weakness without increasing request caps or changing general scoring/scheduler weights:
+
+1. local-employer reference queries preserve exact intent with quoted phrases such as `"major employers"`, `"largest employers"`, and `"employer directory"`;
+2. regional probes search common public regional vocabulary: `regional council`, `regional partnership`, and `council of governments`;
+3. regional title extraction recognizes generic `Council of Governments`, `Planning Commission`, and `Development District` forms in addition to the prior `Regional Council/Partnership/Commission/Authority/Planning` forms;
+4. civic employer-list heading extraction accepts common variants such as `Top 25 Private Employers`, `Leading Employers`, `Employer Directory`, and `Employer List`;
+5. deterministic tests cover the broadened regional and employer-list evidence while preserving the rule that extracted names are hypotheses only.
+
+No named company, city, or region exception was added. No extra network path or request allowance was added.
+
 ## Next bounded slice
 
-Run a current-head isolated long session and audit capacity reallocation before changing behavior again:
+Run one isolated 30-minute local-acquisition gate. Do not run another long soak yet.
 
-1. verify regional probes receive first-pass coverage but stop consuming a guaranteed slot after they have executed;
-2. verify attempted regional probes can still reappear later when normal learned-weight, exploration, or cooldown selection warrants it;
-3. compare regional-probe attempts and `regional_aliases_discovered` over time to identify actual marginal yield rather than inventing a saturation threshold;
-4. confirm released capacity flows into useful `local_employer`, `local_employer_deepen`, company revisit, or other productive discovery work rather than simply another low-yield family;
-5. continue the existing employer-path audit: civic/OCR hypotheses should resolve plausible official employer or ATS career surfaces, public queries should remain unique, and source growth should remain proportional to posting yield;
-6. keep Issue #57 open until the current-head run provides the required end-to-end evidence.
+```powershell
+.\.venv\Scripts\python.exe scripts\run_job_scout_live.py `
+  --duration-seconds 1800 `
+  --max-requests 500 `
+  --max-llm-calls 80 `
+  --score-limit 25 `
+  --score-failure-limit 5
+```
 
-Do not tune scoring unless the long-run artifact identifies scoring as the blocker. Do not add named company, city, aggregator, or region exceptions. If a repeated diagnostic is needed again, add or extend reusable reporting rather than repeating manual database archaeology.
+Audit only the current run and answer these questions in order:
+
+1. Did `regional_alias_probe` and `local_employer` strategies actually execute? If not, the next defect is allocation/cooldown/learned-weight starvation rather than acquisition syntax.
+2. When regional probes execute, do the broadened queries return recognizable regional organization evidence and create any provenance-bearing aliases?
+3. When local-employer strategies execute, do exact-intent queries reach employer-list/directory references, and do those references produce any employer candidates?
+4. Do employer candidates become `local_employer_deepen` hypotheses and proceed through ordinary official-career discovery?
+5. If high-intent references are inspected but candidate yield remains zero, improve HTML/table/list extraction next. Do not change general search or scoring.
+6. If aliases/candidates appear, run a longer soak only after this short gate proves the acquisition path is alive.
+
+Keep Issue #57 open until local acquisition produces real current-run evidence. Do not add named company, city, aggregator, or region exceptions. Preserve public-source safety boundaries and the rule that extracted employer names are hypotheses rather than company truth.
 
 Code Shop Issue #54 remains staged behind this acceptance work. Its contract is `refs/planning/code-shop-foundation.md`.
 
 ## Required Reads For Next Slice
 
-- `refs/handoffs/currentHandoff.md` - authoritative accepted baseline, regional-saturation correction, runtime evidence, and current-head acceptance questions.
+- `refs/handoffs/currentHandoff.md` - authoritative accepted baseline, completed long-soak evidence, local-acquisition correction, and current short-gate questions.
 - `refs/handoffs/next-dev-prompt.md` - exact bounded execution/audit instructions for the next coding-agent session.
 - Latest Issue #57 comments and the next current-head `run-*.json` - current-run evidence is authoritative for deciding the next behavior slice.
-- `src/nerve_center/plugins/job_scout/discovery_learning.py` - only `select_strategies` and directly related scheduler/cooldown symbols returned by the source catalog; required only if the long run shows the portfolio mix is still wrong.
-- `scripts/run_job_scout_live.py` - only report/audit collection symbols returned by the source catalog; use to interpret or improve reusable saturation diagnostics.
-- `src/nerve_center/plugins/job_scout/discovery_loop.py` - only regional-alias extraction and employer-deepening symbols returned by the source catalog; open only if the run shows weak regional evidence or employer resolution rather than scheduling allocation.
+- `src/nerve_center/plugins/job_scout/query_portfolio.py` - only local-employer and regional-probe query compilation symbols returned by the source catalog.
+- `src/nerve_center/plugins/job_scout/discovery_loop.py` - only regional-alias extraction, civic employer-landscape extraction, and employer-deepening symbols returned by the source catalog.
+- `src/nerve_center/plugins/job_scout/discovery_learning.py` - only `select_strategies` and directly related scheduler/cooldown symbols if the short gate shows local strategies are not executing.
+- `scripts/run_job_scout_live.py` - only report/audit collection symbols returned by the source catalog; use to interpret or improve reusable local-acquisition diagnostics.
 
 ## Re-entry
 
 ```powershell
-python scripts/agent_context.py --focus "job scout regional coverage diminishing returns saturation reallocation" --issue 57
+python scripts/agent_context.py --focus "job scout local employer regional alias acquisition employer candidates" --issue 57
 ```
 
 Start with the generated packet's required reads and source-catalog matches. Query the source catalog again before broader search if a concrete dependency remains unresolved.
