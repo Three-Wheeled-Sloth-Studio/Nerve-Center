@@ -1,0 +1,115 @@
+name: Align public search cooldown test once
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - .github/workflows/align-public-search-cooldown-test-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  align:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Align fallback cooldown contract test
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("tests/test_discovery_service.py")
+          text = path.read_text(encoding="utf-8")
+          old = '''def test_public_search_challenge_cools_down_remaining_queries(tmp_path: Path) -> None:
+              database = Database(Settings(data_dir=tmp_path / "runtime"))
+              database.initialize()
+              calls = 0
+
+              class ChallengedFetcher:
+                  async def get(self, url: str, **kwargs: object) -> FetchResponse:
+                      nonlocal calls
+                      calls += 1
+                      return FetchResponse(
+                          url=url,
+                          status_code=429,
+                          text="rate limited",
+                          headers={},
+                          challenged=False,
+                          throttled=True,
+                      )
+
+              adapter = PublicWebSearchAdapter(
+                  SearchCacheRepository(database),
+                  fetcher=ChallengedFetcher(),  # type: ignore[arg-type]
+              )
+              with pytest.raises(SearchChallengeError):
+                  asyncio.run(adapter.search("first query"))
+              with pytest.raises(SearchChallengeError):
+                  asyncio.run(adapter.search("second query"))
+
+              assert calls == 1
+          '''
+          new = '''def test_public_search_challenge_rotates_later_query_to_fallback_provider(
+              tmp_path: Path,
+          ) -> None:
+              database = Database(Settings(data_dir=tmp_path / "runtime"))
+              database.initialize()
+              calls: list[str] = []
+
+              class ChallengedFetcher:
+                  async def get(self, url: str, **kwargs: object) -> FetchResponse:
+                      calls.append(url)
+                      return FetchResponse(
+                          url=url,
+                          status_code=429,
+                          text="rate limited",
+                          headers={},
+                          challenged=False,
+                          throttled=True,
+                      )
+
+              adapter = PublicWebSearchAdapter(
+                  SearchCacheRepository(database),
+                  fetcher=ChallengedFetcher(),  # type: ignore[arg-type]
+              )
+              with pytest.raises(SearchChallengeError):
+                  asyncio.run(adapter.search("first query"))
+              with pytest.raises(SearchChallengeError):
+                  asyncio.run(adapter.search("second query"))
+
+              assert calls == [
+                  "https://html.duckduckgo.com/html/",
+                  "https://www.bing.com/search",
+              ]
+          '''
+          if old not in text:
+              raise RuntimeError("stale public-search cooldown test block not found")
+          path.write_text(text.replace(old, new, 1), encoding="utf-8")
+          PY
+      - name: Remove one-shot workflow and refresh deterministic indexes
+        run: |
+          git rm .github/workflows/align-public-search-cooldown-test-once.yml
+          python refs/tools/generate_source_catalog.py
+          python refs/tools/generate_okf_indexes.py
+      - name: Validate
+        run: |
+          ruff check tests/test_discovery_service.py
+          pytest tests/test_discovery_service.py tests/test_public_search_fallback.py
+          python refs/tools/generate_source_catalog.py --check
+          python refs/tools/generate_okf_indexes.py --check
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Align public search cooldown fallback contract"
+          git push origin dev
