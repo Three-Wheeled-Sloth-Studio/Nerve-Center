@@ -1,0 +1,116 @@
+name: Record v6 acquisition gate once
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - .github/workflows/record-v6-acquisition-gate-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+      - name: Record gate evidence and next slice
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          path = Path("refs/handoffs/currentHandoff.md")
+          text = path.read_text(encoding="utf-8")
+
+          old = "- The local-acquisition implementation checkpoint is `fa5cfd0f0558daab0b2a76a059679bf7db4c6b28`, with behavior through `708484842782fa91bc84a81fed6a72cec016e7a2`. CI run `35219112384` is green across Python, strict refs/source-catalog/agent-context validation, the full test suite, desktop web, and desktop Rust/Tauri."
+          new = "- The local-acquisition persistence checkpoint is `5240bf5f820772277dfacba5a14c6ed6064c393a`. It advances market-reference strategy identity to `market_reference_v6` and makes canonical public-search dedup prefer the current local/regional market revision. Targeted Ruff, discovery-learning tests, and deterministic source-catalog regeneration passed in workflow `35230212850`; full CI is required on the following user-authored documentation head before the next live gate."
+          if old not in text:
+              raise SystemExit("checkpoint line not found")
+          text = text.replace(old, new, 1)
+
+          old = "18. local-employer reference queries preserve exact discovery intent with quoted employer phrases, regional probes cover common public regional vocabulary, and the evidence extractors recognize broader generic regional-organization and employer-list heading forms without named-market exceptions."
+          new = old + "\n19. changed local/regional query semantics advance the durable market-reference revision, and canonical public-search dedup prefers that current revision so stale strategy identities cannot mask new behavior behind prior-run cooldown history."
+          if old not in text:
+              raise SystemExit("behavior item 18 not found")
+          text = text.replace(old, new, 1)
+
+          old = "- `fa5cfd0f0558daab0b2a76a059679bf7db4c6b28`: clean local-acquisition implementation checkpoint after temporary helper cleanup."
+          new = old + "\n- `5240bf5f820772277dfacba5a14c6ed6064c393a`: `market_reference_v6`, current-revision canonical preference for local/regional public-search identities, cooldown regression coverage, and refreshed deterministic source catalog."
+          if old not in text:
+              raise SystemExit("implementation checkpoint marker not found")
+          text = text.replace(old, new, 1)
+
+          marker = "## Regional saturation checkpoint\n"
+          gate = "\n".join([
+              "## 30-minute local-acquisition gate",
+              "",
+              "Run `2adf0558-f86f-4d03-8a8c-0a4477dd2dad` completed successfully at planned `admission_draining` after the requested 30-minute gate:",
+              "",
+              "- 139 / 500 requests;",
+              "- 43 / 80 LLM calls;",
+              "- 25 / 25 full scores, zero failures;",
+              "- 25 successful public searches, zero failed, but zero results returned;",
+              "- 58 source scans completed and 71 known-company revisits;",
+              "- 96 strategy attempts;",
+              "- zero companies, career sources, postings, retained opportunities, regional aliases, employer candidates, or inspected employer-reference pages;",
+              "- 10 intermittent status-poll timeouts, all recovered;",
+              "- three low-marginal-yield backoffs.",
+              "",
+              "The current-run strategy mix was 73 `legacy`, seven `employer_archetype`, seven `gap_reflection`, five `direct_role`, three `adjacent_role`, and one `domain_capability`. Critically, `local_employer` executed zero times and `regional_alias_probe` executed zero times. The gate therefore did not exercise the new local/regional query or extraction behavior.",
+              "",
+              "Audit of durable selection showed the new query semantics were still using `market_reference_v5`. Prior v5 attempts remained inside the 24-hour cooldown, and canonical compiled-query dedup could retain the older identity even after a revision bump because equivalent queries were previously resolved oldest-first. This is a persistence/identity defect, not evidence that the regional first-pass reservation or general scheduler weights are wrong.",
+              "",
+              "The bounded correction is `market_reference_v6` plus current-revision preference during canonical dedup for `local_employer` and `regional_alias_probe`. Unrelated public-search identities keep oldest-first canonicalization, and the 24-hour cooldown remains unchanged.",
+              "",
+          ])
+          if marker not in text:
+              raise SystemExit("regional checkpoint marker not found")
+          text = text.replace(marker, gate + marker, 1)
+
+          replacement = "\n".join([
+              "## Next bounded slice",
+              "",
+              "Pull `dev` after full CI is green, then rerun the same isolated 30-minute local-acquisition gate. Do not run another long soak yet.",
+              "",
+              "```powershell",
+              ".\\.venv\\Scripts\\python.exe scripts\\run_job_scout_live.py `",
+              "  --duration-seconds 1800 `",
+              "  --max-requests 500 `",
+              "  --max-llm-calls 80 `",
+              "  --score-limit 25 `",
+              "  --score-failure-limit 5",
+              "```",
+              "",
+              "Audit only the new current run:",
+              "",
+              "1. verify fresh `market_reference_v6` `local_employer` strategies execute despite recent v5 history;",
+              "2. verify fresh v6 `regional_alias_probe` strategies receive first-pass coverage;",
+              "3. inspect whether the broadened local/regional queries return search results and recognizable reference evidence;",
+              "4. if searches execute but still return zero results, investigate public-search/provider/query behavior before changing extraction;",
+              "5. if high-intent references are inspected but aliases/employer candidates remain zero, improve HTML/table/list extraction next;",
+              "6. if aliases or employer candidates appear, verify employer candidates become `local_employer_deepen` hypotheses and proceed through ordinary official-career resolution;",
+              "7. only then consider another long soak.",
+              "",
+              "Keep Issue #57 open. Do not weaken the 24-hour cooldown, retune general scoring, or add named company/city/region exceptions without new evidence.",
+              "",
+              "Code Shop Issue #54 remains staged behind this acceptance work. Its contract is `refs/planning/code-shop-foundation.md`.",
+              "",
+              "## Required Reads For Next Slice",
+          ])
+          pattern = re.compile(r"## Next bounded slice\n.*?## Required Reads For Next Slice\n", re.DOTALL)
+          if not pattern.search(text):
+              raise SystemExit("next bounded slice section not found")
+          text = pattern.sub(replacement + "\n", text, count=1)
+          path.write_text(text, encoding="utf-8")
+      - name: Commit handoff and remove helper
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add refs/handoffs/currentHandoff.md
+          git rm .github/workflows/record-v6-acquisition-gate-once.yml
+          git commit -m "Record v6 local acquisition gate"
+          git push origin HEAD:dev
