@@ -379,3 +379,52 @@ def test_sitemap_returns_only_likely_job_urls() -> None:
         "https://example.com/jobs/data-lead",
         "https://example.com/sitemaps/jobs-1.xml",
     ]
+
+
+def test_http_fetcher_detects_duckduckgo_bot_challenge() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            text=(
+                "<html><body>Unfortunately, bots use DuckDuckGo too. "
+                "Please complete the following challenge. "
+                "Select all squares containing a duck:</body></html>"
+            ),
+            headers={"content-type": "text/html; charset=UTF-8"},
+            request=request,
+        )
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    response = asyncio.run(
+        HttpFetcher(client=client).get(
+            "https://html.duckduckgo.com/html/",
+            params={"q": "example"},
+        )
+    )
+    asyncio.run(client.aclose())
+
+    assert response.status_code == 200
+    assert response.challenged is True
+
+
+def test_http_fetcher_does_not_treat_ordinary_empty_duckduckgo_page_as_challenge() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            text="<html><body>No results found for this search.</body></html>",
+            headers={"content-type": "text/html; charset=UTF-8"},
+            request=request,
+        )
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    response = asyncio.run(
+        HttpFetcher(client=client).get(
+            "https://html.duckduckgo.com/html/",
+            params={"q": "example"},
+        )
+    )
+    asyncio.run(client.aclose())
+
+    assert response.status_code == 200
+    assert response.challenged is False
+

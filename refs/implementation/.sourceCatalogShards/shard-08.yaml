@@ -116,7 +116,7 @@ source_catalog:
   - path: tests/test_discovery_connectors.py
     analysis_version: 1
     language: python
-    content_hash: 6d353a91b6d48640bded5a7585f77cf2e130bcf8
+    content_hash: 5f2d4d168972a492ee42784bc6d0d17d75206aaa
     dependencies:
     - asyncio
     - httpx
@@ -147,6 +147,10 @@ source_catalog:
     - test_json_ld_disambiguates_same_name_unresolved_hiring_organizations.handler
     - test_sitemap_returns_only_likely_job_urls
     - test_sitemap_returns_only_likely_job_urls.handler
+    - test_http_fetcher_detects_duckduckgo_bot_challenge
+    - test_http_fetcher_detects_duckduckgo_bot_challenge.handler
+    - test_http_fetcher_does_not_treat_ordinary_empty_duckduckgo_page_as_challenge
+    - test_http_fetcher_does_not_treat_ordinary_empty_duckduckgo_page_as_challenge.handler
     symbols:
     - name: _company
       kind: function
@@ -490,10 +494,69 @@ source_catalog:
       - httpx.Response
       parser: python-ast
       dependency_targets: []
+    - name: test_http_fetcher_detects_duckduckgo_bot_challenge
+      kind: function
+      line_start: 384
+      line_end: 407
+      signature: test_http_fetcher_detects_duckduckgo_bot_challenge() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - HttpFetcher
+      - HttpFetcher(client=client).get
+      - asyncio.run
+      - client.aclose
+      - httpx.AsyncClient
+      - httpx.MockTransport
+      - httpx.Response
+      parser: python-ast
+      dependency_targets: []
+    - name: test_http_fetcher_detects_duckduckgo_bot_challenge.handler
+      kind: function
+      line_start: 385
+      line_end: 395
+      signature: 'test_http_fetcher_detects_duckduckgo_bot_challenge.handler(request: httpx.Request) -> httpx.Response'
+      inputs:
+      - 'request: httpx.Request'
+      output: httpx.Response
+      dependencies:
+      - httpx.Response
+      parser: python-ast
+      dependency_targets: []
+    - name: test_http_fetcher_does_not_treat_ordinary_empty_duckduckgo_page_as_challenge
+      kind: function
+      line_start: 410
+      line_end: 429
+      signature: test_http_fetcher_does_not_treat_ordinary_empty_duckduckgo_page_as_challenge() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - HttpFetcher
+      - HttpFetcher(client=client).get
+      - asyncio.run
+      - client.aclose
+      - httpx.AsyncClient
+      - httpx.MockTransport
+      - httpx.Response
+      parser: python-ast
+      dependency_targets: []
+    - name: test_http_fetcher_does_not_treat_ordinary_empty_duckduckgo_page_as_challenge.handler
+      kind: function
+      line_start: 411
+      line_end: 417
+      signature: 'test_http_fetcher_does_not_treat_ordinary_empty_duckduckgo_page_as_challenge.handler(request: httpx.Request)
+        -> httpx.Response'
+      inputs:
+      - 'request: httpx.Request'
+      output: httpx.Response
+      dependencies:
+      - httpx.Response
+      parser: python-ast
+      dependency_targets: []
   - path: tests/test_job_scout_discovery_learning.py
     analysis_version: 1
     language: python
-    content_hash: ef66844a6ea98a00feff6b631623b8e63562fd6e
+    content_hash: fdc8edd8298a4fba3c8efc8fa3e2d36807415681
     dependencies:
     - datetime
     - nerve_center.applications.models
@@ -525,6 +588,7 @@ source_catalog:
     - test_new_market_reference_revision_bypasses_prior_revision_cooldown
     - test_stale_html_employer_evidence_is_not_scheduled_but_current_and_attachment_are
     - test_reserved_acquisition_lanes_can_displace_extra_company_revisits
+    - test_normalized_attachment_evidence_bypasses_legacy_equivalent_cooldown
     symbols:
     - name: _database
       kind: function
@@ -1081,4 +1145,31 @@ source_catalog:
       - *id007
       - *id008
       - *id009
+      - *id012
+    - name: test_normalized_attachment_evidence_bypasses_legacy_equivalent_cooldown
+      kind: function
+      line_start: 919
+      line_end: 968
+      signature: 'test_normalized_attachment_evidence_bypasses_legacy_equivalent_cooldown(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - JobScoutDiscoveryRepository
+      - StrategyOutcome
+      - _database
+      - datetime
+      - learning.ensure_strategy
+      - learning.record_attempt
+      - learning.select_strategies
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - *id010
+      - *id011
       - *id012

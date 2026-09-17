@@ -1021,22 +1021,30 @@ def _family_learned_weight(
     return _clamp(target - health_penalty, 0.2, 4.0)
 
 
-def _employer_deepening_evidence_is_current(dimensions: dict[str, str]) -> bool:
+def _employer_deepening_evidence_priority(dimensions: dict[str, str]) -> int:
+    """Rank equivalent employer hypotheses by evidence-semantics freshness."""
+
     if dimensions.get("hypothesis_family") != "local_employer_deepen":
-        return False
+        return 0
     authority = dimensions.get("employer_evidence_authority", "")
     medium = dimensions.get("employer_evidence_medium", "")
     extraction_method = dimensions.get("employer_evidence_extraction_method", "")
     if (
+        medium == "attachment"
+        or dimensions.get("employer_evidence_revision")
+        == EMPLOYER_LANDSCAPE_EVIDENCE_REVISION
+    ):
+        return 2
+    if (
         authority == "civic_attachment"
-        or medium == "attachment"
         or extraction_method.startswith(("pdf_", "attachment_"))
     ):
-        return True
-    return (
-        dimensions.get("employer_evidence_revision")
-        == EMPLOYER_LANDSCAPE_EVIDENCE_REVISION
-    )
+        return 1
+    return 0
+
+
+def _employer_deepening_evidence_is_current(dimensions: dict[str, str]) -> bool:
+    return _employer_deepening_evidence_priority(dimensions) > 0
 
 
 def _canonical_public_search_ids(
@@ -1078,13 +1086,37 @@ def _canonical_public_search_ids(
                 or _employer_deepening_evidence_is_current(existing.dimensions)
             )
         )
+        both_employer_deepening = (
+            existing is not None
+            and model.dimensions.get("hypothesis_family") == "local_employer_deepen"
+            and existing.dimensions.get("hypothesis_family") == "local_employer_deepen"
+        )
+        model_evidence_priority = _employer_deepening_evidence_priority(model.dimensions)
+        existing_evidence_priority = (
+            _employer_deepening_evidence_priority(existing.dimensions)
+            if existing is not None
+            else 0
+        )
         if (
             existing is None
-            or (model_is_current_semantics and not existing_is_current_semantics)
             or (
-                model_is_current_semantics == existing_is_current_semantics
-                and (model.created_at, model.id)
-                < (existing.created_at, existing.id)
+                both_employer_deepening
+                and model_evidence_priority > existing_evidence_priority
+            )
+            or (
+                both_employer_deepening
+                and model_evidence_priority == existing_evidence_priority
+                and (model.created_at, model.id) < (existing.created_at, existing.id)
+            )
+            or (
+                not both_employer_deepening
+                and model_is_current_semantics
+                and not existing_is_current_semantics
+            )
+            or (
+                not both_employer_deepening
+                and model_is_current_semantics == existing_is_current_semantics
+                and (model.created_at, model.id) < (existing.created_at, existing.id)
             )
         ):
             canonical[identity] = model

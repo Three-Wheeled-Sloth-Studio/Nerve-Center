@@ -108,7 +108,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/discovery_learning.py
     analysis_version: 1
     language: python
-    content_hash: 1297580ddb27dabc7268e3d0e5af8d52355fda52
+    content_hash: 40ab7a529cf3f39dfcbd65ba1b3677bfa5c1d17e
     dependencies:
     - __future__
     - dataclasses
@@ -152,6 +152,7 @@ source_catalog:
     - item_family_id
     - _strategy_family_snapshots
     - _family_learned_weight
+    - _employer_deepening_evidence_priority
     - _employer_deepening_evidence_is_current
     - _canonical_public_search_ids
     - _strategy_snapshot
@@ -579,10 +580,10 @@ source_catalog:
       - &id012
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: _coverage_snapshot
-      - &id015
+      - &id016
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: _merge_coverage
-      - &id016
+      - &id017
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: _new_coverage
       - *id003
@@ -808,13 +809,13 @@ source_catalog:
       - sum
       parser: python-ast
       dependency_targets:
-      - &id017
+      - &id018
         path: src/nerve_center/persistence/applications.py
         symbol: _as_utc
-      - &id018
+      - &id019
         path: src/nerve_center/persistence/discovery.py
         symbol: _as_utc
-      - &id019
+      - &id020
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: _as_utc
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
@@ -845,29 +846,45 @@ source_catalog:
       - *id007
       - *id008
       - *id009
-    - name: _employer_deepening_evidence_is_current
+    - name: _employer_deepening_evidence_priority
       kind: function
       line_start: 1024
-      line_end: 1039
-      signature: '_employer_deepening_evidence_is_current(dimensions: dict[str, str]) -> bool'
+      line_end: 1043
+      signature: '_employer_deepening_evidence_priority(dimensions: dict[str, str]) -> int'
       inputs:
       - 'dimensions: dict[str, str]'
-      output: bool
+      output: int
       dependencies:
       - dimensions.get
       - extraction_method.startswith
       parser: python-ast
       dependency_targets: []
+    - name: _employer_deepening_evidence_is_current
+      kind: function
+      line_start: 1046
+      line_end: 1047
+      signature: '_employer_deepening_evidence_is_current(dimensions: dict[str, str]) -> bool'
+      inputs:
+      - 'dimensions: dict[str, str]'
+      output: bool
+      dependencies:
+      - _employer_deepening_evidence_priority
+      parser: python-ast
+      dependency_targets:
+      - &id015
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: _employer_deepening_evidence_priority
     - name: _canonical_public_search_ids
       kind: function
-      line_start: 1042
-      line_end: 1091
+      line_start: 1050
+      line_end: 1123
       signature: '_canonical_public_search_ids(models: list[DiscoveryStrategyModel]) -> set[str]'
       inputs:
       - 'models: list[DiscoveryStrategyModel]'
       output: set[str]
       dependencies:
       - _employer_deepening_evidence_is_current
+      - _employer_deepening_evidence_priority
       - canonical.get
       - canonical.values
       - compile_strategy_query
@@ -880,13 +897,14 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id014
+      - *id015
       - path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: compile_strategy_query
       - *id010
     - name: _strategy_snapshot
       kind: function
-      line_start: 1094
-      line_end: 1112
+      line_start: 1126
+      line_end: 1144
       signature: '_strategy_snapshot(model: DiscoveryStrategyModel) -> DiscoveryStrategySnapshot'
       inputs:
       - 'model: DiscoveryStrategyModel'
@@ -902,8 +920,8 @@ source_catalog:
         symbol: _as_utc_optional
     - name: _coverage_snapshot
       kind: function
-      line_start: 1115
-      line_end: 1122
+      line_start: 1147
+      line_end: 1154
       signature: '_coverage_snapshot(model: DiscoverySessionModel) -> DiscoveryCoverageSnapshot'
       inputs:
       - 'model: DiscoverySessionModel'
@@ -913,11 +931,11 @@ source_catalog:
       - _merge_coverage
       parser: python-ast
       dependency_targets:
-      - *id015
+      - *id016
     - name: _new_coverage
       kind: function
-      line_start: 1125
-      line_end: 1126
+      line_start: 1157
+      line_end: 1158
       signature: _new_coverage() -> dict[str, Any]
       inputs: []
       output: dict[str, Any]
@@ -926,8 +944,8 @@ source_catalog:
       dependency_targets: []
     - name: _merge_coverage
       kind: function
-      line_start: 1129
-      line_end: 1149
+      line_start: 1161
+      line_end: 1181
       signature: '_merge_coverage(current: dict[str, Any] | None, increments: dict[str, int] | None, warnings: list[str] |
         None) -> dict[str, Any]'
       inputs:
@@ -950,13 +968,13 @@ source_catalog:
       - str(warning).split
       parser: python-ast
       dependency_targets:
-      - *id016
+      - *id017
       - *id010
       - *id001
     - name: _strategy_ids_for_job
       kind: function
-      line_start: 1152
-      line_end: 1168
+      line_start: 1184
+      line_end: 1200
       signature: '_strategy_ids_for_job(session: Any, job_id: str) -> set[str]'
       inputs:
       - 'session: Any'
@@ -981,8 +999,8 @@ source_catalog:
       - *id005
     - name: _attempt_target_weight
       kind: function
-      line_start: 1171
-      line_end: 1186
+      line_start: 1203
+      line_end: 1218
       signature: '_attempt_target_weight(outcome: StrategyOutcome) -> float'
       inputs:
       - 'outcome: StrategyOutcome'
@@ -997,8 +1015,8 @@ source_catalog:
       - *id009
     - name: _strategy_score
       kind: function
-      line_start: 1189
-      line_end: 1223
+      line_start: 1221
+      line_end: 1255
       signature: '_strategy_score(model: DiscoveryStrategyModel, now: datetime, family_weight: float) -> float'
       inputs:
       - 'model: DiscoveryStrategyModel'
@@ -1013,13 +1031,13 @@ source_catalog:
       - model.dimensions.get
       parser: python-ast
       dependency_targets:
-      - *id017
       - *id018
       - *id019
+      - *id020
     - name: _normalized_market
       kind: function
-      line_start: 1226
-      line_end: 1227
+      line_start: 1258
+      line_end: 1259
       signature: '_normalized_market(model: DiscoveryStrategyModel) -> str'
       inputs:
       - 'model: DiscoveryStrategyModel'
@@ -1034,8 +1052,8 @@ source_catalog:
       dependency_targets: []
     - name: _market_kind_priority
       kind: function
-      line_start: 1230
-      line_end: 1236
+      line_start: 1262
+      line_end: 1268
       signature: '_market_kind_priority(model: DiscoveryStrategyModel) -> int'
       inputs:
       - 'model: DiscoveryStrategyModel'
@@ -1048,8 +1066,8 @@ source_catalog:
       dependency_targets: []
     - name: _market_rank
       kind: function
-      line_start: 1239
-      line_end: 1243
+      line_start: 1271
+      line_end: 1275
       signature: '_market_rank(model: DiscoveryStrategyModel) -> int'
       inputs:
       - 'model: DiscoveryStrategyModel'
@@ -1061,8 +1079,8 @@ source_catalog:
       dependency_targets: []
     - name: _reserve_strategy
       kind: function
-      line_start: 1246
-      line_end: 1286
+      line_start: 1278
+      line_end: 1318
       signature: '_reserve_strategy(selected: list[DiscoveryStrategyModel], candidate: DiscoveryStrategyModel, protected_families:
         set[str], replace_families: set[str]) -> None'
       inputs:
@@ -1084,8 +1102,8 @@ source_catalog:
       dependency_targets: []
     - name: _utc_sort_value
       kind: function
-      line_start: 1289
-      line_end: 1292
+      line_start: 1321
+      line_end: 1324
       signature: '_utc_sort_value(value: datetime | None) -> float'
       inputs:
       - 'value: datetime | None'
@@ -1095,13 +1113,13 @@ source_catalog:
       - _as_utc(value).timestamp
       parser: python-ast
       dependency_targets:
-      - *id017
       - *id018
       - *id019
+      - *id020
     - name: _as_utc
       kind: function
-      line_start: 1295
-      line_end: 1296
+      line_start: 1327
+      line_end: 1328
       signature: '_as_utc(value: datetime) -> datetime'
       inputs:
       - 'value: datetime'
@@ -1112,8 +1130,8 @@ source_catalog:
       dependency_targets: []
     - name: _as_utc_optional
       kind: function
-      line_start: 1299
-      line_end: 1300
+      line_start: 1331
+      line_end: 1332
       signature: '_as_utc_optional(value: datetime | None) -> datetime | None'
       inputs:
       - 'value: datetime | None'
@@ -1122,13 +1140,13 @@ source_catalog:
       - _as_utc
       parser: python-ast
       dependency_targets:
-      - *id017
       - *id018
       - *id019
+      - *id020
     - name: _clamp
       kind: function
-      line_start: 1303
-      line_end: 1304
+      line_start: 1335
+      line_end: 1336
       signature: '_clamp(value: float, minimum: float, maximum: float) -> float'
       inputs:
       - 'value: float'
@@ -1284,7 +1302,7 @@ source_catalog:
       - session.scalar
       parser: python-ast
       dependency_targets:
-      - &id020
+      - &id021
         path: tests/test_job_scout_location_discovery.py
         symbol: _build
       - *id003
@@ -1323,7 +1341,7 @@ source_catalog:
       - learning.record_attempt
       parser: python-ast
       dependency_targets:
-      - *id020
+      - *id021
       - path: src/nerve_center/plugins/job_scout/location_discovery.py
         symbol: _normalize_legacy_location_strategy_yield
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py

@@ -163,7 +163,7 @@ source_catalog:
   - path: src/nerve_center/discovery/fetching.py
     analysis_version: 1
     language: python
-    content_hash: 5db93becfdf6b79ee6969a06a6cacbb22135e8e5
+    content_hash: d3bf5cc6e304f3bb4bc31bfd10131fc012ee8766
     dependencies:
     - __future__
     - asyncio
@@ -249,7 +249,7 @@ source_catalog:
     - name: HttpFetcher.get
       kind: method
       line_start: 77
-      line_end: 152
+      line_end: 158
       signature: 'HttpFetcher.get(self, url: str, params: dict[str, object] | None, headers: dict[str, str] | None, max_bytes:
         int | None) -> FetchResponse'
       inputs:
@@ -297,8 +297,8 @@ source_catalog:
         symbol: StubProcess.wait
     - name: _is_textual
       kind: function
-      line_start: 155
-      line_end: 157
+      line_start: 161
+      line_end: 163
       signature: '_is_textual(content_type: str) -> bool'
       inputs:
       - 'content_type: str'

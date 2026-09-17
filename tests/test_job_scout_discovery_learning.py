@@ -915,3 +915,55 @@ def test_reserved_acquisition_lanes_can_displace_extra_company_revisits(
     ) == 1
     assert selected_ids & {item.id for item in companies}
 
+
+def test_normalized_attachment_evidence_bypasses_legacy_equivalent_cooldown(
+    tmp_path: Path,
+) -> None:
+    learning = JobScoutDiscoveryRepository(_database(tmp_path))
+    attempted_at = datetime(2026, 9, 17, 12, 0, tzinfo=UTC)
+    legacy = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer_deepen",
+            "anchor": "Example Mobility",
+            "location": "Example, NC",
+            "source_domain": "web",
+            "employer_evidence_authority": "civic_attachment",
+            "employer_evidence_extraction_method": "pdf_ocr_ranked_employers",
+        },
+        origin="public_employer_attachment_evidence",
+    )
+    learning.record_attempt(
+        "prior-run",
+        1,
+        legacy.id,
+        "deepen",
+        StrategyOutcome(),
+        finished_at=attempted_at,
+    )
+    normalized = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer_deepen",
+            "anchor": "Example Mobility",
+            "location": "Example Metro Area",
+            "source_domain": "web",
+            "employer_evidence_authority": "civic_attachment",
+            "employer_evidence_medium": "attachment",
+            "employer_evidence_extraction_method": "pdf_ocr_ranked_employers",
+        },
+        origin="public_employer_attachment_evidence",
+    )
+
+    selected = learning.select_strategies(
+        "current-run",
+        limit=4,
+        exploration_floor=0.25,
+        revisit_after_seconds=86400,
+        now=attempted_at + timedelta(minutes=5),
+    )
+    selected_ids = {item.id for item in selected}
+
+    assert normalized.id in selected_ids
+    assert legacy.id not in selected_ids
+

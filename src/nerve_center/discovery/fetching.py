@@ -136,11 +136,17 @@ class HttpFetcher:
         }
         challenge_text = text if _is_textual(normalized_headers.get("content-type", "")) else ""
         lowered = challenge_text[:200_000].casefold()
-        challenged = response.status_code in {401, 403} and any(
-            marker in lowered for marker in _CHALLENGE_MARKERS
-        )
-        if not challenged:
-            challenged = any(marker in lowered for marker in _CHALLENGE_MARKERS)
+        challenged = any(marker in lowered for marker in _CHALLENGE_MARKERS)
+        if not challenged and "duckduckgo" in lowered:
+            challenged = any(
+                marker in lowered
+                for marker in (
+                    "bots use",
+                    "complete the following challenge",
+                    "robot-detected",
+                    "select all squares",
+                )
+            )
         return FetchResponse(
             url=str(response.url),
             status_code=response.status_code,
