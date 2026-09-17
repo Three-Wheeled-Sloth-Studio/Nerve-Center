@@ -34,7 +34,7 @@ jobs:
           python refs/tools/generate_okf_indexes.py
       - name: Validate
         run: |
-          ruff check src/nerve_center/discovery/search.py src/nerve_center/discovery/public_search_fallback.py src/nerve_center/plugins/job_scout/discovery_learning.py src/nerve_center/plugins/job_scout/discovery_loop.py scripts/run_job_scout_live.py tests/test_public_search_fallback.py
+          ruff check src/nerve_center/discovery/search.py src/nerve_center/discovery/public_search_fallback.py src/nerve_center/plugins/job_scout/discovery_learning.py src/nerve_center/plugins/job_scout/discovery_loop.py scripts/run_job_scout_live.py tests/test_public_search_fallback.py tests/test_live_runner_progress.py
           pytest tests/test_public_search_fallback.py tests/test_discovery_connectors.py tests/test_job_scout_discovery_loop.py tests/test_job_scout_discovery_learning.py tests/test_live_runner_progress.py
           python refs/tools/generate_source_catalog.py --check
           python refs/tools/generate_okf_indexes.py --check
