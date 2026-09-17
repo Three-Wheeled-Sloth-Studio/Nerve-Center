@@ -568,7 +568,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/discovery_loop.py
     analysis_version: 1
     language: python
-    content_hash: 820f64f7d6cd444cb3bafc728ab4c8f382d9c206
+    content_hash: b5244c78d8abde5e08fff64e3f5a2c4c3679755a
     dependencies:
     - __future__
     - dataclasses
@@ -736,7 +736,7 @@ source_catalog:
         path: src/nerve_center/plugins/job_scout/settings.py
         symbol: clean_list
       - *id006
-      - &id038
+      - &id037
         path: src/nerve_center/runtime/client.py
         symbol: ModuleRuntimeClient.close
     - name: _CareerLinkParser.__init__
@@ -772,7 +772,7 @@ source_catalog:
       - values.get
       parser: python-ast
       dependency_targets:
-      - &id033
+      - &id032
         path: src/nerve_center/discovery/normalization.py
         symbol: canonicalize_url
       - *id006
@@ -942,7 +942,7 @@ source_catalog:
     - name: JobScoutDiscoveryLoop.cycle
       kind: method
       line_start: 269
-      line_end: 421
+      line_end: 423
       signature: 'JobScoutDiscoveryLoop.cycle(self, run_id: str, cycle: int, request_limit: int | None) -> DiscoveryCycleSummary'
       inputs:
       - self
@@ -1007,8 +1007,8 @@ source_catalog:
       - *id017
     - name: JobScoutDiscoveryLoop.deterministic_reflection
       kind: method
-      line_start: 423
-      line_end: 477
+      line_start: 425
+      line_end: 479
       signature: 'JobScoutDiscoveryLoop.deterministic_reflection(self, run_id: str, cycle: int) -> dict[str, Any]'
       inputs:
       - self
@@ -1042,8 +1042,8 @@ source_catalog:
       - *id017
     - name: JobScoutDiscoveryLoop.reflection_work_request
       kind: method
-      line_start: 479
-      line_end: 523
+      line_start: 481
+      line_end: 525
       signature: 'JobScoutDiscoveryLoop.reflection_work_request(self, run_id: str, cycle: int) -> dict[str, Any]'
       inputs:
       - self
@@ -1064,8 +1064,8 @@ source_catalog:
       - *id011
     - name: JobScoutDiscoveryLoop.apply_reflection_result
       kind: method
-      line_start: 525
-      line_end: 564
+      line_start: 527
+      line_end: 566
       signature: 'JobScoutDiscoveryLoop.apply_reflection_result(self, request_id: str, value: dict[str, Any]) -> int'
       inputs:
       - self
@@ -1103,8 +1103,8 @@ source_catalog:
       - *id017
     - name: JobScoutDiscoveryLoop.summary
       kind: method
-      line_start: 566
-      line_end: 573
+      line_start: 568
+      line_end: 575
       signature: 'JobScoutDiscoveryLoop.summary(self, run_id: str) -> dict[str, Any]'
       inputs:
       - self
@@ -1118,8 +1118,8 @@ source_catalog:
       - *id011
     - name: JobScoutDiscoveryLoop._seed_search_strategies
       kind: method
-      line_start: 575
-      line_end: 598
+      line_start: 577
+      line_end: 600
       signature: 'JobScoutDiscoveryLoop._seed_search_strategies(self, anchors: list[str], locations: list[str], boards: list[str])
         -> None'
       inputs:
@@ -1140,8 +1140,8 @@ source_catalog:
       - *id004
     - name: JobScoutDiscoveryLoop._seed_market_strategies
       kind: method
-      line_start: 600
-      line_end: 601
+      line_start: 602
+      line_end: 603
       signature: 'JobScoutDiscoveryLoop._seed_market_strategies(self, aliases: list[MarketAlias]) -> None'
       inputs:
       - self
@@ -1152,8 +1152,8 @@ source_catalog:
       dependency_targets: []
     - name: JobScoutDiscoveryLoop._seed_known_company_strategies
       kind: method
-      line_start: 603
-      line_end: 620
+      line_start: 605
+      line_end: 622
       signature: JobScoutDiscoveryLoop._seed_known_company_strategies(self) -> None
       inputs:
       - self
@@ -1176,8 +1176,8 @@ source_catalog:
       - *id004
     - name: JobScoutDiscoveryLoop._seed_due_source_strategies
       kind: method
-      line_start: 622
-      line_end: 629
+      line_start: 624
+      line_end: 631
       signature: JobScoutDiscoveryLoop._seed_due_source_strategies(self) -> None
       inputs:
       - self
@@ -1190,13 +1190,13 @@ source_catalog:
       dependency_targets:
       - *id024
       - *id004
-      - &id028
+      - &id027
         path: src/nerve_center/persistence/discovery.py
         symbol: DiscoverySourceRepository.list_due
     - name: JobScoutDiscoveryLoop._execute_strategy
       kind: method
-      line_start: 631
-      line_end: 644
+      line_start: 633
+      line_end: 646
       signature: 'JobScoutDiscoveryLoop._execute_strategy(self, strategy: DiscoveryStrategySnapshot, allowance: _RequestAllowance
         | None) -> tuple[StrategyOutcome, int, list[str]]'
       inputs:
@@ -1225,8 +1225,8 @@ source_catalog:
         symbol: JobScoutDiscoveryLoop._execute_source_revisit
     - name: JobScoutDiscoveryLoop._execute_public_search
       kind: method
-      line_start: 646
-      line_end: 994
+      line_start: 648
+      line_end: 1026
       signature: 'JobScoutDiscoveryLoop._execute_public_search(self, strategy: DiscoveryStrategySnapshot, allowance: _RequestAllowance
         | None) -> tuple[StrategyOutcome, int, list[str]]'
       inputs:
@@ -1244,6 +1244,7 @@ source_catalog:
       - _is_employer_source
       - _strategy_query
       - allowance.reserve
+      - bool
       - cache_status_method
       - companies_seen.add
       - companies_seen.update
@@ -1258,7 +1259,6 @@ source_catalog:
       - reference_evidence.append
       - search
       - self._attribute_source
-      - self._deepen_company
       parser: python-ast
       dependency_targets:
       - path: src/nerve_center/plugins/job_scout/discovery_loop.py
@@ -1278,13 +1278,10 @@ source_catalog:
       - &id026
         path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: JobScoutDiscoveryLoop._attribute_source
-      - &id027
-        path: src/nerve_center/plugins/job_scout/discovery_loop.py
-        symbol: JobScoutDiscoveryLoop._deepen_company
     - name: JobScoutDiscoveryLoop._execute_company_revisit
       kind: method
-      line_start: 996
-      line_end: 1068
+      line_start: 1028
+      line_end: 1100
       signature: 'JobScoutDiscoveryLoop._execute_company_revisit(self, strategy: DiscoveryStrategySnapshot, allowance: _RequestAllowance
         | None) -> tuple[StrategyOutcome, int, list[str]]'
       inputs:
@@ -1315,28 +1312,29 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id026
-      - *id027
-      - &id029
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._deepen_company
+      - &id028
         path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: JobScoutDiscoveryLoop._scan_source
-      - &id032
+      - &id031
         path: src/nerve_center/plugins/job_scout/configuration.py
         symbol: JobScoutCoordinator._register_source_url
       - *id015
       - *id016
       - *id004
-      - &id030
+      - &id029
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.record_company_evidence
-      - &id031
+      - &id030
         path: src/nerve_center/plugins/job_scout/discovery_quality.py
         symbol: DiscoveryQualityRepository.record_company_evidence
-      - *id028
+      - *id027
       - *id018
     - name: JobScoutDiscoveryLoop._execute_source_revisit
       kind: method
-      line_start: 1070
-      line_end: 1127
+      line_start: 1102
+      line_end: 1159
       signature: 'JobScoutDiscoveryLoop._execute_source_revisit(self, strategy: DiscoveryStrategySnapshot, allowance: _RequestAllowance
         | None) -> tuple[StrategyOutcome, int, list[str]]'
       inputs:
@@ -1360,14 +1358,14 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id026
-      - *id029
+      - *id028
       - *id004
+      - *id029
       - *id030
-      - *id031
     - name: JobScoutDiscoveryLoop._scan_source
       kind: method
-      line_start: 1129
-      line_end: 1157
+      line_start: 1161
+      line_end: 1189
       signature: 'JobScoutDiscoveryLoop._scan_source(self, source: DiscoverySource, allowance: _RequestAllowance | None) ->
         tuple[Any | None, int]'
       inputs:
@@ -1389,8 +1387,8 @@ source_catalog:
         symbol: DiscoveryService.scan_source
     - name: JobScoutDiscoveryLoop._deepen_company
       kind: method
-      line_start: 1159
-      line_end: 1203
+      line_start: 1191
+      line_end: 1235
       signature: 'JobScoutDiscoveryLoop._deepen_company(self, company: Company, strategy_id: str, allowance: _RequestAllowance
         | None) -> tuple[set[str], int, int]'
       inputs:
@@ -1421,27 +1419,27 @@ source_catalog:
       - *id026
       - path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: JobScoutDiscoveryLoop._register_sitemap
-      - *id029
-      - *id032
+      - *id028
+      - *id031
       - *id015
       - *id016
-      - &id034
+      - &id033
         path: src/nerve_center/persistence/discovery.py
         symbol: CompanyRepository.upsert
-      - &id035
+      - &id034
         path: src/nerve_center/persistence/discovery.py
         symbol: DiscoverySourceRepository.upsert
-      - &id036
+      - &id035
         path: src/nerve_center/persistence/discovery.py
         symbol: JobOpeningRepository.upsert
-      - &id037
+      - &id036
         path: src/nerve_center/persistence/scoring.py
         symbol: ScoringRuleRepository.upsert
       - *id018
     - name: JobScoutDiscoveryLoop._register_sitemap
       kind: method
-      line_start: 1205
-      line_end: 1224
+      line_start: 1237
+      line_end: 1256
       signature: 'JobScoutDiscoveryLoop._register_sitemap(self, company: Company, url: str, strategy_id: str) -> DiscoverySource'
       inputs:
       - self
@@ -1457,19 +1455,19 @@ source_catalog:
       - stable_source_id
       parser: python-ast
       dependency_targets:
-      - *id033
+      - *id032
       - *id015
       - *id016
+      - *id033
       - *id034
       - *id035
       - *id036
-      - *id037
       - path: src/nerve_center/discovery/normalization.py
         symbol: stable_source_id
     - name: JobScoutDiscoveryLoop._attribute_source
       kind: method
-      line_start: 1226
-      line_end: 1234
+      line_start: 1258
+      line_end: 1266
       signature: 'JobScoutDiscoveryLoop._attribute_source(self, source: DiscoverySource, strategy_id: str) -> DiscoverySource'
       inputs:
       - self
@@ -1487,14 +1485,14 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id009
+      - *id033
       - *id034
       - *id035
       - *id036
-      - *id037
     - name: JobScoutDiscoveryLoop._career_source_ids
       kind: method
-      line_start: 1236
-      line_end: 1237
+      line_start: 1268
+      line_end: 1269
       signature: JobScoutDiscoveryLoop._career_source_ids(self) -> set[str]
       inputs:
       - self
@@ -1507,8 +1505,8 @@ source_catalog:
       - *id024
     - name: _strategy_query
       kind: function
-      line_start: 1240
-      line_end: 1247
+      line_start: 1272
+      line_end: 1279
       signature: '_strategy_query(strategy: DiscoveryStrategySnapshot) -> str'
       inputs:
       - 'strategy: DiscoveryStrategySnapshot'
@@ -1525,8 +1523,8 @@ source_catalog:
       dependency_targets: []
     - name: _clean_domain
       kind: function
-      line_start: 1250
-      line_end: 1253
+      line_start: 1282
+      line_end: 1285
       signature: '_clean_domain(value: str) -> str'
       inputs:
       - 'value: str'
@@ -1542,8 +1540,8 @@ source_catalog:
       dependency_targets: []
     - name: _is_employer_source
       kind: function
-      line_start: 1256
-      line_end: 1259
+      line_start: 1288
+      line_end: 1291
       signature: '_is_employer_source(source: DiscoverySource) -> bool'
       inputs:
       - 'source: DiscoverySource'
@@ -1555,8 +1553,8 @@ source_catalog:
       dependency_targets: []
     - name: _extract_regional_alias_evidence
       kind: function
-      line_start: 1271
-      line_end: 1314
+      line_start: 1303
+      line_end: 1346
       signature: '_extract_regional_alias_evidence(results: list[Any], anchor: str) -> list[dict[str, str]]'
       inputs:
       - 'results: list[Any]'
@@ -1586,8 +1584,8 @@ source_catalog:
       - *id018
     - name: _extract_employer_landscape_names
       kind: function
-      line_start: 1317
-      line_end: 1371
+      line_start: 1349
+      line_end: 1403
       signature: '_extract_employer_landscape_names(content: str, content_type: str) -> list[str]'
       inputs:
       - 'content: str'
@@ -1618,12 +1616,12 @@ source_catalog:
       - path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: _extract_structured_employer_names
       - *id006
-      - *id038
+      - *id037
       - *id018
     - name: _as_reference_document
       kind: function
-      line_start: 1374
-      line_end: 1382
+      line_start: 1406
+      line_end: 1414
       signature: '_as_reference_document(url: str, fetched: Any) -> ReferenceDocument'
       inputs:
       - 'url: str'
@@ -1637,8 +1635,8 @@ source_catalog:
       dependency_targets: []
     - name: _extract_structured_employer_names
       kind: function
-      line_start: 1385
-      line_end: 1475
+      line_start: 1417
+      line_end: 1507
       signature: '_extract_structured_employer_names(content: str, content_type: str) -> list[str]'
       inputs:
       - 'content: str'
@@ -1675,8 +1673,8 @@ source_catalog:
       - *id006
     - name: _extract_structured_employer_names.add
       kind: function
-      line_start: 1409
-      line_end: 1414
+      line_start: 1441
+      line_end: 1446
       signature: '_extract_structured_employer_names.add(value: Any) -> None'
       inputs:
       - 'value: Any'
@@ -1695,8 +1693,8 @@ source_catalog:
       - *id006
     - name: _extract_structured_employer_names.walk
       kind: function
-      line_start: 1416
-      line_end: 1471
+      line_start: 1448
+      line_end: 1503
       signature: '_extract_structured_employer_names.walk(value: Any, directory_context: bool, organization_context: bool)
         -> None'
       inputs:
@@ -1720,8 +1718,8 @@ source_catalog:
       - *id018
     - name: _is_civic_reference_result
       kind: function
-      line_start: 1478
-      line_end: 1486
+      line_start: 1510
+      line_end: 1518
       signature: '_is_civic_reference_result(result: Any) -> bool'
       inputs:
       - 'result: Any'
@@ -1738,8 +1736,8 @@ source_catalog:
       dependency_targets: []
     - name: _civic_reference_rank
       kind: function
-      line_start: 1489
-      line_end: 1498
+      line_start: 1521
+      line_end: 1530
       signature: '_civic_reference_rank(result: Any) -> tuple[int, str]'
       inputs:
       - 'result: Any'
@@ -1755,8 +1753,8 @@ source_catalog:
       dependency_targets: []
     - name: _reflection_schema
       kind: function
-      line_start: 1501
-      line_end: 1524
+      line_start: 1533
+      line_end: 1556
       signature: _reflection_schema() -> dict[str, Any]
       inputs: []
       output: dict[str, Any]
@@ -1819,17 +1817,17 @@ source_catalog:
         symbol: _execute_assignment
       - path: src/nerve_center/plugins/job_scout/worker.py
         symbol: _required_environment
-      - *id038
-      - &id044
+      - *id037
+      - &id043
         path: src/nerve_center/runtime/api.py
         symbol: register_runtime_routes.heartbeat
-      - &id045
+      - &id044
         path: src/nerve_center/runtime/client.py
         symbol: ModuleRuntimeClient.heartbeat
-      - &id046
+      - &id045
         path: src/nerve_center/runtime/supervisor.py
         symbol: ModuleSupervisor.heartbeat
-      - &id047
+      - &id046
         path: tests/test_job_scout_continuous_session.py
         symbol: Client.heartbeat
       - path: src/nerve_center/runtime/api.py
@@ -1902,15 +1900,15 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/plugins/job_scout/worker.py
         symbol: _accumulate_marginal_yield
-      - &id039
+      - &id038
         path: src/nerve_center/plugins/job_scout/worker.py
         symbol: _completion_metrics
       - path: src/nerve_center/plugins/job_scout/worker.py
         symbol: _harvest_reflection_results
-      - &id041
+      - &id040
         path: src/nerve_center/plugins/job_scout/worker.py
         symbol: _heartbeat_while_working
-      - &id040
+      - &id039
         path: src/nerve_center/plugins/job_scout/worker.py
         symbol: _marginal_window
       - path: src/nerve_center/plugins/job_scout/worker.py
@@ -1918,10 +1916,10 @@ source_catalog:
       - path: src/nerve_center/plugins/job_scout/worker.py
         symbol: _terminal_status
       - *id006
-      - &id042
+      - &id041
         path: src/nerve_center/runtime/client.py
         symbol: ModuleRuntimeClient.consume
-      - &id043
+      - &id042
         path: tests/test_job_scout_continuous_session.py
         symbol: Client.consume
       - path: src/nerve_center/runtime/api.py
@@ -1969,7 +1967,7 @@ source_catalog:
       - metrics.update
       parser: python-ast
       dependency_targets:
-      - *id039
+      - *id038
     - name: _execute_discovery_loop.control_reason
       kind: function
       line_start: 106
@@ -2043,7 +2041,7 @@ source_catalog:
       - client.invoke
       parser: python-ast
       dependency_targets:
-      - *id039
+      - *id038
     - name: _stop_status
       kind: function
       line_start: 423
@@ -2121,7 +2119,7 @@ source_catalog:
       - values.get
       parser: python-ast
       dependency_targets:
-      - *id040
+      - *id039
     - name: _checkpoint_coverage
       kind: function
       line_start: 498
@@ -2182,9 +2180,9 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
+      - *id040
       - *id041
       - *id042
-      - *id043
       - *id006
       - path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository.cancel
@@ -2209,10 +2207,10 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
+      - *id043
       - *id044
       - *id045
       - *id046
-      - *id047
     - name: _required_environment
       kind: function
       line_start: 609
@@ -2409,31 +2407,31 @@ source_catalog:
         symbol: ModuleSupervisor.execute
       - path: tests/test_scheduler.py
         symbol: test_tick_starts_due_fixed_run.execute
-      - &id054
+      - &id053
         path: tests/test_scheduler.py
         symbol: make_scheduler
-      - &id055
+      - &id054
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.create
-      - &id056
+      - &id055
         path: src/nerve_center/persistence/sessions.py
         symbol: SessionRepository.create
-      - &id048
+      - &id047
         path: src/nerve_center/discovery/fetching.py
         symbol: DomainRequestGate.wait
-      - &id049
+      - &id048
         path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService.wait
-      - &id050
+      - &id049
         path: tests/test_module_runtime.py
         symbol: StubProcess.wait
-      - &id051
+      - &id050
         path: src/nerve_center/scheduler/provider_worker.py
         symbol: ProviderWorkExecutor.tick
-      - &id052
+      - &id051
         path: src/nerve_center/scheduler/service.py
         symbol: SchedulerService.tick
-      - &id053
+      - &id052
         path: src/nerve_center/scheduler/sessions.py
         symbol: WorkSessionService.tick
     - name: test_tick_starts_due_fixed_run.execute
@@ -2449,12 +2447,12 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
+      - *id047
       - *id048
       - *id049
       - *id050
       - *id051
       - *id052
-      - *id053
     - name: test_tick_marks_expired_window_missed
       kind: function
       line_start: 44
@@ -2474,12 +2472,12 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
+      - *id053
       - *id054
       - *id055
-      - *id056
+      - *id050
       - *id051
       - *id052
-      - *id053
   - path: tests/test_scoring_persistence.py
     analysis_version: 1
     language: python
@@ -2530,7 +2528,7 @@ source_catalog:
       - ScoringRule
       parser: python-ast
       dependency_targets:
+      - *id033
       - *id034
       - *id035
       - *id036
-      - *id037

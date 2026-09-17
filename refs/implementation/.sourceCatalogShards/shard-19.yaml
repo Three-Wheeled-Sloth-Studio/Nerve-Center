@@ -1109,6 +1109,79 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id021
+  - path: src/nerve_center/discovery/public_search_fallback.py
+    analysis_version: 1
+    language: python
+    content_hash: 4b0086c302d1b100c49d852120f46bfe2bde5d6c
+    dependencies:
+    - __future__
+    - html.parser
+    provides:
+    - BingSearchResultParser.__init__
+    - BingSearchResultParser.handle_starttag
+    - BingSearchResultParser.handle_data
+    - BingSearchResultParser.handle_endtag
+    symbols:
+    - name: BingSearchResultParser.__init__
+      kind: method
+      line_start: 11
+      line_end: 17
+      signature: BingSearchResultParser.__init__(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies:
+      - super
+      parser: python-ast
+      dependency_targets: []
+    - name: BingSearchResultParser.handle_starttag
+      kind: method
+      line_start: 19
+      line_end: 37
+      signature: 'BingSearchResultParser.handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None'
+      inputs:
+      - self
+      - 'tag: str'
+      - 'attrs: list[tuple[str, str | None]]'
+      output: None
+      dependencies:
+      - (values.get('class') or '').split
+      - dict
+      - set
+      - values.get
+      parser: python-ast
+      dependency_targets: []
+    - name: BingSearchResultParser.handle_data
+      kind: method
+      line_start: 39
+      line_end: 41
+      signature: 'BingSearchResultParser.handle_data(self, data: str) -> None'
+      inputs:
+      - self
+      - 'data: str'
+      output: None
+      dependencies:
+      - self._parts.append
+      parser: python-ast
+      dependency_targets:
+      - *id019
+    - name: BingSearchResultParser.handle_endtag
+      kind: method
+      line_start: 43
+      line_end: 60
+      signature: 'BingSearchResultParser.handle_endtag(self, tag: str) -> None'
+      inputs:
+      - self
+      - 'tag: str'
+      output: None
+      dependencies:
+      - ''' ''.join'
+      - '''''.join'
+      - '''''.join(self._parts).split'
+      - self.anchors.append
+      parser: python-ast
+      dependency_targets:
+      - *id019
   - path: src/nerve_center/scoring/qualification_importance.py
     analysis_version: 1
     language: python

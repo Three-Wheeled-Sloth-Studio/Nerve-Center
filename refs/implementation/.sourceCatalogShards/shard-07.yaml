@@ -7,7 +7,7 @@ source_catalog:
   - path: scripts/run_job_scout_live.py
     analysis_version: 1
     language: python
-    content_hash: ff7ac37c2c8a11a2ff88612bb0deb939b0e949af
+    content_hash: 4519fe3badadbed637c78b1af15f3d0b848fb75d
     dependencies:
     - __future__
     - argparse
@@ -165,7 +165,7 @@ source_catalog:
     - name: _progress_counts
       kind: function
       line_start: 115
-      line_end: 147
+      line_end: 148
       signature: '_progress_counts(values: dict[str, Any]) -> tuple[tuple[str, int], ...]'
       inputs:
       - 'values: dict[str, Any]'
@@ -178,8 +178,8 @@ source_catalog:
       dependency_targets: []
     - name: request_json
       kind: function
-      line_start: 150
-      line_end: 168
+      line_start: 151
+      line_end: 169
       signature: 'request_json(endpoint: str, path: str, method: str, payload: dict[str, Any] | None, timeout: float) -> Any'
       inputs:
       - 'endpoint: str'
@@ -204,8 +204,8 @@ source_catalog:
       dependency_targets: []
     - name: ManagedApi.__init__
       kind: method
-      line_start: 172
-      line_end: 185
+      line_start: 173
+      line_end: 186
       signature: 'ManagedApi.__init__(self, endpoint: str, data_dir: Path, log_path: Path, default_model: str) -> None'
       inputs:
       - self
@@ -219,8 +219,8 @@ source_catalog:
       dependency_targets: []
     - name: ManagedApi.__enter__
       kind: method
-      line_start: 187
-      line_end: 227
+      line_start: 188
+      line_end: 228
       signature: ManagedApi.__enter__(self) -> ManagedApi
       inputs:
       - self
@@ -254,8 +254,8 @@ source_catalog:
         symbol: request_json
     - name: ManagedApi.__exit__
       kind: method
-      line_start: 229
-      line_end: 244
+      line_start: 230
+      line_end: 245
       signature: 'ManagedApi.__exit__(self, *_exc: object) -> None'
       inputs:
       - self
@@ -288,8 +288,8 @@ source_catalog:
         symbol: StubProcess.wait
     - name: _managed_api_environment
       kind: function
-      line_start: 247
-      line_end: 255
+      line_start: 248
+      line_end: 256
       signature: '_managed_api_environment(base_environment: dict[str, str] | None) -> dict[str, str]'
       inputs:
       - 'base_environment: dict[str, str] | None'
@@ -304,8 +304,8 @@ source_catalog:
       dependency_targets: []
     - name: _runtime_identity
       kind: function
-      line_start: 258
-      line_end: 285
+      line_start: 259
+      line_end: 286
       signature: _runtime_identity() -> dict[str, Any]
       inputs: []
       output: dict[str, Any]
@@ -321,8 +321,8 @@ source_catalog:
       dependency_targets: []
     - name: write_report
       kind: function
-      line_start: 288
-      line_end: 292
+      line_start: 289
+      line_end: 293
       signature: 'write_report(path: Path, report: dict[str, Any]) -> None'
       inputs:
       - 'path: Path'
@@ -338,8 +338,8 @@ source_catalog:
       dependency_targets: []
     - name: archive_report
       kind: function
-      line_start: 295
-      line_end: 299
+      line_start: 296
+      line_end: 300
       signature: 'archive_report(path: Path, report: dict[str, Any]) -> None'
       inputs:
       - 'path: Path'
@@ -359,8 +359,8 @@ source_catalog:
         symbol: write_report
     - name: _efficiency_summary
       kind: function
-      line_start: 302
-      line_end: 341
+      line_start: 303
+      line_end: 343
       signature: '_efficiency_summary(checkpoint: dict[str, Any]) -> dict[str, Any]'
       inputs:
       - 'checkpoint: dict[str, Any]'
@@ -375,8 +375,8 @@ source_catalog:
       dependency_targets: []
     - name: _completion_flags
       kind: function
-      line_start: 344
-      line_end: 353
+      line_start: 346
+      line_end: 355
       signature: '_completion_flags(terminal_reason: str) -> dict[str, bool]'
       inputs:
       - 'terminal_reason: str'
@@ -386,8 +386,8 @@ source_catalog:
       dependency_targets: []
     - name: _location_family_evidence
       kind: function
-      line_start: 356
-      line_end: 416
+      line_start: 358
+      line_end: 418
       signature: '_location_family_evidence(families: list[dict[str, Any]]) -> dict[str, Any]'
       inputs:
       - 'families: list[dict[str, Any]]'
@@ -419,8 +419,8 @@ source_catalog:
         symbol: OpportunityScoreRepository.append
     - name: configure_workspace
       kind: function
-      line_start: 419
-      line_end: 453
+      line_start: 421
+      line_end: 455
       signature: 'configure_workspace(endpoint: str, resume: Path | None, analyze_resume: bool, target_titles: list[str],
         locations: list[str], remote_preference: str, score_limit: int, score_failure_limit: int) -> dict[str, Any]'
       inputs:
@@ -446,8 +446,8 @@ source_catalog:
       - *id004
     - name: monitor_session
       kind: function
-      line_start: 456
-      line_end: 586
+      line_start: 458
+      line_end: 588
       signature: 'monitor_session(endpoint: str, duration_seconds: int, poll_seconds: float, report_path: Path, report: dict[str,
         Any], on_session: Callable[[str], None] | None, max_requests: int, max_llm_calls: int) -> tuple[dict[str, Any], str]'
       inputs:
@@ -501,8 +501,8 @@ source_catalog:
       - *id007
     - name: _resumable_job_scout_session
       kind: function
-      line_start: 589
-      line_end: 604
+      line_start: 591
+      line_end: 606
       signature: '_resumable_job_scout_session(sessions: object) -> dict[str, Any] | None'
       inputs:
       - 'sessions: object'
@@ -517,8 +517,8 @@ source_catalog:
       dependency_targets: []
     - name: _remaining_session_seconds
       kind: function
-      line_start: 607
-      line_end: 620
+      line_start: 609
+      line_end: 622
       signature: '_remaining_session_seconds(session: dict[str, Any], fallback_seconds: int) -> float'
       inputs:
       - 'session: dict[str, Any]'
@@ -539,8 +539,8 @@ source_catalog:
       dependency_targets: []
     - name: _fit_analysis_contract_version
       kind: function
-      line_start: 623
-      line_end: 626
+      line_start: 625
+      line_end: 628
       signature: _fit_analysis_contract_version() -> str
       inputs: []
       output: str
@@ -549,8 +549,8 @@ source_catalog:
       dependency_targets: []
     - name: score_candidates
       kind: function
-      line_start: 629
-      line_end: 687
+      line_start: 631
+      line_end: 689
       signature: 'score_candidates(endpoint: str, opportunities: list[dict[str, Any]], limit: int, model: str, report_path:
         Path, report: dict[str, Any]) -> list[dict[str, Any]]'
       inputs:
@@ -592,8 +592,8 @@ source_catalog:
       - *id007
     - name: run
       kind: function
-      line_start: 690
-      line_end: 902
+      line_start: 692
+      line_end: 904
       signature: 'run(args: argparse.Namespace) -> int'
       inputs:
       - 'args: argparse.Namespace'
@@ -642,8 +642,8 @@ source_catalog:
         symbol: monitor_session
     - name: parser
       kind: function
-      line_start: 905
-      line_end: 931
+      line_start: 907
+      line_end: 933
       signature: parser() -> argparse.ArgumentParser
       inputs: []
       output: argparse.ArgumentParser
@@ -655,8 +655,8 @@ source_catalog:
       dependency_targets: []
     - name: main
       kind: function
-      line_start: 934
-      line_end: 948
+      line_start: 936
+      line_end: 950
       signature: main() -> int
       inputs: []
       output: int
@@ -674,3 +674,190 @@ source_catalog:
         symbol: parser
       - path: scripts/smoke_job_scout_live.py
         symbol: parser
+  - path: tests/test_public_search_fallback.py
+    analysis_version: 1
+    language: python
+    content_hash: 87586c0b0e65e0e2c7fe3f2bccc5d798917b4feb
+    dependencies:
+    - __future__
+    - asyncio
+    - datetime
+    - httpx
+    - nerve_center.discovery.fetching
+    - nerve_center.discovery.search
+    - pytest
+    provides:
+    - MemorySearchCache.__init__
+    - MemorySearchCache.get
+    - MemorySearchCache.put
+    - _fetcher
+    - test_public_search_rotates_to_bing_after_duckduckgo_challenge
+    - test_public_search_rotates_to_bing_after_duckduckgo_challenge.challenge_handler
+    - test_public_search_rotates_to_bing_after_duckduckgo_challenge.bing_handler
+    - test_ordinary_empty_duckduckgo_result_does_not_rotate_provider
+    - test_ordinary_empty_duckduckgo_result_does_not_rotate_provider.handler
+    - test_bing_tracking_redirect_is_normalized_to_public_target
+    symbols:
+    - name: MemorySearchCache.__init__
+      kind: method
+      line_start: 18
+      line_end: 19
+      signature: MemorySearchCache.__init__(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: MemorySearchCache.get
+      kind: method
+      line_start: 21
+      line_end: 24
+      signature: 'MemorySearchCache.get(self, provider: str, query: str, now: object | None) -> dict[str, object] | None'
+      inputs:
+      - self
+      - 'provider: str'
+      - 'query: str'
+      - 'now: object | None'
+      output: dict[str, object] | None
+      dependencies:
+      - dict
+      parser: python-ast
+      dependency_targets: []
+    - name: MemorySearchCache.put
+      kind: method
+      line_start: 26
+      line_end: 36
+      signature: 'MemorySearchCache.put(self, provider: str, query: str, payload: dict[str, object], ttl: timedelta, now:
+        object | None) -> None'
+      inputs:
+      - self
+      - 'provider: str'
+      - 'query: str'
+      - 'payload: dict[str, object]'
+      - 'ttl: timedelta'
+      - 'now: object | None'
+      output: None
+      dependencies:
+      - dict
+      - timedelta
+      parser: python-ast
+      dependency_targets: []
+    - name: _fetcher
+      kind: function
+      line_start: 39
+      line_end: 47
+      signature: '_fetcher(handler: object) -> tuple[HttpFetcher, httpx.AsyncClient]'
+      inputs:
+      - 'handler: object'
+      output: tuple[HttpFetcher, httpx.AsyncClient]
+      dependencies:
+      - DomainRequestGate
+      - HttpFetcher
+      - httpx.AsyncClient
+      - httpx.MockTransport
+      parser: python-ast
+      dependency_targets: []
+    - name: test_public_search_rotates_to_bing_after_duckduckgo_challenge
+      kind: function
+      line_start: 50
+      line_end: 102
+      signature: test_public_search_rotates_to_bing_after_duckduckgo_challenge() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - MemorySearchCache
+      - PublicWebSearchAdapter
+      - _fetcher
+      - adapter.search_references
+      - asyncio.run
+      - cache.get
+      - client.aclose
+      - fallback_client.aclose
+      - fallback_hosts.append
+      - fresh_adapter.search_references
+      - httpx.Response
+      - primary_hosts.append
+      - pytest.raises
+      parser: python-ast
+      dependency_targets:
+      - &id009
+        path: tests/test_public_search_fallback.py
+        symbol: _fetcher
+      - *id006
+    - name: test_public_search_rotates_to_bing_after_duckduckgo_challenge.challenge_handler
+      kind: function
+      line_start: 54
+      line_end: 63
+      signature: 'test_public_search_rotates_to_bing_after_duckduckgo_challenge.challenge_handler(request: httpx.Request)
+        -> httpx.Response'
+      inputs:
+      - 'request: httpx.Request'
+      output: httpx.Response
+      dependencies:
+      - httpx.Response
+      - primary_hosts.append
+      parser: python-ast
+      dependency_targets:
+      - *id006
+    - name: test_public_search_rotates_to_bing_after_duckduckgo_challenge.bing_handler
+      kind: function
+      line_start: 78
+      line_end: 88
+      signature: 'test_public_search_rotates_to_bing_after_duckduckgo_challenge.bing_handler(request: httpx.Request) -> httpx.Response'
+      inputs:
+      - 'request: httpx.Request'
+      output: httpx.Response
+      dependencies:
+      - fallback_hosts.append
+      - httpx.Response
+      parser: python-ast
+      dependency_targets:
+      - *id006
+    - name: test_ordinary_empty_duckduckgo_result_does_not_rotate_provider
+      kind: function
+      line_start: 105
+      line_end: 125
+      signature: test_ordinary_empty_duckduckgo_result_does_not_rotate_provider() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - MemorySearchCache
+      - PublicWebSearchAdapter
+      - _fetcher
+      - adapter.search_references
+      - asyncio.run
+      - client.aclose
+      - hosts.append
+      - httpx.Response
+      parser: python-ast
+      dependency_targets:
+      - *id009
+      - *id006
+    - name: test_ordinary_empty_duckduckgo_result_does_not_rotate_provider.handler
+      kind: function
+      line_start: 109
+      line_end: 115
+      signature: 'test_ordinary_empty_duckduckgo_result_does_not_rotate_provider.handler(request: httpx.Request) -> httpx.Response'
+      inputs:
+      - 'request: httpx.Request'
+      output: httpx.Response
+      dependencies:
+      - hosts.append
+      - httpx.Response
+      parser: python-ast
+      dependency_targets:
+      - *id006
+    - name: test_bing_tracking_redirect_is_normalized_to_public_target
+      kind: function
+      line_start: 128
+      line_end: 131
+      signature: test_bing_tracking_redirect_is_normalized_to_public_target() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - normalize_public_search_result_url
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/discovery/search.py
+        symbol: normalize_public_search_result_url

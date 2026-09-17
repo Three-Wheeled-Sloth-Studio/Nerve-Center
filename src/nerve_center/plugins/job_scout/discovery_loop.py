@@ -324,6 +324,7 @@ class JobScoutDiscoveryLoop:
             "public_searches_executed": 0,
             "search_requests_completed": 0,
             "search_requests_failed": 0,
+            "search_provider_fallbacks": 0,
             "search_results_returned": 0,
             "search_results_eligible": 0,
             "search_sources_registered": 0,
@@ -379,6 +380,7 @@ class JobScoutDiscoveryLoop:
                 for key in (
                     "search_requests_completed",
                     "search_requests_failed",
+                    "search_provider_fallbacks",
                     "search_results_returned",
                     "search_results_eligible",
                     "search_sources_registered",
@@ -652,6 +654,8 @@ class JobScoutDiscoveryLoop:
         start_requests = allowance.used
         query = _strategy_query(strategy)
         warnings: list[str] = []
+        search_provider = ""
+        search_provider_fallback_used = False
         try:
             allowance.reserve()
             search = self.search_adapter.search
@@ -661,29 +665,51 @@ class JobScoutDiscoveryLoop:
             }:
                 search = getattr(self.search_adapter, "search_references", search)
             results = await search(query)
+            search_provider = str(getattr(self.search_adapter, "last_provider", "") or "")
+            search_provider_fallback_used = bool(
+                getattr(self.search_adapter, "last_provider_fallback_used", False)
+            )
         except _RequestAllowanceExhausted:
             return StrategyOutcome(status="budget_exhausted"), 0, []
         except SearchChallengeError as error:
+            search_provider = str(getattr(self.search_adapter, "last_provider", "") or "")
+            search_provider_fallback_used = bool(
+                getattr(self.search_adapter, "last_provider_fallback_used", False)
+            )
             return (
                 StrategyOutcome(
                     status="challenged",
                     challenged=1,
                     detail={
                         "query": query,
-                        "stages": {"search_requests_failed": 1},
+                        "search_provider": search_provider,
+                        "search_provider_fallback_used": search_provider_fallback_used,
+                        "stages": {
+                            "search_requests_failed": 1,
+                            "search_provider_fallbacks": int(search_provider_fallback_used),
+                        },
                     },
                 ),
                 allowance.used - start_requests,
                 [str(error)],
             )
         except RuntimeError as error:
+            search_provider = str(getattr(self.search_adapter, "last_provider", "") or "")
+            search_provider_fallback_used = bool(
+                getattr(self.search_adapter, "last_provider_fallback_used", False)
+            )
             return (
                 StrategyOutcome(
                     status="failed",
                     failed=1,
                     detail={
                         "query": query,
-                        "stages": {"search_requests_failed": 1},
+                        "search_provider": search_provider,
+                        "search_provider_fallback_used": search_provider_fallback_used,
+                        "stages": {
+                            "search_requests_failed": 1,
+                            "search_provider_fallbacks": int(search_provider_fallback_used),
+                        },
                     },
                 ),
                 allowance.used - start_requests,
@@ -718,9 +744,12 @@ class JobScoutDiscoveryLoop:
                     results_examined=len(inspected_results),
                     detail={
                         "query": query,
+                        "search_provider": search_provider,
+                        "search_provider_fallback_used": search_provider_fallback_used,
                         "regional_alias_evidence": evidence,
                         "stages": {
                             "search_requests_completed": 1,
+                            "search_provider_fallbacks": int(search_provider_fallback_used),
                             "search_results_returned": len(results),
                             "regional_aliases_discovered": len(evidence),
                             "strategies_created": created,
@@ -971,8 +1000,11 @@ class JobScoutDiscoveryLoop:
                 opportunities_retained=retained,
                 detail={
                     "query": query,
+                    "search_provider": search_provider,
+                    "search_provider_fallback_used": search_provider_fallback_used,
                     "stages": {
                         "search_requests_completed": 1,
+                        "search_provider_fallbacks": int(search_provider_fallback_used),
                         "search_results_returned": len(results),
                         "search_results_eligible": eligible_results,
                         "search_sources_registered": registered_sources,

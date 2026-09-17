@@ -21,6 +21,7 @@ from nerve_center.discovery.fetching import (
     ResponseTooLargeError,
 )
 from nerve_center.discovery.normalization import canonicalize_url, has_job_route_evidence
+from nerve_center.discovery.public_search_fallback import BingSearchResultParser
 from nerve_center.persistence.discovery import SearchCacheRepository
 
 
@@ -107,6 +108,8 @@ class PublicWebSearchAdapter:
     """Cached ordinary public-web search without browser automation."""
 
     provider = "duckduckgo_html"
+    fallback_provider = "bing_html"
+    provider_health_cache = "public_search_provider_health:v1"
 
     def __init__(
         self,
@@ -121,6 +124,8 @@ class PublicWebSearchAdapter:
         )
         self.max_results = max_results
         self._cooldown_messages: dict[str, str] = {}
+        self.last_provider = ""
+        self.last_provider_fallback_used = False
 
     async def search(self, query: str) -> list[SearchResult]:
         return await self._search(query, include_other=False)
@@ -247,6 +252,64 @@ class PublicWebSearchAdapter:
         )
         return document
 
+    def _provider_cache_name(self, provider: str, result_scope: str) -> str:
+        return f"{provider}:{self.max_results}:{result_scope}"
+
+    def _provider_cooldown_message(self, provider: str) -> str | None:
+        message = self._cooldown_messages.get(provider)
+        if message:
+            return message
+        cached = self.cache.get(self.provider_health_cache, provider)
+        if cached is None or cached.get("status") != "challenged":
+            return None
+        message = str(
+            cached.get("message")
+            or "The public search provider is cooling down after a challenge."
+        )
+        self._cooldown_messages[provider] = message
+        return message
+
+    def _mark_provider_cooldown(self, provider: str, message: str) -> None:
+        self._cooldown_messages[provider] = message
+        self.cache.put(
+            self.provider_health_cache,
+            provider,
+            {"status": "challenged", "message": message},
+            ttl=timedelta(hours=1),
+        )
+
+    def _select_public_provider(
+        self,
+        query: str,
+        result_scope: str,
+    ) -> tuple[str, str, dict[str, object] | None]:
+        cooldowns: list[str] = []
+        for provider in (self.provider, self.fallback_provider):
+            cache_provider = self._provider_cache_name(provider, result_scope)
+            cached = self.cache.get(cache_provider, query)
+            cached_succeeded = cached is not None and cached.get("status") == "succeeded"
+            cached_results = cached.get("results", []) if cached_succeeded else []
+            if cached_succeeded and isinstance(cached_results, list) and cached_results:
+                return provider, cache_provider, cached
+            cooldown = self._provider_cooldown_message(provider)
+            if cooldown:
+                cooldowns.append(cooldown)
+                continue
+            if cached is not None and cached.get("status") == "challenged":
+                message = str(
+                    cached.get("message")
+                    or "The public search provider is cooling down after a challenge."
+                )
+                self._mark_provider_cooldown(provider, message)
+                cooldowns.append(message)
+                continue
+            return provider, cache_provider, cached
+        raise SearchChallengeError(
+            cooldowns[-1]
+            if cooldowns
+            else "Public search providers are temporarily cooling down."
+        )
+
     async def _search(
         self,
         query: str,
@@ -254,33 +317,44 @@ class PublicWebSearchAdapter:
         include_other: bool,
     ) -> list[SearchResult]:
         builtin_query = _board_native_query(query, "builtin.com")
-        provider = "builtin_html" if builtin_query is not None else self.provider
-        if provider in self._cooldown_messages:
-            raise SearchChallengeError(self._cooldown_messages[provider])
         result_scope = "references" if include_other else "hiring"
-        cache_provider = f"{provider}:{self.max_results}:{result_scope}"
-        cached = self.cache.get(cache_provider, query)
-        if cached is not None:
-            if cached.get("status") == "challenged":
+        if builtin_query is not None:
+            provider = "builtin_html"
+            self.last_provider = provider
+            self.last_provider_fallback_used = False
+            if provider in self._cooldown_messages:
+                raise SearchChallengeError(self._cooldown_messages[provider])
+            cache_provider = self._provider_cache_name(provider, result_scope)
+            cached = self.cache.get(cache_provider, query)
+            if cached is not None and cached.get("status") == "challenged":
                 raise SearchChallengeError(
-                    str(cached.get("message") or "Public search is cooling down after a challenge.")
+                    str(
+                        cached.get("message")
+                        or "Public search is cooling down after a challenge."
+                    )
                 )
-            if cached.get("status") == "succeeded":
-                return _rehydrate_cached_results(
-                    cached.get("results", []),
-                    include_other=include_other,
-                )
+        else:
+            provider, cache_provider, cached = self._select_public_provider(
+                query, result_scope
+            )
+            self.last_provider = provider
+            self.last_provider_fallback_used = provider == self.fallback_provider
 
-        search_url = (
-            "https://builtin.com/jobs"
-            if builtin_query is not None
-            else "https://html.duckduckgo.com/html/"
-        )
-        params = (
-            _builtin_search_params(builtin_query)
-            if builtin_query is not None
-            else {"q": query, "source": "web"}
-        )
+        if cached is not None and cached.get("status") == "succeeded":
+            return _rehydrate_cached_results(
+                cached.get("results", []),
+                include_other=include_other,
+            )
+
+        if builtin_query is not None:
+            search_url = "https://builtin.com/jobs"
+            params = _builtin_search_params(builtin_query)
+        elif provider == self.fallback_provider:
+            search_url = "https://www.bing.com/search"
+            params = {"q": query, "count": str(self.max_results)}
+        else:
+            search_url = "https://html.duckduckgo.com/html/"
+            params = {"q": query, "source": "web"}
         try:
             response = await self.fetcher.get(
                 search_url,
@@ -291,7 +365,10 @@ class PublicWebSearchAdapter:
             raise RuntimeError("The public search provider could not be reached.") from error
         if response.challenged or response.throttled or response.status_code in {401, 403, 429}:
             message = "The public search provider requested a cooldown; try the scan again later."
-            self._cooldown_messages[provider] = message
+            if provider in {self.provider, self.fallback_provider}:
+                self._mark_provider_cooldown(provider, message)
+            else:
+                self._cooldown_messages[provider] = message
             self.cache.put(
                 cache_provider,
                 query,
@@ -302,7 +379,10 @@ class PublicWebSearchAdapter:
         if response.status_code >= 400:
             raise RuntimeError(f"Public search failed with HTTP {response.status_code}.")
 
-        parser = _PublicSearchResultParser()
+        if provider == self.fallback_provider:
+            parser = BingSearchResultParser()
+        else:
+            parser = _PublicSearchResultParser()
         parser.feed(response.text)
         parser.close()
         results: list[SearchResult] = []
@@ -510,9 +590,28 @@ def normalize_public_search_result_url(value: str) -> str | None:
         value = values[0] if values else ""
         split = urlsplit(value)
         hostname = (split.hostname or "").casefold().removeprefix("www.")
+    if (hostname == "bing.com" or hostname.endswith(".bing.com")) and split.path == "/ck/a":
+        values = parse_qs(split.query).get("u")
+        candidate = values[0] if values else ""
+        if candidate.startswith(("http://", "https://")):
+            value = candidate
+        elif candidate.startswith("a1"):
+            encoded = candidate[2:]
+            encoded += "=" * (-len(encoded) % 4)
+            try:
+                value = base64.urlsafe_b64decode(encoded).decode("utf-8")
+            except (ValueError, UnicodeDecodeError):
+                value = ""
+        else:
+            value = ""
+        split = urlsplit(value)
+        hostname = (split.hostname or "").casefold().removeprefix("www.")
     if split.scheme not in {"http", "https"}:
         return None
-    if hostname in {"search.brave.com", "brave.com", "duckduckgo.com"}:
+    if (
+        hostname in {"search.brave.com", "brave.com", "duckduckgo.com", "bing.com"}
+        or hostname.endswith(".bing.com")
+    ):
         return None
     return canonicalize_url(value)
 

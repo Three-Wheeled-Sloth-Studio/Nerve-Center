@@ -438,7 +438,7 @@ source_catalog:
   - path: tests/test_live_runner_progress.py
     analysis_version: 1
     language: python
-    content_hash: 8052a3828187f3ff781af37b0314ead3b6a06bef
+    content_hash: eddbadb54f1400887e3bf9824851668ce747790b
     dependencies:
     - pathlib
     - pytest
@@ -739,7 +739,7 @@ source_catalog:
     - name: test_efficiency_summary_exposes_scoring_independent_marginal_pacing
       kind: function
       line_start: 286
-      line_end: 321
+      line_end: 322
       signature: test_efficiency_summary_exposes_scoring_independent_marginal_pacing() -> None
       inputs: []
       output: None
@@ -751,8 +751,8 @@ source_catalog:
         symbol: _efficiency_summary
     - name: test_planned_manager_wind_down_counts_as_duration_completion
       kind: function
-      line_start: 324
-      line_end: 332
+      line_start: 325
+      line_end: 333
       signature: test_planned_manager_wind_down_counts_as_duration_completion() -> None
       inputs: []
       output: None
@@ -764,8 +764,8 @@ source_catalog:
         symbol: _completion_flags
     - name: test_location_family_evidence_groups_source_and_hypothesis
       kind: function
-      line_start: 335
-      line_end: 375
+      line_start: 336
+      line_end: 376
       signature: test_location_family_evidence_groups_source_and_hypothesis() -> None
       inputs: []
       output: None
@@ -1117,5 +1117,7 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/persistence/discovery.py
         symbol: SearchCacheRepository.put
+      - path: tests/test_public_search_fallback.py
+        symbol: MemorySearchCache.put
       - path: src/nerve_center/api/app.py
         symbol: create_app

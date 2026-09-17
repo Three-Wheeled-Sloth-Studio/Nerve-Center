@@ -245,6 +245,7 @@ DEFAULT_COVERAGE: dict[str, Any] = {
     "public_searches_executed": 0,
     "search_requests_completed": 0,
     "search_requests_failed": 0,
+    "search_provider_fallbacks": 0,
     "search_results_returned": 0,
     "search_results_eligible": 0,
     "search_sources_registered": 0,

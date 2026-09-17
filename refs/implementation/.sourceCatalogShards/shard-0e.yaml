@@ -518,17 +518,17 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id006
-      - &id009
+      - &id010
         path: src/nerve_center/plugins/job_scout/reference_attachments.py
         symbol: _path_suffix
       - &id007
         path: src/nerve_center/discovery/normalization.py
         symbol: canonicalize_url
       - *id005
-      - &id010
+      - &id011
         path: src/nerve_center/plugins/job_scout/reference_attachments.py
         symbol: infer_document_format
-      - &id011
+      - &id012
         path: src/nerve_center/runtime/client.py
         symbol: ModuleRuntimeClient.close
       - *id003
@@ -602,6 +602,9 @@ source_catalog:
       - &id008
         path: src/nerve_center/persistence/discovery.py
         symbol: SearchCacheRepository.put
+      - &id009
+        path: tests/test_public_search_fallback.py
+        symbol: MemorySearchCache.put
       - path: src/nerve_center/plugins/job_scout/reference_attachments.py
         symbol: PublicAttachmentFetcher.mark_invalid
       - path: tests/test_job_scout_reference_attachments.py
@@ -626,6 +629,7 @@ source_catalog:
       - *id006
       - *id007
       - *id008
+      - *id009
     - name: infer_document_format
       kind: function
       line_start: 352
@@ -644,7 +648,7 @@ source_catalog:
       - '{''.pdf'': ''pdf'', ''.csv'': ''csv'', ''.tsv'': ''tsv'', ''.json'': ''json'', ''.xlsx'': ''xlsx''}.get'
       parser: python-ast
       dependency_targets:
-      - *id009
+      - *id010
     - name: parse_directory_document
       kind: function
       line_start: 376
@@ -674,7 +678,7 @@ source_catalog:
         symbol: _parse_pdf
       - path: src/nerve_center/plugins/job_scout/reference_attachments.py
         symbol: _parse_xlsx
-      - *id010
+      - *id011
     - name: _parse_pdf
       kind: function
       line_start: 407
@@ -735,14 +739,14 @@ source_catalog:
       - set
       parser: python-ast
       dependency_targets:
-      - &id012
+      - &id013
         path: src/nerve_center/plugins/job_scout/reference_attachments.py
         symbol: _append_candidate
       - path: src/nerve_center/plugins/job_scout/reference_attachments.py
         symbol: _ocr_engine
       - path: src/nerve_center/plugins/job_scout/reference_attachments.py
         symbol: _ranked_ocr_candidates
-      - *id011
+      - *id012
     - name: _ocr_engine
       kind: function
       line_start: 493
@@ -820,8 +824,8 @@ source_catalog:
       - type
       parser: python-ast
       dependency_targets:
-      - *id012
-      - &id014
+      - *id013
+      - &id015
         path: src/nerve_center/plugins/job_scout/reference_attachments.py
         symbol: _find_employer_column
       - *id005
@@ -851,8 +855,8 @@ source_catalog:
       - walk
       parser: python-ast
       dependency_targets:
-      - *id012
-      - &id013
+      - *id013
+      - &id014
         path: src/nerve_center/plugins/job_scout/reference_attachments.py
         symbol: _normalized_field
       - path: src/nerve_center/plugins/job_scout/discovery_loop.py
@@ -882,8 +886,8 @@ source_catalog:
       - value.items
       parser: python-ast
       dependency_targets:
-      - *id012
       - *id013
+      - *id014
     - name: _parse_xlsx
       kind: function
       line_start: 691
@@ -916,8 +920,8 @@ source_catalog:
       - type
       parser: python-ast
       dependency_targets:
-      - *id012
-      - *id014
+      - *id013
+      - *id015
       - path: src/nerve_center/plugins/job_scout/reference_attachments.py
         symbol: _xlsx_rows
       - path: src/nerve_center/plugins/job_scout/reference_attachments.py
@@ -942,9 +946,9 @@ source_catalog:
       - text.splitlines
       parser: python-ast
       dependency_targets:
-      - *id012
-      - *id006
       - *id013
+      - *id006
+      - *id014
     - name: _find_employer_column
       kind: function
       line_start: 776
@@ -958,7 +962,7 @@ source_catalog:
       - enumerate
       parser: python-ast
       dependency_targets:
-      - *id013
+      - *id014
     - name: _xlsx_shared_strings
       kind: function
       line_start: 784
@@ -976,7 +980,7 @@ source_catalog:
       - item.iter
       parser: python-ast
       dependency_targets:
-      - &id015
+      - &id016
         path: src/nerve_center/plugins/job_scout/reference_attachments.py
         symbol: _local_name
     - name: _xlsx_rows
@@ -1010,7 +1014,7 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id006
-      - *id015
+      - *id016
       - path: src/nerve_center/plugins/job_scout/reference_attachments.py
         symbol: _xlsx_column_index
       - *id005
@@ -1073,7 +1077,7 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id006
-      - *id013
+      - *id014
       - *id005
       - *id003
     - name: _path_suffix
@@ -1212,21 +1216,21 @@ source_catalog:
       - self.profiles.get_profile
       parser: python-ast
       dependency_targets:
-      - &id016
+      - &id017
         path: src/nerve_center/scoring/service.py
         symbol: _get_job
       - path: src/nerve_center/scoring/fit.py
         symbol: JobFitAnalyzer.analyze
-      - &id017
+      - &id018
         path: src/nerve_center/persistence/profile.py
         symbol: CareerProfileRepository.get_profile
-      - &id018
+      - &id019
         path: src/nerve_center/profile/api.py
         symbol: register_profile_routes.get_profile
-      - &id019
+      - &id020
         path: src/nerve_center/profile/service.py
         symbol: CareerProfileStore.get_profile
-      - &id020
+      - &id021
         path: tests/test_profile_service.py
         symbol: MemoryStore.get_profile
     - name: ScoringService.score
@@ -1262,19 +1266,19 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/scoring/service.py
         symbol: _effective_location_preferences
-      - *id016
+      - *id017
       - path: src/nerve_center/scoring/service.py
         symbol: _merge_observed_company_presence
-      - &id021
+      - &id022
         path: src/nerve_center/scoring/service.py
         symbol: _title_role_alignment
-      - &id022
+      - &id023
         path: src/nerve_center/persistence/scoring.py
         symbol: FitAnalysisRepository.latest
-      - *id017
       - *id018
       - *id019
       - *id020
+      - *id021
       - *id005
     - name: ScoringService.ensure_provisional_score
       kind: method
@@ -1309,13 +1313,13 @@ source_catalog:
       - uuid4
       parser: python-ast
       dependency_targets:
-      - *id016
-      - *id021
-      - *id022
       - *id017
+      - *id022
+      - *id023
       - *id018
       - *id019
       - *id020
+      - *id021
       - path: desktop/src/display.tsx
         symbol: score
       - path: src/nerve_center/scoring/engine.py
@@ -1366,7 +1370,7 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/scoring/service.py
         symbol: _location_region
-      - &id023
+      - &id024
         path: src/nerve_center/scoring/service.py
         symbol: _normalize_location_label
       - path: src/nerve_center/scoring/service.py
@@ -1392,7 +1396,7 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/scoring/service.py
         symbol: _is_generic_location
-      - *id023
+      - *id024
       - *id005
     - name: _normalize_location_label
       kind: function
@@ -1548,16 +1552,16 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - &id024
+      - &id025
         path: tests/test_run_repository.py
         symbol: make_repository
-      - &id025
+      - &id026
         path: tests/test_sessions.py
         symbol: make_repository
-      - &id026
+      - &id027
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.create
-      - &id027
+      - &id028
         path: src/nerve_center/persistence/sessions.py
         symbol: SessionRepository.create
     - name: test_expired_fixed_run_is_missed
@@ -1576,10 +1580,10 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id024
       - *id025
       - *id026
       - *id027
+      - *id028
     - name: test_invalid_transition_is_rejected
       kind: function
       line_start: 43
@@ -1598,11 +1602,11 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id024
       - *id025
       - *id026
       - *id027
-      - &id028
+      - *id028
+      - &id029
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.request_cancel
       - path: src/nerve_center/persistence/runs.py
@@ -1623,8 +1627,8 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id024
       - *id025
       - *id026
       - *id027
       - *id028
+      - *id029

@@ -117,6 +117,7 @@ def _progress_counts(values: dict[str, Any]) -> tuple[tuple[str, int], ...]:
         ("strategies_attempted", "strategies"),
         ("search_requests_completed", "search_ok"),
         ("search_requests_failed", "search_failed"),
+        ("search_provider_fallbacks", "search_fallbacks"),
         ("search_results_returned", "search_returned"),
         ("search_results_eligible", "search_eligible"),
         ("regional_aliases_discovered", "region_aliases"),
@@ -325,6 +326,7 @@ def _efficiency_summary(checkpoint: dict[str, Any]) -> dict[str, Any]:
             for key in (
                 "search_requests_completed",
                 "search_requests_failed",
+                "search_provider_fallbacks",
                 "search_results_returned",
                 "search_results_eligible",
                 "search_sources_registered",

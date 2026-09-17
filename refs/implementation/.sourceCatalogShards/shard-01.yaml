@@ -766,7 +766,7 @@ source_catalog:
       - database.initialize
       parser: python-ast
       dependency_targets:
-      - &id019
+      - &id020
         path: src/nerve_center/persistence/database.py
         symbol: Database.initialize
     - name: _company
@@ -838,10 +838,10 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - &id011
+      - &id012
         path: tests/test_discovery_connectors.py
         symbol: _company
-      - &id012
+      - &id013
         path: tests/test_discovery_persistence.py
         symbol: _company
       - &id006
@@ -856,25 +856,28 @@ source_catalog:
       - &id009
         path: tests/test_job_scout_query_portfolio.py
         symbol: _database
-      - &id017
+      - &id018
         path: tests/test_discovery_connectors.py
         symbol: _source
-      - &id018
+      - &id019
         path: tests/test_discovery_persistence.py
         symbol: _source
       - &id010
         path: src/nerve_center/persistence/discovery.py
         symbol: SearchCacheRepository.put
-      - &id013
-        path: src/nerve_center/persistence/discovery.py
-        symbol: CompanyRepository.upsert
+      - &id011
+        path: tests/test_public_search_fallback.py
+        symbol: MemorySearchCache.put
       - &id014
         path: src/nerve_center/persistence/discovery.py
-        symbol: DiscoverySourceRepository.upsert
+        symbol: CompanyRepository.upsert
       - &id015
         path: src/nerve_center/persistence/discovery.py
-        symbol: JobOpeningRepository.upsert
+        symbol: DiscoverySourceRepository.upsert
       - &id016
+        path: src/nerve_center/persistence/discovery.py
+        symbol: JobOpeningRepository.upsert
+      - &id017
         path: src/nerve_center/persistence/scoring.py
         symbol: ScoringRuleRepository.upsert
       - path: src/nerve_center/persistence/discovery.py
@@ -901,6 +904,7 @@ source_catalog:
       - *id008
       - *id009
       - *id010
+      - *id011
     - name: test_company_lookup_by_domain_preserves_resolved_identity
       kind: function
       line_start: 129
@@ -917,18 +921,18 @@ source_catalog:
       - companies.upsert
       parser: python-ast
       dependency_targets:
-      - *id011
       - *id012
+      - *id013
       - *id006
       - *id007
       - *id008
       - *id009
       - path: src/nerve_center/persistence/discovery.py
         symbol: CompanyRepository.find_by_domain
-      - *id013
       - *id014
       - *id015
       - *id016
+      - *id017
     - name: test_existing_aggregator_opening_is_reassigned_to_resolved_company
       kind: function
       line_start: 139
@@ -953,18 +957,18 @@ source_catalog:
       - sources.upsert
       parser: python-ast
       dependency_targets:
-      - *id011
       - *id012
+      - *id013
       - *id006
       - *id007
       - *id008
       - *id009
-      - *id017
       - *id018
-      - *id013
+      - *id019
       - *id014
       - *id015
       - *id016
+      - *id017
   - path: tests/test_work_queue.py
     analysis_version: 1
     language: python
@@ -1020,7 +1024,7 @@ source_catalog:
         symbol: RunRepository.create
       - path: src/nerve_center/persistence/sessions.py
         symbol: SessionRepository.create
-      - *id019
+      - *id020
     - name: spec
       kind: function
       line_start: 34
@@ -1051,16 +1055,16 @@ source_catalog:
       - spec
       parser: python-ast
       dependency_targets:
-      - &id020
+      - &id021
         path: tests/test_work_queue.py
         symbol: make_service
-      - &id024
+      - &id025
         path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository.list_requests
-      - &id025
+      - &id026
         path: src/nerve_center/scheduler/work_queue.py
         symbol: WorkQueueService.list_requests
-      - &id021
+      - &id022
         path: tests/test_work_queue.py
         symbol: spec
     - name: test_result_is_redelivered_until_acknowledged
@@ -1082,17 +1086,17 @@ source_catalog:
       - spec
       parser: python-ast
       dependency_targets:
-      - *id020
+      - *id021
       - path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository.acknowledge
       - path: src/nerve_center/runtime/supervisor.py
         symbol: ModuleWorkQueue.acknowledge
       - path: src/nerve_center/scheduler/work_queue.py
         symbol: WorkQueueService.acknowledge
-      - &id022
+      - &id023
         path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository.claim_next
-      - &id023
+      - &id024
         path: src/nerve_center/scheduler/work_queue.py
         symbol: WorkQueueService.claim_next
       - path: src/nerve_center/persistence/work_queue.py
@@ -1103,7 +1107,7 @@ source_catalog:
         symbol: ModuleSupervisor.deliver_results
       - path: src/nerve_center/scheduler/work_queue.py
         symbol: WorkQueueService.deliver_results
-      - *id021
+      - *id022
     - name: test_failed_attempt_requeues_and_preserves_attempt_history
       kind: function
       line_start: 77
@@ -1122,20 +1126,20 @@ source_catalog:
       - spec
       parser: python-ast
       dependency_targets:
-      - *id020
-      - &id026
+      - *id021
+      - &id027
         path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository.attempts
-      - &id027
+      - &id028
         path: src/nerve_center/scheduler/work_queue.py
         symbol: WorkQueueService.attempts
-      - *id022
       - *id023
+      - *id024
       - path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository.fail
       - path: src/nerve_center/scheduler/work_queue.py
         symbol: WorkQueueService.fail
-      - *id021
+      - *id022
     - name: test_model_routing_score_can_outweigh_small_task_priority_gap
       kind: function
       line_start: 91
@@ -1152,10 +1156,10 @@ source_catalog:
       - spec
       parser: python-ast
       dependency_targets:
-      - *id020
-      - *id022
-      - *id023
       - *id021
+      - *id023
+      - *id024
+      - *id022
     - name: test_hard_module_limit_rejects_before_acknowledgement
       kind: function
       line_start: 118
@@ -1174,10 +1178,10 @@ source_catalog:
       - spec
       parser: python-ast
       dependency_targets:
-      - *id020
-      - *id024
-      - *id025
       - *id021
+      - *id025
+      - *id026
+      - *id022
     - name: test_order_prefers_module_then_task_priority_then_age
       kind: function
       line_start: 130
@@ -1197,10 +1201,10 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id020
-      - *id022
-      - *id023
       - *id021
+      - *id023
+      - *id024
+      - *id022
     - name: test_queue_status_reports_pressure_and_wait_estimates
       kind: function
       line_start: 155
@@ -1217,12 +1221,12 @@ source_catalog:
       - spec
       parser: python-ast
       dependency_targets:
-      - *id020
+      - *id021
       - path: src/nerve_center/runtime/supervisor.py
         symbol: ModuleWorkQueue.status
       - path: src/nerve_center/scheduler/work_queue.py
         symbol: WorkQueueService.status
-      - *id021
+      - *id022
     - name: test_claimed_work_is_redelivered_after_manager_restart
       kind: function
       line_start: 169
@@ -1240,11 +1244,11 @@ source_catalog:
       - spec
       parser: python-ast
       dependency_targets:
-      - *id020
-      - *id026
+      - *id021
       - *id027
-      - *id022
+      - *id028
       - *id023
+      - *id024
       - path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.recover_interrupted
       - path: src/nerve_center/persistence/sessions.py
@@ -1253,7 +1257,7 @@ source_catalog:
         symbol: RunnerService.recover_interrupted
       - path: src/nerve_center/scheduler/work_queue.py
         symbol: WorkQueueService.recover_interrupted
-      - *id021
+      - *id022
     - name: test_concurrent_claims_never_assign_the_same_request
       kind: function
       line_start: 185
@@ -1275,7 +1279,7 @@ source_catalog:
       - spec
       parser: python-ast
       dependency_targets:
-      - *id020
-      - *id022
-      - *id023
       - *id021
+      - *id023
+      - *id024
+      - *id022

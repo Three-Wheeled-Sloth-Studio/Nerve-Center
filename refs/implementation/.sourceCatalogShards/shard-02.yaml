@@ -138,13 +138,13 @@ source_catalog:
         symbol: StubProcess.kill
       - path: tests/test_module_runtime.py
         symbol: StubProcess.terminate
-      - &id007
+      - &id008
         path: src/nerve_center/discovery/fetching.py
         symbol: DomainRequestGate.wait
-      - &id008
+      - &id009
         path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService.wait
-      - &id009
+      - &id010
         path: tests/test_module_runtime.py
         symbol: StubProcess.wait
     - name: remove_data_directory
@@ -247,12 +247,15 @@ source_catalog:
       - service.update_settings
       parser: python-ast
       dependency_targets:
-      - &id005
+      - &id006
         path: src/nerve_center/model_lab/api.py
         symbol: _translate
       - &id004
         path: src/nerve_center/persistence/discovery.py
         symbol: SearchCacheRepository.put
+      - &id005
+        path: tests/test_public_search_fallback.py
+        symbol: MemorySearchCache.put
       - path: src/nerve_center/model_lab/api.py
         symbol: register_model_lab_routes.overview
       - path: src/nerve_center/model_lab/service.py
@@ -261,7 +264,7 @@ source_catalog:
         symbol: register_model_lab_routes.replay
       - path: src/nerve_center/model_lab/service.py
         symbol: ModelLabService.replay
-      - &id006
+      - &id007
         path: src/nerve_center/model_lab/service.py
         symbol: ModelLabService.start_exploration
       - path: src/nerve_center/model_lab/api.py
@@ -296,6 +299,7 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id004
+      - *id005
     - name: register_model_lab_routes.start_session
       kind: function
       line_start: 46
@@ -312,8 +316,8 @@ source_catalog:
       - service.start_exploration
       parser: python-ast
       dependency_targets:
-      - *id005
       - *id006
+      - *id007
     - name: register_model_lab_routes.replay
       kind: function
       line_start: 53
@@ -329,7 +333,7 @@ source_catalog:
       - router.post
       parser: python-ast
       dependency_targets:
-      - *id005
+      - *id006
     - name: _translate
       kind: function
       line_start: 70
@@ -692,9 +696,9 @@ source_catalog:
       - self.tick
       parser: python-ast
       dependency_targets:
-      - *id007
       - *id008
       - *id009
+      - *id010
       - path: src/nerve_center/scheduler/provider_worker.py
         symbol: ProviderWorkExecutor.tick
       - path: src/nerve_center/scheduler/service.py

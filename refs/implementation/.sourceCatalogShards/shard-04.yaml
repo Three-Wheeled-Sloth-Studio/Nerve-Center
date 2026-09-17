@@ -1181,6 +1181,9 @@ source_catalog:
       - &id024
         path: src/nerve_center/persistence/discovery.py
         symbol: SearchCacheRepository.put
+      - &id025
+        path: tests/test_public_search_fallback.py
+        symbol: MemorySearchCache.put
       - *id023
     - name: test_public_reference_search_retains_non_job_evidence
       kind: function
@@ -1357,6 +1360,7 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id024
+      - *id025
       - *id023
     - name: test_public_search_challenge_cools_down_remaining_queries
       kind: function
