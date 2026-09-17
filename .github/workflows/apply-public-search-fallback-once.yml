@@ -27,7 +27,7 @@ jobs:
       - name: Apply patch
         run: python .github/patch_public_search_fallback_once.py
       - name: Remove one-shot helpers
-        run: git rm .github/prepare_public_search_fallback_patch.py .github/patch_public_search_fallback_once.py .github/workflows/apply-public-search-fallback-once.yml
+        run: git rm -f .github/prepare_public_search_fallback_patch.py .github/patch_public_search_fallback_once.py .github/workflows/apply-public-search-fallback-once.yml
       - name: Refresh deterministic indexes
         run: |
           python refs/tools/generate_source_catalog.py
