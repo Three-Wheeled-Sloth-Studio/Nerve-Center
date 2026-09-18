@@ -1,60 +1,58 @@
 ---
 type: Development Prompt
 title: Next Development Prompt
-description: Ready-to-use prompt for manager-owned reusable resource profiles.
+description: Ready-to-use prompt for manager-owned backup and pre-migration snapshots.
 status: stable
-tags: [nerve-center, handoff, resources, sessions, safety]
+tags: [nerve-center, handoff, backups, durability, migrations, safety]
 ---
 # Next Development Prompt
 
 Continue implementation directly on `dev`. Do not create a feature branch or PR. Do not promote `qa` or `main` unless explicitly requested.
 
-Issue #63 is implemented. The next active bounded slice is Issue #64: **Add manager-owned reusable resource profile foundation**.
+Issue #64 is implemented. The next active bounded slice is Issue #65: **Add manager-owned backup and pre-migration snapshot foundation**.
 
 Start with:
 
 ```powershell
-python scripts/agent_context.py --focus "resource profiles session overrides CPU memory GPU VRAM concurrency queue network exploration cloud spend authority" --issue 64
+python scripts/agent_context.py --focus "backup pre-migration snapshot sqlite WAL module data retention verification restore eligibility path containment" --issue 65
 ```
 
 Use packet-first/progressive loading. Read only:
 
 1. `refs/handoffs/currentHandoff.md`
-2. Issue #64 and its latest comments
+2. Issue #65 and its latest comments
 3. `refs/planning/mvp-roadmap.md` around Increment 14
-4. source-catalog matches for existing run/session budgets, resource limits, queue depth, provider request limits, manager persistence/API, and Code Shop authority/risk seams
+4. source-catalog matches for database initialization/migration, runtime data roots, module storage, persistence metadata, and manager APIs
 5. validation commands returned by the packet
 
 ## Accepted baseline
 
-Issue #63 implementation checkpoint: `4a2ad34772668334cf0e0e74106d60ed71d4e392`.
+Issue #64 implementation checkpoint: `7281c49799bac21a6dab6083c7b6d988b95e27ae`.
 
-Compatibility-test corrections through: `ceb710fc35398718366a43ab6d4576a8c3117216`.
+Lint correction: `6735debe949dbb4db73b10114988a98ef4f2786a`.
 
-Generated discovery checkpoint: `7345692fc40e385c57536fd7c44fd49ee6f9e12a`.
+Generated discovery checkpoint: `41d09d070a7fabb0a3fda3e68d743a53452b28de`.
 
-Application version: `0.12.30`. Database schema: 14.
+Application version: `0.12.31`. Database schema: 15.
 
-Bounded #63 validation run `35363736308` passed source catalog 212 files / 1792 symbols, 11 OKF indexes, initialized refs validation, 7,054-character agent-context validation, Ruff, 27 focused tests, 297 total Python tests, desktop web, and desktop Rust/Tauri.
+Bounded #64 validation run `35370973810` passed source catalog 219 files / 1837 symbols, 11 OKF indexes, initialized refs validation, 7,055-character agent-context validation, Ruff, 33 focused tests, 301 total Python tests, desktop web, and desktop Rust/Tauri.
 
-Closeout catalog refresh: `496c72118b71a65e4ee825bf11c71078be191274`. Final #63 standard CI: `35365855258` on exact code/version head `c054ae965755912575ba314e5eeca69fe92ab083`, all Python / desktop-web / desktop-rust jobs green.
+Resource profiles are manager-owned. Only `max_requests`, `max_llm_calls`, and `max_parallel_work` are currently enforced. Memory, VRAM, queue depth, and exploration are inspectable but unenforced. Cloud spend is explicitly `unenforced_no_authority`. Profiles cannot grant module permission or Code Shop/action authority.
 
-Permission review is manager-owned and version/fingerprint-specific. Fresh required permissions block operational enablement until approved; identical permission sets can carry decisions forward with explicit provenance; changed sets become pending. Permission approval is distinct from official-module trust and cannot bypass Code Shop/action authority or manager risk evaluation.
+## Issue #65 bounded target
 
-## Issue #64 bounded target
+Implement the manager-owned backup/pre-migration snapshot foundation:
 
-Implement manager-owned reusable resource profiles:
+- durable backup records with stable ID, kind, source schema version, status, verified path, size/hash, and safe provenance;
+- one manager-controlled local backup root outside the source checkout;
+- SQLite-safe backup semantics for active WAL state rather than raw-copying the database;
+- bounded deterministic inclusion of durable module data beneath the manager runtime data root;
+- artifact verification for existence, hash/integrity, and expected SQLite schema;
+- an explicit pre-migration snapshot operation that performs no migration;
+- minimal manager APIs to create/list/read/verify backups;
+- bounded retention sufficient for a lightweight daily-backup policy without speculative scheduling;
+- path-containment, active-WAL, restart, missing/tampered/corrupt artifact, and authority-boundary regressions.
 
-- durable named profiles with manager-owned identity and display name;
-- deterministic effective resolution: explicit session override > selected named profile > manager default;
-- bounded representation for CPU/concurrency, memory, GPU/VRAM, queue depth, network/request, exploration, and optional cloud-spend ceilings only where current contracts can represent them honestly;
-- missing values inherit; invalid/negative values are rejected rather than treated as unlimited;
-- explicit distinction between enforced and currently unenforced fields;
-- minimal manager APIs to list/read/create/update/select profiles;
-- integrate only existing session/run/provider budget seams without duplicating module-owned configuration;
-- prove modules cannot raise manager ceilings through task/module configuration;
-- prove resource profiles do not grant module permission, Code Shop authority, external-action capability, or cloud-spend authority.
+Explicitly defer update download/staging/apply/rollback, live restore execution, cloud backup/sync, encryption/key-management UX, and third-party migration hooks.
 
-Explicitly defer hardware benchmarking/autotuning, idle/battery/metered-network sensing, update staging/rollback, automatic cloud spend escalation, and polished desktop profile editing.
-
-Validate the full repository contract, then update Issue #64 and both handoffs with exact landed commit/CI evidence.
+Validate the full repository contract, then update Issue #65 and both handoffs with exact landed commit/CI evidence.
