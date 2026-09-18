@@ -40,15 +40,12 @@ jobs:
       - name: Build desktop web
         working-directory: desktop
         run: npm install --no-audit --no-fund && npm run build
-      - name: Commit generated artifacts
+      - name: Commit generated artifacts and success marker
         shell: bash
         run: |
-          if git diff --quiet -- refs; then
-            echo "No generated artifact changes."
-            exit 0
-          fi
+          printf 'validated_head=%s\n' "$GITHUB_SHA" > .github/issue-66-validation-success.txt
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add refs
-          git commit -m "chore: refresh closeout discovery artifacts"
+          git add refs .github/issue-66-validation-success.txt
+          git commit -m "chore: record issue 66 closeout validation"
           git push origin HEAD:dev
