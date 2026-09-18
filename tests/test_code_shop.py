@@ -354,12 +354,24 @@ def test_model_blind_task_contract_and_failed_attempt_escalation_survive_restart
         tasks = client.get("/api/v1/modules/code_shop/tasks").json()
         escalations = client.get("/api/v1/modules/code_shop/escalations").json()
         projects = client.get("/api/v1/modules/code_shop/projects").json()
+        attention = client.get(
+            "/api/v1/attention",
+            params={"module_id": "code_shop"},
+        ).json()
+        dependency = client.get(
+            f"/api/v1/attention/dependencies/code_shop:task:{task['id']}/blocked"
+        ).json()
 
     assert rejected.status_code == 422
     assert escalation["reason"] == "bounded_attempt_limit_reached"
     assert any(item["id"] == task["id"] for item in tasks)
     assert escalations[0]["task_id"] == task["id"]
-    assert projects[0]["lifecycle"] == "needs_attention"
+    assert projects[0]["lifecycle"] == "enabled"
+    assert len(attention) == 1
+    assert attention[0]["source_type"] == "code_shop_escalation"
+    assert attention[0]["source_id"] == escalation["id"]
+    assert attention[0]["dependency_keys"] == [f"code_shop:task:{task['id']}"]
+    assert dependency["blocked"] is True
 
 
 def test_explicit_authority_scope_restricts_paths(tmp_path: Path) -> None:

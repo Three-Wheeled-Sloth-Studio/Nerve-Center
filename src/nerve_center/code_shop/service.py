@@ -6,6 +6,8 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
+from nerve_center.attention.domain import AttentionKind
+from nerve_center.attention.service import AttentionService
 from nerve_center.code_shop.authority import AuthorityEvaluator
 from nerve_center.code_shop.checkout import verify_checkout
 from nerve_center.code_shop.domain import (
@@ -46,6 +48,7 @@ class CodeShopService:
         *,
         execution_host: ExecutionHost | None = None,
         official_module_ids: tuple[str, ...] = ("code_shop",),
+        attention: AttentionService | None = None,
     ) -> None:
         self.repository = repository
         self.connector = connector
@@ -53,6 +56,7 @@ class CodeShopService:
         self.execution_host = execution_host or DeterministicExecutionHost()
         self.official_module_ids = frozenset(official_module_ids)
         self.authority = AuthorityEvaluator()
+        self.attention = attention
 
     def trust_provenance(self, module_id: str) -> ModuleTrustProvenance:
         return ModuleTrustProvenance(
@@ -259,10 +263,30 @@ class CodeShopService:
             EngineeringTaskState.ESCALATION_RECOMMENDED,
             blocker=reason,
         )
-        self.repository.update_project(
-            task.repository_id,
-            lifecycle=ProjectLifecycle.NEEDS_ATTENTION,
-        )
+        if self.attention is not None:
+            self.attention.submit(
+                kind=AttentionKind.ATTENTION,
+                module_id="code_shop",
+                source_type="code_shop_escalation",
+                source_id=escalation.id,
+                idempotency_key=f"escalation:{escalation.id}",
+                title=f"Code Shop task needs attention: {task.title}",
+                summary=compact_handoff,
+                context={
+                    "task_id": task_id,
+                    "repository_id": task.repository_id,
+                    "reason": reason,
+                    "evidence": dict(evidence),
+                    "failed_invariant": failed_invariant,
+                    "recommended_capability": recommended_capability,
+                },
+                allowed_dispositions=dispositions,
+                validation={"source": "code_shop_escalation"},
+                downstream_meaning={
+                    "resolved_dependency": f"code_shop:task:{task_id}"
+                },
+                dependency_keys=(f"code_shop:task:{task_id}",),
+            )
         return escalation
 
     def list_escalations(

@@ -29,6 +29,8 @@ from nerve_center.api.schemas import (
     WorkRequestResponse,
     WorkResultResponse,
 )
+from nerve_center.attention.api import register_attention_routes
+from nerve_center.attention.service import AttentionService
 from nerve_center.code_shop.github import (
     EmptyGitHubRepositoryConnector,
     GitHubRepositoryConnector,
@@ -48,6 +50,7 @@ from nerve_center.domain.work_queue import (
 )
 from nerve_center.model_lab.api import register_model_lab_routes
 from nerve_center.model_lab.service import ModelLabService
+from nerve_center.persistence.attention import AttentionRepository
 from nerve_center.persistence.database import Database
 from nerve_center.persistence.model_lab import ModelLabRepository
 from nerve_center.persistence.modules import ModuleNotFoundError, ModuleRepository
@@ -93,6 +96,7 @@ def create_app(
     session_repository = SessionRepository(database)
     model_evidence = ModelEvidenceRepository(database)
     model_lab_repository = ModelLabRepository(database)
+    attention = AttentionService(AttentionRepository(database))
     work_queue = WorkQueueService(
         WorkQueueRepository(database), model_evidence=model_evidence
     )
@@ -154,6 +158,7 @@ def create_app(
         database,
         runtime_settings,
         code_shop_connector or EmptyGitHubRepositoryConnector(),
+        attention,
     )
     job_scout = install_job_scout(
         application,
@@ -220,7 +225,9 @@ def create_app(
     application.state.work_queue = work_queue
     application.state.provider_manager = provider_manager
     application.state.model_lab = model_lab
+    application.state.attention = attention
     register_runtime_routes(application, module_supervisor)
+    register_attention_routes(application, attention)
     register_model_lab_routes(application, model_lab)
 
     def queue_error(error: Exception) -> HTTPException:

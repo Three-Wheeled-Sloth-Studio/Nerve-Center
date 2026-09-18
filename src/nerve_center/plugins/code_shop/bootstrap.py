@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from fastapi import FastAPI
 
+from nerve_center.attention.service import AttentionService
 from nerve_center.code_shop.api import register_code_shop_routes
 from nerve_center.code_shop.github import GitHubRepositoryConnector
 from nerve_center.code_shop.service import CodeShopService
@@ -27,11 +28,13 @@ def install_code_shop(
     database: Database,
     settings: Settings,
     connector: GitHubRepositoryConnector,
+    attention: AttentionService,
 ) -> CodeShopModulePackage:
     service = CodeShopService(
         CodeShopRepository(database),
         connector,
         settings.code_shop_checkout_roots,
+        attention=attention,
     )
     register_code_shop_routes(application, service)
     application.state.code_shop = service
