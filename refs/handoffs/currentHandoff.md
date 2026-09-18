@@ -7,6 +7,27 @@ tags: [nerve-center, handoff]
 ---
 # Current Handoff
 
+## 2026-09-17 - Issue #60 accepted; Code Shop #54 next
+
+Exact-runtime acceptance run `5d3f2ad8-2c01-4dde-b640-0ae467585d35` completed successfully through planned `admission_draining` on Git `0169e148de9b56e571c525a6a920bed654e7c303`. Runtime identity is explicit: `uses_checkout_source=true`, the module resolved from `D:\\Apps\\Nerve-Center\\src`, and the managed API used the same checkout source root.
+
+The five-minute gate consumed 67 / 150 requests and 7 / 30 LLM calls, completed four full scores with zero failures, executed four ordinary public searches, returned 21 public-search results, completed 51 / 54 source scans, and recorded no failed public-search request. The new run-scoped `public_search_attempt_evidence` is decisive:
+
+- four actual public-search calls are present;
+- all four selected `duckduckgo_html`;
+- all four used `search_transport=network`;
+- all four completed with `status=succeeded`;
+- every row records `search_provider_fallback_used=false`;
+- no current-run DDG challenge occurred;
+- aggregate `search_provider_fallbacks=0` exactly matches the per-search evidence.
+
+This is the truthful no-fallback case Issue #60 was created to make observable. No Bing request was required, and no network work should be forced solely to make a fallback counter nonzero. Deterministic regressions already cover challenge -> provider cooldown -> later Bing fallback behavior; this live gate proves the report can distinguish provider, transport, status, and fallback accounting in the real runtime. Issue #60 is closed as completed.
+
+Do not reopen Job Scout provider policy, query semantics, scoring, scheduler weights, cooldown duration, request caps, extraction rules, or add a third provider without new contradictory evidence.
+
+The next active bounded slice is Code Shop Issue #54, `[Code Shop] Establish safe orchestration foundation`.
+
+
 ## 2026-09-17 - Issue #57 accepted; provider evidence follow-up #60
 
 Exact-runtime run `8b646b11-d5ba-4725-991c-5eb2eb36c36a` completed successfully via planned `admission_draining` on Git `5155a82099c516eb403630fa72d30b297062a154` with checkout-source identity proven. It used 55 / 150 requests and 5 / 30 LLM calls, completed five full scores with zero failures, completed 31 / 33 source scans, returned 73 public-search results, inspected 319 postings, retained four opportunities, and resolved three career sources.
@@ -45,7 +66,7 @@ The next acceptance gate remains an isolated five-minute run. It should prove th
 - Application version is `0.12.26`.
 - Agent Academy alignment baseline is `e4118f96cc0138490b950402ba711399580ee854`; bounded source discovery, handoff required reads, capability-aware sub-agent guidance, and source-modularity rules are now part of Nerve Center's engineering contract.
 - The current local-acquisition implementation checkpoint is `fe1608e5e7bc4f309d8a823340f78200a9886ba6`. Exact-runtime gates are pinned to the checkout source; clean employer deepening and truthful provider-challenge accounting are proven; DuckDuckGo challenge state now opens a bounded provider circuit breaker so later strategies can use Bing public HTML without adding a same-strategy retry. Targeted validation passed in workflow `35270065108`; full helper-free exact-head CI is required before the next live gate.
-- Issue #57 is closed as completed from exact-runtime run `8b646b11-d5ba-4725-991c-5eb2eb36c36a`. Issue #60 is the active bounded provider/cache observability follow-up.
+- Issue #57 and Issue #60 are closed as completed. Code Shop Issue #54 is the next active bounded implementation slice.
 - Job Scout remains an iterative market-research loop: `expand -> converge -> deepen -> reflect -> re-expand`. Discovery optimizes recall; ranking/scoring provides precision.
 - Extracted employer names are hypotheses only. They must pass through ordinary public search and official-career resolution before becoming durable company/location evidence.
 - No named employer, city, or region exception exists in production logic.
@@ -235,32 +256,35 @@ No named company, city, or region exception was added. No extra network path or 
 
 ## Next bounded slice
 
-Issue #60 is the only remaining Job Scout acceptance follow-up before returning to staged Code Shop Issue #54. The implementation must remain observability/accounting-only:
+Return to staged Code Shop Issue #54. Do not extend Job Scout work from the completed #60 gate unless new evidence contradicts the accepted provider/cache behavior.
 
-1. preserve DuckDuckGo primary and Bing public-HTML fallback semantics exactly;
-2. expose current-run `public_search_attempt_evidence` with query, provider, fallback flag, cache-vs-network transport, status, and result count for every actual search call, including employer deepening failback queries;
-3. aggregate `search_provider_fallbacks` through the location-aware runtime cycle;
-4. keep successful non-empty primary cache reuse valid during provider cooldown;
-5. add no third provider and no same-query provider retry.
+Issue #54 establishes Code Shop as Nerve Center's second reference module and the smallest manager-owned foundation for safe autonomous software-engineering orchestration. Preserve the accepted architecture in the issue:
 
-After clean exact-head CI, run one isolated five-minute gate only if a fresh local run is available. Audit the new `discovery_audit.public_search_attempt_evidence`: after any provider challenge, every later search must be explainable as cache reuse, DDG network, Bing fallback, or provider cooldown. If an uncached post-challenge search executes, require `bing_html` with `search_provider_fallback_used=true` and matching aggregate fallback accounting. If all later searches are cache hits, record that truthfully rather than forcing transport solely to make the counter nonzero.
+1. Code Shop display name with stable module/storage ID `code_shop`;
+2. GitHub-authoritative repository identity and metadata;
+3. durable project registry with `enabled`, `paused`, `observe_only`, `needs_attention`, and `excluded` lifecycle;
+4. machine-local checkout linkage validated for approved-root containment and Git remote identity;
+5. project action policy `allow | ask | deny` plus separate manager risk escalation;
+6. official/trusted module provenance derived by the manager, never asserted by module input;
+7. model-blind capability requests for architecture planning, decomposition, implementation, debugging, review, and research;
+8. typed manager-owned privileged execution-host capability contract, with deterministic/no-op test adapter only in this slice;
+9. durable engineering task, attempt/outcome, authority-decision, and escalation records;
+10. minimal manager API surface and deterministic boundary tests needed to prove the contracts.
 
-Keep Issue #60 open until that live evidence is available. Code Shop Issue #54 remains staged immediately behind it.
+Explicitly defer unrestricted shell access, production GitHub mutation, hosted-runner execution, autonomous deployment or credential changes, destructive Git operations, premium-agent escalation, learned policy mutation, self-modification, and polished dashboard UI.
 
 ## Required Reads For Next Slice
 
-- `refs/handoffs/currentHandoff.md` - authoritative accepted baseline, completed long-soak evidence, completed v6 gate evidence, acquisition-lane correction, and current short-gate questions.
-- `refs/handoffs/next-dev-prompt.md` - exact bounded execution/audit instructions for the next coding-agent session.
-- Latest Issue #57 comments and the next current-head `run-*.json` - current-run evidence is authoritative for deciding the next behavior slice.
-- `src/nerve_center/plugins/job_scout/query_portfolio.py` - only local-employer and regional-probe query compilation symbols returned by the source catalog.
-- `src/nerve_center/plugins/job_scout/discovery_loop.py` - only regional-alias extraction, civic employer-landscape extraction, and employer-deepening symbols returned by the source catalog.
-- `src/nerve_center/plugins/job_scout/discovery_learning.py` - only `select_strategies`, reservation logic, and directly related scheduler/cooldown symbols if the short gate shows regional/deepening lanes are not executing.
-- `scripts/run_job_scout_live.py` - only report/audit collection symbols returned by the source catalog; use to interpret or improve reusable local-acquisition diagnostics.
+- `refs/handoffs/currentHandoff.md` - authoritative completed Job Scout baseline and Code Shop transition.
+- `refs/handoffs/next-dev-prompt.md` - exact bounded Code Shop execution prompt.
+- Issue #54 and its latest comments - authoritative Code Shop architecture, safety boundary, scope, and acceptance criteria.
+- Only source-catalog matches returned by the generated Code Shop agent-context packet.
+- Relevant validation commands returned by the packet; do not broadly scan unrelated Job Scout implementation.
 
 ## Re-entry
 
 ```powershell
-python scripts/agent_context.py --focus "job scout deepening canonical evidence DDG challenge accounting" --issue 57
+python scripts/agent_context.py --focus "Code Shop safe orchestration foundation project registry checkout authority execution host" --issue 54
 ```
 
-Start with the generated packet's required reads and source-catalog matches. Query the source catalog again before broader search if a concrete dependency remains unresolved.
+Start with the generated packet's required reads and source-catalog matches. Query the source catalog again before broader repository search if a concrete dependency remains unresolved.
