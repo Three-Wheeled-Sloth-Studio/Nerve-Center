@@ -1,55 +1,58 @@
 ---
 type: Development Prompt
 title: Next Development Prompt
-description: Ready-to-use prompt for the manager morning summary foundation.
+description: Ready-to-use prompt for install-time module permission review.
 status: stable
-tags: [nerve-center, handoff, summary, attention, reporting]
+tags: [nerve-center, handoff, modules, permissions, safety]
 ---
 # Next Development Prompt
 
 Continue implementation directly on `dev`. Do not create a feature branch or PR. Do not promote `qa` or `main` unless explicitly requested.
 
-Issue #61 is implemented. The next active bounded slice is Issue #62: **Add manager morning summary foundation**.
+Issue #62 is implemented. The next active bounded slice is Issue #63: **Add install-time module permission review foundation**.
 
 Start with:
 
 ```powershell
-python scripts/agent_context.py --focus "manager morning summary completed blocked failed degraded comparison attention" --issue 62
+python scripts/agent_context.py --focus "module permission review install update manifest required approval lifecycle authority" --issue 63
 ```
 
 Use packet-first/progressive loading. Read only:
 
 1. `refs/handoffs/currentHandoff.md`
-2. Issue #62 and its latest comments
+2. Issue #63 and its latest comments
 3. `refs/planning/mvp-roadmap.md` around Increment 13
-4. source-catalog matches for durable runs/work queue, Attention/Review, module/runtime durable evidence, Model Lab comparison results, and manager API seams
+4. source-catalog matches for module manifest permissions, module synchronization/lifecycle, persistence, manager API, and Code Shop authority/risk seams
 5. validation commands returned by the packet
 
 ## Accepted baseline
 
-Issue #61 implementation checkpoint: `dd58e0c338afea5a066efcc8f663d47cd878f048`.
+Issue #62 implementation checkpoint: `66bee379efc7ba41c5fe17a0a9a7c129522c5467`.
 
-Generated discovery checkpoint: `bbdae93b3cce5f04efa02b3783bebb625fd47ab3`.
+Lint correction: `8e1914fe2d88f47f47bf1ba3dc63801cb6de5b63`.
 
-Application version: `0.12.28`. Database schema: 13.
+Generated discovery checkpoint: `4841ea65b3b98a562bad73a5d2f0e73ef83b3ca8`.
 
-Bounded validation run `35356015569` passed 17 focused tests, 287 total Python tests, refs/source/OKF/context checks, Ruff, desktop web, and desktop Rust/Tauri.
+Application version: `0.12.29`. Database schema: 13.
 
-Final Issue #61 exact-head CI: `87c979f203a6bffd1a106157f07c826f6d55bd50`, run `35357211859`, all Python / desktop-web / desktop-rust jobs green.
+Bounded #62 validation passed source catalog 206 files / 1750 symbols, 11 OKF indexes, refs/context checks, Ruff, 20 focused tests, 290 total Python tests, desktop web, and desktop Rust/Tauri.
 
-Attention/Review is manager-owned durable state. Open items block only declared dependency keys; module context/dispositions cannot grant authority. Code Shop escalations link to Attention without changing the whole project lifecycle.
+The morning summary is SELECT-only durable projection state. Attention/Review remains the authoritative human queue. Volatile module-runtime health is not persisted merely to appear in the summary.
 
-## Issue #62 bounded target
+## Issue #63 bounded target
 
-Build a read-only manager morning summary:
+Implement manager-owned install/update permission review:
 
-- explicit requested time window; do not infer sleep/wake times;
-- completed, failed, blocked/attention-required, degraded, and comparison/review categories only where durable evidence already supports them;
-- stable source/module attribution for every surfaced item;
-- pending Attention items linked, not copied into a second queue;
-- minimal read-only API;
-- deterministic empty/mixed-window, restart, and no-mutation tests.
+- deterministic normalized manifest permission requests;
+- durable pending/approved/denied review state keyed to exact module/version/permission fingerprint;
+- decision actor/provenance;
+- no synthetic review for modules that declare no permissions;
+- required unreviewed permission changes block operational enablement;
+- minimal inspect/approve/deny manager API;
+- approval only for declared permissions;
+- changed permission request invalidates stale approval;
+- permission approval remains separate from official-module trust and cannot bypass Code Shop/action authority or manager risk gates.
 
-Explicitly defer scheduled delivery, external notifications/messages/connectors, polished UI, install-time permissions, automatic remediation, and LLM-authored narrative.
+Explicitly defer actual authenticated/private connectors, credential UX/storage, external drafts/writes, third-party marketplace/sandboxing, learned permission policy, and polished desktop UI.
 
-Validate the full repository contract, then update Issue #62 and both handoffs with exact final commit/CI evidence.
+Validate the full repository contract, then update Issue #63 and both handoffs with exact final commit/CI evidence.

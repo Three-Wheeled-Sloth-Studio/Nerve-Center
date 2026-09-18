@@ -7,6 +7,25 @@ tags: [nerve-center, handoff]
 ---
 # Current Handoff
 
+## 2026-09-18 - Morning summary #62 implemented; permission review #63 next
+
+Issue #62 implements the first generic manager-owned morning-summary projection in `0.12.29`; database schema remains 13.
+
+Implementation checkpoint `66bee379efc7ba41c5fe17a0a9a7c129522c5467`, lint correction `8e1914fe2d88f47f47bf1ba3dc63801cb6de5b63`, and generated-artifact checkpoint `4841ea65b3b98a562bad73a5d2f0e73ef83b3ca8` establish:
+
+- explicit required `starts_at` / `ends_at` summary windows using half-open `[start, end)` semantics;
+- read-only completed, failed, degraded, blocked, review, and Model Lab comparison evidence only where durable records support those categories;
+- stable `source_type` / `source_id` attribution and module attribution where present in durable source data;
+- open Attention/Review items linked directly rather than copied into a second queue;
+- durable run, terminal queue-failure, Model Lab result, and Code Shop attempt evidence without payload-heavy narrative generation;
+- explicit exclusion of volatile module-supervisor degradation from the durable summary;
+- deterministic empty-window, mixed-evidence, out-of-window, restart, and no-mutation regressions.
+
+Bounded validation passed with source catalog 206 files / 1750 symbols, 11 OKF indexes, initialized refs validation, Agent Academy context checks, Ruff, 20 focused tests, 290 total Python tests, desktop web, and desktop Rust/Tauri all green.
+
+Issue #63, `[Core] Add install-time module permission review foundation`, is the next bounded slice. Keep permission approval distinct from module trust and from Code Shop/action authority; no authenticated connector, credential, external-write, marketplace, or polished permission-UI expansion belongs in that slice.
+
+
 ## 2026-09-18 - Attention/Review #61 implemented; morning summary #62 next
 
 Issue #61 implements the first generic manager-owned human-attention primitive in `0.12.28` / schema 13.
@@ -103,7 +122,7 @@ The next acceptance gate remains an isolated five-minute run. It should prove th
 ## Current state
 
 - Work directly on `dev`; do not create a feature branch or PR unless explicitly requested.
-- Application version is `0.12.28`.
+- Application version is `0.12.29`.
 - Agent Academy alignment baseline is `e4118f96cc0138490b950402ba711399580ee854`; bounded source discovery, handoff required reads, capability-aware sub-agent guidance, and source-modularity rules are now part of Nerve Center's engineering contract.
 - The current local-acquisition implementation checkpoint is `fe1608e5e7bc4f309d8a823340f78200a9886ba6`. Exact-runtime gates are pinned to the checkout source; clean employer deepening and truthful provider-challenge accounting are proven; DuckDuckGo challenge state now opens a bounded provider circuit breaker so later strategies can use Bing public HTML without adding a same-strategy retry. Targeted validation passed in workflow `35270065108`; full helper-free exact-head CI is required before the next live gate.
 - Issue #57 and Issue #60 are closed as completed. Code Shop Issue #54 is implemented; core Attention/Review Issue #61 is the next active bounded slice.
@@ -296,29 +315,30 @@ No named company, city, or region exception was added. No extra network path or 
 
 ## Next bounded slice
 
-Proceed with core Issue #62: manager morning summary foundation.
+Proceed with core Issue #63: install-time module permission review foundation.
 
 The first slice should:
 
-1. define an explicit `starts_at` / `ends_at` summary snapshot;
-2. aggregate attributable durable evidence for completed, failed, blocked/attention-required, degraded, and comparison/review work where existing sources support it;
-3. link every surfaced item back to manager-owned source IDs/module IDs;
-4. represent pending Attention/Review items without duplication or mutation;
-5. expose a minimal read-only API;
-6. prove empty windows, mixed categories, restart durability, and no mutation side effects.
+1. normalize declared module permissions deterministically;
+2. persist exact module/version/permission-fingerprint review state and decision provenance;
+3. leave built-in no-permission modules operable without synthetic approval records;
+4. prevent unreviewed required permission changes from silently becoming operationally enabled;
+5. expose minimal manager inspect/approve/deny APIs limited to permissions actually declared by the manifest;
+6. invalidate stale approval when the version/permission request changes;
+7. prove that permission approval cannot bypass Code Shop project/action authority or manager risk evaluation.
 
-Do not infer a sleep schedule. Do not add scheduled/push delivery, email/Slack/notification connectors, polished summary UI, automatic retries/remediation, or LLM-authored narrative in this slice.
+Explicitly defer authenticated/private connector implementation, credential storage/entry, external drafts/writes, third-party modules/marketplace, learned policy, and polished desktop permission UI.
 
 ## Required Reads For Next Slice
 
 - `refs/handoffs/currentHandoff.md`
 - `refs/handoffs/next-dev-prompt.md`
-- Issue #62 and its latest comments
+- Issue #63 and its latest comments
 - `refs/planning/mvp-roadmap.md` around Increment 13
-- source-catalog matches for attention, runs, work queue, module/runtime state, Model Lab comparison evidence, and manager API seams
+- source-catalog matches for module manifest permissions, module synchronization/lifecycle, persistence, manager API, and Code Shop authority boundaries
 
 ## Re-entry
 
 ```powershell
-python scripts/agent_context.py --focus "manager morning summary completed blocked failed degraded comparison attention" --issue 62
+python scripts/agent_context.py --focus "module permission review install update manifest required approval lifecycle authority" --issue 63
 ```

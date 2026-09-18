@@ -292,7 +292,24 @@ Accepted behavior:
 
 Implementation checkpoint `dd58e0c338afea5a066efcc8f663d47cd878f048` passed bounded validation after deterministic generated-artifact refresh at `bbdae93b3cce5f04efa02b3783bebb625fd47ab3`: source catalog 200 files / 1729 symbols, 11 OKF indexes, initialized refs validation, 17 focused tests, 287 total Python tests, desktop web, and desktop Rust/Tauri all green. Final exact-head standard CI run `35357211859` on `87c979f203a6bffd1a106157f07c826f6d55bd50` is also green.
 
-Issue **#62: Add manager morning summary foundation** is the next bounded Increment 13 slice. It should assemble read-only, attributable summaries from durable manager-owned evidence without duplicating Attention state or introducing scheduled delivery/external connectors.
+### Manager morning summary foundation (implemented)
+
+Issue **#62: Add manager morning summary foundation** is implemented in `0.12.29` without a schema change; schema remains 13.
+
+Accepted behavior:
+
+1. The manager exposes a read-only summary projection over an explicit half-open UTC window `[starts_at, ends_at)`; no sleep/wake schedule is inferred.
+2. Succeeded runs and Code Shop attempts surface as completed; partial runs as degraded; failed/missed runs plus terminal failed work requests as failed.
+3. Open Attention items surface as blocked and open Review items as review while remaining authoritative queue records rather than copied summary state.
+4. Model Lab benchmark results surface as comparison evidence with corpus/session/model attribution.
+5. Every summary item carries a durable manager-owned `source_type` / `source_id` and module attribution where the durable source provides it.
+6. Volatile supervisor runtime health is not summarized as durable degraded evidence; #62 does not create persistence merely to report it.
+7. Summary generation performs SELECT-only reads and does not acknowledge, resolve, retry, reprioritize, mutate authority, update runtime health, or trigger external actions.
+8. Empty windows, mixed evidence, out-of-window exclusion, restart stability, and no-mutation behavior are deterministic.
+
+Implementation checkpoint `66bee379efc7ba41c5fe17a0a9a7c129522c5467` plus lint correction `8e1914fe2d88f47f47bf1ba3dc63801cb6de5b63` passed bounded validation; generated discovery artifacts were refreshed at `4841ea65b3b98a562bad73a5d2f0e73ef83b3ca8`. Validation: source catalog 206 files / 1750 symbols, 11 OKF indexes, initialized refs validation, 20 focused tests, 290 total Python tests, desktop web, and desktop Rust/Tauri all green.
+
+Issue **#63: Add install-time module permission review foundation** is the next bounded Increment 13 slice. Permission review must remain manager-owned and distinct from official-module trust, Code Shop project/action authority, and manager risk evaluation.
 
 - Add manager-owned Attention and Review queues.
 - Let modules supply domain context, allowed dispositions, validation, and downstream meaning.
