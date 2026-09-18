@@ -556,7 +556,7 @@ source_catalog:
   - path: tests/test_job_scout_discovery_learning.py
     analysis_version: 1
     language: python
-    content_hash: fdc8edd8298a4fba3c8efc8fa3e2d36807415681
+    content_hash: dba824b8ca85b3f2e43c3be91394de35063c92cf
     dependencies:
     - datetime
     - nerve_center.applications.models
@@ -572,6 +572,7 @@ source_catalog:
     - test_strategy_identity_weighting_and_exploration_floor_are_durable
     - test_source_count_without_posting_yield_is_not_rewarded
     - test_strategy_selection_reserves_company_deepening_capacity
+    - test_strategy_selection_quarantines_malformed_historical_reflection
     - test_strategy_selection_reserves_local_employer_exploration_capacity
     - test_strategy_selection_reserves_civic_attachment_employer_deepening
     - test_strategy_selection_deduplicates_civic_employer_query_across_markets
@@ -646,7 +647,7 @@ source_catalog:
       - &id010
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.select_strategies
-      - &id015
+      - &id011
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.get_strategy
     - name: test_source_count_without_posting_yield_is_not_rewarded
@@ -692,10 +693,33 @@ source_catalog:
       - *id008
       - *id009
       - *id010
-    - name: test_strategy_selection_reserves_local_employer_exploration_capacity
+    - name: test_strategy_selection_quarantines_malformed_historical_reflection
       kind: function
       line_start: 114
-      line_end: 142
+      line_end: 146
+      signature: 'test_strategy_selection_quarantines_malformed_historical_reflection(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - JobScoutDiscoveryRepository
+      - _database
+      - learning.ensure_strategy
+      - learning.get_strategy
+      - learning.select_strategies
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - *id011
+      - *id010
+    - name: test_strategy_selection_reserves_local_employer_exploration_capacity
+      kind: function
+      line_start: 149
+      line_end: 177
       signature: 'test_strategy_selection_reserves_local_employer_exploration_capacity(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -716,8 +740,8 @@ source_catalog:
       - *id010
     - name: test_strategy_selection_reserves_civic_attachment_employer_deepening
       kind: function
-      line_start: 145
-      line_end: 184
+      line_start: 180
+      line_end: 219
       signature: 'test_strategy_selection_reserves_civic_attachment_employer_deepening(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -738,8 +762,8 @@ source_catalog:
       - *id010
     - name: test_strategy_selection_deduplicates_civic_employer_query_across_markets
       kind: function
-      line_start: 187
-      line_end: 230
+      line_start: 222
+      line_end: 265
       signature: 'test_strategy_selection_deduplicates_civic_employer_query_across_markets(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -762,8 +786,8 @@ source_catalog:
       - *id010
     - name: test_strategy_selection_deduplicates_compiled_market_reference_query
       kind: function
-      line_start: 233
-      line_end: 276
+      line_start: 268
+      line_end: 311
       signature: 'test_strategy_selection_deduplicates_compiled_market_reference_query(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -788,8 +812,8 @@ source_catalog:
       - *id010
     - name: test_strategy_selection_deduplicates_query_across_revision_provenance
       kind: function
-      line_start: 279
-      line_end: 304
+      line_start: 314
+      line_end: 339
       signature: 'test_strategy_selection_deduplicates_query_across_revision_provenance(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -811,8 +835,8 @@ source_catalog:
       - *id010
     - name: test_market_exploration_covers_distinct_locations_and_regional_probe
       kind: function
-      line_start: 307
-      line_end: 372
+      line_start: 342
+      line_end: 407
       signature: 'test_market_exploration_covers_distinct_locations_and_regional_probe(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -835,8 +859,8 @@ source_catalog:
       - *id010
     - name: test_market_exploration_prefers_current_query_revision
       kind: function
-      line_start: 375
-      line_end: 411
+      line_start: 410
+      line_end: 446
       signature: 'test_market_exploration_prefers_current_query_revision(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -857,8 +881,8 @@ source_catalog:
       - *id010
     - name: test_current_market_attempt_moves_selection_to_next_market
       kind: function
-      line_start: 414
-      line_end: 458
+      line_start: 449
+      line_end: 493
       signature: 'test_current_market_attempt_moves_selection_to_next_market(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -880,8 +904,8 @@ source_catalog:
       - *id010
     - name: test_location_strategy_family_accumulates_zero_yield_across_query_variants
       kind: function
-      line_start: 461
-      line_end: 529
+      line_start: 496
+      line_end: 564
       signature: 'test_location_strategy_family_accumulates_zero_yield_across_query_variants(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -908,8 +932,8 @@ source_catalog:
       - *id010
     - name: test_cooldown_survives_restart_and_run_changes
       kind: function
-      line_start: 532
-      line_end: 547
+      line_start: 567
+      line_end: 582
       signature: 'test_cooldown_survives_restart_and_run_changes(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -933,8 +957,8 @@ source_catalog:
       - *id010
     - name: test_company_is_retained_as_strategy_evidence_with_zero_openings
       kind: function
-      line_start: 550
-      line_end: 575
+      line_start: 585
+      line_end: 610
       signature: 'test_company_is_retained_as_strategy_evidence_with_zero_openings(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -957,16 +981,16 @@ source_catalog:
       - *id006
       - *id007
       - *id008
-      - &id011
-        path: src/nerve_center/persistence/discovery.py
-        symbol: CompanyRepository.upsert
       - &id012
         path: src/nerve_center/persistence/discovery.py
-        symbol: DiscoverySourceRepository.upsert
+        symbol: CompanyRepository.upsert
       - &id013
         path: src/nerve_center/persistence/discovery.py
-        symbol: JobOpeningRepository.upsert
+        symbol: DiscoverySourceRepository.upsert
       - &id014
+        path: src/nerve_center/persistence/discovery.py
+        symbol: JobOpeningRepository.upsert
+      - &id015
         path: src/nerve_center/persistence/scoring.py
         symbol: ScoringRuleRepository.upsert
       - *id009
@@ -976,8 +1000,8 @@ source_catalog:
         symbol: DiscoveryQualityRepository.record_company_evidence
     - name: test_application_feedback_updates_discovery_strategy_without_ranking_mutation
       kind: function
-      line_start: 578
-      line_end: 645
+      line_start: 613
+      line_end: 680
       signature: 'test_application_feedback_updates_discovery_strategy_without_ranking_mutation(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1008,18 +1032,18 @@ source_catalog:
       - *id006
       - *id007
       - *id008
-      - *id011
       - *id012
       - *id013
       - *id014
-      - *id009
       - *id015
+      - *id009
+      - *id011
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.sync_application_feedback
     - name: test_session_coverage_and_reflection_state_are_restart_safe
       kind: function
-      line_start: 648
-      line_end: 694
+      line_start: 683
+      line_end: 729
       signature: 'test_session_coverage_and_reflection_state_are_restart_safe(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1060,8 +1084,8 @@ source_catalog:
         symbol: JobScoutDiscoveryRepository.session
     - name: test_new_market_reference_revision_bypasses_prior_revision_cooldown
       kind: function
-      line_start: 697
-      line_end: 782
+      line_start: 732
+      line_end: 817
       signature: 'test_new_market_reference_revision_bypasses_prior_revision_cooldown(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1085,8 +1109,8 @@ source_catalog:
       - *id010
     - name: test_stale_html_employer_evidence_is_not_scheduled_but_current_and_attachment_are
       kind: function
-      line_start: 784
-      line_end: 848
+      line_start: 819
+      line_end: 883
       signature: 'test_stale_html_employer_evidence_is_not_scheduled_but_current_and_attachment_are(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1106,8 +1130,8 @@ source_catalog:
       - *id010
     - name: test_reserved_acquisition_lanes_can_displace_extra_company_revisits
       kind: function
-      line_start: 851
-      line_end: 916
+      line_start: 886
+      line_end: 951
       signature: 'test_reserved_acquisition_lanes_can_displace_extra_company_revisits(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1130,8 +1154,8 @@ source_catalog:
       - *id010
     - name: test_normalized_attachment_evidence_bypasses_legacy_equivalent_cooldown
       kind: function
-      line_start: 919
-      line_end: 968
+      line_start: 954
+      line_end: 1003
       signature: 'test_normalized_attachment_evidence_bypasses_legacy_equivalent_cooldown(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'

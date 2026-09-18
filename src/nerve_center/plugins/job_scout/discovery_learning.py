@@ -358,6 +358,7 @@ class JobScoutDiscoveryRepository:
         exploration_floor: float = 0.25,
         excluded_company_ids: set[str] | None = None,
         excluded_source_ids: set[str] | None = None,
+        excluded_strategy_ids: set[str] | None = None,
         revisit_after_seconds: float | None = None,
         now: datetime | None = None,
     ) -> list[DiscoveryStrategySnapshot]:
@@ -381,6 +382,7 @@ class JobScoutDiscoveryRepository:
             }
             blocked_companies = excluded_company_ids or set()
             blocked_sources = excluded_source_ids or set()
+            blocked_strategies = excluded_strategy_ids or set()
             candidates = [
                 item
                 for item in models
@@ -395,6 +397,7 @@ class JobScoutDiscoveryRepository:
                         else min(revisit_after_seconds, 3600)
                     )
                 )
+                and item.id not in blocked_strategies
                 and item.dimensions.get("company_id") not in blocked_companies
                 and item.dimensions.get("source_id") not in blocked_sources
                 and (

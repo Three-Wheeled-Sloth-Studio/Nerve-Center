@@ -361,6 +361,24 @@ def test_reflection_semantics_reject_low_intent_and_preserve_adjacent_roles() ->
         },
         evidence_terms=evidence,
     )
+    mislabeled_archetype = compile_strategy_query(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "employer_archetype",
+            "anchor": "Angel.co - Product Roles",
+            "source_domain": "web",
+        },
+        evidence_terms=evidence,
+    )
+    mislabeled_capability = compile_strategy_query(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "domain_capability",
+            "anchor": "Product Management Internship",
+            "source_domain": "web",
+        },
+        evidence_terms=evidence,
+    )
     adjacent = compile_strategy_query(
         {
             "kind": "public_search",
@@ -377,6 +395,10 @@ def test_reflection_semantics_reject_low_intent_and_preserve_adjacent_roles() ->
     assert internship.warnings == ("seniority_mismatch",)
     assert workshop.valid is False
     assert workshop.warnings == ("non_role_activity_anchor",)
+    assert mislabeled_archetype.valid is False
+    assert mislabeled_archetype.warnings == ("missing_employer_archetype",)
+    assert mislabeled_capability.valid is False
+    assert mislabeled_capability.warnings == ("seniority_mismatch",)
     assert adjacent.valid is True
 
 
@@ -643,6 +665,18 @@ def test_reflection_result_rejects_low_intent_strategies_before_persistence(
                     "source_domain": "web",
                     "rationale": "Treat the capability as a company class.",
                 },
+                {
+                    "hypothesis_family": "employer_archetype",
+                    "anchor": "Angel.co - Product Roles",
+                    "source_domain": "web",
+                    "rationale": "Treat a job board as an employer class.",
+                },
+                {
+                    "hypothesis_family": "domain_capability",
+                    "anchor": "Product Management Internship",
+                    "source_domain": "web",
+                    "rationale": "Lower the requested seniority.",
+                },
             ]
         },
     )
@@ -654,6 +688,53 @@ def test_reflection_result_rejects_low_intent_strategies_before_persistence(
         if item.origin == "llm_gap_reflection"
     ]
     assert learning.reflection_request("request-1")["status"] == "applied"
+
+
+def test_reflection_eligibility_quarantines_invalid_persisted_strategy(
+    tmp_path: Path,
+) -> None:
+    learning = DiscoveryQualityRepository(_database(tmp_path))
+    store = SimpleNamespace(
+        load=lambda: JobScoutConfiguration(
+            target_titles=["Director of Product Management"],
+            locations=["Greensboro, NC"],
+            remote_preference="remote",
+            manual_keywords=["Human-Centered Design", "analytics"],
+            public_job_boards=[],
+        )
+    )
+    loop = object.__new__(SourceAwareJobScoutDiscoveryLoop)
+    loop.learning = learning
+    loop.coordinator = SimpleNamespace(
+        store=store,
+        _discover_keywords=lambda _configuration: SimpleNamespace(
+            keywords=["Human-Centered Design", "analytics"]
+        ),
+    )
+    malformed = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "employer_archetype",
+            "anchor": "Angel.co - Product Roles",
+            "source_domain": "web",
+        },
+        origin="llm_gap_reflection",
+    )
+    valid = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "adjacent_role",
+            "anchor": "Senior UX Researcher",
+            "source_domain": "web",
+        },
+        origin="llm_gap_reflection",
+    )
+
+    excluded = loop._ineligible_strategy_ids()
+
+    assert malformed.id in excluded
+    assert valid.id not in excluded
+    assert learning.get_strategy(malformed.id).id == malformed.id
 
 
 def test_coverage_gaps_are_explicit_and_bounded(tmp_path: Path) -> None:

@@ -111,6 +111,41 @@ def test_strategy_selection_reserves_company_deepening_capacity(tmp_path: Path) 
     assert company.id in {item.id for item in selected}
 
 
+def test_strategy_selection_quarantines_malformed_historical_reflection(
+    tmp_path: Path,
+) -> None:
+    learning = JobScoutDiscoveryRepository(_database(tmp_path))
+    malformed = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "employer_archetype",
+            "anchor": "Angel.co - Product Roles",
+            "source_domain": "web",
+        },
+        origin="llm_gap_reflection",
+    )
+    valid = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "adjacent_role",
+            "anchor": "Senior UX Researcher",
+            "source_domain": "web",
+        },
+        origin="llm_gap_reflection",
+    )
+
+    selected = learning.select_strategies(
+        "run-1",
+        limit=4,
+        exploration_floor=1.0,
+        excluded_strategy_ids={malformed.id},
+    )
+
+    assert valid.id in {item.id for item in selected}
+    assert malformed.id not in {item.id for item in selected}
+    assert learning.get_strategy(malformed.id).id == malformed.id
+
+
 def test_strategy_selection_reserves_local_employer_exploration_capacity(
     tmp_path: Path,
 ) -> None:

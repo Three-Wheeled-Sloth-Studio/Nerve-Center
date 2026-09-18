@@ -1844,7 +1844,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/discovery_quality.py
     analysis_version: 1
     language: python
-    content_hash: 0f8ae742f28b714cfe4fb03d5ae39c480b8ac796
+    content_hash: e10731866779335afdc3662e17192b3febfead6a
     dependencies:
     - __future__
     - dataclasses
@@ -1878,6 +1878,7 @@ source_catalog:
     - SourceAwareJobScoutDiscoveryLoop._record_gaps
     - SourceAwareJobScoutDiscoveryLoop._gap_dimensions
     - SourceAwareJobScoutDiscoveryLoop._evidence_terms
+    - SourceAwareJobScoutDiscoveryLoop._ineligible_strategy_ids
     - _CompiledQueryAdapter.__init__
     - _CompiledQueryAdapter.last_provider
     - _CompiledQueryAdapter.last_provider_fallback_used
@@ -2302,7 +2303,8 @@ source_catalog:
       dependency_targets:
       - *id039
       - *id023
-      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
+      - &id044
+        path: src/nerve_center/plugins/job_scout/discovery_quality.py
         symbol: SourceAwareJobScoutDiscoveryLoop._evidence_terms
       - *id032
       - *id040
@@ -2385,10 +2387,28 @@ source_catalog:
       - *id034
       - *id035
       - *id036
+    - name: SourceAwareJobScoutDiscoveryLoop._ineligible_strategy_ids
+      kind: method
+      line_start: 700
+      line_end: 710
+      signature: SourceAwareJobScoutDiscoveryLoop._ineligible_strategy_ids(self) -> set[str]
+      inputs:
+      - self
+      output: set[str]
+      dependencies:
+      - compile_strategy_query
+      - self._evidence_terms
+      - self.learning.list_strategies
+      - strategy.dimensions.get
+      parser: python-ast
+      dependency_targets:
+      - *id039
+      - *id044
+      - *id040
     - name: _CompiledQueryAdapter.__init__
       kind: method
-      line_start: 704
-      line_end: 718
+      line_start: 716
+      line_end: 730
       signature: '_CompiledQueryAdapter.__init__(self, delegate: Any, queries: tuple[str, ...], allowance: _RequestAllowance)
         -> None'
       inputs:
@@ -2402,8 +2422,8 @@ source_catalog:
       dependency_targets: []
     - name: _CompiledQueryAdapter.last_provider
       kind: method
-      line_start: 721
-      line_end: 722
+      line_start: 733
+      line_end: 734
       signature: _CompiledQueryAdapter.last_provider(self) -> str
       inputs:
       - self
@@ -2415,8 +2435,8 @@ source_catalog:
       dependency_targets: []
     - name: _CompiledQueryAdapter.last_provider_fallback_used
       kind: method
-      line_start: 725
-      line_end: 726
+      line_start: 737
+      line_end: 738
       signature: _CompiledQueryAdapter.last_provider_fallback_used(self) -> bool
       inputs:
       - self
@@ -2428,8 +2448,8 @@ source_catalog:
       dependency_targets: []
     - name: _CompiledQueryAdapter.last_search_transport
       kind: method
-      line_start: 729
-      line_end: 730
+      line_start: 741
+      line_end: 742
       signature: _CompiledQueryAdapter.last_search_transport(self) -> str
       inputs:
       - self
@@ -2441,8 +2461,8 @@ source_catalog:
       dependency_targets: []
     - name: _CompiledQueryAdapter._record_search_attempt
       kind: method
-      line_start: 732
-      line_end: 747
+      line_start: 744
+      line_end: 759
       signature: '_CompiledQueryAdapter._record_search_attempt(self, query: str, status: str, results: list[SearchResult]
         | None) -> None'
       inputs:
@@ -2459,8 +2479,8 @@ source_catalog:
       - *id006
     - name: _CompiledQueryAdapter.search
       kind: method
-      line_start: 749
-      line_end: 791
+      line_start: 761
+      line_end: 803
       signature: '_CompiledQueryAdapter.search(self, _legacy_query: str) -> Any'
       inputs:
       - self
@@ -2485,15 +2505,15 @@ source_catalog:
         symbol: _is_direct_employer_result
       - *id006
       - *id023
-      - &id044
+      - &id045
         path: src/nerve_center/plugins/job_scout/discovery_quality.py
         symbol: _CompiledQueryAdapter._record_search_attempt
       - path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: _RequestAllowance.reserve
     - name: _CompiledQueryAdapter.search_references
       kind: method
-      line_start: 793
-      line_end: 807
+      line_start: 805
+      line_end: 819
       signature: '_CompiledQueryAdapter.search_references(self, _legacy_query: str) -> Any'
       inputs:
       - self
@@ -2508,12 +2528,12 @@ source_catalog:
       - self.queries_attempted.append
       parser: python-ast
       dependency_targets:
-      - *id044
+      - *id045
       - *id006
     - name: _CompiledQueryAdapter.fetch_reference
       kind: method
-      line_start: 809
-      line_end: 813
+      line_start: 821
+      line_end: 825
       signature: '_CompiledQueryAdapter.fetch_reference(self, url: str) -> Any'
       inputs:
       - self
@@ -2526,8 +2546,8 @@ source_catalog:
       dependency_targets: []
     - name: _CompiledQueryAdapter.reference_cache_status
       kind: method
-      line_start: 815
-      line_end: 817
+      line_start: 827
+      line_end: 829
       signature: '_CompiledQueryAdapter.reference_cache_status(self, url: str) -> str'
       inputs:
       - self
@@ -2540,8 +2560,8 @@ source_catalog:
       dependency_targets: []
     - name: _is_direct_employer_result
       kind: function
-      line_start: 820
-      line_end: 826
+      line_start: 832
+      line_end: 838
       signature: '_is_direct_employer_result(result: SearchResult) -> bool'
       inputs:
       - 'result: SearchResult'
@@ -2551,8 +2571,8 @@ source_catalog:
       dependency_targets: []
     - name: _quality_reflection_schema
       kind: function
-      line_start: 829
-      line_end: 880
+      line_start: 841
+      line_end: 892
       signature: _quality_reflection_schema() -> dict[str, Any]
       inputs: []
       output: dict[str, Any]
@@ -2641,13 +2661,13 @@ source_catalog:
       - company_repository.save
       parser: python-ast
       dependency_targets:
-      - &id045
+      - &id046
         path: src/nerve_center/applications/api.py
         symbol: _require_job
-      - &id046
+      - &id047
         path: src/nerve_center/scoring/api.py
         symbol: _require_job
-      - &id047
+      - &id048
         path: src/nerve_center/persistence/scoring.py
         symbol: ScoringRuleRepository.delete
       - *id011
@@ -2756,8 +2776,8 @@ source_catalog:
       - job_repository.get
       parser: python-ast
       dependency_targets:
-      - *id045
       - *id046
+      - *id047
     - name: register_scoring_routes.save_job_enrichment
       kind: function
       line_start: 140
@@ -2774,8 +2794,8 @@ source_catalog:
       - request.model_copy
       parser: python-ast
       dependency_targets:
-      - *id045
       - *id046
+      - *id047
       - *id011
       - *id012
     - name: register_scoring_routes.list_rules
@@ -2831,7 +2851,7 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - *id047
+      - *id048
     - name: register_scoring_routes.analyze_fit
       kind: function
       line_start: 161
@@ -2879,16 +2899,16 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - &id049
+      - &id050
         path: desktop/src/display.tsx
         symbol: score
-      - &id050
+      - &id051
         path: src/nerve_center/scoring/engine.py
         symbol: OpportunityScorer.score
-      - &id051
+      - &id052
         path: src/nerve_center/scoring/service.py
         symbol: ScoringService.score
-      - &id052
+      - &id053
         path: tests/test_applications.py
         symbol: _RescoreStub.score
     - name: register_scoring_routes.list_scores
@@ -2992,7 +3012,7 @@ source_catalog:
       - stored_path.is_file
       parser: python-ast
       dependency_targets:
-      - &id048
+      - &id049
         path: tests/test_job_scout_configuration.py
         symbol: _application
       - *id011
@@ -3039,7 +3059,7 @@ source_catalog:
       - learning.update_session
       parser: python-ast
       dependency_targets:
-      - *id048
+      - *id049
       - *id032
       - *id041
       - *id042
@@ -3128,17 +3148,17 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id049
       - *id050
       - *id051
       - *id052
-      - &id054
+      - *id053
+      - &id055
         path: tests/test_qualification_importance.py
         symbol: _analysis
-      - &id055
+      - &id056
         path: tests/test_qualification_scoring.py
         symbol: _analysis
-      - &id056
+      - &id057
         path: tests/test_scoring_engine.py
         symbol: _analysis
     - name: test_closer_local_role_has_higher_response_score
@@ -3153,7 +3173,7 @@ source_catalog:
       - _score
       parser: python-ast
       dependency_targets:
-      - &id053
+      - &id054
         path: tests/test_scoring_engine.py
         symbol: _score
     - name: test_raw_listing_location_classifies_local_without_llm_enrichment
@@ -3170,7 +3190,7 @@ source_catalog:
       - any
       parser: python-ast
       dependency_targets:
-      - *id053
+      - *id054
     - name: test_raw_listing_region_classifies_regional_without_manual_home_region
       kind: function
       line_start: 135
@@ -3186,7 +3206,7 @@ source_catalog:
       - _score
       parser: python-ast
       dependency_targets:
-      - *id053
+      - *id054
     - name: test_distant_remote_penalty_requires_exceptional_match
       kind: function
       line_start: 146
@@ -3204,10 +3224,10 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id054
       - *id055
       - *id056
-      - *id053
+      - *id057
+      - *id054
     - name: test_hard_include_retains_but_does_not_hide_factual_gate
       kind: function
       line_start: 166
@@ -3222,7 +3242,7 @@ source_catalog:
       - any
       parser: python-ast
       dependency_targets:
-      - *id053
+      - *id054
     - name: test_missing_dates_and_evergreen_signals_are_explained
       kind: function
       line_start: 185
@@ -3237,7 +3257,7 @@ source_catalog:
       - '{''listing_date_missing'', ''repost_signal'', ''evergreen_signal'', ''conflicting_source_data''}.issubset'
       parser: python-ast
       dependency_targets:
-      - *id053
+      - *id054
     - name: test_nearby_relevant_office_improves_remote_response
       kind: function
       line_start: 206
@@ -3257,7 +3277,7 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id053
+      - *id054
     - name: test_textual_local_company_presence_improves_remote_response_with_evidence
       kind: function
       line_start: 238
@@ -3277,7 +3297,7 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id053
+      - *id054
     - name: test_unverified_required_license_creates_visible_gate
       kind: function
       line_start: 278
@@ -3292,10 +3312,10 @@ source_catalog:
       - item.code.startswith
       parser: python-ast
       dependency_targets:
-      - *id054
       - *id055
       - *id056
-      - *id053
+      - *id057
+      - *id054
     - name: test_priority_uses_configured_component_weights
       kind: function
       line_start: 285
@@ -3309,7 +3329,7 @@ source_catalog:
       - _score
       parser: python-ast
       dependency_targets:
-      - *id053
+      - *id054
     - name: test_target_title_alignment_is_only_a_weak_visible_fit_clue
       kind: function
       line_start: 301
@@ -3322,7 +3342,7 @@ source_catalog:
       - any
       parser: python-ast
       dependency_targets:
-      - *id053
+      - *id054
   - path: tests/test_summarize_job_scout_run.py
     analysis_version: 1
     language: python

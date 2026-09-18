@@ -407,6 +407,8 @@ def lint_query_dimensions(
         "direct_role",
         "adjacent_role",
         "seniority_variant",
+        "domain_capability",
+        "employer_archetype",
         "gap_reflection",
     }:
         if anchor_tokens & NON_ROLE_ACTIVITY_TERMS:
@@ -420,7 +422,9 @@ def lint_query_dimensions(
             return QueryLintResult(False, ("seniority_mismatch",))
 
     archetype = " ".join(dimensions.get("employer_archetype", "").split()).strip()
-    if family == "employer_archetype" and archetype:
+    if family == "employer_archetype":
+        if not archetype:
+            return QueryLintResult(False, ("missing_employer_archetype",))
         supported_archetypes = {
             _normalize_phrase(item) for item in _archetype_terms(evidence)
         }

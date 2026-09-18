@@ -697,6 +697,18 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
             ]
         )
 
+    def _ineligible_strategy_ids(self) -> set[str]:
+        evidence_terms = self._evidence_terms()
+        return {
+            strategy.id
+            for strategy in self.learning.list_strategies()
+            if strategy.dimensions.get("kind") == "public_search"
+            and not compile_strategy_query(
+                strategy.dimensions,
+                evidence_terms=evidence_terms,
+            ).valid
+        }
+
 
 class _CompiledQueryAdapter:
     """Run one compiled query without duplicating accepted deepening logic."""

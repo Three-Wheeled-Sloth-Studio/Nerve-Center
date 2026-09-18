@@ -61,6 +61,7 @@ class LocationAwareJobScoutDiscoveryLoop(SourceAwareJobScoutDiscoveryLoop):
             exploration_floor=self.exploration_floor,
             excluded_company_ids=excluded_company_ids,
             excluded_source_ids=excluded_source_ids,
+            excluded_strategy_ids=self._ineligible_strategy_ids(),
             revisit_after_seconds=86400,
         )
         if not selected:

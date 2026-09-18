@@ -297,6 +297,7 @@ class JobScoutDiscoveryLoop:
             exploration_floor=self.exploration_floor,
             excluded_company_ids=excluded_company_ids,
             excluded_source_ids=excluded_source_ids,
+            excluded_strategy_ids=self._ineligible_strategy_ids(),
             revisit_after_seconds=86400,
         )
         if not selected:
@@ -421,6 +422,9 @@ class JobScoutDiscoveryLoop:
             coverage=session.coverage,
             yield_metrics=increments,
         )
+
+    def _ineligible_strategy_ids(self) -> set[str]:
+        return set()
 
     def deterministic_reflection(self, run_id: str, cycle: int) -> dict[str, Any]:
         existing_ids = {item.id for item in self.learning.list_strategies()}
