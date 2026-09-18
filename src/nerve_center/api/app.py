@@ -49,9 +49,9 @@ from nerve_center.domain.work_queue import (
     WorkRequestStatus,
 )
 from nerve_center.model_lab.api import register_model_lab_routes
+from nerve_center.model_lab.service import ModelLabService
 from nerve_center.module_permissions.api import register_module_permission_routes
 from nerve_center.module_permissions.service import ModulePermissionReviewService
-from nerve_center.model_lab.service import ModelLabService
 from nerve_center.persistence.attention import AttentionRepository
 from nerve_center.persistence.database import Database
 from nerve_center.persistence.model_lab import ModelLabRepository
