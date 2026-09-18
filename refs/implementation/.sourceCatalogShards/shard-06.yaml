@@ -1136,7 +1136,7 @@ source_catalog:
       - &id010
         path: tests/test_job_scout_reference_attachments.py
         symbol: _document
-      - &id019
+      - &id021
         path: tests/test_job_scout_reference_attachments.py
         symbol: _pdf_bytes
       - &id011
@@ -1328,6 +1328,12 @@ source_catalog:
       - &id017
         path: src/nerve_center/persistence/database.py
         symbol: Database.initialize
+      - &id018
+        path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.initialize
+      - &id019
+        path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.initialize
     - name: test_attachment_cache_reuse_does_not_refetch
       kind: function
       line_start: 329
@@ -1639,6 +1645,8 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id017
+      - *id018
+      - *id019
     - name: test_deferred_attachment_skips_to_eligible_and_remains_hypothesis
       kind: function
       line_start: 557
@@ -1663,14 +1671,14 @@ source_catalog:
       - loop.prepare
       parser: python-ast
       dependency_targets:
-      - &id018
+      - &id020
         path: tests/test_job_scout_reference_attachments.py
         symbol: _build_attachment_loop
       - *id010
-      - &id020
+      - &id022
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.ensure_strategy
-      - &id021
+      - &id023
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.list_strategies
       - path: src/nerve_center/plugins/job_scout/attachment_discovery.py
@@ -1679,16 +1687,16 @@ source_catalog:
         symbol: JobScoutDiscoveryLoop.cycle
       - path: src/nerve_center/plugins/job_scout/location_discovery.py
         symbol: LocationAwareJobScoutDiscoveryLoop.cycle
-      - &id022
+      - &id024
         path: src/nerve_center/plugins/job_scout/attachment_discovery.py
         symbol: AttachmentAwareJobScoutDiscoveryLoop.prepare
-      - &id023
+      - &id025
         path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: JobScoutDiscoveryLoop.prepare
-      - &id024
+      - &id026
         path: src/nerve_center/plugins/job_scout/discovery_quality.py
         symbol: SourceAwareJobScoutDiscoveryLoop.prepare
-      - &id025
+      - &id027
         path: src/nerve_center/plugins/job_scout/location_discovery.py
         symbol: LocationAwareJobScoutDiscoveryLoop.prepare
     - name: test_extensionless_pdf_reference_reuses_response_in_document_parser
@@ -1714,23 +1722,23 @@ source_catalog:
       - loop.prepare
       parser: python-ast
       dependency_targets:
-      - *id018
-      - *id019
       - *id020
       - *id021
-      - &id026
-        path: src/nerve_center/plugins/job_scout/attachment_discovery.py
-        symbol: AttachmentAwareJobScoutDiscoveryLoop._execute_public_search
-      - &id027
-        path: src/nerve_center/plugins/job_scout/discovery_loop.py
-        symbol: JobScoutDiscoveryLoop._execute_public_search
-      - &id028
-        path: src/nerve_center/plugins/job_scout/discovery_quality.py
-        symbol: SourceAwareJobScoutDiscoveryLoop._execute_public_search
       - *id022
       - *id023
+      - &id028
+        path: src/nerve_center/plugins/job_scout/attachment_discovery.py
+        symbol: AttachmentAwareJobScoutDiscoveryLoop._execute_public_search
+      - &id029
+        path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: JobScoutDiscoveryLoop._execute_public_search
+      - &id030
+        path: src/nerve_center/plugins/job_scout/discovery_quality.py
+        symbol: SourceAwareJobScoutDiscoveryLoop._execute_public_search
       - *id024
       - *id025
+      - *id026
+      - *id027
     - name: test_prepare_migrates_combined_civic_attachment_authority
       kind: function
       line_start: 698
@@ -1751,13 +1759,13 @@ source_catalog:
       - loop.prepare
       parser: python-ast
       dependency_targets:
-      - *id018
       - *id020
-      - *id021
       - *id022
       - *id023
       - *id024
       - *id025
+      - *id026
+      - *id027
     - name: test_attachment_request_cap_and_candidate_limit_hold_in_discovery
       kind: function
       line_start: 730
@@ -1783,16 +1791,16 @@ source_catalog:
       - text.encode
       parser: python-ast
       dependency_targets:
-      - *id018
-      - *id010
       - *id020
-      - *id026
-      - *id027
-      - *id028
+      - *id010
       - *id022
-      - *id023
+      - *id028
+      - *id029
+      - *id030
       - *id024
       - *id025
+      - *id026
+      - *id027
     - name: test_live_report_preserves_attachment_coverage
       kind: function
       line_start: 780

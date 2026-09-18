@@ -7,7 +7,7 @@ source_catalog:
   - path: src/nerve_center/api/schemas.py
     analysis_version: 1
     language: python
-    content_hash: b3385874d91a95ae0c6fd7eaa336afbd319d9c35
+    content_hash: d54f64e6e878e27c1baa9428c0f86b9a09a7be24
     dependencies:
     - __future__
     - dataclasses
@@ -20,6 +20,7 @@ source_catalog:
     - nerve_center.domain.session
     - nerve_center.domain.work_queue
     - nerve_center.profile.models
+    - nerve_center.resource_profiles.schemas
     - pydantic
     - typing
     provides:
@@ -40,8 +41,8 @@ source_catalog:
     symbols:
     - name: ResourceBudgetRequest.to_domain
       kind: method
-      line_start: 34
-      line_end: 35
+      line_start: 35
+      line_end: 36
       signature: ResourceBudgetRequest.to_domain(self) -> ResourceBudget
       inputs:
       - self
@@ -53,8 +54,8 @@ source_catalog:
       dependency_targets: []
     - name: RunCreateRequest.validate_window
       kind: method
-      line_start: 47
-      line_end: 54
+      line_start: 50
+      line_end: 57
       signature: RunCreateRequest.validate_window(self) -> Self
       inputs:
       - self
@@ -66,8 +67,8 @@ source_catalog:
       dependency_targets: []
     - name: RunCreateRequest.to_window
       kind: method
-      line_start: 56
-      line_end: 61
+      line_start: 59
+      line_end: 64
       signature: RunCreateRequest.to_window(self) -> DurationRunWindow | FixedRunWindow
       inputs:
       - self
@@ -81,8 +82,8 @@ source_catalog:
       dependency_targets: []
     - name: RunResponse.from_snapshot
       kind: method
-      line_start: 89
-      line_end: 98
+      line_start: 92
+      line_end: 101
       signature: 'RunResponse.from_snapshot(cls, snapshot: RunSnapshot) -> RunResponse'
       inputs:
       - cls
@@ -96,8 +97,8 @@ source_catalog:
       dependency_targets: []
     - name: RunEventResponse.from_snapshot
       kind: method
-      line_start: 111
-      line_end: 112
+      line_start: 114
+      line_end: 115
       signature: 'RunEventResponse.from_snapshot(cls, snapshot: RunEventSnapshot) -> RunEventResponse'
       inputs:
       - cls
@@ -110,8 +111,8 @@ source_catalog:
       dependency_targets: []
     - name: ModuleResponse.from_installed
       kind: method
-      line_start: 126
-      line_end: 136
+      line_start: 129
+      line_end: 139
       signature: 'ModuleResponse.from_installed(cls, installed: InstalledModule, runtime: ModuleRuntimeReport | None) -> ModuleResponse'
       inputs:
       - cls
@@ -126,8 +127,8 @@ source_catalog:
       dependency_targets: []
     - name: SessionCreateRequest.validate_mode
       kind: method
-      line_start: 150
-      line_end: 174
+      line_start: 155
+      line_end: 179
       signature: SessionCreateRequest.validate_mode(self) -> Self
       inputs:
       - self
@@ -141,8 +142,8 @@ source_catalog:
       dependency_targets: []
     - name: SessionCreateRequest.recurrence
       kind: method
-      line_start: 176
-      line_end: 184
+      line_start: 181
+      line_end: 189
       signature: SessionCreateRequest.recurrence(self) -> RecurrenceRule | None
       inputs:
       - self
@@ -156,8 +157,8 @@ source_catalog:
       dependency_targets: []
     - name: SessionResponse.from_snapshot
       kind: method
-      line_start: 205
-      line_end: 222
+      line_start: 214
+      line_end: 235
       signature: 'SessionResponse.from_snapshot(cls, snapshot: WorkSessionSnapshot) -> SessionResponse'
       inputs:
       - cls
@@ -170,8 +171,8 @@ source_catalog:
       dependency_targets: []
     - name: WorkRequestCreateRequest.to_domain
       kind: method
-      line_start: 240
-      line_end: 241
+      line_start: 253
+      line_end: 254
       signature: WorkRequestCreateRequest.to_domain(self) -> WorkRequestSpec
       inputs:
       - self
@@ -183,8 +184,8 @@ source_catalog:
       dependency_targets: []
     - name: WorkRequestResponse.from_snapshot
       kind: method
-      line_start: 268
-      line_end: 269
+      line_start: 281
+      line_end: 282
       signature: 'WorkRequestResponse.from_snapshot(cls, snapshot: WorkRequestSnapshot) -> WorkRequestResponse'
       inputs:
       - cls
@@ -197,8 +198,8 @@ source_catalog:
       dependency_targets: []
     - name: WorkAttemptResponse.from_snapshot
       kind: method
-      line_start: 284
-      line_end: 285
+      line_start: 297
+      line_end: 298
       signature: 'WorkAttemptResponse.from_snapshot(cls, snapshot: WorkAttemptSnapshot) -> WorkAttemptResponse'
       inputs:
       - cls
@@ -211,8 +212,8 @@ source_catalog:
       dependency_targets: []
     - name: WorkResultResponse.from_snapshot
       kind: method
-      line_start: 300
-      line_end: 301
+      line_start: 313
+      line_end: 314
       signature: 'WorkResultResponse.from_snapshot(cls, snapshot: WorkResultSnapshot) -> WorkResultResponse'
       inputs:
       - cls
@@ -225,8 +226,8 @@ source_catalog:
       dependency_targets: []
     - name: QueueStatusResponse.from_snapshot
       kind: method
-      line_start: 317
-      line_end: 318
+      line_start: 330
+      line_end: 331
       signature: 'QueueStatusResponse.from_snapshot(cls, snapshot: QueueStatusSnapshot) -> QueueStatusResponse'
       inputs:
       - cls
@@ -397,7 +398,7 @@ source_catalog:
   - path: src/nerve_center/persistence/database.py
     analysis_version: 1
     language: python
-    content_hash: a1996af1c0760413618e58686a6bb3974275ea71
+    content_hash: 7ba56e1b44439de5948ec4ad610c97266d230d64
     dependencies:
     - __future__
     - collections.abc
@@ -431,7 +432,7 @@ source_catalog:
     - name: Database.initialize
       kind: method
       line_start: 25
-      line_end: 34
+      line_end: 35
       signature: Database.initialize(self) -> None
       inputs:
       - self
@@ -450,8 +451,8 @@ source_catalog:
         symbol: Settings.ensure_runtime_directories
     - name: Database.session
       kind: method
-      line_start: 37
-      line_end: 44
+      line_start: 38
+      line_end: 45
       signature: Database.session(self) -> Iterator[Session]
       inputs:
       - self
@@ -464,8 +465,8 @@ source_catalog:
       dependency_targets: []
     - name: _migrate
       kind: function
-      line_start: 47
-      line_end: 93
+      line_start: 48
+      line_end: 126
       signature: '_migrate(connection: Connection) -> int'
       inputs:
       - 'connection: Connection'
@@ -473,6 +474,7 @@ source_catalog:
       dependencies:
       - connection.execute
       - connection.execute(text("SELECT name FROM sqlite_master WHERE type = 'table'")).fetchall
+      - connection.execute(text('PRAGMA table_info(core_sessions)')).fetchall
       - connection.execute(text('PRAGMA table_info(runs)')).fetchall
       - connection.execute(text('SELECT COUNT(*) FROM schema_state')).scalar_one
       - connection.execute(text('SELECT version FROM schema_state LIMIT 1')).scalar_one
@@ -482,8 +484,8 @@ source_catalog:
       dependency_targets: []
     - name: _configure_sqlite
       kind: function
-      line_start: 96
-      line_end: 101
+      line_start: 129
+      line_end: 134
       signature: '_configure_sqlite(dbapi_connection: object, _connection_record: object) -> None'
       inputs:
       - 'dbapi_connection: object'
@@ -608,18 +610,6 @@ source_catalog:
       - &id013
         path: src/nerve_center/plugins/job_scout/configuration.py
         symbol: JobScoutCoordinator._resume_document
-      - &id014
-        path: src/nerve_center/persistence/profile.py
-        symbol: CareerProfileRepository.get_profile
-      - &id015
-        path: src/nerve_center/profile/api.py
-        symbol: register_profile_routes.get_profile
-      - &id016
-        path: src/nerve_center/profile/service.py
-        symbol: CareerProfileStore.get_profile
-      - &id017
-        path: tests/test_profile_service.py
-        symbol: MemoryStore.get_profile
       - &id006
         path: src/nerve_center/plugins/job_scout/settings.py
         symbol: JobScoutConfigurationStore.load
@@ -681,11 +671,11 @@ source_catalog:
       - self.workspace
       parser: python-ast
       dependency_targets:
-      - &id028
+      - &id024
         path: src/nerve_center/profile/service.py
         symbol: CareerProfileService.extract_document
       - *id003
-      - &id027
+      - &id023
         path: src/nerve_center/profile/documents.py
         symbol: import_source_document
       - *id004
@@ -764,10 +754,10 @@ source_catalog:
         symbol: register_discovery_routes.scan_source
       - path: src/nerve_center/discovery/service.py
         symbol: DiscoveryService.scan_source
-      - &id022
+      - &id018
         path: src/nerve_center/plugins/job_scout/configuration.py
         symbol: JobScoutCoordinator.save_configuration
-      - &id023
+      - &id019
         path: src/nerve_center/plugins/job_scout/configuration.py
         symbol: register_job_scout_configuration_routes.save_configuration
       - path: src/nerve_center/persistence/discovery.py
@@ -794,10 +784,6 @@ source_catalog:
       - path: src/nerve_center/plugins/job_scout/settings.py
         symbol: discover_keywords
       - *id013
-      - *id014
-      - *id015
-      - *id016
-      - *id017
     - name: JobScoutCoordinator._resume_document
       kind: method
       line_start: 290
@@ -885,16 +871,16 @@ source_catalog:
         symbol: JobScoutCoordinator._register_ats_source
       - path: src/nerve_center/discovery/service.py
         symbol: DiscoveryService.register_direct_career_url
-      - &id018
+      - &id014
         path: src/nerve_center/persistence/discovery.py
         symbol: CompanyRepository.upsert
-      - &id019
+      - &id015
         path: src/nerve_center/persistence/discovery.py
         symbol: DiscoverySourceRepository.upsert
-      - &id020
+      - &id016
         path: src/nerve_center/persistence/discovery.py
         symbol: JobOpeningRepository.upsert
-      - &id021
+      - &id017
         path: src/nerve_center/persistence/scoring.py
         symbol: ScoringRuleRepository.upsert
     - name: JobScoutCoordinator._register_ats_source
@@ -927,10 +913,10 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/plugins/job_scout/configuration.py
         symbol: _display_name
-      - *id018
-      - *id019
-      - *id020
-      - *id021
+      - *id014
+      - *id015
+      - *id016
+      - *id017
       - path: src/nerve_center/discovery/normalization.py
         symbol: stable_company_id
       - path: src/nerve_center/discovery/normalization.py
@@ -1008,10 +994,10 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - &id024
+      - &id020
         path: src/nerve_center/persistence/discovery.py
         symbol: SearchCacheRepository.put
-      - &id025
+      - &id021
         path: tests/test_public_search_fallback.py
         symbol: MemorySearchCache.put
       - path: src/nerve_center/plugins/job_scout/configuration.py
@@ -1022,10 +1008,10 @@ source_catalog:
         symbol: JobScoutCoordinator.refresh_keywords
       - path: src/nerve_center/plugins/job_scout/configuration.py
         symbol: register_job_scout_configuration_routes.refresh_keywords
-      - *id022
-      - *id023
+      - *id018
+      - *id019
       - *id008
-      - &id026
+      - &id022
         path: src/nerve_center/providers/errors.py
         symbol: ProviderError.as_dict
     - name: register_job_scout_configuration_routes.get_workspace
@@ -1056,8 +1042,8 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - *id024
-      - *id025
+      - *id020
+      - *id021
       - *id008
     - name: register_job_scout_configuration_routes.load_resume
       kind: function
@@ -1075,7 +1061,7 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - *id026
+      - *id022
     - name: register_job_scout_configuration_routes.refresh_keywords
       kind: function
       line_start: 496
@@ -1168,16 +1154,12 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - &id029
+      - &id025
         path: src/nerve_center/profile/api.py
         symbol: _provider_http_error
-      - *id024
-      - *id025
-      - *id027
-      - *id014
-      - *id015
-      - *id016
-      - *id017
+      - *id020
+      - *id021
+      - *id023
       - path: src/nerve_center/profile/api.py
         symbol: register_profile_routes.decide_claim
       - path: src/nerve_center/profile/service.py
@@ -1186,7 +1168,7 @@ source_catalog:
         symbol: register_profile_routes.decide_hypothesis
       - path: src/nerve_center/profile/service.py
         symbol: CareerProfileService.decide_hypothesis
-      - *id028
+      - *id024
       - path: src/nerve_center/profile/api.py
         symbol: register_profile_routes.override_claim
       - path: src/nerve_center/profile/service.py
@@ -1204,7 +1186,7 @@ source_catalog:
       - runtime_provider.list_models
       parser: python-ast
       dependency_targets:
-      - *id029
+      - *id025
     - name: register_profile_routes.register_profile_document
       kind: function
       line_start: 58
@@ -1223,7 +1205,7 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - *id027
+      - *id023
     - name: register_profile_routes.list_profile_documents
       kind: function
       line_start: 74
@@ -1264,8 +1246,8 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - *id029
-      - *id028
+      - *id025
+      - *id024
     - name: register_profile_routes.decide_hypothesis
       kind: function
       line_start: 92
@@ -1311,8 +1293,8 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - *id024
-      - *id025
+      - *id020
+      - *id021
     - name: _provider_http_error
       kind: function
       line_start: 127
@@ -1326,7 +1308,7 @@ source_catalog:
       - error.as_dict
       parser: python-ast
       dependency_targets:
-      - *id026
+      - *id022
   - path: src/nerve_center/profile/service.py
     analysis_version: 1
     language: python
@@ -1419,17 +1401,13 @@ source_catalog:
         symbol: build_extraction_prompt
       - path: src/nerve_center/profile/service.py
         symbol: merge_extraction
-      - *id014
-      - *id015
-      - *id016
-      - *id017
-      - &id030
+      - &id026
         path: src/nerve_center/persistence/profile.py
         symbol: CareerProfileRepository.save_profile
-      - &id031
+      - &id027
         path: src/nerve_center/profile/service.py
         symbol: CareerProfileStore.save_profile
-      - &id032
+      - &id028
         path: tests/test_profile_service.py
         symbol: MemoryStore.save_profile
     - name: CareerProfileService.decide_hypothesis
@@ -1453,13 +1431,9 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id009
-      - *id014
-      - *id015
-      - *id016
-      - *id017
-      - *id030
-      - *id031
-      - *id032
+      - *id026
+      - *id027
+      - *id028
     - name: CareerProfileService.decide_claim
       kind: method
       line_start: 90
@@ -1483,13 +1457,9 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id009
-      - *id014
-      - *id015
-      - *id016
-      - *id017
-      - *id030
-      - *id031
-      - *id032
+      - *id026
+      - *id027
+      - *id028
     - name: CareerProfileService.override_claim
       kind: method
       line_start: 128
@@ -1517,13 +1487,9 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id009
-      - *id014
-      - *id015
-      - *id016
-      - *id017
-      - *id030
-      - *id031
-      - *id032
+      - *id026
+      - *id027
+      - *id028
     - name: merge_extraction
       kind: function
       line_start: 172
@@ -1570,7 +1536,7 @@ source_catalog:
         symbol: _find_prior_hypothesis
       - path: src/nerve_center/profile/service.py
         symbol: _merge_claim
-      - &id033
+      - &id029
         path: src/nerve_center/profile/service.py
         symbol: _stable_id
       - path: src/nerve_center/profile/service.py
@@ -1601,10 +1567,10 @@ source_catalog:
       - valid_evidence.append
       parser: python-ast
       dependency_targets:
-      - &id034
+      - &id030
         path: src/nerve_center/profile/service.py
         symbol: _review_item
-      - *id033
+      - *id029
       - *id009
     - name: _merge_claim
       kind: function
@@ -1643,7 +1609,7 @@ source_catalog:
       - sorted
       parser: python-ast
       dependency_targets:
-      - *id034
+      - *id030
       - *id009
     - name: _review_item
       kind: function
@@ -1661,7 +1627,7 @@ source_catalog:
       - _stable_id
       parser: python-ast
       dependency_targets:
-      - *id033
+      - *id029
     - name: _deduplicate_review_items
       kind: function
       line_start: 356
@@ -1723,7 +1689,7 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/profile/service.py
         symbol: _hypothesis_terms
-      - *id033
+      - *id029
     - name: _hypothesis_terms
       kind: function
       line_start: 393
@@ -1773,7 +1739,7 @@ source_catalog:
       - registry.register_module
       parser: python-ast
       dependency_targets:
-      - &id035
+      - &id031
         path: src/nerve_center/plugins/job_scout/manifest.py
         symbol: job_scout_manifest
       - path: src/nerve_center/scheduler/registry.py
@@ -1798,13 +1764,19 @@ source_catalog:
       - repository.synchronize
       parser: python-ast
       dependency_targets:
-      - &id036
+      - &id032
         path: src/nerve_center/persistence/database.py
         symbol: Database.initialize
-      - *id035
+      - &id033
+        path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.initialize
+      - &id034
+        path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.initialize
+      - *id031
       - path: src/nerve_center/persistence/modules.py
         symbol: ModuleRepository.set_lifecycle
-      - &id037
+      - &id035
         path: src/nerve_center/persistence/modules.py
         symbol: ModuleRepository.synchronize
     - name: test_undeclared_installed_module_is_reported_not_installed
@@ -1825,9 +1797,11 @@ source_catalog:
       - repository.synchronize
       parser: python-ast
       dependency_targets:
-      - *id036
+      - *id032
+      - *id033
+      - *id034
+      - *id031
       - *id035
-      - *id037
   - path: tests/test_version_alignment.py
     analysis_version: 1
     language: python

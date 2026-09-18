@@ -63,6 +63,269 @@ source_catalog:
     - nerve_center.discovery.connectors.sitemap
     provides: []
     symbols: []
+  - path: src/nerve_center/persistence/resource_profiles.py
+    analysis_version: 1
+    language: python
+    content_hash: 6ed6681d77224bc4e98f738171348c2394c47c71
+    dependencies:
+    - __future__
+    - datetime
+    - nerve_center.persistence.database
+    - nerve_center.persistence.models
+    - nerve_center.resource_profiles.domain
+    - sqlalchemy
+    - sqlalchemy.orm
+    - typing
+    - uuid
+    provides:
+    - ResourceProfileRepository.__init__
+    - ResourceProfileRepository.initialize
+    - ResourceProfileRepository.list
+    - ResourceProfileRepository.get
+    - ResourceProfileRepository.create
+    - ResourceProfileRepository.update
+    - ResourceProfileRepository.select
+    - ResourceProfileRepository.selected_id
+    - _snapshot
+    - _utc
+    symbols:
+    - name: ResourceProfileRepository.__init__
+      kind: method
+      line_start: 45
+      line_end: 46
+      signature: 'ResourceProfileRepository.__init__(self, database: Database) -> None'
+      inputs:
+      - self
+      - 'database: Database'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ResourceProfileRepository.initialize
+      kind: method
+      line_start: 48
+      line_end: 70
+      signature: ResourceProfileRepository.initialize(self) -> None
+      inputs:
+      - self
+      output: None
+      dependencies:
+      - ResourceProfileModel
+      - ResourceProfileStateModel
+      - datetime.now
+      - manager_default_limits
+      - self.database.session
+      - session.add
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/resource_profiles/domain.py
+        symbol: manager_default_limits
+      - &id001
+        path: src/nerve_center/persistence/database.py
+        symbol: Database.session
+      - &id002
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.session
+      - &id007
+        path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _extract_structured_employer_names.add
+    - name: ResourceProfileRepository.list
+      kind: method
+      line_start: 72
+      line_end: 79
+      signature: ResourceProfileRepository.list(self) -> list[ResourceProfile]
+      inputs:
+      - self
+      output: list[ResourceProfile]
+      dependencies:
+      - _snapshot
+      - select
+      - select(ResourceProfileModel).order_by
+      - self.database.session
+      - session.scalars
+      - session.scalars(select(ResourceProfileModel).order_by(ResourceProfileModel.display_name, ResourceProfileModel.id)).all
+      parser: python-ast
+      dependency_targets:
+      - &id003
+        path: src/nerve_center/persistence/modules.py
+        symbol: ModuleRepository._snapshot
+      - &id004
+        path: src/nerve_center/persistence/resource_profiles.py
+        symbol: _snapshot
+      - &id005
+        path: src/nerve_center/persistence/runs.py
+        symbol: _snapshot
+      - &id006
+        path: src/nerve_center/persistence/sessions.py
+        symbol: _snapshot
+      - path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.select
+      - path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager.select
+      - path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.select
+      - *id001
+      - *id002
+    - name: ResourceProfileRepository.get
+      kind: method
+      line_start: 81
+      line_end: 88
+      signature: 'ResourceProfileRepository.get(self, profile_id: str) -> ResourceProfile'
+      inputs:
+      - self
+      - 'profile_id: str'
+      output: ResourceProfile
+      dependencies:
+      - ResourceProfileNotFoundError
+      - _snapshot
+      - self.database.session
+      parser: python-ast
+      dependency_targets:
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+      - *id001
+      - *id002
+    - name: ResourceProfileRepository.create
+      kind: method
+      line_start: 90
+      line_end: 110
+      signature: 'ResourceProfileRepository.create(self, display_name: str, limits: dict[str, int | float]) -> ResourceProfile'
+      inputs:
+      - self
+      - 'display_name: str'
+      - 'limits: dict[str, int | float]'
+      output: ResourceProfile
+      dependencies:
+      - ResourceProfileModel
+      - ValueError
+      - _snapshot
+      - datetime.now
+      - display_name.strip
+      - normalize_limits
+      - self.database.session
+      - session.add
+      - session.flush
+      - str
+      - uuid4
+      parser: python-ast
+      dependency_targets:
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+      - &id008
+        path: src/nerve_center/resource_profiles/domain.py
+        symbol: normalize_limits
+      - *id001
+      - *id002
+      - *id007
+      - &id009
+        path: scripts/agent_context.py
+        symbol: _markdown_blocks.flush
+    - name: ResourceProfileRepository.update
+      kind: method
+      line_start: 112
+      line_end: 135
+      signature: 'ResourceProfileRepository.update(self, profile_id: str, display_name: str | None, limits: dict[str, int
+        | float] | None) -> ResourceProfile'
+      inputs:
+      - self
+      - 'profile_id: str'
+      - 'display_name: str | None'
+      - 'limits: dict[str, int | float] | None'
+      output: ResourceProfile
+      dependencies:
+      - ResourceProfileNotFoundError
+      - ValueError
+      - _snapshot
+      - datetime.now
+      - display_name.strip
+      - normalize_limits
+      - self.database.session
+      - session.flush
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+      - *id008
+      - *id001
+      - *id002
+      - *id009
+    - name: ResourceProfileRepository.select
+      kind: method
+      line_start: 137
+      line_end: 153
+      signature: 'ResourceProfileRepository.select(self, profile_id: str) -> ResourceProfile'
+      inputs:
+      - self
+      - 'profile_id: str'
+      output: ResourceProfile
+      dependencies:
+      - ResourceProfileStateModel
+      - datetime.now
+      - self.database.session
+      - self.get
+      - session.add
+      - session.flush
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+      - *id007
+      - *id009
+    - name: ResourceProfileRepository.selected_id
+      kind: method
+      line_start: 155
+      line_end: 160
+      signature: ResourceProfileRepository.selected_id(self) -> str
+      inputs:
+      - self
+      output: str
+      dependencies:
+      - RuntimeError
+      - self.database.session
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+    - name: _snapshot
+      kind: function
+      line_start: 163
+      line_end: 170
+      signature: '_snapshot(model: ResourceProfileModel) -> ResourceProfile'
+      inputs:
+      - 'model: ResourceProfileModel'
+      output: ResourceProfile
+      dependencies:
+      - ResourceProfile
+      - _utc
+      - dict
+      - normalize_limits
+      parser: python-ast
+      dependency_targets:
+      - *id008
+    - name: _utc
+      kind: function
+      line_start: 173
+      line_end: 176
+      signature: '_utc(value: datetime) -> datetime'
+      inputs:
+      - 'value: datetime'
+      output: datetime
+      dependencies:
+      - value.astimezone
+      - value.replace
+      - value.utcoffset
+      parser: python-ast
+      dependency_targets: []
   - path: src/nerve_center/summary/__init__.py
     analysis_version: 1
     language: python
@@ -190,7 +453,7 @@ source_catalog:
       - self.checkpoints.append
       parser: python-ast
       dependency_targets:
-      - &id001
+      - &id010
         path: src/nerve_center/persistence/scoring.py
         symbol: OpportunityScoreRepository.append
     - name: Client.consume
@@ -360,16 +623,16 @@ source_catalog:
       - worker._execute_discovery_loop
       parser: python-ast
       dependency_targets:
-      - &id002
+      - &id011
         path: tests/test_job_scout_continuous_session.py
         symbol: assignment
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.list_strategies
-      - *id001
-      - &id003
+      - *id010
+      - &id012
         path: tests/test_job_scout_continuous_session.py
         symbol: setup_bridge
-      - &id004
+      - &id013
         path: src/nerve_center/plugins/job_scout/worker.py
         symbol: _execute_discovery_loop
     - name: test_two_waves_score_before_drain_despite_empty_reflection.newly_available_surface
@@ -385,7 +648,7 @@ source_catalog:
       - resolutions.append
       parser: python-ast
       dependency_targets:
-      - *id001
+      - *id010
     - name: test_no_work_has_paced_refresh_and_no_repeated_unchanged_reflection
       kind: function
       line_start: 164
@@ -407,10 +670,10 @@ source_catalog:
       - worker._execute_discovery_loop
       parser: python-ast
       dependency_targets:
-      - *id002
-      - *id003
-      - *id001
-      - *id004
+      - *id011
+      - *id012
+      - *id010
+      - *id013
     - name: test_no_work_has_paced_refresh_and_no_repeated_unchanged_reflection.fake_sleep
       kind: function
       line_start: 170
@@ -424,7 +687,7 @@ source_catalog:
       - sleeps.append
       parser: python-ast
       dependency_targets:
-      - *id001
+      - *id010
     - name: test_last_llm_allowance_is_harvested_before_budget_stop
       kind: function
       line_start: 185
@@ -444,9 +707,9 @@ source_catalog:
       - worker._execute_discovery_loop
       parser: python-ast
       dependency_targets:
-      - *id002
-      - *id003
-      - *id004
+      - *id011
+      - *id012
+      - *id013
     - name: test_scoring_reservation_survives_restart_and_enforces_cap
       kind: function
       line_start: 198
@@ -470,7 +733,7 @@ source_catalog:
       - worker._execute_discovery_loop
       parser: python-ast
       dependency_targets:
-      - *id002
+      - *id011
       - path: src/nerve_center/plugins/job_scout/configuration.py
         symbol: JobScoutCoordinator.save_configuration
       - path: src/nerve_center/plugins/job_scout/configuration.py
@@ -479,8 +742,8 @@ source_catalog:
         symbol: JobScoutConfigurationStore.load
       - path: tests/test_job_scout_query_portfolio.py
         symbol: _ConfigStore.load
-      - *id003
-      - *id004
+      - *id012
+      - *id013
     - name: test_scoring_targets_successes_with_a_separate_failure_ceiling
       kind: function
       line_start: 215
@@ -503,9 +766,9 @@ source_catalog:
       - worker._execute_discovery_loop
       parser: python-ast
       dependency_targets:
-      - *id002
-      - *id003
-      - *id004
+      - *id011
+      - *id012
+      - *id013
     - name: test_scoring_targets_successes_with_a_separate_failure_ceiling.FlakyScoringClient.invoke
       kind: method
       line_start: 219
@@ -551,10 +814,16 @@ source_catalog:
       - worker._execute_discovery_loop
       parser: python-ast
       dependency_targets:
-      - *id002
-      - *id003
-      - *id001
-      - *id004
+      - *id011
+      - &id014
+        path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.update
+      - &id015
+        path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.update
+      - *id012
+      - *id010
+      - *id013
     - name: test_repeated_zero_marginal_yield_adds_bounded_backoff.ZeroYieldClient.invoke
       kind: method
       line_start: 247
@@ -570,7 +839,9 @@ source_catalog:
       - result.update
       - super
       parser: python-ast
-      dependency_targets: []
+      dependency_targets:
+      - *id014
+      - *id015
     - name: test_repeated_zero_marginal_yield_adds_bounded_backoff.ZeroYieldClient.control
       kind: method
       line_start: 266
@@ -598,7 +869,7 @@ source_catalog:
       - sleeps.append
       parser: python-ast
       dependency_targets:
-      - *id001
+      - *id010
     - name: test_discovery_backoff_does_not_pause_eligible_scoring
       kind: function
       line_start: 294
@@ -623,9 +894,11 @@ source_catalog:
       - worker._execute_discovery_loop
       parser: python-ast
       dependency_targets:
-      - *id002
-      - *id003
-      - *id004
+      - *id011
+      - *id014
+      - *id015
+      - *id012
+      - *id013
     - name: test_discovery_backoff_does_not_pause_eligible_scoring.BackoffScoringClient.invoke
       kind: method
       line_start: 298
@@ -645,7 +918,9 @@ source_catalog:
       - result.update
       - super
       parser: python-ast
-      dependency_targets: []
+      dependency_targets:
+      - *id014
+      - *id015
     - name: test_discovery_backoff_does_not_pause_eligible_scoring.BackoffScoringClient.control
       kind: method
       line_start: 329
@@ -678,9 +953,9 @@ source_catalog:
       - worker._execute_discovery_loop
       parser: python-ast
       dependency_targets:
-      - *id002
-      - *id003
-      - *id004
+      - *id011
+      - *id012
+      - *id013
     - name: test_different_strategies_cannot_rescan_a_source_before_due
       kind: function
       line_start: 361
@@ -700,12 +975,12 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/plugins/job_scout/configuration.py
         symbol: JobScoutCoordinator._register_source_url
-      - &id005
+      - &id016
         path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: JobScoutDiscoveryLoop._scan_source
       - path: tests/test_job_scout_continuous_session.py
         symbol: test_different_strategies_cannot_rescan_a_source_before_due.scan_twice
-      - *id003
+      - *id012
     - name: test_different_strategies_cannot_rescan_a_source_before_due.scan_twice
       kind: function
       line_start: 366
@@ -717,7 +992,7 @@ source_catalog:
       - loop._scan_source
       parser: python-ast
       dependency_targets:
-      - *id005
+      - *id016
   - path: tests/test_scoring_service.py
     analysis_version: 1
     language: python

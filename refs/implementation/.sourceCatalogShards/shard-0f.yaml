@@ -92,21 +92,27 @@ source_catalog:
         path: src/nerve_center/module_permissions/domain.py
         symbol: permission_fingerprint
       - &id004
+        path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.select
+      - &id005
         path: src/nerve_center/providers/manager.py
         symbol: ProviderManager.select
-      - &id005
+      - &id006
+        path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.select
+      - &id007
         path: src/nerve_center/persistence/module_permissions.py
         symbol: ModulePermissionReviewRepository._create_model
-      - &id006
+      - &id008
         path: src/nerve_center/persistence/database.py
         symbol: Database.session
-      - &id007
+      - &id009
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.session
-      - &id008
+      - &id010
         path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: _extract_structured_employer_names.add
-      - &id009
+      - &id011
         path: scripts/agent_context.py
         symbol: _markdown_blocks.flush
     - name: ModulePermissionReviewRepository.bootstrap_legacy
@@ -143,6 +149,8 @@ source_catalog:
       - *id007
       - *id008
       - *id009
+      - *id010
+      - *id011
     - name: ModulePermissionReviewRepository.list
       kind: method
       line_start: 139
@@ -169,8 +177,10 @@ source_catalog:
       dependency_targets:
       - *id001
       - *id004
+      - *id005
       - *id006
-      - *id007
+      - *id008
+      - *id009
     - name: ModulePermissionReviewRepository.get
       kind: method
       line_start: 157
@@ -187,8 +197,8 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id001
-      - *id006
-      - *id007
+      - *id008
+      - *id009
     - name: ModulePermissionReviewRepository.latest_for_manifest
       kind: method
       line_start: 164
@@ -218,8 +228,10 @@ source_catalog:
       - *id002
       - *id003
       - *id004
+      - *id005
       - *id006
-      - *id007
+      - *id008
+      - *id009
     - name: ModulePermissionReviewRepository.decide
       kind: method
       line_start: 182
@@ -251,16 +263,16 @@ source_catalog:
       - session.get
       parser: python-ast
       dependency_targets:
-      - &id011
+      - &id013
         path: src/nerve_center/persistence/module_permissions.py
         symbol: _permissions
       - *id001
-      - &id010
+      - &id012
         path: src/nerve_center/module_permissions/domain.py
         symbol: review_state
-      - *id006
-      - *id007
+      - *id008
       - *id009
+      - *id011
     - name: ModulePermissionReviewRepository.operationally_allowed
       kind: method
       line_start: 227
@@ -274,7 +286,7 @@ source_catalog:
       - self.ensure_review
       parser: python-ast
       dependency_targets:
-      - &id012
+      - &id014
         path: src/nerve_center/persistence/module_permissions.py
         symbol: ModulePermissionReviewRepository.ensure_review
     - name: ModulePermissionReviewRepository._create_model
@@ -299,7 +311,7 @@ source_catalog:
       - uuid4
       parser: python-ast
       dependency_targets:
-      - *id010
+      - *id012
     - name: _review
       kind: function
       line_start: 255
@@ -317,8 +329,8 @@ source_catalog:
       - review_state
       parser: python-ast
       dependency_targets:
-      - *id011
-      - *id010
+      - *id013
+      - *id012
     - name: _permissions
       kind: function
       line_start: 275
@@ -417,21 +429,23 @@ source_catalog:
       - session.scalars(select(ModuleModel)).all
       parser: python-ast
       dependency_targets:
-      - &id016
+      - &id019
         path: src/nerve_center/domain/module.py
         symbol: ModuleManifest.from_dict
-      - &id017
+      - &id020
         path: src/nerve_center/domain/session.py
         symbol: RecurrenceRule.from_dict
       - *id004
+      - *id005
       - *id006
-      - *id007
+      - *id008
+      - *id009
       - path: src/nerve_center/config.py
         symbol: Settings.module_data_dir
       - path: src/nerve_center/persistence/module_permissions.py
         symbol: ModulePermissionReviewRepository.bootstrap_legacy
-      - *id012
-      - *id008
+      - *id014
+      - *id010
     - name: ModuleRepository.list
       kind: method
       line_start: 89
@@ -450,17 +464,22 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id004
-      - &id013
+      - *id005
+      - *id006
+      - &id015
         path: src/nerve_center/persistence/modules.py
         symbol: ModuleRepository._snapshot
-      - &id014
+      - &id016
+        path: src/nerve_center/persistence/resource_profiles.py
+        symbol: _snapshot
+      - &id017
         path: src/nerve_center/persistence/runs.py
         symbol: _snapshot
-      - &id015
+      - &id018
         path: src/nerve_center/persistence/sessions.py
         symbol: _snapshot
-      - *id006
-      - *id007
+      - *id008
+      - *id009
     - name: ModuleRepository.get
       kind: method
       line_start: 96
@@ -476,11 +495,12 @@ source_catalog:
       - self.database.session
       parser: python-ast
       dependency_targets:
-      - *id013
-      - *id014
       - *id015
-      - *id006
-      - *id007
+      - *id016
+      - *id017
+      - *id018
+      - *id008
+      - *id009
     - name: ModuleRepository.set_lifecycle
       kind: method
       line_start: 103
@@ -503,14 +523,15 @@ source_catalog:
       - session.get
       parser: python-ast
       dependency_targets:
-      - *id013
-      - *id014
       - *id015
-      - *id006
-      - *id007
+      - *id016
+      - *id017
+      - *id018
+      - *id008
+      - *id009
       - path: src/nerve_center/persistence/module_permissions.py
         symbol: ModulePermissionReviewRepository.operationally_allowed
-      - *id009
+      - *id011
     - name: ModuleRepository._snapshot
       kind: method
       line_start: 126
@@ -526,8 +547,8 @@ source_catalog:
       - dict
       parser: python-ast
       dependency_targets:
-      - *id016
-      - *id017
+      - *id019
+      - *id020
   - path: src/nerve_center/runtime/client.py
     analysis_version: 1
     language: python
@@ -598,10 +619,10 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - &id018
+      - &id021
         path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository._request
-      - &id019
+      - &id022
         path: src/nerve_center/runtime/client.py
         symbol: ModuleRuntimeClient._request
     - name: ModuleRuntimeClient.next_work
@@ -618,8 +639,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id018
-      - *id019
+      - *id021
+      - *id022
     - name: ModuleRuntimeClient.module_control
       kind: method
       line_start: 35
@@ -634,8 +655,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id018
-      - *id019
+      - *id021
+      - *id022
     - name: ModuleRuntimeClient.control
       kind: method
       line_start: 38
@@ -651,8 +672,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id018
-      - *id019
+      - *id021
+      - *id022
     - name: ModuleRuntimeClient.checkpoint
       kind: method
       line_start: 44
@@ -668,8 +689,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id018
-      - *id019
+      - *id021
+      - *id022
     - name: ModuleRuntimeClient.consume
       kind: method
       line_start: 49
@@ -685,8 +706,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id018
-      - *id019
+      - *id021
+      - *id022
     - name: ModuleRuntimeClient.invoke
       kind: method
       line_start: 56
@@ -707,8 +728,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id018
-      - *id019
+      - *id021
+      - *id022
     - name: ModuleRuntimeClient.submit_work
       kind: method
       line_start: 70
@@ -726,8 +747,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id018
-      - *id019
+      - *id021
+      - *id022
     - name: ModuleRuntimeClient.results
       kind: method
       line_start: 82
@@ -742,8 +763,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id018
-      - *id019
+      - *id021
+      - *id022
     - name: ModuleRuntimeClient.acknowledge_result
       kind: method
       line_start: 88
@@ -760,8 +781,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id018
-      - *id019
+      - *id021
+      - *id022
     - name: ModuleRuntimeClient.complete
       kind: method
       line_start: 101
@@ -780,8 +801,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id018
-      - *id019
+      - *id021
+      - *id022
     - name: ModuleRuntimeClient._request
       kind: method
       line_start: 114
@@ -812,7 +833,7 @@ source_catalog:
   - path: tests/test_applications.py
     analysis_version: 1
     language: python
-    content_hash: b549a9727a5bb5f7765b79e9eb3e6038df58689f
+    content_hash: 37a8c6c67aa1cff493887cf324863d26871126f2
     dependencies:
     - datetime
     - fastapi
@@ -855,9 +876,15 @@ source_catalog:
       - database.initialize
       parser: python-ast
       dependency_targets:
-      - &id026
+      - &id029
         path: src/nerve_center/persistence/database.py
         symbol: Database.initialize
+      - &id030
+        path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.initialize
+      - &id031
+        path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.initialize
     - name: _seed
       kind: function
       line_start: 45
@@ -880,16 +907,16 @@ source_catalog:
       - datetime.now
       parser: python-ast
       dependency_targets:
-      - &id029
+      - &id034
         path: src/nerve_center/persistence/discovery.py
         symbol: CompanyRepository.upsert
-      - &id030
+      - &id035
         path: src/nerve_center/persistence/discovery.py
         symbol: DiscoverySourceRepository.upsert
-      - &id031
+      - &id036
         path: src/nerve_center/persistence/discovery.py
         symbol: JobOpeningRepository.upsert
-      - &id032
+      - &id037
         path: src/nerve_center/persistence/scoring.py
         symbol: ScoringRuleRepository.upsert
     - name: _opportunity_score
@@ -936,10 +963,10 @@ source_catalog:
       - self.scores.append
       parser: python-ast
       dependency_targets:
-      - &id025
+      - &id028
         path: tests/test_applications.py
         symbol: _opportunity_score
-      - &id028
+      - &id033
         path: src/nerve_center/persistence/scoring.py
         symbol: OpportunityScoreRepository.append
     - name: _RescoreStub.ensure_provisional_score
@@ -975,19 +1002,19 @@ source_catalog:
       - repository.save
       parser: python-ast
       dependency_targets:
-      - &id020
+      - &id023
         path: tests/test_applications.py
         symbol: _database
-      - &id021
+      - &id024
         path: tests/test_discovery_persistence.py
         symbol: _database
-      - &id022
+      - &id025
         path: tests/test_job_scout_discovery_learning.py
         symbol: _database
-      - &id023
+      - &id026
         path: tests/test_job_scout_query_portfolio.py
         symbol: _database
-      - &id024
+      - &id027
         path: tests/test_applications.py
         symbol: _seed
       - path: src/nerve_center/attention/api.py
@@ -1023,12 +1050,12 @@ source_catalog:
       - visible.json()[0]['next_action'].startswith
       parser: python-ast
       dependency_targets:
-      - *id020
-      - *id021
-      - *id022
       - *id023
       - *id024
-      - &id027
+      - *id025
+      - *id026
+      - *id027
+      - &id032
         path: src/nerve_center/applications/api.py
         symbol: register_application_routes
     - name: test_review_backfills_stale_score_without_provisional_or_llm_path
@@ -1061,11 +1088,13 @@ source_catalog:
       - scores.list
       parser: python-ast
       dependency_targets:
-      - *id025
-      - *id024
-      - *id026
-      - *id027
       - *id028
+      - *id027
+      - *id029
+      - *id030
+      - *id031
+      - *id032
+      - *id033
     - name: test_review_keeps_distant_roles_for_explicit_scored_location_filtering
       kind: function
       line_start: 252
@@ -1093,10 +1122,12 @@ source_catalog:
       - response.json
       parser: python-ast
       dependency_targets:
+      - *id034
+      - *id035
+      - *id036
+      - *id037
+      - *id027
       - *id029
       - *id030
       - *id031
       - *id032
-      - *id024
-      - *id026
-      - *id027

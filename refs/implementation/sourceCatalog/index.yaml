@@ -4,16 +4,16 @@ source_catalog:
   format_version: 1
   generated_by: refs/tools/generate_source_catalog.py
   derived: true
-  tracked_source_files: 212
-  symbols: 1792
+  tracked_source_files: 219
+  symbols: 1837
   languages:
     javascript: 3
-    python: 192
+    python: 199
     rust: 3
     typescript: 14
   parsers:
     javascript-pattern: 3
-    python-ast: 1688
+    python-ast: 1733
     rust-pattern: 30
     typescript-pattern: 71
   shards:
@@ -24,14 +24,14 @@ source_catalog:
     files: 7
     symbols: 56
   - path: refs/implementation/.sourceCatalogShards/shard-02.yaml
-    files: 7
-    symbols: 41
+    files: 9
+    symbols: 57
   - path: refs/implementation/.sourceCatalogShards/shard-03.yaml
     files: 8
     symbols: 30
   - path: refs/implementation/.sourceCatalogShards/shard-04.yaml
     files: 7
-    symbols: 67
+    symbols: 69
   - path: refs/implementation/.sourceCatalogShards/shard-05.yaml
     files: 3
     symbols: 53
@@ -54,7 +54,7 @@ source_catalog:
     files: 7
     symbols: 23
   - path: refs/implementation/.sourceCatalogShards/shard-0c.yaml
-    files: 6
+    files: 7
     symbols: 50
   - path: refs/implementation/.sourceCatalogShards/shard-0d.yaml
     files: 8
@@ -78,17 +78,17 @@ source_catalog:
     files: 12
     symbols: 57
   - path: refs/implementation/.sourceCatalogShards/shard-14.yaml
-    files: 5
-    symbols: 57
+    files: 6
+    symbols: 62
   - path: refs/implementation/.sourceCatalogShards/shard-15.yaml
     files: 9
     symbols: 64
   - path: refs/implementation/.sourceCatalogShards/shard-16.yaml
-    files: 6
-    symbols: 43
+    files: 7
+    symbols: 45
   - path: refs/implementation/.sourceCatalogShards/shard-17.yaml
-    files: 6
-    symbols: 37
+    files: 7
+    symbols: 47
   - path: refs/implementation/.sourceCatalogShards/shard-18.yaml
     files: 4
     symbols: 4
@@ -99,8 +99,8 @@ source_catalog:
     files: 3
     symbols: 34
   - path: refs/implementation/.sourceCatalogShards/shard-1b.yaml
-    files: 6
-    symbols: 38
+    files: 7
+    symbols: 48
   - path: refs/implementation/.sourceCatalogShards/shard-1c.yaml
     files: 8
     symbols: 104

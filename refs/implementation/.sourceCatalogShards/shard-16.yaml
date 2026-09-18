@@ -456,6 +456,43 @@ source_catalog:
         symbol: RunRepository.save_checkpoint
       - path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService._execute.save_checkpoint
+  - path: src/nerve_center/resource_profiles/schemas.py
+    analysis_version: 1
+    language: python
+    content_hash: 530339c916f5eb37058479c83a0fa97c3a5bb095
+    dependencies:
+    - __future__
+    - pydantic
+    provides:
+    - ResourceLimitsRequest.to_mapping
+    - ResourceProfileUpdateRequest.require_change
+    symbols:
+    - name: ResourceLimitsRequest.to_mapping
+      kind: method
+      line_start: 20
+      line_end: 25
+      signature: ResourceLimitsRequest.to_mapping(self) -> dict[str, int | float]
+      inputs:
+      - self
+      output: dict[str, int | float]
+      dependencies:
+      - self.model_dump
+      - self.model_dump().items
+      parser: python-ast
+      dependency_targets: []
+    - name: ResourceProfileUpdateRequest.require_change
+      kind: method
+      line_start: 42
+      line_end: 45
+      signature: ResourceProfileUpdateRequest.require_change(self) -> ResourceProfileUpdateRequest
+      inputs:
+      - self
+      output: ResourceProfileUpdateRequest
+      dependencies:
+      - ValueError
+      - model_validator
+      parser: python-ast
+      dependency_targets: []
   - path: tests/test_live_runner_progress.py
     analysis_version: 1
     language: python
@@ -907,15 +944,15 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - path: src/nerve_center/attention/api.py
-        symbol: register_attention_routes.create
-      - path: src/nerve_center/persistence/runs.py
-        symbol: RunRepository.create
-      - path: src/nerve_center/persistence/sessions.py
-        symbol: SessionRepository.create
       - &id020
         path: src/nerve_center/persistence/database.py
         symbol: Database.initialize
+      - &id021
+        path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.initialize
+      - &id022
+        path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.initialize
     - name: _completed_request
       kind: function
       line_start: 98
@@ -991,13 +1028,13 @@ source_catalog:
         path: src/nerve_center/persistence/model_lab.py
         symbol: ModelLabRepository.corpus_count
       - *id017
-      - &id024
+      - &id026
         path: src/nerve_center/model_lab/api.py
         symbol: register_model_lab_routes.update_settings
-      - &id025
+      - &id027
         path: src/nerve_center/model_lab/service.py
         symbol: ModelLabService.update_settings
-      - &id026
+      - &id028
         path: src/nerve_center/persistence/model_lab.py
         symbol: ModelLabRepository.update_settings
     - name: test_benchmark_replay_is_persistent_and_does_not_change_production_evidence
@@ -1045,14 +1082,16 @@ source_catalog:
         symbol: ModelLabRepository.list_results
       - *id019
       - *id020
+      - *id021
+      - *id022
       - *id017
-      - &id021
+      - &id023
         path: src/nerve_center/model_lab/api.py
         symbol: register_model_lab_routes.replay
-      - &id022
+      - &id024
         path: src/nerve_center/model_lab/service.py
         symbol: ModelLabService.replay
-      - &id023
+      - &id025
         path: src/nerve_center/model_lab/service.py
         symbol: ModelLabService.start_exploration
     - name: test_exploration_budget_and_production_queue_block_replay
@@ -1093,9 +1132,9 @@ source_catalog:
         symbol: WorkQueueService.list_requests
       - *id018
       - *id017
-      - *id021
-      - *id022
       - *id023
+      - *id024
+      - *id025
     - name: test_disabled_model_lab_does_not_change_normal_provider_routing
       kind: function
       line_start: 260
@@ -1115,10 +1154,10 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id016
-      - *id023
-      - *id024
       - *id025
       - *id026
+      - *id027
+      - *id028
     - name: test_model_lab_api_exposes_catalog_and_disabled_state
       kind: function
       line_start: 281

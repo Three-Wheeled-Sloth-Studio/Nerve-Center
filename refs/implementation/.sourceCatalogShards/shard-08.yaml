@@ -606,6 +606,10 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/persistence/database.py
         symbol: Database.initialize
+      - path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.initialize
+      - path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.initialize
     - name: test_strategy_identity_weighting_and_exploration_floor_are_durable
       kind: function
       line_start: 34

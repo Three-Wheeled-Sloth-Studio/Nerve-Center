@@ -35,7 +35,7 @@ source_catalog:
   - path: src/nerve_center/api/app.py
     analysis_version: 1
     language: python
-    content_hash: 4c875d0c3fcfc154b3c9b0fcd17f379407e752f5
+    content_hash: d2b84eb05161e310e142e8128bd73bdabce5098f
     dependencies:
     - __future__
     - collections.abc
@@ -60,6 +60,7 @@ source_catalog:
     - nerve_center.persistence.module_permissions
     - nerve_center.persistence.modules
     - nerve_center.persistence.providers
+    - nerve_center.persistence.resource_profiles
     - nerve_center.persistence.runs
     - nerve_center.persistence.sessions
     - nerve_center.persistence.summary
@@ -71,6 +72,8 @@ source_catalog:
     - nerve_center.providers.errors
     - nerve_center.providers.manager
     - nerve_center.providers.ollama
+    - nerve_center.resource_profiles.api
+    - nerve_center.resource_profiles.service
     - nerve_center.runtime.api
     - nerve_center.runtime.plugin
     - nerve_center.runtime.supervisor
@@ -120,8 +123,8 @@ source_catalog:
     symbols:
     - name: create_app
       kind: function
-      line_start: 93
-      line_end: 537
+      line_start: 99
+      line_end: 582
       signature: 'create_app(settings: Settings | None, provider: StructuredProvider | None, code_shop_connector: GitHubRepositoryConnector
         | None) -> FastAPI'
       inputs:
@@ -151,9 +154,9 @@ source_catalog:
       - ProviderWorkExecutor
       - Query
       - QueueStatusResponse.from_snapshot
+      - ResourceProfileRepository
+      - ResourceProfileService
       - RunEventResponse.from_snapshot
-      - RunRepository
-      - RunResponse.from_snapshot
       parser: python-ast
       dependency_targets:
       - &id006
@@ -161,8 +164,8 @@ source_catalog:
         symbol: ModuleResponse.from_installed
     - name: create_app.lifespan
       kind: function
-      line_start: 140
-      line_end: 150
+      line_start: 147
+      line_end: 158
       signature: 'create_app.lifespan(_app: FastAPI) -> AsyncIterator[None]'
       inputs:
       - '_app: FastAPI'
@@ -172,6 +175,7 @@ source_catalog:
       - module_repository.synchronize
       - module_supervisor.shutdown
       - registry.list_modules
+      - resource_profiles.initialize
       - runner.recover_interrupted
       - runner.shutdown
       - scheduler.start
@@ -180,9 +184,15 @@ source_catalog:
       - work_sessions.recover
       parser: python-ast
       dependency_targets:
-      - &id029
+      - &id030
         path: src/nerve_center/persistence/database.py
         symbol: Database.initialize
+      - &id031
+        path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.initialize
+      - &id032
+        path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.initialize
       - path: src/nerve_center/persistence/modules.py
         symbol: ModuleRepository.synchronize
       - path: src/nerve_center/runtime/supervisor.py
@@ -223,8 +233,8 @@ source_catalog:
         symbol: WorkSessionService.recover
     - name: create_app.queue_error
       kind: function
-      line_start: 246
-      line_end: 253
+      line_start: 256
+      line_end: 263
       signature: 'create_app.queue_error(error: Exception) -> HTTPException'
       inputs:
       - 'error: Exception'
@@ -237,8 +247,8 @@ source_catalog:
       dependency_targets: []
     - name: create_app.health
       kind: function
-      line_start: 256
-      line_end: 257
+      line_start: 266
+      line_end: 267
       signature: create_app.health() -> dict[str, str]
       inputs: []
       output: dict[str, str]
@@ -248,8 +258,8 @@ source_catalog:
       dependency_targets: []
     - name: create_app.list_provider_models
       kind: function
-      line_start: 260
-      line_end: 264
+      line_start: 270
+      line_end: 274
       signature: create_app.list_provider_models() -> list[object]
       inputs: []
       output: list[object]
@@ -263,8 +273,8 @@ source_catalog:
       dependency_targets: []
     - name: create_app.list_provider_evidence
       kind: function
-      line_start: 267
-      line_end: 268
+      line_start: 277
+      line_end: 278
       signature: 'create_app.list_provider_evidence(task_id: str) -> list[object]'
       inputs:
       - 'task_id: str'
@@ -275,13 +285,13 @@ source_catalog:
       - model_evidence.task_evidence
       parser: python-ast
       dependency_targets:
-      - &id024
+      - &id025
         path: src/nerve_center/persistence/providers.py
         symbol: ModelEvidenceRepository.task_evidence
     - name: create_app.create_session
       kind: function
-      line_start: 271
-      line_end: 297
+      line_start: 281
+      line_end: 332
       signature: 'create_app.create_session(request: SessionCreateRequest) -> SessionResponse'
       inputs:
       - 'request: SessionCreateRequest'
@@ -291,8 +301,12 @@ source_catalog:
       - SessionResponse.from_snapshot
       - ValueError
       - application.post
+      - effective.enforced_budget
+      - overrides.update
       - request.recurrence
+      - request.resource_overrides.to_mapping
       - request.resource_policy.model_dump
+      - resource_profiles.resolve
       - str
       - work_sessions.create_duration
       - work_sessions.create_fixed
@@ -300,8 +314,20 @@ source_catalog:
       - work_sessions.start
       parser: python-ast
       dependency_targets:
+      - &id010
+        path: src/nerve_center/resource_profiles/domain.py
+        symbol: EffectiveResourceProfile.enforced_budget
+      - &id011
+        path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.update
+      - &id012
+        path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.update
       - path: src/nerve_center/api/schemas.py
         symbol: SessionCreateRequest.recurrence
+      - &id013
+        path: src/nerve_center/resource_profiles/schemas.py
+        symbol: ResourceLimitsRequest.to_mapping
       - path: src/nerve_center/scheduler/sessions.py
         symbol: WorkSessionService.create_duration
       - path: src/nerve_center/scheduler/sessions.py
@@ -314,8 +340,8 @@ source_catalog:
       - *id004
     - name: create_app.list_sessions
       kind: function
-      line_start: 300
-      line_end: 306
+      line_start: 335
+      line_end: 341
       signature: 'create_app.list_sessions(limit: Annotated[int, Query(ge) -> list[SessionResponse]'
       inputs:
       - 'limit: Annotated[int, Query(ge'
@@ -327,16 +353,16 @@ source_catalog:
       - session_repository.list_recent
       parser: python-ast
       dependency_targets:
-      - &id013
+      - &id014
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.list_recent
-      - &id014
+      - &id015
         path: src/nerve_center/persistence/sessions.py
         symbol: SessionRepository.list_recent
     - name: create_app.get_session
       kind: function
-      line_start: 309
-      line_end: 313
+      line_start: 344
+      line_end: 348
       signature: 'create_app.get_session(session_id: str) -> SessionResponse'
       inputs:
       - 'session_id: str'
@@ -351,8 +377,8 @@ source_catalog:
       dependency_targets: []
     - name: create_app.start_session
       kind: function
-      line_start: 316
-      line_end: 322
+      line_start: 351
+      line_end: 357
       signature: 'create_app.start_session(session_id: str) -> SessionResponse'
       inputs:
       - 'session_id: str'
@@ -371,8 +397,8 @@ source_catalog:
       - *id004
     - name: create_app.emergency_stop_session
       kind: function
-      line_start: 325
-      line_end: 331
+      line_start: 360
+      line_end: 366
       signature: 'create_app.emergency_stop_session(session_id: str) -> SessionResponse'
       inputs:
       - 'session_id: str'
@@ -389,8 +415,8 @@ source_catalog:
         symbol: WorkSessionService.emergency_stop
     - name: create_app.submit_work_request
       kind: function
-      line_start: 337
-      line_end: 341
+      line_start: 372
+      line_end: 376
       signature: 'create_app.submit_work_request(request: WorkRequestCreateRequest) -> WorkRequestResponse'
       inputs:
       - 'request: WorkRequestCreateRequest'
@@ -406,19 +432,16 @@ source_catalog:
       - &id005
         path: src/nerve_center/api/app.py
         symbol: create_app.queue_error
-      - &id010
-        path: src/nerve_center/api/schemas.py
+      - path: src/nerve_center/api/schemas.py
         symbol: ResourceBudgetRequest.to_domain
-      - &id011
-        path: src/nerve_center/api/schemas.py
+      - path: src/nerve_center/api/schemas.py
         symbol: WorkRequestCreateRequest.to_domain
-      - &id012
-        path: src/nerve_center/code_shop/api.py
+      - path: src/nerve_center/code_shop/api.py
         symbol: ExecutionRequestBody.to_domain
     - name: create_app.list_work_requests
       kind: function
-      line_start: 344
-      line_end: 354
+      line_start: 379
+      line_end: 389
       signature: 'create_app.list_work_requests(module_id: str | None, request_status: WorkRequestStatus | None, limit: Annotated[int,
         Query(ge) -> list[WorkRequestResponse]'
       inputs:
@@ -439,8 +462,8 @@ source_catalog:
         symbol: WorkQueueService.list_requests
     - name: create_app.work_queue_status
       kind: function
-      line_start: 357
-      line_end: 358
+      line_start: 392
+      line_end: 393
       signature: 'create_app.work_queue_status(module_id: str | None) -> QueueStatusResponse'
       inputs:
       - 'module_id: str | None'
@@ -457,8 +480,8 @@ source_catalog:
         symbol: WorkQueueService.status
     - name: create_app.get_work_request
       kind: function
-      line_start: 361
-      line_end: 365
+      line_start: 396
+      line_end: 400
       signature: 'create_app.get_work_request(request_id: str) -> WorkRequestResponse'
       inputs:
       - 'request_id: str'
@@ -473,8 +496,8 @@ source_catalog:
       - *id005
     - name: create_app.get_work_attempts
       kind: function
-      line_start: 368
-      line_end: 375
+      line_start: 403
+      line_end: 410
       signature: 'create_app.get_work_attempts(request_id: str) -> list[WorkAttemptResponse]'
       inputs:
       - 'request_id: str'
@@ -493,8 +516,8 @@ source_catalog:
         symbol: WorkQueueService.attempts
     - name: create_app.claim_work
       kind: function
-      line_start: 378
-      line_end: 383
+      line_start: 413
+      line_end: 418
       signature: 'create_app.claim_work(request: WorkClaimRequest) -> WorkAttemptResponse | None'
       inputs:
       - 'request: WorkClaimRequest'
@@ -512,8 +535,8 @@ source_catalog:
         symbol: WorkQueueService.claim_next
     - name: create_app.complete_work_attempt
       kind: function
-      line_start: 386
-      line_end: 394
+      line_start: 421
+      line_end: 429
       signature: 'create_app.complete_work_attempt(attempt_id: str, request: WorkCompleteRequest) -> WorkResultResponse'
       inputs:
       - 'attempt_id: str'
@@ -529,8 +552,8 @@ source_catalog:
       - *id005
     - name: create_app.fail_work_attempt
       kind: function
-      line_start: 397
-      line_end: 410
+      line_start: 432
+      line_end: 445
       signature: 'create_app.fail_work_attempt(attempt_id: str, request: WorkFailRequest) -> WorkRequestResponse'
       inputs:
       - 'attempt_id: str'
@@ -550,8 +573,8 @@ source_catalog:
         symbol: WorkQueueService.fail
     - name: create_app.cancel_work_request
       kind: function
-      line_start: 413
-      line_end: 417
+      line_start: 448
+      line_end: 452
       signature: 'create_app.cancel_work_request(request_id: str) -> WorkRequestResponse'
       inputs:
       - 'request_id: str'
@@ -564,19 +587,19 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id005
-      - &id015
+      - &id016
         path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository.cancel
-      - &id016
+      - &id017
         path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService.cancel
-      - &id017
+      - &id018
         path: src/nerve_center/scheduler/work_queue.py
         symbol: WorkQueueService.cancel
     - name: create_app.retry_work_request
       kind: function
-      line_start: 420
-      line_end: 424
+      line_start: 455
+      line_end: 459
       signature: 'create_app.retry_work_request(request_id: str) -> WorkRequestResponse'
       inputs:
       - 'request_id: str'
@@ -597,8 +620,8 @@ source_catalog:
         symbol: WorkQueueService.retry
     - name: create_app.reprioritize_work_request
       kind: function
-      line_start: 427
-      line_end: 435
+      line_start: 462
+      line_end: 470
       signature: 'create_app.reprioritize_work_request(request_id: str, request: WorkPriorityRequest) -> WorkRequestResponse'
       inputs:
       - 'request_id: str'
@@ -618,8 +641,8 @@ source_catalog:
         symbol: WorkQueueService.reprioritize
     - name: create_app.list_modules
       kind: function
-      line_start: 438
-      line_end: 445
+      line_start: 473
+      line_end: 480
       signature: create_app.list_modules() -> list[ModuleResponse]
       inputs: []
       output: list[ModuleResponse]
@@ -636,8 +659,8 @@ source_catalog:
         symbol: ModuleSupervisor.report
     - name: create_app.get_module
       kind: function
-      line_start: 448
-      line_end: 454
+      line_start: 483
+      line_end: 489
       signature: 'create_app.get_module(module_id: str) -> ModuleResponse'
       inputs:
       - 'module_id: str'
@@ -655,8 +678,8 @@ source_catalog:
       - *id007
     - name: create_app.update_module
       kind: function
-      line_start: 457
-      line_end: 469
+      line_start: 492
+      line_end: 504
       signature: 'create_app.update_module(module_id: str, request: ModuleLifecycleRequest) -> ModuleResponse'
       inputs:
       - 'module_id: str'
@@ -680,8 +703,8 @@ source_catalog:
       - *id009
     - name: create_app.create_run
       kind: function
-      line_start: 472
-      line_end: 493
+      line_start: 507
+      line_end: 538
       signature: 'create_app.create_run(request: RunCreateRequest) -> RunResponse'
       inputs:
       - 'request: RunCreateRequest'
@@ -690,35 +713,31 @@ source_catalog:
       - HTTPException
       - RunResponse.from_snapshot
       - application.post
+      - effective.enforced_budget
       - module_repository.get
+      - overrides.update
       - registry.get
       - registry.module_for_task
       - repository.create
-      - request.budget.to_domain
+      - request.budget.model_dump
+      - request.resource_overrides.to_mapping
       - request.to_window
+      - resource_profiles.resolve
       - str
       parser: python-ast
       dependency_targets:
-      - path: src/nerve_center/scheduler/registry.py
-        symbol: TaskRegistry.module_for_task
-      - &id030
-        path: src/nerve_center/attention/api.py
-        symbol: register_attention_routes.create
-      - &id031
-        path: src/nerve_center/persistence/runs.py
-        symbol: RunRepository.create
-      - &id032
-        path: src/nerve_center/persistence/sessions.py
-        symbol: SessionRepository.create
       - *id010
       - *id011
       - *id012
+      - path: src/nerve_center/scheduler/registry.py
+        symbol: TaskRegistry.module_for_task
+      - *id013
       - path: src/nerve_center/api/schemas.py
         symbol: RunCreateRequest.to_window
     - name: create_app.list_runs
       kind: function
-      line_start: 496
-      line_end: 499
+      line_start: 541
+      line_end: 544
       signature: 'create_app.list_runs(limit: Annotated[int, Query(ge) -> list[RunResponse]'
       inputs:
       - 'limit: Annotated[int, Query(ge'
@@ -730,12 +749,12 @@ source_catalog:
       - repository.list_recent
       parser: python-ast
       dependency_targets:
-      - *id013
       - *id014
+      - *id015
     - name: create_app.get_run
       kind: function
-      line_start: 502
-      line_end: 506
+      line_start: 547
+      line_end: 551
       signature: 'create_app.get_run(run_id: str) -> RunResponse'
       inputs:
       - 'run_id: str'
@@ -750,8 +769,8 @@ source_catalog:
       dependency_targets: []
     - name: create_app.get_run_events
       kind: function
-      line_start: 509
-      line_end: 519
+      line_start: 554
+      line_end: 564
       signature: 'create_app.get_run_events(run_id: str, limit: Annotated[int, Query(ge) -> list[RunEventResponse]'
       inputs:
       - 'run_id: str'
@@ -770,8 +789,8 @@ source_catalog:
         symbol: RunRepository.list_events
     - name: create_app.start_run
       kind: function
-      line_start: 522
-      line_end: 528
+      line_start: 567
+      line_end: 573
       signature: 'create_app.start_run(run_id: str) -> RunResponse'
       inputs:
       - 'run_id: str'
@@ -790,8 +809,8 @@ source_catalog:
       - *id004
     - name: create_app.cancel_run
       kind: function
-      line_start: 531
-      line_end: 535
+      line_start: 576
+      line_end: 580
       signature: 'create_app.cancel_run(run_id: str) -> RunResponse'
       inputs:
       - 'run_id: str'
@@ -804,13 +823,13 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - *id015
       - *id016
       - *id017
+      - *id018
     - name: run
       kind: function
-      line_start: 543
-      line_end: 550
+      line_start: 588
+      line_end: 595
       signature: run() -> None
       inputs: []
       output: None
@@ -908,7 +927,7 @@ source_catalog:
       - sorted
       parser: python-ast
       dependency_targets:
-      - &id026
+      - &id027
         path: src/nerve_center/persistence/providers.py
         symbol: ModelEvidenceRepository.sync_models
     - name: ProviderManager.execute
@@ -934,21 +953,21 @@ source_catalog:
       - validate
       parser: python-ast
       dependency_targets:
-      - &id022
+      - &id023
         path: src/nerve_center/providers/manager.py
         symbol: ProviderManager._ranked_candidates
       - path: src/nerve_center/providers/manager.py
         symbol: ProviderManager._record_failure
-      - &id018
+      - &id019
         path: src/nerve_center/code_shop/api.py
         symbol: register_code_shop_routes.record_outcome
-      - &id019
+      - &id020
         path: src/nerve_center/code_shop/service.py
         symbol: CodeShopService.record_outcome
-      - &id020
+      - &id021
         path: src/nerve_center/persistence/code_shop.py
         symbol: CodeShopRepository.record_outcome
-      - &id021
+      - &id022
         path: src/nerve_center/persistence/providers.py
         symbol: ModelEvidenceRepository.record_outcome
       - path: src/nerve_center/domain/module.py
@@ -972,7 +991,7 @@ source_catalog:
       - self._discover_candidates
       parser: python-ast
       dependency_targets:
-      - &id023
+      - &id024
         path: src/nerve_center/providers/manager.py
         symbol: ProviderManager._discover_candidates
     - name: ProviderManager._record_failure
@@ -996,10 +1015,10 @@ source_catalog:
       - self.evidence.record_outcome
       parser: python-ast
       dependency_targets:
-      - *id018
       - *id019
       - *id020
       - *id021
+      - *id022
     - name: ProviderManager.generate_structured
       kind: method
       line_start: 174
@@ -1024,10 +1043,10 @@ source_catalog:
       - self.execute
       parser: python-ast
       dependency_targets:
-      - *id018
       - *id019
       - *id020
       - *id021
+      - *id022
     - name: ProviderManager.select
       kind: method
       line_start: 227
@@ -1041,7 +1060,7 @@ source_catalog:
       - self._ranked_candidates
       parser: python-ast
       dependency_targets:
-      - *id022
+      - *id023
     - name: ProviderManager.task_routing_scores
       kind: method
       line_start: 230
@@ -1058,11 +1077,11 @@ source_catalog:
       - self.evidence.task_evidence
       parser: python-ast
       dependency_targets:
-      - *id023
-      - &id025
+      - *id024
+      - &id026
         path: src/nerve_center/providers/manager.py
         symbol: ProviderManager._suitability
-      - *id024
+      - *id025
     - name: ProviderManager._ranked_candidates
       kind: method
       line_start: 250
@@ -1084,9 +1103,9 @@ source_catalog:
       - sorted
       parser: python-ast
       dependency_targets:
-      - *id023
-      - *id025
       - *id024
+      - *id026
+      - *id025
     - name: ProviderManager._discover_candidates
       kind: method
       line_start: 310
@@ -1106,7 +1125,7 @@ source_catalog:
       - &id039
         path: src/nerve_center/persistence/scoring.py
         symbol: OpportunityScoreRepository.append
-      - *id026
+      - *id027
     - name: ProviderManager._suitability
       kind: method
       line_start: 327
@@ -1234,10 +1253,10 @@ source_catalog:
       - opening_matches_market
       parser: python-ast
       dependency_targets:
-      - &id027
+      - &id028
         path: src/nerve_center/scoring/location.py
         symbol: classify_listing_locations
-      - &id028
+      - &id029
         path: src/nerve_center/scoring/location.py
         symbol: opening_matches_market
     - name: test_state_only_location_is_regional_without_inventing_city_match
@@ -1254,8 +1273,8 @@ source_catalog:
       - opening_matches_market
       parser: python-ast
       dependency_targets:
-      - *id027
       - *id028
+      - *id029
     - name: test_market_matching_requires_real_city_or_region_evidence
       kind: function
       line_start: 87
@@ -1268,7 +1287,7 @@ source_catalog:
       - opening_matches_market
       parser: python-ast
       dependency_targets:
-      - *id028
+      - *id029
     - name: test_remote_and_multi_location_labels_are_not_company_office_evidence
       kind: function
       line_start: 96
@@ -1465,13 +1484,12 @@ source_catalog:
         symbol: CodeShopRepository.create_task
       - path: tests/test_module_runtime.py
         symbol: _exercise_independent_modules.context
-      - *id029
-      - &id040
-        path: src/nerve_center/plugins/job_scout/manifest.py
-        symbol: job_scout_manifest
       - *id030
       - *id031
       - *id032
+      - &id040
+        path: src/nerve_center/plugins/job_scout/manifest.py
+        symbol: job_scout_manifest
     - name: _exercise_independent_modules.process_factory
       kind: function
       line_start: 65
@@ -1502,10 +1520,7 @@ source_catalog:
       - runs.create
       - timedelta
       parser: python-ast
-      dependency_targets:
-      - *id030
-      - *id031
-      - *id032
+      dependency_targets: []
     - name: _exercise_runtime
       kind: function
       line_start: 146
@@ -1541,9 +1556,6 @@ source_catalog:
       - supervisor.acknowledge_result
       parser: python-ast
       dependency_targets:
-      - *id030
-      - *id031
-      - *id032
       - *id033
       - *id034
       - *id035
@@ -1551,7 +1563,9 @@ source_catalog:
       - *id037
       - *id038
       - *id039
-      - *id029
+      - *id030
+      - *id031
+      - *id032
       - *id040
       - path: src/nerve_center/runtime/api.py
         symbol: register_runtime_routes.acknowledge_result

@@ -584,6 +584,10 @@ source_catalog:
       - &id008
         path: scripts/run_job_scout_live.py
         symbol: _fit_analysis_contract_version
+      - path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.update
+      - path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.update
       - *id005
       - *id002
       - *id003

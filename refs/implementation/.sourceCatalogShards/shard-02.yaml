@@ -138,13 +138,13 @@ source_catalog:
         symbol: StubProcess.kill
       - path: tests/test_module_runtime.py
         symbol: StubProcess.terminate
-      - &id009
+      - &id016
         path: src/nerve_center/discovery/fetching.py
         symbol: DomainRequestGate.wait
-      - &id010
+      - &id017
         path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService.wait
-      - &id011
+      - &id018
         path: tests/test_module_runtime.py
         symbol: StubProcess.wait
     - name: remove_data_directory
@@ -574,6 +574,189 @@ source_catalog:
       dependencies: []
       parser: python-ast
       dependency_targets: []
+  - path: src/nerve_center/resource_profiles/api.py
+    analysis_version: 1
+    language: python
+    content_hash: aecf1a8bcb1e2b3f661d8cbb5f6bd36f5f85846b
+    dependencies:
+    - __future__
+    - fastapi
+    - nerve_center.persistence.resource_profiles
+    - nerve_center.resource_profiles.schemas
+    - nerve_center.resource_profiles.service
+    - typing
+    provides:
+    - register_resource_profile_routes
+    - register_resource_profile_routes.list_profiles
+    - register_resource_profile_routes.create_profile
+    - register_resource_profile_routes.selected_profile
+    - register_resource_profile_routes.resolve_profile
+    - register_resource_profile_routes.get_profile
+    - register_resource_profile_routes.update_profile
+    - register_resource_profile_routes.select_profile
+    symbols:
+    - name: register_resource_profile_routes
+      kind: function
+      line_start: 18
+      line_end: 82
+      signature: 'register_resource_profile_routes(application: FastAPI, service: ResourceProfileService) -> None'
+      inputs:
+      - 'application: FastAPI'
+      - 'service: ResourceProfileService'
+      output: None
+      dependencies:
+      - HTTPException
+      - application.get
+      - application.patch
+      - application.post
+      - request.limits.to_mapping
+      - request.overrides.to_mapping
+      - service.create
+      - service.get
+      - service.list
+      - service.resolve
+      - service.resolve(profile_id=request.profile_id, overrides=request.overrides.to_mapping()).to_dict
+      - service.select
+      - service.selected
+      - service.update
+      - str
+      parser: python-ast
+      dependency_targets:
+      - &id009
+        path: src/nerve_center/resource_profiles/schemas.py
+        symbol: ResourceLimitsRequest.to_mapping
+      - &id013
+        path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.select
+      - &id014
+        path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager.select
+      - &id015
+        path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.select
+      - &id010
+        path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.selected
+      - &id011
+        path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.update
+      - &id012
+        path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.update
+    - name: register_resource_profile_routes.list_profiles
+      kind: function
+      line_start: 23
+      line_end: 24
+      signature: register_resource_profile_routes.list_profiles() -> list[dict[str, Any]]
+      inputs: []
+      output: list[dict[str, Any]]
+      dependencies:
+      - application.get
+      - service.list
+      parser: python-ast
+      dependency_targets: []
+    - name: register_resource_profile_routes.create_profile
+      kind: function
+      line_start: 30
+      line_end: 34
+      signature: 'register_resource_profile_routes.create_profile(request: ResourceProfileCreateRequest) -> dict[str, Any]'
+      inputs:
+      - 'request: ResourceProfileCreateRequest'
+      output: dict[str, Any]
+      dependencies:
+      - HTTPException
+      - application.post
+      - request.limits.to_mapping
+      - service.create
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id009
+    - name: register_resource_profile_routes.selected_profile
+      kind: function
+      line_start: 37
+      line_end: 38
+      signature: register_resource_profile_routes.selected_profile() -> dict[str, Any]
+      inputs: []
+      output: dict[str, Any]
+      dependencies:
+      - application.get
+      - service.selected
+      parser: python-ast
+      dependency_targets:
+      - *id010
+    - name: register_resource_profile_routes.resolve_profile
+      kind: function
+      line_start: 41
+      line_end: 52
+      signature: 'register_resource_profile_routes.resolve_profile(request: ResourceProfileResolveRequest) -> dict[str, Any]'
+      inputs:
+      - 'request: ResourceProfileResolveRequest'
+      output: dict[str, Any]
+      dependencies:
+      - HTTPException
+      - application.post
+      - request.overrides.to_mapping
+      - service.resolve
+      - service.resolve(profile_id=request.profile_id, overrides=request.overrides.to_mapping()).to_dict
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id009
+    - name: register_resource_profile_routes.get_profile
+      kind: function
+      line_start: 55
+      line_end: 59
+      signature: 'register_resource_profile_routes.get_profile(profile_id: str) -> dict[str, Any]'
+      inputs:
+      - 'profile_id: str'
+      output: dict[str, Any]
+      dependencies:
+      - HTTPException
+      - application.get
+      - service.get
+      - str
+      parser: python-ast
+      dependency_targets: []
+    - name: register_resource_profile_routes.update_profile
+      kind: function
+      line_start: 62
+      line_end: 75
+      signature: 'register_resource_profile_routes.update_profile(profile_id: str, request: ResourceProfileUpdateRequest)
+        -> dict[str, Any]'
+      inputs:
+      - 'profile_id: str'
+      - 'request: ResourceProfileUpdateRequest'
+      output: dict[str, Any]
+      dependencies:
+      - HTTPException
+      - application.patch
+      - request.limits.to_mapping
+      - service.update
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id009
+      - *id011
+      - *id012
+    - name: register_resource_profile_routes.select_profile
+      kind: function
+      line_start: 78
+      line_end: 82
+      signature: 'register_resource_profile_routes.select_profile(profile_id: str) -> dict[str, Any]'
+      inputs:
+      - 'profile_id: str'
+      output: dict[str, Any]
+      dependencies:
+      - HTTPException
+      - application.post
+      - service.select
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id013
+      - *id014
+      - *id015
   - path: src/nerve_center/scheduler/registry.py
     analysis_version: 1
     language: python
@@ -833,9 +1016,9 @@ source_catalog:
       - self.tick
       parser: python-ast
       dependency_targets:
-      - *id009
-      - *id010
-      - *id011
+      - *id016
+      - *id017
+      - *id018
       - path: src/nerve_center/scheduler/provider_worker.py
         symbol: ProviderWorkExecutor.tick
       - path: src/nerve_center/scheduler/service.py
@@ -879,7 +1062,7 @@ source_catalog:
       - history.json
       parser: python-ast
       dependency_targets:
-      - &id012
+      - &id019
         path: src/nerve_center/api/app.py
         symbol: create_app
     - name: test_resolution_unblocks_only_declared_dependency_and_records_history
@@ -905,7 +1088,7 @@ source_catalog:
       - unrelated_before.json
       parser: python-ast
       dependency_targets:
-      - *id012
+      - *id019
     - name: test_module_attention_payload_cannot_grant_code_shop_authority
       kind: function
       line_start: 107
@@ -930,4 +1113,214 @@ source_catalog:
       - create_app
       parser: python-ast
       dependency_targets:
-      - *id012
+      - *id019
+  - path: tests/test_resource_profiles.py
+    analysis_version: 1
+    language: python
+    content_hash: 4951fbd82166d91f4526162ff76bcf544c456ba1
+    dependencies:
+    - fastapi.testclient
+    - nerve_center.api.app
+    - nerve_center.code_shop.domain
+    - nerve_center.code_shop.github
+    - nerve_center.config
+    - nerve_center.persistence.database
+    - nerve_center.persistence.resource_profiles
+    - nerve_center.resource_profiles.domain
+    - nerve_center.resource_profiles.service
+    - pathlib
+    provides:
+    - _service
+    - _approve_required_job_scout_permissions
+    - test_profile_resolution_persists_and_reports_enforcement
+    - test_resource_profile_api_crud_selection_and_validation
+    - test_selected_profile_and_session_override_drive_real_run_budget
+    - _connector
+    - _checkout
+    - test_resource_profile_does_not_grant_module_permission_or_code_shop_authority
+    symbols:
+    - name: _service
+      kind: function
+      line_start: 15
+      line_end: 20
+      signature: '_service(tmp_path: Path) -> ResourceProfileService'
+      inputs:
+      - 'tmp_path: Path'
+      output: ResourceProfileService
+      dependencies:
+      - Database
+      - ResourceProfileRepository
+      - ResourceProfileService
+      - Settings
+      - database.initialize
+      - service.initialize
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/database.py
+        symbol: Database.initialize
+      - path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.initialize
+      - path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.initialize
+    - name: _approve_required_job_scout_permissions
+      kind: function
+      line_start: 23
+      line_end: 43
+      signature: '_approve_required_job_scout_permissions(client: TestClient) -> None'
+      inputs:
+      - 'client: TestClient'
+      output: None
+      dependencies:
+      - client.get
+      - 'client.get(''/api/v1/module-permissions'', params={''module_id'': ''job_scout''}).json'
+      - client.patch
+      - client.post
+      - len
+      parser: python-ast
+      dependency_targets: []
+    - name: test_profile_resolution_persists_and_reports_enforcement
+      kind: function
+      line_start: 46
+      line_end: 81
+      signature: 'test_profile_resolution_persists_and_reports_enforcement(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - _service
+      - restarted.resolve
+      - restarted.selected
+      - service.create
+      - service.resolve
+      - service.select
+      - service.selected
+      parser: python-ast
+      dependency_targets:
+      - path: tests/test_resource_profiles.py
+        symbol: _service
+      - *id010
+      - *id013
+      - *id014
+      - *id015
+    - name: test_resource_profile_api_crud_selection_and_validation
+      kind: function
+      line_start: 84
+      line_end: 143
+      signature: 'test_resource_profile_api_crud_selection_and_validation(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Settings
+      - TestClient
+      - client.get
+      - client.patch
+      - client.post
+      - create_app
+      - created.json
+      - current.json
+      - initial.json
+      - resolved.json
+      - selected.json
+      - updated.json
+      parser: python-ast
+      dependency_targets:
+      - *id019
+    - name: test_selected_profile_and_session_override_drive_real_run_budget
+      kind: function
+      line_start: 146
+      line_end: 219
+      signature: 'test_selected_profile_and_session_override_drive_real_run_budget(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Settings
+      - TestClient
+      - _approve_required_job_scout_permissions
+      - client.get
+      - client.get(f'/api/v1/runs/{run_id}').json
+      - client.post
+      - 'client.post(''/api/v1/resource-profiles'', json={''display_name'': ''Bounded'', ''limits'': {''max_requests'': 12,
+        ''max_llm_calls'': 4, ''max_parallel_work'': 1, ''max_memory_mb'': 4096, ''max_cloud_spend_usd'': 1.0}}).json'
+      - configured_run.json
+      - create_app
+      - session.json
+      parser: python-ast
+      dependency_targets:
+      - path: tests/test_api.py
+        symbol: _approve_required_job_scout_permissions
+      - path: tests/test_resource_profiles.py
+        symbol: _approve_required_job_scout_permissions
+      - *id019
+    - name: _connector
+      kind: function
+      line_start: 222
+      line_end: 232
+      signature: _connector() -> StaticGitHubRepositoryConnector
+      inputs: []
+      output: StaticGitHubRepositoryConnector
+      dependencies:
+      - GitHubRepositoryIdentity
+      - StaticGitHubRepositoryConnector
+      parser: python-ast
+      dependency_targets: []
+    - name: _checkout
+      kind: function
+      line_start: 235
+      line_end: 243
+      signature: '_checkout(root: Path) -> Path'
+      inputs:
+      - 'root: Path'
+      output: Path
+      dependencies:
+      - (path / '.git' / 'config').write_text
+      - (path / '.git').mkdir
+      parser: python-ast
+      dependency_targets: []
+    - name: test_resource_profile_does_not_grant_module_permission_or_code_shop_authority
+      kind: function
+      line_start: 246
+      line_end: 318
+      signature: 'test_resource_profile_does_not_grant_module_permission_or_code_shop_authority(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Settings
+      - TestClient
+      - _checkout
+      - _connector
+      - approved_root.mkdir
+      - client.get
+      - client.get('/api/v1/modules/code_shop/projects/101/authority').json
+      - client.patch
+      - client.post
+      - 'client.post(''/api/v1/modules/code_shop/tasks'', json={''repository_id'': ''101'', ''title'': ''Resource boundary'',
+        ''capability'': ''code_implementation'', ''source_backlog'': {''issue'': 64}}).json'
+      - 'client.post(''/api/v1/resource-profiles'', json={''display_name'': ''Large'', ''limits'': {''max_requests'': 5000,
+        ''max_llm_calls'': 500, ''max_parallel_work'': 20, ''max_cloud_spend_usd'': 100.0}}).json'
+      - client.post('/api/v1/resource-profiles/resolve', json={}).json
+      - client.put
+      - create_app
+      - evaluation.json
+      - str
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: _checkout
+      - path: tests/test_code_shop.py
+        symbol: _checkout
+      - path: tests/test_module_permissions.py
+        symbol: _checkout
+      - path: tests/test_resource_profiles.py
+        symbol: _checkout
+      - path: tests/test_code_shop.py
+        symbol: _connector
+      - path: tests/test_module_permissions.py
+        symbol: _connector
+      - path: tests/test_resource_profiles.py
+        symbol: _connector
+      - *id004
+      - *id005
+      - *id019

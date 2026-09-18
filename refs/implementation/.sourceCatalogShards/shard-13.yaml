@@ -903,18 +903,15 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - &id020
-        path: src/nerve_center/attention/api.py
-        symbol: register_attention_routes.create
-      - &id021
-        path: src/nerve_center/persistence/runs.py
-        symbol: RunRepository.create
-      - &id022
-        path: src/nerve_center/persistence/sessions.py
-        symbol: SessionRepository.create
       - &id019
         path: src/nerve_center/persistence/database.py
         symbol: Database.initialize
+      - &id020
+        path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.initialize
+      - &id021
+        path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.initialize
     - name: model_request
       kind: function
       line_start: 97
@@ -1127,6 +1124,8 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id019
+      - *id020
+      - *id021
       - path: src/nerve_center/code_shop/api.py
         symbol: register_code_shop_routes.record_outcome
       - path: src/nerve_center/code_shop/service.py
@@ -1184,11 +1183,10 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id020
-      - *id021
-      - *id022
       - *id010
       - *id019
+      - *id020
+      - *id021
       - path: src/nerve_center/persistence/providers.py
         symbol: ModelEvidenceRepository.task_evidence
       - *id011
@@ -1232,11 +1230,10 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id020
-      - *id021
-      - *id022
       - *id010
       - *id019
+      - *id020
+      - *id021
       - *id011
       - *id012
       - *id013
@@ -1257,7 +1254,7 @@ source_catalog:
       - response.json
       parser: python-ast
       dependency_targets:
-      - &id023
+      - &id022
         path: src/nerve_center/api/app.py
         symbol: create_app
     - name: _queue_spec
@@ -1336,9 +1333,6 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id020
-      - *id021
-      - *id022
       - path: src/nerve_center/persistence/attention.py
         symbol: AttentionRepository.transition
       - path: src/nerve_center/persistence/runs.py
@@ -1380,10 +1374,10 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - &id024
+      - &id023
         path: tests/test_summary.py
         symbol: _query
-      - *id023
+      - *id022
     - name: test_summary_aggregates_only_durable_attributable_window_evidence
       kind: function
       line_start: 89
@@ -1419,14 +1413,14 @@ source_catalog:
       - queue.claim_next
       parser: python-ast
       dependency_targets:
-      - *id024
-      - &id025
+      - *id023
+      - &id024
         path: tests/test_module_runtime_integration.py
         symbol: _terminal_run
-      - &id026
+      - &id025
         path: tests/test_summary.py
         symbol: _terminal_run
-      - &id027
+      - &id026
         path: tests/test_summary.py
         symbol: _window
       - path: src/nerve_center/code_shop/api.py
@@ -1437,8 +1431,10 @@ source_catalog:
         symbol: CodeShopRepository.create_task
       - path: src/nerve_center/persistence/code_shop.py
         symbol: CodeShopRepository.upsert_project
-      - *id023
+      - *id022
       - *id019
+      - *id020
+      - *id021
       - path: src/nerve_center/persistence/model_lab.py
         symbol: ModelLabRepository.add_corpus
       - path: src/nerve_center/persistence/model_lab.py
@@ -1479,9 +1475,11 @@ source_catalog:
       - datetime.now
       parser: python-ast
       dependency_targets:
+      - *id023
       - *id024
       - *id025
       - *id026
-      - *id027
-      - *id023
+      - *id022
       - *id019
+      - *id020
+      - *id021

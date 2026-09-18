@@ -183,7 +183,7 @@ source_catalog:
       - strategy_family_identity
       parser: python-ast
       dependency_targets:
-      - &id013
+      - &id015
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: strategy_family_identity
     - name: DiscoveryStrategySnapshot.influence
@@ -258,13 +258,13 @@ source_catalog:
       - session.scalar
       parser: python-ast
       dependency_targets:
-      - &id007
+      - &id009
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: _clamp
-      - &id008
+      - &id010
         path: src/nerve_center/plugins/job_scout/location_discovery.py
         symbol: _clamp
-      - &id009
+      - &id011
         path: src/nerve_center/scoring/engine.py
         symbol: _clamp
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
@@ -273,18 +273,24 @@ source_catalog:
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: _strategy_snapshot
       - &id005
+        path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.select
+      - &id006
         path: src/nerve_center/providers/manager.py
         symbol: ProviderManager.select
+      - &id007
+        path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.select
       - &id003
         path: src/nerve_center/persistence/database.py
         symbol: Database.session
       - &id004
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.session
-      - &id010
+      - &id012
         path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: _extract_structured_employer_names.add
-      - &id011
+      - &id013
         path: scripts/agent_context.py
         symbol: _markdown_blocks.flush
     - name: JobScoutDiscoveryRepository.get_strategy
@@ -326,6 +332,8 @@ source_catalog:
       dependency_targets:
       - *id002
       - *id005
+      - *id006
+      - *id007
       - *id003
       - *id004
     - name: JobScoutDiscoveryRepository.list_strategy_families
@@ -345,10 +353,12 @@ source_catalog:
       - sorted
       parser: python-ast
       dependency_targets:
-      - &id006
+      - &id008
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: _strategy_family_snapshots
       - *id005
+      - *id006
+      - *id007
       - *id003
       - *id004
     - name: JobScoutDiscoveryRepository.select_strategies
@@ -397,7 +407,7 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: _canonical_public_search_ids
-      - &id014
+      - &id016
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: _employer_deepening_evidence_is_current
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
@@ -408,7 +418,7 @@ source_catalog:
         symbol: _normalized_market
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: _reserve_strategy
-      - *id006
+      - *id008
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: _strategy_score
       - *id002
@@ -417,6 +427,8 @@ source_catalog:
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: item_family_id
       - *id005
+      - *id006
+      - *id007
     - name: JobScoutDiscoveryRepository.record_attempt
       kind: method
       line_start: 604
@@ -450,14 +462,14 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: _attempt_target_weight
-      - *id007
-      - *id008
       - *id009
+      - *id010
+      - *id011
       - *id002
       - *id003
       - *id004
-      - *id010
-      - *id011
+      - *id012
+      - *id013
     - name: JobScoutDiscoveryRepository.record_company_evidence
       kind: method
       line_start: 658
@@ -489,9 +501,11 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id005
+      - *id006
+      - *id007
       - *id003
       - *id004
-      - *id010
+      - *id012
     - name: JobScoutDiscoveryRepository.company_evidence_count
       kind: method
       line_start: 703
@@ -511,6 +525,8 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id005
+      - *id006
+      - *id007
       - *id003
       - *id004
     - name: JobScoutDiscoveryRepository.sync_application_feedback
@@ -540,15 +556,17 @@ source_catalog:
       - uuid4
       parser: python-ast
       dependency_targets:
-      - *id007
-      - *id008
       - *id009
+      - *id010
+      - *id011
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: _strategy_ids_for_job
       - *id005
+      - *id006
+      - *id007
       - *id003
       - *id004
-      - *id010
+      - *id012
     - name: JobScoutDiscoveryRepository.update_session
       kind: method
       line_start: 758
@@ -577,19 +595,19 @@ source_catalog:
       - session.get
       parser: python-ast
       dependency_targets:
-      - &id012
+      - &id014
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: _coverage_snapshot
-      - &id016
+      - &id018
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: _merge_coverage
-      - &id017
+      - &id019
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: _new_coverage
       - *id003
       - *id004
-      - *id010
-      - *id011
+      - *id012
+      - *id013
     - name: JobScoutDiscoveryRepository.session
       kind: method
       line_start: 796
@@ -605,7 +623,7 @@ source_catalog:
       - session.get
       parser: python-ast
       dependency_targets:
-      - *id012
+      - *id014
     - name: JobScoutDiscoveryRepository.record_reflection_hypothesis
       kind: method
       line_start: 803
@@ -636,7 +654,7 @@ source_catalog:
       - *id004
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.update_session
-      - *id010
+      - *id012
     - name: JobScoutDiscoveryRepository.reflection_hypotheses
       kind: method
       line_start: 836
@@ -657,6 +675,8 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id005
+      - *id006
+      - *id007
       - *id003
       - *id004
     - name: JobScoutDiscoveryRepository.record_reflection_request
@@ -682,7 +702,7 @@ source_catalog:
       dependency_targets:
       - *id003
       - *id004
-      - *id010
+      - *id012
     - name: JobScoutDiscoveryRepository.reflection_request
       kind: method
       line_start: 875
@@ -782,7 +802,7 @@ source_catalog:
       - strategy_family_identity
       parser: python-ast
       dependency_targets:
-      - *id013
+      - *id015
     - name: _strategy_family_snapshots
       kind: function
       line_start: 953
@@ -809,19 +829,19 @@ source_catalog:
       - sum
       parser: python-ast
       dependency_targets:
-      - &id018
+      - &id022
         path: src/nerve_center/persistence/applications.py
         symbol: _as_utc
-      - &id019
+      - &id023
         path: src/nerve_center/persistence/discovery.py
         symbol: _as_utc
-      - &id020
+      - &id024
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: _as_utc
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: _family_learned_weight
       - *id001
-      - *id013
+      - *id015
     - name: _family_learned_weight
       kind: function
       line_start: 999
@@ -843,9 +863,9 @@ source_catalog:
       - sum
       parser: python-ast
       dependency_targets:
-      - *id007
-      - *id008
       - *id009
+      - *id010
+      - *id011
     - name: _employer_deepening_evidence_priority
       kind: function
       line_start: 1025
@@ -871,7 +891,7 @@ source_catalog:
       - _employer_deepening_evidence_priority
       parser: python-ast
       dependency_targets:
-      - &id015
+      - &id017
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: _employer_deepening_evidence_priority
     - name: _canonical_public_search_ids
@@ -896,11 +916,11 @@ source_catalog:
       - set
       parser: python-ast
       dependency_targets:
-      - *id014
-      - *id015
+      - *id016
+      - *id017
       - path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: compile_strategy_query
-      - *id010
+      - *id012
     - name: _strategy_snapshot
       kind: function
       line_start: 1127
@@ -931,7 +951,7 @@ source_catalog:
       - _merge_coverage
       parser: python-ast
       dependency_targets:
-      - *id016
+      - *id018
     - name: _new_coverage
       kind: function
       line_start: 1158
@@ -968,8 +988,14 @@ source_catalog:
       - str(warning).split
       parser: python-ast
       dependency_targets:
-      - *id017
-      - *id010
+      - *id019
+      - *id012
+      - &id020
+        path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.update
+      - &id021
+        path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.update
       - *id001
     - name: _strategy_ids_for_job
       kind: function
@@ -997,6 +1023,10 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id005
+      - *id006
+      - *id007
+      - *id020
+      - *id021
     - name: _attempt_target_weight
       kind: function
       line_start: 1204
@@ -1010,9 +1040,9 @@ source_catalog:
       - min
       parser: python-ast
       dependency_targets:
-      - *id007
-      - *id008
       - *id009
+      - *id010
+      - *id011
     - name: _strategy_score
       kind: function
       line_start: 1222
@@ -1031,9 +1061,9 @@ source_catalog:
       - model.dimensions.get
       parser: python-ast
       dependency_targets:
-      - *id018
-      - *id019
-      - *id020
+      - *id022
+      - *id023
+      - *id024
     - name: _normalized_market
       kind: function
       line_start: 1259
@@ -1113,9 +1143,9 @@ source_catalog:
       - _as_utc(value).timestamp
       parser: python-ast
       dependency_targets:
-      - *id018
-      - *id019
-      - *id020
+      - *id022
+      - *id023
+      - *id024
     - name: _as_utc
       kind: function
       line_start: 1328
@@ -1140,9 +1170,9 @@ source_catalog:
       - _as_utc
       parser: python-ast
       dependency_targets:
-      - *id018
-      - *id019
-      - *id020
+      - *id022
+      - *id023
+      - *id024
     - name: _clamp
       kind: function
       line_start: 1336
@@ -1275,6 +1305,10 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/persistence/database.py
         symbol: Database.initialize
+      - path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.initialize
+      - path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.initialize
       - path: src/nerve_center/discovery/service.py
         symbol: ConnectorRegistry.register
       - path: src/nerve_center/runtime/supervisor.py
@@ -1302,7 +1336,7 @@ source_catalog:
       - session.scalar
       parser: python-ast
       dependency_targets:
-      - &id021
+      - &id025
         path: tests/test_job_scout_location_discovery.py
         symbol: _build
       - *id003
@@ -1324,6 +1358,8 @@ source_catalog:
       - path: src/nerve_center/plugins/job_scout/location_discovery.py
         symbol: LocationAwareJobScoutDiscoveryLoop.prepare
       - *id005
+      - *id006
+      - *id007
     - name: test_legacy_location_strategy_opening_credit_is_neutralized_before_relearning
       kind: function
       line_start: 177
@@ -1341,7 +1377,7 @@ source_catalog:
       - learning.record_attempt
       parser: python-ast
       dependency_targets:
-      - *id021
+      - *id025
       - path: src/nerve_center/plugins/job_scout/location_discovery.py
         symbol: _normalize_legacy_location_strategy_yield
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py

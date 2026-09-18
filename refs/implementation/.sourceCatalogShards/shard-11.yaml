@@ -150,18 +150,24 @@ source_catalog:
         path: src/nerve_center/persistence/work_queue.py
         symbol: _request_snapshot
       - &id004
+        path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.select
+      - &id005
         path: src/nerve_center/providers/manager.py
         symbol: ProviderManager.select
+      - &id006
+        path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.select
       - &id002
         path: src/nerve_center/persistence/database.py
         symbol: Database.session
       - &id003
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.session
-      - &id005
+      - &id007
         path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: _extract_structured_employer_names.add
-      - &id006
+      - &id008
         path: scripts/agent_context.py
         symbol: _markdown_blocks.flush
     - name: WorkQueueRepository.get
@@ -180,10 +186,10 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id001
-      - &id007
+      - &id009
         path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository._request
-      - &id008
+      - &id010
         path: src/nerve_center/runtime/client.py
         symbol: ModuleRuntimeClient._request
       - *id002
@@ -209,6 +215,8 @@ source_catalog:
       dependency_targets:
       - *id001
       - *id004
+      - *id005
+      - *id006
       - *id002
       - *id003
     - name: WorkQueueRepository.list_requests
@@ -237,6 +245,8 @@ source_catalog:
       dependency_targets:
       - *id001
       - *id004
+      - *id005
+      - *id006
       - *id002
       - *id003
     - name: WorkQueueRepository.pending_count
@@ -261,6 +271,8 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id004
+      - *id005
+      - *id006
       - *id002
       - *id003
     - name: WorkQueueRepository.status_counts
@@ -284,6 +296,8 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id004
+      - *id005
+      - *id006
       - *id002
       - *id003
     - name: WorkQueueRepository.average_attempt_seconds
@@ -307,13 +321,15 @@ source_catalog:
       - sum
       parser: python-ast
       dependency_targets:
-      - &id013
+      - &id015
         path: src/nerve_center/persistence/summary.py
         symbol: _required_utc
-      - &id014
+      - &id016
         path: src/nerve_center/persistence/work_queue.py
         symbol: _required_utc
       - *id004
+      - *id005
+      - *id006
       - *id002
       - *id003
     - name: WorkQueueRepository.claim_next
@@ -353,14 +369,16 @@ source_catalog:
       - uuid4
       parser: python-ast
       dependency_targets:
-      - &id011
+      - &id013
         path: src/nerve_center/persistence/work_queue.py
         symbol: _attempt_snapshot
       - *id004
-      - *id002
-      - *id003
       - *id005
       - *id006
+      - *id002
+      - *id003
+      - *id007
+      - *id008
     - name: WorkQueueRepository.complete
       kind: method
       line_start: 197
@@ -388,21 +406,21 @@ source_catalog:
       - uuid4
       parser: python-ast
       dependency_targets:
-      - &id012
+      - &id014
         path: src/nerve_center/persistence/work_queue.py
         symbol: _result_snapshot
-      - &id009
+      - &id011
         path: src/nerve_center/persistence/code_shop.py
         symbol: _attempt
-      - &id010
+      - &id012
         path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository._attempt
-      - *id007
-      - *id008
+      - *id009
+      - *id010
       - *id002
       - *id003
-      - *id005
-      - *id006
+      - *id007
+      - *id008
     - name: WorkQueueRepository.fail
       kind: method
       line_start: 229
@@ -432,13 +450,13 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id001
+      - *id011
+      - *id012
       - *id009
       - *id010
-      - *id007
-      - *id008
       - *id002
       - *id003
-      - *id006
+      - *id008
     - name: WorkQueueRepository.attempts
       kind: method
       line_start: 259
@@ -459,8 +477,10 @@ source_catalog:
       - session.scalars(select(WorkAttemptModel).where(WorkAttemptModel.request_id == request_id).order_by(WorkAttemptModel.number)).all
       parser: python-ast
       dependency_targets:
-      - *id011
+      - *id013
       - *id004
+      - *id005
+      - *id006
       - *id002
       - *id003
     - name: WorkQueueRepository.deliver_results
@@ -486,11 +506,13 @@ source_catalog:
       - session.scalars(select(WorkResultModel).where(WorkResultModel.module_id == module_id, WorkResultModel.acknowledged_at.is_(None)).order_by(WorkResultModel.created_at)).all
       parser: python-ast
       dependency_targets:
-      - *id012
+      - *id014
       - *id004
+      - *id005
+      - *id006
       - *id002
       - *id003
-      - *id006
+      - *id008
     - name: WorkQueueRepository.acknowledge
       kind: method
       line_start: 288
@@ -513,12 +535,12 @@ source_catalog:
       - session.get
       parser: python-ast
       dependency_targets:
-      - *id012
-      - *id007
-      - *id008
+      - *id014
+      - *id009
+      - *id010
       - *id002
       - *id003
-      - *id006
+      - *id008
     - name: WorkQueueRepository.cancel
       kind: method
       line_start: 306
@@ -543,11 +565,13 @@ source_catalog:
       dependency_targets:
       - *id001
       - *id004
-      - *id007
-      - *id008
+      - *id005
+      - *id006
+      - *id009
+      - *id010
       - *id002
       - *id003
-      - *id006
+      - *id008
     - name: WorkQueueRepository.recover_claimed
       kind: method
       line_start: 328
@@ -575,9 +599,11 @@ source_catalog:
       - path: src/nerve_center/persistence/scoring.py
         symbol: OpportunityScoreRepository.append
       - *id004
+      - *id005
+      - *id006
       - *id002
       - *id003
-      - *id006
+      - *id008
     - name: WorkQueueRepository.retry
       kind: method
       line_start: 357
@@ -598,11 +624,11 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id001
-      - *id007
-      - *id008
+      - *id009
+      - *id010
       - *id002
       - *id003
-      - *id006
+      - *id008
     - name: WorkQueueRepository.reprioritize
       kind: method
       line_start: 374
@@ -625,11 +651,11 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id001
-      - *id007
-      - *id008
+      - *id009
+      - *id010
       - *id002
       - *id003
-      - *id006
+      - *id008
     - name: WorkQueueRepository._request
       kind: method
       line_start: 390
@@ -675,15 +701,15 @@ source_catalog:
       - dict
       parser: python-ast
       dependency_targets:
-      - *id013
-      - *id014
-      - &id015
+      - *id015
+      - *id016
+      - &id017
         path: src/nerve_center/persistence/runs.py
         symbol: _restore_utc
-      - &id016
+      - &id018
         path: src/nerve_center/persistence/sessions.py
         symbol: _restore_utc
-      - &id017
+      - &id019
         path: src/nerve_center/persistence/work_queue.py
         symbol: _restore_utc
     - name: _attempt_snapshot
@@ -702,11 +728,11 @@ source_catalog:
       - dict
       parser: python-ast
       dependency_targets:
-      - *id013
-      - *id014
       - *id015
       - *id016
       - *id017
+      - *id018
+      - *id019
     - name: _result_snapshot
       kind: function
       line_start: 444
@@ -722,11 +748,11 @@ source_catalog:
       - dict
       parser: python-ast
       dependency_targets:
-      - *id013
-      - *id014
       - *id015
       - *id016
       - *id017
+      - *id018
+      - *id019
     - name: _utc
       kind: function
       line_start: 458
@@ -769,9 +795,9 @@ source_catalog:
       - _restore_utc
       parser: python-ast
       dependency_targets:
-      - *id015
-      - *id016
       - *id017
+      - *id018
+      - *id019
   - path: src/nerve_center/runtime/supervisor.py
     analysis_version: 1
     language: python
@@ -965,16 +991,16 @@ source_catalog:
       - self._work_queue.status
       parser: python-ast
       dependency_targets:
-      - &id018
+      - &id020
         path: src/nerve_center/runtime/supervisor.py
         symbol: ModuleSupervisor._session
-      - &id019
+      - &id021
         path: src/nerve_center/runtime/supervisor.py
         symbol: ModuleSupervisor._updated_report
-      - &id028
+      - &id030
         path: src/nerve_center/runtime/supervisor.py
         symbol: ModuleWorkQueue.status
-      - &id029
+      - &id031
         path: src/nerve_center/scheduler/work_queue.py
         symbol: WorkQueueService.status
     - name: ModuleSupervisor.authorize
@@ -993,7 +1019,7 @@ source_catalog:
       - self._session
       parser: python-ast
       dependency_targets:
-      - *id018
+      - *id020
     - name: ModuleSupervisor.execute
       kind: method
       line_start: 154
@@ -1026,12 +1052,12 @@ source_catalog:
         symbol: ModuleSupervisor._ensure_started
       - path: src/nerve_center/runtime/supervisor.py
         symbol: ModuleSupervisor._queue_limits
-      - *id018
-      - &id020
+      - *id020
+      - &id022
         path: src/nerve_center/runtime/supervisor.py
         symbol: ModuleSupervisor._session_policy
-      - *id019
-      - &id023
+      - *id021
+      - &id025
         path: src/nerve_center/config.py
         symbol: Settings.module_data_dir
     - name: ModuleSupervisor.next_assignment
@@ -1050,8 +1076,8 @@ source_catalog:
       - self.authorize
       parser: python-ast
       dependency_targets:
-      - *id018
-      - &id021
+      - *id020
+      - &id023
         path: src/nerve_center/runtime/supervisor.py
         symbol: ModuleSupervisor.authorize
     - name: ModuleSupervisor.control
@@ -1075,12 +1101,12 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService._execute.cancellation_requested
-      - &id022
+      - &id024
         path: src/nerve_center/runtime/supervisor.py
         symbol: ModuleSupervisor._pending
-      - *id018
       - *id020
-      - *id021
+      - *id022
+      - *id023
     - name: ModuleSupervisor.module_control
       kind: method
       line_start: 232
@@ -1096,8 +1122,8 @@ source_catalog:
       - self.authorize
       parser: python-ast
       dependency_targets:
-      - *id018
-      - *id021
+      - *id020
+      - *id023
     - name: ModuleSupervisor.checkpoint
       kind: method
       line_start: 236
@@ -1118,13 +1144,13 @@ source_catalog:
       - self.authorize
       parser: python-ast
       dependency_targets:
-      - *id022
+      - *id024
       - path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.save_checkpoint
       - path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService._execute.save_checkpoint
-      - *id018
-      - *id021
+      - *id020
+      - *id023
     - name: ModuleSupervisor.consume_resource
       kind: method
       line_start: 246
@@ -1148,9 +1174,9 @@ source_catalog:
       - tracker.consume_request
       parser: python-ast
       dependency_targets:
-      - *id022
-      - *id018
-      - *id021
+      - *id024
+      - *id020
+      - *id023
       - path: src/nerve_center/domain/budget.py
         symbol: ResourceBudgetTracker.consume_llm_call
       - path: src/nerve_center/domain/budget.py
@@ -1175,9 +1201,9 @@ source_catalog:
       - self.authorize
       parser: python-ast
       dependency_targets:
-      - *id022
-      - *id018
-      - *id021
+      - *id024
+      - *id020
+      - *id023
     - name: ModuleSupervisor.submit_work
       kind: method
       line_start: 277
@@ -1206,9 +1232,9 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - *id022
-      - *id018
-      - *id021
+      - *id024
+      - *id020
+      - *id023
     - name: ModuleSupervisor.deliver_results
       kind: method
       line_start: 307
@@ -1225,7 +1251,7 @@ source_catalog:
       - self.authorize
       parser: python-ast
       dependency_targets:
-      - *id021
+      - *id023
     - name: ModuleSupervisor.acknowledge_result
       kind: method
       line_start: 313
@@ -1253,7 +1279,7 @@ source_catalog:
         symbol: ModuleWorkQueue.acknowledge
       - path: src/nerve_center/scheduler/work_queue.py
         symbol: WorkQueueService.acknowledge
-      - *id021
+      - *id023
     - name: ModuleSupervisor.complete
       kind: method
       line_start: 334
@@ -1275,10 +1301,10 @@ source_catalog:
       - self.authorize
       parser: python-ast
       dependency_targets:
-      - *id022
-      - *id018
-      - *id019
+      - *id024
+      - *id020
       - *id021
+      - *id023
     - name: ModuleSupervisor.heartbeat
       kind: method
       line_start: 354
@@ -1302,9 +1328,9 @@ source_catalog:
       - self.authorize
       parser: python-ast
       dependency_targets:
-      - *id018
-      - *id019
+      - *id020
       - *id021
+      - *id023
     - name: ModuleSupervisor.stop
       kind: method
       line_start: 380
@@ -1334,18 +1360,18 @@ source_catalog:
         symbol: StubProcess.kill
       - path: tests/test_module_runtime.py
         symbol: StubProcess.terminate
-      - &id025
+      - &id027
         path: src/nerve_center/discovery/fetching.py
         symbol: DomainRequestGate.wait
-      - &id026
+      - &id028
         path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService.wait
-      - &id027
+      - &id029
         path: tests/test_module_runtime.py
         symbol: StubProcess.wait
-      - *id018
-      - *id019
-      - &id024
+      - *id020
+      - *id021
+      - &id026
         path: src/nerve_center/runtime/client.py
         symbol: ModuleRuntimeClient.close
       - path: src/nerve_center/persistence/work_queue.py
@@ -1402,13 +1428,19 @@ source_catalog:
         symbol: CodeShopService.create_task
       - path: src/nerve_center/persistence/code_shop.py
         symbol: CodeShopRepository.create_task
+      - &id032
+        path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.update
+      - &id033
+        path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.update
       - path: src/nerve_center/runtime/supervisor.py
         symbol: ModuleSupervisor._command
-      - *id019
+      - *id021
       - path: src/nerve_center/runtime/supervisor.py
         symbol: ModuleSupervisor._watch_process
-      - *id023
-      - *id024
+      - *id025
+      - *id026
     - name: ModuleSupervisor._watch_process
       kind: method
       line_start: 465
@@ -1426,10 +1458,10 @@ source_catalog:
       - session.pending.completion.set_exception
       parser: python-ast
       dependency_targets:
-      - *id025
-      - *id026
       - *id027
-      - *id019
+      - *id028
+      - *id029
+      - *id021
     - name: ModuleSupervisor._command
       kind: method
       line_start: 486
@@ -1495,8 +1527,8 @@ source_catalog:
       - self._work_queue.status
       parser: python-ast
       dependency_targets:
-      - *id028
-      - *id029
+      - *id030
+      - *id031
     - name: ModuleSupervisor._updated_report
       kind: method
       line_start: 523
@@ -1516,4 +1548,6 @@ source_catalog:
       - datetime.now
       - values.update
       parser: python-ast
-      dependency_targets: []
+      dependency_targets:
+      - *id032
+      - *id033

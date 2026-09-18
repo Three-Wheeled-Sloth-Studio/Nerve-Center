@@ -663,7 +663,7 @@ source_catalog:
   - path: src/nerve_center/persistence/sessions.py
     analysis_version: 1
     language: python
-    content_hash: 01fb4874a17fa42fe2ef42c950ee71ffdb032601
+    content_hash: a5e6c68020b8393a2f787eb0b3d8f4ca91669aec
     dependencies:
     - __future__
     - datetime
@@ -686,6 +686,8 @@ source_catalog:
     - SessionRepository.recover_interrupted
     - SessionRepository._model
     - _snapshot
+    - _effective_limits
+    - _resource_enforcement
     - _utc
     - _restore_utc
     - _restore_required_utc
@@ -705,15 +707,21 @@ source_catalog:
     - name: SessionRepository.create
       kind: method
       line_start: 30
-      line_end: 75
+      line_end: 83
       signature: 'SessionRepository.create(self, window: ResolvedRunWindow, recurrence: RecurrenceRule | None, recurrence_parent_id:
-        str | None, resource_policy: dict[str, int] | None, now: datetime | None) -> WorkSessionSnapshot'
+        str | None, resource_policy: dict[str, int] | None, resource_profile_id: str | None, resource_overrides: dict[str,
+        int | float] | None, effective_resource_limits: dict[str, int | float | None] | None, resource_enforcement: dict[str,
+        str] | None, now: datetime | None) -> WorkSessionSnapshot'
       inputs:
       - self
       - 'window: ResolvedRunWindow'
       - 'recurrence: RecurrenceRule | None'
       - 'recurrence_parent_id: str | None'
       - 'resource_policy: dict[str, int] | None'
+      - 'resource_profile_id: str | None'
+      - 'resource_overrides: dict[str, int | float] | None'
+      - 'effective_resource_limits: dict[str, int | float | None] | None'
+      - 'resource_enforcement: dict[str, str] | None'
       - 'now: datetime | None'
       output: WorkSessionSnapshot
       dependencies:
@@ -735,15 +743,18 @@ source_catalog:
         path: src/nerve_center/persistence/modules.py
         symbol: ModuleRepository._snapshot
       - &id007
-        path: src/nerve_center/persistence/runs.py
+        path: src/nerve_center/persistence/resource_profiles.py
         symbol: _snapshot
       - &id008
-        path: src/nerve_center/persistence/sessions.py
+        path: src/nerve_center/persistence/runs.py
         symbol: _snapshot
       - &id009
+        path: src/nerve_center/persistence/sessions.py
+        symbol: _snapshot
+      - &id010
         path: src/nerve_center/persistence/database.py
         symbol: Database.session
-      - &id010
+      - &id011
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.session
       - path: src/nerve_center/plugins/job_scout/discovery_loop.py
@@ -751,8 +762,8 @@ source_catalog:
       - *id005
     - name: SessionRepository.get
       kind: method
-      line_start: 77
-      line_end: 82
+      line_start: 85
+      line_end: 90
       signature: 'SessionRepository.get(self, session_id: str) -> WorkSessionSnapshot'
       inputs:
       - self
@@ -769,10 +780,11 @@ source_catalog:
       - *id008
       - *id009
       - *id010
+      - *id011
     - name: SessionRepository.list_recent
       kind: method
-      line_start: 84
-      line_end: 91
+      line_start: 92
+      line_end: 99
       signature: 'SessionRepository.list_recent(self, limit: int) -> list[WorkSessionSnapshot]'
       inputs:
       - self
@@ -792,15 +804,22 @@ source_catalog:
       - *id006
       - *id007
       - *id008
-      - &id011
+      - *id009
+      - &id012
+        path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.select
+      - &id013
         path: src/nerve_center/providers/manager.py
         symbol: ProviderManager.select
-      - *id009
+      - &id014
+        path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.select
       - *id010
+      - *id011
     - name: SessionRepository.list_actionable
       kind: method
-      line_start: 93
-      line_end: 107
+      line_start: 101
+      line_end: 115
       signature: SessionRepository.list_actionable(self) -> list[WorkSessionSnapshot]
       inputs:
       - self
@@ -819,13 +838,16 @@ source_catalog:
       - *id006
       - *id007
       - *id008
-      - *id011
       - *id009
+      - *id012
+      - *id013
+      - *id014
       - *id010
+      - *id011
     - name: SessionRepository.start
       kind: method
-      line_start: 109
-      line_end: 127
+      line_start: 117
+      line_end: 135
       signature: 'SessionRepository.start(self, session_id: str, module_run_ids: dict[str, str], module_priorities: dict[str,
         int], now: datetime | None) -> WorkSessionSnapshot'
       inputs:
@@ -848,16 +870,17 @@ source_catalog:
       - *id006
       - *id007
       - *id008
-      - &id012
+      - *id009
+      - &id015
         path: src/nerve_center/persistence/sessions.py
         symbol: SessionRepository._model
-      - *id009
       - *id010
+      - *id011
       - *id005
     - name: SessionRepository.update_phase
       kind: method
-      line_start: 129
-      line_end: 143
+      line_start: 137
+      line_end: 151
       signature: 'SessionRepository.update_phase(self, session_id: str, phase: AdmissionPhase, now: datetime | None) -> WorkSessionSnapshot'
       inputs:
       - self
@@ -876,14 +899,15 @@ source_catalog:
       - *id006
       - *id007
       - *id008
-      - *id012
       - *id009
+      - *id015
       - *id010
+      - *id011
       - *id005
     - name: SessionRepository.finish
       kind: method
-      line_start: 145
-      line_end: 166
+      line_start: 153
+      line_end: 174
       signature: 'SessionRepository.finish(self, session_id: str, status: SessionStatus, summary: str, emergency_stop: bool,
         now: datetime | None) -> WorkSessionSnapshot'
       inputs:
@@ -906,14 +930,15 @@ source_catalog:
       - *id006
       - *id007
       - *id008
-      - *id012
       - *id009
+      - *id015
       - *id010
+      - *id011
       - *id005
     - name: SessionRepository.recover_interrupted
       kind: method
-      line_start: 168
-      line_end: 191
+      line_start: 176
+      line_end: 199
       signature: 'SessionRepository.recover_interrupted(self, now: datetime | None) -> list[WorkSessionSnapshot]'
       inputs:
       - self
@@ -933,24 +958,27 @@ source_catalog:
       - session.scalars(select(WorkSessionModel).where(WorkSessionModel.status.in_([SessionStatus.RUNNING.value, SessionStatus.DRAINING.value]))).all
       parser: python-ast
       dependency_targets:
-      - &id013
+      - &id016
         path: src/nerve_center/persistence/runs.py
         symbol: _restore_required_utc
-      - &id014
+      - &id017
         path: src/nerve_center/persistence/sessions.py
         symbol: _restore_required_utc
       - *id006
       - *id007
       - *id008
-      - *id001
-      - *id011
       - *id009
+      - *id001
+      - *id012
+      - *id013
+      - *id014
       - *id010
+      - *id011
       - *id005
     - name: SessionRepository._model
       kind: method
-      line_start: 194
-      line_end: 198
+      line_start: 202
+      line_end: 206
       signature: 'SessionRepository._model(session: Session, session_id: str) -> WorkSessionModel'
       inputs:
       - 'session: Session'
@@ -963,8 +991,8 @@ source_catalog:
       dependency_targets: []
     - name: _snapshot
       kind: function
-      line_start: 201
-      line_end: 225
+      line_start: 209
+      line_end: 237
       signature: '_snapshot(model: WorkSessionModel) -> WorkSessionSnapshot'
       inputs:
       - 'model: WorkSessionModel'
@@ -976,6 +1004,8 @@ source_catalog:
       - RecurrenceRule.from_dict
       - SessionStatus
       - WorkSessionSnapshot
+      - _effective_limits
+      - _resource_enforcement
       - _restore_required_utc
       - _restore_utc
       - dict
@@ -986,21 +1016,51 @@ source_catalog:
         symbol: ModuleManifest.from_dict
       - path: src/nerve_center/domain/session.py
         symbol: RecurrenceRule.from_dict
-      - *id013
-      - *id014
-      - &id015
+      - path: src/nerve_center/persistence/sessions.py
+        symbol: _effective_limits
+      - path: src/nerve_center/persistence/sessions.py
+        symbol: _resource_enforcement
+      - *id016
+      - *id017
+      - &id018
         path: src/nerve_center/persistence/runs.py
         symbol: _restore_utc
-      - &id016
+      - &id019
         path: src/nerve_center/persistence/sessions.py
         symbol: _restore_utc
-      - &id017
+      - &id020
         path: src/nerve_center/persistence/work_queue.py
         symbol: _restore_utc
+    - name: _effective_limits
+      kind: function
+      line_start: 240
+      line_end: 246
+      signature: '_effective_limits(model: WorkSessionModel) -> dict[str, int | float | None]'
+      inputs:
+      - 'model: WorkSessionModel'
+      output: dict[str, int | float | None]
+      dependencies:
+      - (model.resource_policy or {}).items
+      - dict
+      - int
+      parser: python-ast
+      dependency_targets: []
+    - name: _resource_enforcement
+      kind: function
+      line_start: 249
+      line_end: 253
+      signature: '_resource_enforcement(model: WorkSessionModel) -> dict[str, str]'
+      inputs:
+      - 'model: WorkSessionModel'
+      output: dict[str, str]
+      dependencies:
+      - dict
+      parser: python-ast
+      dependency_targets: []
     - name: _utc
       kind: function
-      line_start: 228
-      line_end: 232
+      line_start: 256
+      line_end: 260
       signature: '_utc(value: datetime | None) -> datetime'
       inputs:
       - 'value: datetime | None'
@@ -1014,8 +1074,8 @@ source_catalog:
       dependency_targets: []
     - name: _restore_utc
       kind: function
-      line_start: 235
-      line_end: 240
+      line_start: 263
+      line_end: 268
       signature: '_restore_utc(value: datetime | None) -> datetime | None'
       inputs:
       - 'value: datetime | None'
@@ -1028,8 +1088,8 @@ source_catalog:
       dependency_targets: []
     - name: _restore_required_utc
       kind: function
-      line_start: 243
-      line_end: 247
+      line_start: 271
+      line_end: 275
       signature: '_restore_required_utc(value: datetime) -> datetime'
       inputs:
       - 'value: datetime'
@@ -1039,9 +1099,9 @@ source_catalog:
       - _restore_utc
       parser: python-ast
       dependency_targets:
-      - *id015
-      - *id016
-      - *id017
+      - *id018
+      - *id019
+      - *id020
   - path: src/nerve_center/profile/prompts.py
     analysis_version: 1
     language: python
@@ -1139,21 +1199,27 @@ source_catalog:
       - sources.upsert
       parser: python-ast
       dependency_targets:
-      - &id019
+      - &id022
         path: src/nerve_center/persistence/discovery.py
         symbol: CompanyRepository.upsert
-      - &id020
+      - &id023
         path: src/nerve_center/persistence/discovery.py
         symbol: DiscoverySourceRepository.upsert
-      - &id021
+      - &id024
         path: src/nerve_center/persistence/discovery.py
         symbol: JobOpeningRepository.upsert
-      - &id022
+      - &id025
         path: src/nerve_center/persistence/scoring.py
         symbol: ScoringRuleRepository.upsert
-      - &id023
+      - &id026
         path: src/nerve_center/persistence/database.py
         symbol: Database.initialize
+      - &id027
+        path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.initialize
+      - &id028
+        path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.initialize
     - name: test_service_scans_source_and_persists_job
       kind: function
       line_start: 77
@@ -1173,7 +1239,7 @@ source_catalog:
       - sources.get
       parser: python-ast
       dependency_targets:
-      - &id018
+      - &id021
         path: tests/test_discovery_service.py
         symbol: _setup
       - path: src/nerve_center/discovery/api.py
@@ -1214,13 +1280,13 @@ source_catalog:
       - sources.upsert
       parser: python-ast
       dependency_targets:
-      - *id018
+      - *id021
       - path: src/nerve_center/discovery/service.py
         symbol: DiscoveryService._register_sitemap_urls
-      - *id019
-      - *id020
-      - *id021
       - *id022
+      - *id023
+      - *id024
+      - *id025
     - name: test_sitemap_child_registration_has_a_small_default_ceiling.handler
       kind: function
       line_start: 104
@@ -1257,7 +1323,7 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id018
+      - *id021
       - *id001
     - name: test_plugin_checkpoints_and_consumes_request_budget.handler
       kind: function
@@ -1308,7 +1374,9 @@ source_catalog:
       - normalize_public_search_result_url
       parser: python-ast
       dependency_targets:
-      - *id023
+      - *id026
+      - *id027
+      - *id028
       - path: src/nerve_center/discovery/search.py
         symbol: normalize_public_search_result_url
     - name: test_public_search_discovers_supported_result_pages.FakeFetcher.get
@@ -1346,13 +1414,15 @@ source_catalog:
       - database.initialize
       parser: python-ast
       dependency_targets:
-      - &id024
+      - &id029
         path: src/nerve_center/persistence/discovery.py
         symbol: SearchCacheRepository.put
-      - &id025
+      - &id030
         path: tests/test_public_search_fallback.py
         symbol: MemorySearchCache.put
-      - *id023
+      - *id026
+      - *id027
+      - *id028
     - name: test_public_reference_search_retains_non_job_evidence
       kind: function
       line_start: 250
@@ -1374,7 +1444,9 @@ source_catalog:
       - database.initialize
       parser: python-ast
       dependency_targets:
-      - *id023
+      - *id026
+      - *id027
+      - *id028
     - name: test_public_reference_search_retains_non_job_evidence.FakeFetcher.get
       kind: method
       line_start: 255
@@ -1412,7 +1484,9 @@ source_catalog:
       - second_adapter.fetch_reference
       parser: python-ast
       dependency_targets:
-      - *id023
+      - *id026
+      - *id027
+      - *id028
     - name: test_public_reference_fetch_is_durably_cached.FakeFetcher.get
       kind: method
       line_start: 288
@@ -1450,7 +1524,9 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id001
-      - *id023
+      - *id026
+      - *id027
+      - *id028
     - name: test_extensionless_binary_reference_is_bounded_and_cached.FakeFetcher.get
       kind: method
       line_start: 324
@@ -1490,7 +1566,9 @@ source_catalog:
       - second_adapter.fetch_reference
       parser: python-ast
       dependency_targets:
-      - *id023
+      - *id026
+      - *id027
+      - *id028
     - name: test_public_reference_challenge_is_persistently_cooled_down.ChallengedFetcher.get
       kind: method
       line_start: 364
@@ -1527,9 +1605,11 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id024
-      - *id025
-      - *id023
+      - *id029
+      - *id030
+      - *id026
+      - *id027
+      - *id028
     - name: test_public_search_challenge_rotates_later_query_to_fallback_provider
       kind: function
       line_start: 405
@@ -1553,7 +1633,9 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id001
-      - *id023
+      - *id026
+      - *id027
+      - *id028
     - name: test_public_search_challenge_rotates_later_query_to_fallback_provider.ChallengedFetcher.get
       kind: method
       line_start: 413
@@ -1594,7 +1676,9 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id001
-      - *id023
+      - *id026
+      - *id027
+      - *id028
     - name: test_public_search_challenge_does_not_cool_down_another_provider.PortfolioFetcher.get
       kind: method
       line_start: 447

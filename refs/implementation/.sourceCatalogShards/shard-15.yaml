@@ -825,12 +825,12 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - &id030
+      - &id033
         path: src/nerve_center/persistence/scoring.py
         symbol: OpportunityScoreRepository.append
       - path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService._execute.cancellation_requested
-      - &id036
+      - &id039
         path: src/nerve_center/domain/budget.py
         symbol: ResourceBudgetTracker.work_slot
       - path: src/nerve_center/persistence/runs.py
@@ -1057,21 +1057,24 @@ source_catalog:
         path: src/nerve_center/persistence/modules.py
         symbol: ModuleRepository._snapshot
       - &id023
-        path: src/nerve_center/persistence/runs.py
+        path: src/nerve_center/persistence/resource_profiles.py
         symbol: _snapshot
       - &id024
-        path: src/nerve_center/persistence/sessions.py
+        path: src/nerve_center/persistence/runs.py
         symbol: _snapshot
       - &id025
+        path: src/nerve_center/persistence/sessions.py
+        symbol: _snapshot
+      - &id026
         path: src/nerve_center/persistence/database.py
         symbol: Database.session
-      - &id026
+      - &id027
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.session
-      - &id028
+      - &id031
         path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: _extract_structured_employer_names.add
-      - &id029
+      - &id032
         path: scripts/agent_context.py
         symbol: _markdown_blocks.flush
     - name: RunRepository.get
@@ -1094,6 +1097,7 @@ source_catalog:
       - *id024
       - *id025
       - *id026
+      - *id027
     - name: RunRepository.list_recent
       kind: method
       line_start: 116
@@ -1117,11 +1121,18 @@ source_catalog:
       - *id022
       - *id023
       - *id024
-      - &id027
+      - *id025
+      - &id028
+        path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.select
+      - &id029
         path: src/nerve_center/providers/manager.py
         symbol: ProviderManager.select
-      - *id025
+      - &id030
+        path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.select
       - *id026
+      - *id027
     - name: RunRepository.list_scheduled
       kind: method
       line_start: 123
@@ -1144,9 +1155,12 @@ source_catalog:
       - *id022
       - *id023
       - *id024
-      - *id027
       - *id025
+      - *id028
+      - *id029
+      - *id030
       - *id026
+      - *id027
     - name: RunRepository.list_events
       kind: method
       line_start: 132
@@ -1172,9 +1186,11 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/persistence/runs.py
         symbol: _event_snapshot
-      - *id027
-      - *id025
+      - *id028
+      - *id029
+      - *id030
       - *id026
+      - *id027
     - name: RunRepository.transition
       kind: method
       line_start: 143
@@ -1212,8 +1228,9 @@ source_catalog:
       - *id024
       - *id025
       - *id026
-      - *id028
-      - *id029
+      - *id027
+      - *id031
+      - *id032
     - name: RunRepository.request_cancel
       kind: method
       line_start: 194
@@ -1241,8 +1258,9 @@ source_catalog:
       - *id024
       - *id025
       - *id026
-      - *id028
-      - *id029
+      - *id027
+      - *id031
+      - *id032
     - name: RunRepository.save_checkpoint
       kind: method
       line_start: 230
@@ -1271,8 +1289,9 @@ source_catalog:
       - *id024
       - *id025
       - *id026
-      - *id028
-      - *id029
+      - *id027
+      - *id031
+      - *id032
     - name: RunRepository.save_budget_usage
       kind: method
       line_start: 251
@@ -1298,7 +1317,8 @@ source_catalog:
       - *id024
       - *id025
       - *id026
-      - *id029
+      - *id027
+      - *id032
     - name: RunRepository.recover_interrupted
       kind: method
       line_start: 262
@@ -1327,12 +1347,15 @@ source_catalog:
       - *id022
       - *id023
       - *id024
-      - *id030
-      - *id027
       - *id025
-      - *id026
+      - *id033
       - *id028
       - *id029
+      - *id030
+      - *id026
+      - *id027
+      - *id031
+      - *id032
     - name: _snapshot
       kind: function
       line_start: 291
@@ -1352,19 +1375,19 @@ source_catalog:
       - int
       parser: python-ast
       dependency_targets:
-      - &id031
-        path: src/nerve_center/persistence/runs.py
-        symbol: _restore_required_utc
-      - &id032
-        path: src/nerve_center/persistence/sessions.py
-        symbol: _restore_required_utc
-      - &id033
-        path: src/nerve_center/persistence/runs.py
-        symbol: _restore_utc
       - &id034
+        path: src/nerve_center/persistence/runs.py
+        symbol: _restore_required_utc
+      - &id035
+        path: src/nerve_center/persistence/sessions.py
+        symbol: _restore_required_utc
+      - &id036
+        path: src/nerve_center/persistence/runs.py
+        symbol: _restore_utc
+      - &id037
         path: src/nerve_center/persistence/sessions.py
         symbol: _restore_utc
-      - &id035
+      - &id038
         path: src/nerve_center/persistence/work_queue.py
         symbol: _restore_utc
     - name: _event_snapshot
@@ -1381,8 +1404,8 @@ source_catalog:
       - dict
       parser: python-ast
       dependency_targets:
-      - *id031
-      - *id032
+      - *id034
+      - *id035
     - name: _utc
       kind: function
       line_start: 330
@@ -1425,9 +1448,9 @@ source_catalog:
       - _restore_utc
       parser: python-ast
       dependency_targets:
-      - *id033
-      - *id034
-      - *id035
+      - *id036
+      - *id037
+      - *id038
   - path: tests/test_budget.py
     analysis_version: 1
     language: python
@@ -1472,7 +1495,7 @@ source_catalog:
       - use_slot
       parser: python-ast
       dependency_targets:
-      - *id036
+      - *id039
       - path: tests/test_budget.py
         symbol: test_parallel_work_slot_is_usable.use_slot
     - name: test_parallel_work_slot_is_usable.use_slot
@@ -1486,7 +1509,7 @@ source_catalog:
       - tracker.work_slot
       parser: python-ast
       dependency_targets:
-      - *id036
+      - *id039
   - path: tests/test_runner.py
     analysis_version: 1
     language: python
@@ -1532,6 +1555,10 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/persistence/database.py
         symbol: Database.initialize
+      - path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.initialize
+      - path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.initialize
       - path: src/nerve_center/discovery/service.py
         symbol: ConnectorRegistry.register
       - path: src/nerve_center/runtime/supervisor.py
@@ -1555,18 +1582,9 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - &id037
+      - &id040
         path: tests/test_runner.py
         symbol: make_runner
-      - &id038
-        path: src/nerve_center/attention/api.py
-        symbol: register_attention_routes.create
-      - &id039
-        path: src/nerve_center/persistence/runs.py
-        symbol: RunRepository.create
-      - &id040
-        path: src/nerve_center/persistence/sessions.py
-        symbol: SessionRepository.create
       - &id041
         path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService.execute_now
@@ -1589,9 +1607,6 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id037
-      - *id038
-      - *id039
       - *id040
       - path: src/nerve_center/persistence/attention.py
         symbol: AttentionRepository.transition
@@ -1623,9 +1638,6 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id037
-      - *id038
-      - *id039
       - *id040
       - path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository.cancel
@@ -1652,8 +1664,5 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id037
-      - *id038
-      - *id039
       - *id040
       - *id041

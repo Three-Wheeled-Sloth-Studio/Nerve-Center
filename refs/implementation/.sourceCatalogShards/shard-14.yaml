@@ -78,15 +78,21 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - &id004
+        path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.select
+      - &id005
         path: src/nerve_center/providers/manager.py
         symbol: ProviderManager.select
+      - &id006
+        path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.select
       - &id001
         path: src/nerve_center/persistence/database.py
         symbol: Database.session
       - &id002
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.session
-      - &id005
+      - &id007
         path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: _extract_structured_employer_names.add
     - name: CompanyRepository.get
@@ -130,6 +136,8 @@ source_catalog:
       dependency_targets:
       - *id003
       - *id004
+      - *id005
+      - *id006
       - *id001
       - *id002
     - name: CompanyRepository.list
@@ -152,6 +160,8 @@ source_catalog:
       dependency_targets:
       - *id003
       - *id004
+      - *id005
+      - *id006
       - *id001
       - *id002
     - name: DiscoverySourceRepository.__init__
@@ -186,12 +196,12 @@ source_catalog:
       - source.model_dump
       parser: python-ast
       dependency_targets:
-      - &id006
+      - &id008
         path: src/nerve_center/persistence/discovery.py
         symbol: _source_values
       - *id001
       - *id002
-      - *id005
+      - *id007
     - name: DiscoverySourceRepository.get
       kind: method
       line_start: 103
@@ -208,7 +218,7 @@ source_catalog:
       - self.database.session
       parser: python-ast
       dependency_targets:
-      - *id006
+      - *id008
       - *id001
       - *id002
     - name: DiscoverySourceRepository.list
@@ -232,8 +242,10 @@ source_catalog:
       - statement.where
       parser: python-ast
       dependency_targets:
-      - *id006
+      - *id008
       - *id004
+      - *id005
+      - *id006
       - *id001
       - *id002
     - name: DiscoverySourceRepository.list_due
@@ -261,8 +273,10 @@ source_catalog:
       - session.scalars(statement).all
       parser: python-ast
       dependency_targets:
-      - *id006
+      - *id008
       - *id004
+      - *id005
+      - *id006
       - *id001
       - *id002
     - name: DiscoverySourceRepository.list_scans
@@ -291,16 +305,18 @@ source_catalog:
       - session.scalars(select(SourceScanModel).where(SourceScanModel.source_id == source_id).order_by(SourceScanModel.finished_at.desc()).limit(limit)).all
       parser: python-ast
       dependency_targets:
-      - &id007
+      - &id009
         path: src/nerve_center/persistence/applications.py
         symbol: _as_utc
-      - &id008
+      - &id010
         path: src/nerve_center/persistence/discovery.py
         symbol: _as_utc
-      - &id009
+      - &id011
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: _as_utc
       - *id004
+      - *id005
+      - *id006
       - *id001
       - *id002
     - name: DiscoverySourceRepository.record_scan
@@ -337,7 +353,7 @@ source_catalog:
       dependency_targets:
       - *id001
       - *id002
-      - *id005
+      - *id007
     - name: JobOpeningRepository.__init__
       kind: method
       line_start: 232
@@ -387,9 +403,11 @@ source_catalog:
       - path: src/nerve_center/discovery/normalization.py
         symbol: opening_fingerprint
       - *id004
+      - *id005
+      - *id006
       - *id001
       - *id002
-      - *id005
+      - *id007
     - name: JobOpeningRepository.list
       kind: method
       line_start: 317
@@ -412,6 +430,8 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id004
+      - *id005
+      - *id006
       - *id001
       - *id002
     - name: SearchCacheRepository.__init__
@@ -447,10 +467,10 @@ source_catalog:
       - session.delete
       parser: python-ast
       dependency_targets:
-      - *id007
-      - *id008
       - *id009
-      - &id010
+      - *id010
+      - *id011
+      - &id012
         path: src/nerve_center/persistence/discovery.py
         symbol: _cache_key
       - *id001
@@ -483,10 +503,10 @@ source_catalog:
       - values.items
       parser: python-ast
       dependency_targets:
-      - *id010
+      - *id012
       - *id001
       - *id002
-      - *id005
+      - *id007
     - name: _company_values
       kind: function
       line_start: 375
@@ -500,9 +520,9 @@ source_catalog:
       - getattr
       parser: python-ast
       dependency_targets:
-      - *id007
-      - *id008
       - *id009
+      - *id010
+      - *id011
     - name: _source_values
       kind: function
       line_start: 382
@@ -516,9 +536,9 @@ source_catalog:
       - getattr
       parser: python-ast
       dependency_targets:
-      - *id007
-      - *id008
       - *id009
+      - *id010
+      - *id011
     - name: _merge_openings
       kind: function
       line_start: 399
@@ -621,7 +641,7 @@ source_catalog:
       dependency_targets:
       - *id001
       - *id002
-      - *id005
+      - *id007
     - name: SourceDocumentRepository.get
       kind: method
       line_start: 35
@@ -637,7 +657,7 @@ source_catalog:
       - self.database.session
       parser: python-ast
       dependency_targets:
-      - &id011
+      - &id013
         path: src/nerve_center/persistence/profile.py
         symbol: _document_from_model
       - *id001
@@ -658,7 +678,7 @@ source_catalog:
       - session.query(SourceDocumentModel).order_by
       parser: python-ast
       dependency_targets:
-      - *id011
+      - *id013
       - *id001
       - *id002
     - name: CareerProfileRepository.__init__
@@ -709,7 +729,7 @@ source_catalog:
       dependency_targets:
       - *id001
       - *id002
-      - *id005
+      - *id007
     - name: _document_from_model
       kind: function
       line_start: 81
@@ -768,6 +788,89 @@ source_catalog:
         symbol: code_shop_manifest
       - path: src/nerve_center/code_shop/api.py
         symbol: register_code_shop_routes
+  - path: src/nerve_center/resource_profiles/domain.py
+    analysis_version: 1
+    language: python
+    content_hash: c5b97a6ec8dce348fd0d4e01aea7a7b8b9ab42ba
+    dependencies:
+    - __future__
+    - collections.abc
+    - dataclasses
+    - datetime
+    - enum
+    - nerve_center.domain.budget
+    - typing
+    provides:
+    - EffectiveResourceProfile.enforced_budget
+    - EffectiveResourceProfile.to_dict
+    - manager_default_limits
+    - normalize_limits
+    - enforcement_map
+    symbols:
+    - name: EffectiveResourceProfile.enforced_budget
+      kind: method
+      line_start: 70
+      line_end: 75
+      signature: EffectiveResourceProfile.enforced_budget(self) -> ResourceBudget
+      inputs:
+      - self
+      output: ResourceBudget
+      dependencies:
+      - ResourceBudget
+      - int
+      parser: python-ast
+      dependency_targets: []
+    - name: EffectiveResourceProfile.to_dict
+      kind: method
+      line_start: 77
+      line_end: 84
+      signature: EffectiveResourceProfile.to_dict(self) -> dict[str, Any]
+      inputs:
+      - self
+      output: dict[str, Any]
+      dependencies:
+      - dict
+      parser: python-ast
+      dependency_targets: []
+    - name: manager_default_limits
+      kind: function
+      line_start: 87
+      line_end: 93
+      signature: manager_default_limits() -> dict[str, int | float]
+      inputs: []
+      output: dict[str, int | float]
+      dependencies:
+      - ResourceBudget
+      parser: python-ast
+      dependency_targets: []
+    - name: normalize_limits
+      kind: function
+      line_start: 96
+      line_end: 123
+      signature: 'normalize_limits(values: Mapping[str, object] | None) -> dict[str, int | float]'
+      inputs:
+      - 'values: Mapping[str, object] | None'
+      output: dict[str, int | float]
+      dependencies:
+      - ''', ''.join'
+      - ValueError
+      - float
+      - isinstance
+      - set
+      - sorted
+      - values.get
+      parser: python-ast
+      dependency_targets: []
+    - name: enforcement_map
+      kind: function
+      line_start: 126
+      line_end: 135
+      signature: enforcement_map() -> dict[str, str]
+      inputs: []
+      output: dict[str, str]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
   - path: src/nerve_center/scoring/location.py
     analysis_version: 1
     language: python
@@ -833,27 +936,27 @@ source_catalog:
       - sum
       parser: python-ast
       dependency_targets:
-      - &id012
+      - &id014
         path: src/nerve_center/scoring/location.py
         symbol: _clean_labels
-      - &id013
+      - &id015
         path: src/nerve_center/scoring/location.py
         symbol: _configured_regions
-      - &id016
+      - &id018
         path: src/nerve_center/scoring/location.py
         symbol: _has_remote_listing
       - path: src/nerve_center/scoring/location.py
         symbol: _listing_rationale
       - path: src/nerve_center/scoring/location.py
         symbol: _location_base_score
-      - &id019
+      - &id021
         path: src/nerve_center/scoring/location.py
         symbol: _normalize_region
       - path: src/nerve_center/scoring/location.py
         symbol: _textual_scope
       - path: src/nerve_center/scoring/location.py
         symbol: classify_listing_locations
-      - &id018
+      - &id020
         path: src/nerve_center/persistence/scoring.py
         symbol: OpportunityScoreRepository.append
       - path: src/nerve_center/scoring/location.py
@@ -879,15 +982,15 @@ source_catalog:
       - _split_location_candidates
       parser: python-ast
       dependency_targets:
-      - *id012
-      - &id017
+      - *id014
+      - &id019
         path: src/nerve_center/scoring/location.py
         symbol: _configured_local_cities
-      - *id013
-      - &id014
+      - *id015
+      - &id016
         path: src/nerve_center/scoring/location.py
         symbol: _location_parts
-      - &id015
+      - &id017
         path: src/nerve_center/scoring/location.py
         symbol: _split_location_candidates
     - name: opening_matches_market
@@ -905,9 +1008,9 @@ source_catalog:
       - _split_location_candidates
       parser: python-ast
       dependency_targets:
-      - *id012
       - *id014
-      - *id015
+      - *id016
+      - *id017
     - name: is_specific_physical_location
       kind: function
       line_start: 252
@@ -926,12 +1029,12 @@ source_catalog:
       - len
       parser: python-ast
       dependency_targets:
+      - *id018
       - *id016
-      - *id014
-      - &id020
+      - &id022
         path: src/nerve_center/scoring/location.py
         symbol: _normalize_text
-      - *id015
+      - *id017
     - name: estimate_drive_minutes
       kind: function
       line_start: 266
@@ -995,9 +1098,9 @@ source_catalog:
       - _location_parts
       parser: python-ast
       dependency_targets:
-      - *id017
-      - *id013
-      - *id014
+      - *id019
+      - *id015
+      - *id016
     - name: _configured_local_cities
       kind: function
       line_start: 317
@@ -1011,8 +1114,8 @@ source_catalog:
       - markets.append
       parser: python-ast
       dependency_targets:
-      - *id014
-      - *id018
+      - *id016
+      - *id020
     - name: _configured_regions
       kind: function
       line_start: 329
@@ -1027,9 +1130,9 @@ source_catalog:
       - regions.add
       parser: python-ast
       dependency_targets:
-      - *id014
-      - *id019
-      - *id005
+      - *id016
+      - *id021
+      - *id007
     - name: _split_location_candidates
       kind: function
       line_start: 342
@@ -1064,8 +1167,8 @@ source_catalog:
       - value.split
       parser: python-ast
       dependency_targets:
-      - *id019
-      - *id020
+      - *id021
+      - *id022
     - name: _normalize_region
       kind: function
       line_start: 396
@@ -1079,7 +1182,7 @@ source_catalog:
       - _normalize_text
       parser: python-ast
       dependency_targets:
-      - *id020
+      - *id022
     - name: _normalize_text
       kind: function
       line_start: 401
@@ -1113,8 +1216,8 @@ source_catalog:
       - str(value).split
       parser: python-ast
       dependency_targets:
-      - *id018
-      - *id005
+      - *id020
+      - *id007
     - name: _has_remote_listing
       kind: function
       line_start: 417
@@ -1128,7 +1231,7 @@ source_catalog:
       - any
       parser: python-ast
       dependency_targets:
-      - *id020
+      - *id022
     - name: _listing_rationale
       kind: function
       line_start: 424
@@ -1198,7 +1301,7 @@ source_catalog:
       - len
       parser: python-ast
       dependency_targets:
-      - &id021
+      - &id023
         path: src/nerve_center/api/app.py
         symbol: create_app
     - name: test_unknown_task_is_rejected
@@ -1216,7 +1319,7 @@ source_catalog:
       - create_app
       parser: python-ast
       dependency_targets:
-      - *id021
+      - *id023
     - name: test_module_inventory_and_pause_gate_run_admission
       kind: function
       line_start: 71
@@ -1239,10 +1342,13 @@ source_catalog:
       - '{''code_shop'', ''job_scout''}.issubset'
       parser: python-ast
       dependency_targets:
-      - &id022
+      - &id024
         path: tests/test_api.py
         symbol: _approve_required_job_scout_permissions
-      - *id021
+      - &id025
+        path: tests/test_resource_profiles.py
+        symbol: _approve_required_job_scout_permissions
+      - *id023
     - name: test_paused_module_cannot_start_previously_queued_run
       kind: function
       line_start: 98
@@ -1262,8 +1368,9 @@ source_catalog:
       - started.json
       parser: python-ast
       dependency_targets:
-      - *id022
-      - *id021
+      - *id024
+      - *id025
+      - *id023
     - name: test_recurring_session_persists_concrete_next_window
       kind: function
       line_start: 118
@@ -1280,7 +1387,7 @@ source_catalog:
       - created.json
       parser: python-ast
       dependency_targets:
-      - *id021
+      - *id023
     - name: test_overlapping_active_sessions_are_rejected
       kind: function
       line_start: 138
@@ -1299,8 +1406,9 @@ source_catalog:
       - second.json
       parser: python-ast
       dependency_targets:
-      - *id022
-      - *id021
+      - *id024
+      - *id025
+      - *id023
     - name: test_durable_work_queue_api_lifecycle
       kind: function
       line_start: 152
@@ -1329,8 +1437,9 @@ source_catalog:
       - queue_status.json
       parser: python-ast
       dependency_targets:
-      - *id022
-      - *id021
+      - *id024
+      - *id025
+      - *id023
       - path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository.acknowledge
       - path: src/nerve_center/runtime/supervisor.py

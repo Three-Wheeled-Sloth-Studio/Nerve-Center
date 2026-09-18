@@ -456,6 +456,12 @@ source_catalog:
         path: src/nerve_center/persistence/database.py
         symbol: Database.initialize
       - &id005
+        path: src/nerve_center/persistence/resource_profiles.py
+        symbol: ResourceProfileRepository.initialize
+      - &id006
+        path: src/nerve_center/resource_profiles/service.py
+        symbol: ResourceProfileService.initialize
+      - &id007
         path: src/nerve_center/persistence/modules.py
         symbol: ModuleRepository.synchronize
     - name: test_required_permission_blocks_enablement_until_approved_and_survives_restart
@@ -485,17 +491,19 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id003
-      - &id006
+      - &id008
         path: tests/test_module_permissions.py
         symbol: _public_required
       - *id004
-      - &id007
+      - *id005
+      - *id006
+      - &id009
         path: src/nerve_center/persistence/module_permissions.py
         symbol: ModulePermissionReviewRepository.decide
-      - &id008
+      - &id010
         path: src/nerve_center/persistence/modules.py
         symbol: ModuleRepository.set_lifecycle
-      - *id005
+      - *id007
     - name: test_optional_denial_does_not_block_after_required_permissions_are_approved
       kind: function
       line_start: 145
@@ -521,11 +529,13 @@ source_catalog:
       - path: tests/test_module_permissions.py
         symbol: _browser_optional
       - *id003
-      - *id006
-      - *id004
-      - *id007
       - *id008
+      - *id004
       - *id005
+      - *id006
+      - *id009
+      - *id010
+      - *id007
     - name: test_identical_permission_set_carries_forward_but_changed_set_becomes_pending
       kind: function
       line_start: 178
@@ -551,16 +561,18 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id003
-      - *id006
+      - *id008
       - path: tests/test_module_permissions.py
         symbol: _storage_required
       - *id004
-      - *id007
-      - &id009
+      - *id005
+      - *id006
+      - *id009
+      - &id011
         path: src/nerve_center/persistence/module_permissions.py
         symbol: ModulePermissionReviewRepository.latest_for_manifest
-      - *id008
-      - *id005
+      - *id010
+      - *id007
     - name: test_review_rejects_undeclared_and_prohibited_approvals
       kind: function
       line_start: 221
@@ -583,7 +595,9 @@ source_catalog:
       dependency_targets:
       - *id003
       - *id004
-      - *id007
+      - *id005
+      - *id006
+      - *id009
       - path: src/nerve_center/persistence/module_permissions.py
         symbol: ModulePermissionReviewRepository.ensure_review
     - name: test_schema13_existing_manifest_gets_explicit_migration_approval
@@ -616,14 +630,16 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id003
-      - *id006
+      - *id008
       - *id004
+      - *id005
+      - *id006
       - path: src/nerve_center/persistence/database.py
         symbol: Database.session
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.session
-      - *id009
-      - *id005
+      - *id011
+      - *id007
       - path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: _extract_structured_employer_names.add
     - name: _connector
@@ -687,9 +703,13 @@ source_catalog:
         symbol: _checkout
       - path: tests/test_module_permissions.py
         symbol: _checkout
+      - path: tests/test_resource_profiles.py
+        symbol: _checkout
       - path: tests/test_code_shop.py
         symbol: _connector
       - path: tests/test_module_permissions.py
+        symbol: _connector
+      - path: tests/test_resource_profiles.py
         symbol: _connector
       - path: src/nerve_center/persistence/discovery.py
         symbol: SearchCacheRepository.put
@@ -738,16 +758,10 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id004
+      - *id005
+      - *id006
       - path: src/nerve_center/profile/documents.py
         symbol: import_source_document
-      - path: src/nerve_center/persistence/profile.py
-        symbol: CareerProfileRepository.get_profile
-      - path: src/nerve_center/profile/api.py
-        symbol: register_profile_routes.get_profile
-      - path: src/nerve_center/profile/service.py
-        symbol: CareerProfileStore.get_profile
-      - path: tests/test_profile_service.py
-        symbol: MemoryStore.get_profile
       - path: src/nerve_center/persistence/profile.py
         symbol: CareerProfileRepository.save_profile
       - path: src/nerve_center/profile/service.py
