@@ -270,6 +270,14 @@ DEFAULT_COVERAGE: dict[str, Any] = {
 
 MARKET_REFERENCE_QUERY_REVISION = "market_reference_v6"
 EMPLOYER_LANDSCAPE_EVIDENCE_REVISION = "employer_landscape_v2"
+ROLE_DISCOVERY_FAMILIES = {
+    "direct_role",
+    "adjacent_role",
+    "seniority_variant",
+    "domain_capability",
+    "employer_archetype",
+    "gap_reflection",
+}
 
 
 _FEEDBACK_MAGNITUDE = {
@@ -601,6 +609,41 @@ class JobScoutDiscoveryRepository:
                             "local_employer_deepen",
                         },
                         replace_families={"regional_alias_probe"},
+                    )
+
+            # Preserve one intent-aligned role-discovery path when excess company
+            # revisits would otherwise consume every unreserved slot. This keeps
+            # reflection and the configured role portfolio reachable without
+            # displacing the bounded market/employer acquisition lanes.
+            if count > 2 and not any(
+                item.dimensions.get("hypothesis_family")
+                in ROLE_DISCOVERY_FAMILIES
+                for item in selected
+            ):
+                role_candidates = sorted(
+                    (
+                        item
+                        for item in candidates
+                        if item.dimensions.get("kind") == "public_search"
+                        and item.dimensions.get("hypothesis_family")
+                        in ROLE_DISCOVERY_FAMILIES
+                    ),
+                    key=lambda item: (
+                        item.attempts,
+                        _utc_sort_value(item.last_attempt_at),
+                        item.created_at,
+                    ),
+                )
+                if role_candidates:
+                    _reserve_strategy(
+                        selected,
+                        role_candidates[0],
+                        protected_families={
+                            "local_employer",
+                            "local_employer_deepen",
+                            "regional_alias_probe",
+                        },
+                        replace_families=set(),
                     )
             return [_strategy_snapshot(item) for item in selected]
 

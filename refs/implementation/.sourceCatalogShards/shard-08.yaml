@@ -556,7 +556,7 @@ source_catalog:
   - path: tests/test_job_scout_discovery_learning.py
     analysis_version: 1
     language: python
-    content_hash: dba824b8ca85b3f2e43c3be91394de35063c92cf
+    content_hash: cfa9ea754567363f749f4f85e981c1e72c6fdbdc
     dependencies:
     - datetime
     - nerve_center.applications.models
@@ -589,6 +589,7 @@ source_catalog:
     - test_new_market_reference_revision_bypasses_prior_revision_cooldown
     - test_stale_html_employer_evidence_is_not_scheduled_but_current_and_attachment_are
     - test_reserved_acquisition_lanes_can_displace_extra_company_revisits
+    - test_role_discovery_lane_displaces_only_excess_company_revisit
     - test_normalized_attachment_evidence_bypasses_legacy_equivalent_cooldown
     symbols:
     - name: _database
@@ -1152,10 +1153,34 @@ source_catalog:
       - *id008
       - *id009
       - *id010
-    - name: test_normalized_attachment_evidence_bypasses_legacy_equivalent_cooldown
+    - name: test_role_discovery_lane_displaces_only_excess_company_revisit
       kind: function
       line_start: 954
-      line_end: 1003
+      line_end: 1004
+      signature: 'test_role_discovery_lane_displaces_only_excess_company_revisit(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - JobScoutDiscoveryRepository
+      - _database
+      - item.dimensions.get
+      - learning.ensure_strategy
+      - learning.select_strategies
+      - range
+      - sum
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - *id010
+    - name: test_normalized_attachment_evidence_bypasses_legacy_equivalent_cooldown
+      kind: function
+      line_start: 1007
+      line_end: 1056
       signature: 'test_normalized_attachment_evidence_bypasses_legacy_equivalent_cooldown(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'

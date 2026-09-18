@@ -108,7 +108,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/discovery_learning.py
     analysis_version: 1
     language: python
-    content_hash: 1f67557d3c52b255658f9699265344c86efe15c4
+    content_hash: 7955a91e8ee896b72c396b77d75c7000e8730ade
     dependencies:
     - __future__
     - dataclasses
@@ -221,8 +221,8 @@ source_catalog:
       dependency_targets: []
     - name: JobScoutDiscoveryRepository.__init__
       kind: method
-      line_start: 294
-      line_end: 295
+      line_start: 302
+      line_end: 303
       signature: 'JobScoutDiscoveryRepository.__init__(self, database: Database) -> None'
       inputs:
       - self
@@ -233,8 +233,8 @@ source_catalog:
       dependency_targets: []
     - name: JobScoutDiscoveryRepository.ensure_strategy
       kind: method
-      line_start: 297
-      line_end: 325
+      line_start: 305
+      line_end: 333
       signature: 'JobScoutDiscoveryRepository.ensure_strategy(self, dimensions: dict[str, str], origin: str, base_weight:
         float, now: datetime | None) -> DiscoveryStrategySnapshot'
       inputs:
@@ -295,8 +295,8 @@ source_catalog:
         symbol: _markdown_blocks.flush
     - name: JobScoutDiscoveryRepository.get_strategy
       kind: method
-      line_start: 327
-      line_end: 332
+      line_start: 335
+      line_end: 340
       signature: 'JobScoutDiscoveryRepository.get_strategy(self, strategy_id: str) -> DiscoveryStrategySnapshot'
       inputs:
       - self
@@ -314,8 +314,8 @@ source_catalog:
       - *id004
     - name: JobScoutDiscoveryRepository.list_strategies
       kind: method
-      line_start: 334
-      line_end: 342
+      line_start: 342
+      line_end: 350
       signature: JobScoutDiscoveryRepository.list_strategies(self) -> list[DiscoveryStrategySnapshot]
       inputs:
       - self
@@ -338,8 +338,8 @@ source_catalog:
       - *id004
     - name: JobScoutDiscoveryRepository.list_strategy_families
       kind: method
-      line_start: 344
-      line_end: 351
+      line_start: 352
+      line_end: 359
       signature: JobScoutDiscoveryRepository.list_strategy_families(self) -> list[DiscoveryStrategyFamilySnapshot]
       inputs:
       - self
@@ -363,8 +363,8 @@ source_catalog:
       - *id004
     - name: JobScoutDiscoveryRepository.select_strategies
       kind: method
-      line_start: 353
-      line_end: 605
+      line_start: 361
+      line_end: 648
       signature: 'JobScoutDiscoveryRepository.select_strategies(self, run_id: str, limit: int, exploration_floor: float, excluded_company_ids:
         set[str] | None, excluded_source_ids: set[str] | None, excluded_strategy_ids: set[str] | None, revisit_after_seconds:
         float | None, now: datetime | None) -> list[DiscoveryStrategySnapshot]'
@@ -432,8 +432,8 @@ source_catalog:
       - *id007
     - name: JobScoutDiscoveryRepository.record_attempt
       kind: method
-      line_start: 607
-      line_end: 659
+      line_start: 650
+      line_end: 702
       signature: 'JobScoutDiscoveryRepository.record_attempt(self, run_id: str, cycle: int, strategy_id: str, phase: str,
         outcome: StrategyOutcome, started_at: datetime | None, finished_at: datetime | None) -> DiscoveryStrategySnapshot'
       inputs:
@@ -473,8 +473,8 @@ source_catalog:
       - *id013
     - name: JobScoutDiscoveryRepository.record_company_evidence
       kind: method
-      line_start: 661
-      line_end: 704
+      line_start: 704
+      line_end: 747
       signature: 'JobScoutDiscoveryRepository.record_company_evidence(self, company_id: str, strategy_id: str, location_alias:
         str, provenance: dict[str, Any] | None, openings_seen: int, now: datetime | None) -> None'
       inputs:
@@ -509,8 +509,8 @@ source_catalog:
       - *id012
     - name: JobScoutDiscoveryRepository.company_evidence_count
       kind: method
-      line_start: 706
-      line_end: 714
+      line_start: 749
+      line_end: 757
       signature: 'JobScoutDiscoveryRepository.company_evidence_count(self, company_id: str) -> int'
       inputs:
       - self
@@ -532,8 +532,8 @@ source_catalog:
       - *id004
     - name: JobScoutDiscoveryRepository.sync_application_feedback
       kind: method
-      line_start: 716
-      line_end: 759
+      line_start: 759
+      line_end: 802
       signature: JobScoutDiscoveryRepository.sync_application_feedback(self) -> int
       inputs:
       - self
@@ -570,8 +570,8 @@ source_catalog:
       - *id012
     - name: JobScoutDiscoveryRepository.update_session
       kind: method
-      line_start: 761
-      line_end: 797
+      line_start: 804
+      line_end: 840
       signature: 'JobScoutDiscoveryRepository.update_session(self, run_id: str, phase: str | None, cycle: int | None, no_yield_cycles:
         int | None, increments: dict[str, int] | None, warnings: list[str] | None, now: datetime | None) -> DiscoveryCoverageSnapshot'
       inputs:
@@ -611,8 +611,8 @@ source_catalog:
       - *id013
     - name: JobScoutDiscoveryRepository.session
       kind: method
-      line_start: 799
-      line_end: 804
+      line_start: 842
+      line_end: 847
       signature: 'JobScoutDiscoveryRepository.session(self, run_id: str) -> DiscoveryCoverageSnapshot'
       inputs:
       - self
@@ -627,8 +627,8 @@ source_catalog:
       - *id014
     - name: JobScoutDiscoveryRepository.record_reflection_hypothesis
       kind: method
-      line_start: 806
-      line_end: 837
+      line_start: 849
+      line_end: 880
       signature: 'JobScoutDiscoveryRepository.record_reflection_hypothesis(self, run_id: str, cycle: int, origin: str, hypothesis:
         str, dimensions: dict[str, str], strategy_id: str | None, now: datetime | None) -> str'
       inputs:
@@ -658,8 +658,8 @@ source_catalog:
       - *id012
     - name: JobScoutDiscoveryRepository.reflection_hypotheses
       kind: method
-      line_start: 839
-      line_end: 855
+      line_start: 882
+      line_end: 898
       signature: 'JobScoutDiscoveryRepository.reflection_hypotheses(self, run_id: str) -> list[dict[str, Any]]'
       inputs:
       - self
@@ -682,8 +682,8 @@ source_catalog:
       - *id004
     - name: JobScoutDiscoveryRepository.record_reflection_request
       kind: method
-      line_start: 857
-      line_end: 876
+      line_start: 900
+      line_end: 919
       signature: 'JobScoutDiscoveryRepository.record_reflection_request(self, request_id: str, run_id: str, cycle: int, now:
         datetime | None) -> None'
       inputs:
@@ -706,8 +706,8 @@ source_catalog:
       - *id012
     - name: JobScoutDiscoveryRepository.reflection_request
       kind: method
-      line_start: 878
-      line_end: 888
+      line_start: 921
+      line_end: 931
       signature: 'JobScoutDiscoveryRepository.reflection_request(self, request_id: str) -> dict[str, Any] | None'
       inputs:
       - self
@@ -722,8 +722,8 @@ source_catalog:
       - *id004
     - name: JobScoutDiscoveryRepository.mark_reflection_applied
       kind: method
-      line_start: 890
-      line_end: 902
+      line_start: 933
+      line_end: 945
       signature: 'JobScoutDiscoveryRepository.mark_reflection_applied(self, request_id: str, now: datetime | None) -> None'
       inputs:
       - self
@@ -741,8 +741,8 @@ source_catalog:
       - *id004
     - name: _strategy_identity
       kind: function
-      line_start: 905
-      line_end: 922
+      line_start: 948
+      line_end: 965
       signature: '_strategy_identity(dimensions: dict[str, str]) -> tuple[dict[str, str], str, str]'
       inputs:
       - 'dimensions: dict[str, str]'
@@ -767,8 +767,8 @@ source_catalog:
       dependency_targets: []
     - name: strategy_family_identity
       kind: function
-      line_start: 925
-      line_end: 949
+      line_start: 968
+      line_end: 992
       signature: 'strategy_family_identity(dimensions: dict[str, str]) -> tuple[dict[str, str], str]'
       inputs:
       - 'dimensions: dict[str, str]'
@@ -792,8 +792,8 @@ source_catalog:
       dependency_targets: []
     - name: item_family_id
       kind: function
-      line_start: 952
-      line_end: 953
+      line_start: 995
+      line_end: 996
       signature: 'item_family_id(model: DiscoveryStrategyModel) -> str'
       inputs:
       - 'model: DiscoveryStrategyModel'
@@ -806,8 +806,8 @@ source_catalog:
       - *id015
     - name: _strategy_family_snapshots
       kind: function
-      line_start: 956
-      line_end: 999
+      line_start: 999
+      line_end: 1042
       signature: '_strategy_family_snapshots(models: list[DiscoveryStrategyModel]) -> list[DiscoveryStrategyFamilySnapshot]'
       inputs:
       - 'models: list[DiscoveryStrategyModel]'
@@ -845,8 +845,8 @@ source_catalog:
       - *id015
     - name: _family_learned_weight
       kind: function
-      line_start: 1002
-      line_end: 1025
+      line_start: 1045
+      line_end: 1068
       signature: '_family_learned_weight(attempts: int, opportunities_retained: int, challenge_count: int, failure_count:
         int, location_conditioned: bool, member_weights: list[float]) -> float'
       inputs:
@@ -869,8 +869,8 @@ source_catalog:
       - *id011
     - name: _employer_deepening_evidence_priority
       kind: function
-      line_start: 1028
-      line_end: 1047
+      line_start: 1071
+      line_end: 1090
       signature: '_employer_deepening_evidence_priority(dimensions: dict[str, str]) -> int'
       inputs:
       - 'dimensions: dict[str, str]'
@@ -882,8 +882,8 @@ source_catalog:
       dependency_targets: []
     - name: _employer_deepening_evidence_is_current
       kind: function
-      line_start: 1050
-      line_end: 1051
+      line_start: 1093
+      line_end: 1094
       signature: '_employer_deepening_evidence_is_current(dimensions: dict[str, str]) -> bool'
       inputs:
       - 'dimensions: dict[str, str]'
@@ -897,8 +897,8 @@ source_catalog:
         symbol: _employer_deepening_evidence_priority
     - name: _canonical_public_search_ids
       kind: function
-      line_start: 1054
-      line_end: 1127
+      line_start: 1097
+      line_end: 1170
       signature: '_canonical_public_search_ids(models: list[DiscoveryStrategyModel]) -> set[str]'
       inputs:
       - 'models: list[DiscoveryStrategyModel]'
@@ -924,8 +924,8 @@ source_catalog:
       - *id012
     - name: _strategy_snapshot
       kind: function
-      line_start: 1130
-      line_end: 1148
+      line_start: 1173
+      line_end: 1191
       signature: '_strategy_snapshot(model: DiscoveryStrategyModel) -> DiscoveryStrategySnapshot'
       inputs:
       - 'model: DiscoveryStrategyModel'
@@ -941,8 +941,8 @@ source_catalog:
         symbol: _as_utc_optional
     - name: _coverage_snapshot
       kind: function
-      line_start: 1151
-      line_end: 1158
+      line_start: 1194
+      line_end: 1201
       signature: '_coverage_snapshot(model: DiscoverySessionModel) -> DiscoveryCoverageSnapshot'
       inputs:
       - 'model: DiscoverySessionModel'
@@ -955,8 +955,8 @@ source_catalog:
       - *id018
     - name: _new_coverage
       kind: function
-      line_start: 1161
-      line_end: 1162
+      line_start: 1204
+      line_end: 1205
       signature: _new_coverage() -> dict[str, Any]
       inputs: []
       output: dict[str, Any]
@@ -965,8 +965,8 @@ source_catalog:
       dependency_targets: []
     - name: _merge_coverage
       kind: function
-      line_start: 1165
-      line_end: 1185
+      line_start: 1208
+      line_end: 1228
       signature: '_merge_coverage(current: dict[str, Any] | None, increments: dict[str, int] | None, warnings: list[str] |
         None) -> dict[str, Any]'
       inputs:
@@ -1000,8 +1000,8 @@ source_catalog:
       - *id001
     - name: _strategy_ids_for_job
       kind: function
-      line_start: 1188
-      line_end: 1204
+      line_start: 1231
+      line_end: 1247
       signature: '_strategy_ids_for_job(session: Any, job_id: str) -> set[str]'
       inputs:
       - 'session: Any'
@@ -1030,8 +1030,8 @@ source_catalog:
       - *id021
     - name: _attempt_target_weight
       kind: function
-      line_start: 1207
-      line_end: 1222
+      line_start: 1250
+      line_end: 1265
       signature: '_attempt_target_weight(outcome: StrategyOutcome) -> float'
       inputs:
       - 'outcome: StrategyOutcome'
@@ -1046,8 +1046,8 @@ source_catalog:
       - *id011
     - name: _strategy_score
       kind: function
-      line_start: 1225
-      line_end: 1259
+      line_start: 1268
+      line_end: 1302
       signature: '_strategy_score(model: DiscoveryStrategyModel, now: datetime, family_weight: float) -> float'
       inputs:
       - 'model: DiscoveryStrategyModel'
@@ -1067,8 +1067,8 @@ source_catalog:
       - *id024
     - name: _normalized_market
       kind: function
-      line_start: 1262
-      line_end: 1263
+      line_start: 1305
+      line_end: 1306
       signature: '_normalized_market(model: DiscoveryStrategyModel) -> str'
       inputs:
       - 'model: DiscoveryStrategyModel'
@@ -1083,8 +1083,8 @@ source_catalog:
       dependency_targets: []
     - name: _market_kind_priority
       kind: function
-      line_start: 1266
-      line_end: 1272
+      line_start: 1309
+      line_end: 1315
       signature: '_market_kind_priority(model: DiscoveryStrategyModel) -> int'
       inputs:
       - 'model: DiscoveryStrategyModel'
@@ -1097,8 +1097,8 @@ source_catalog:
       dependency_targets: []
     - name: _market_rank
       kind: function
-      line_start: 1275
-      line_end: 1279
+      line_start: 1318
+      line_end: 1322
       signature: '_market_rank(model: DiscoveryStrategyModel) -> int'
       inputs:
       - 'model: DiscoveryStrategyModel'
@@ -1110,8 +1110,8 @@ source_catalog:
       dependency_targets: []
     - name: _reserve_strategy
       kind: function
-      line_start: 1282
-      line_end: 1322
+      line_start: 1325
+      line_end: 1365
       signature: '_reserve_strategy(selected: list[DiscoveryStrategyModel], candidate: DiscoveryStrategyModel, protected_families:
         set[str], replace_families: set[str]) -> None'
       inputs:
@@ -1133,8 +1133,8 @@ source_catalog:
       dependency_targets: []
     - name: _utc_sort_value
       kind: function
-      line_start: 1325
-      line_end: 1328
+      line_start: 1368
+      line_end: 1371
       signature: '_utc_sort_value(value: datetime | None) -> float'
       inputs:
       - 'value: datetime | None'
@@ -1149,8 +1149,8 @@ source_catalog:
       - *id024
     - name: _as_utc
       kind: function
-      line_start: 1331
-      line_end: 1332
+      line_start: 1374
+      line_end: 1375
       signature: '_as_utc(value: datetime) -> datetime'
       inputs:
       - 'value: datetime'
@@ -1161,8 +1161,8 @@ source_catalog:
       dependency_targets: []
     - name: _as_utc_optional
       kind: function
-      line_start: 1335
-      line_end: 1336
+      line_start: 1378
+      line_end: 1379
       signature: '_as_utc_optional(value: datetime | None) -> datetime | None'
       inputs:
       - 'value: datetime | None'
@@ -1176,8 +1176,8 @@ source_catalog:
       - *id024
     - name: _clamp
       kind: function
-      line_start: 1339
-      line_end: 1340
+      line_start: 1382
+      line_end: 1383
       signature: '_clamp(value: float, minimum: float, maximum: float) -> float'
       inputs:
       - 'value: float'

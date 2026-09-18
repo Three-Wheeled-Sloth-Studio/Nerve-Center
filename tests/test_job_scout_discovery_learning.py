@@ -951,6 +951,59 @@ def test_reserved_acquisition_lanes_can_displace_extra_company_revisits(
     assert selected_ids & {item.id for item in companies}
 
 
+def test_role_discovery_lane_displaces_only_excess_company_revisit(
+    tmp_path: Path,
+) -> None:
+    learning = JobScoutDiscoveryRepository(_database(tmp_path))
+    companies = [
+        learning.ensure_strategy(
+            {"kind": "company_revisit", "company_id": f"company-{index}"},
+            origin="known_company",
+            base_weight=4.0,
+        )
+        for index in range(6)
+    ]
+    local = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer",
+            "anchor": "major employers",
+            "location": "Example, NC",
+            "source_domain": "web",
+            "market_kind": "configured",
+            "market_rank": "0",
+            "query_revision": "market_reference_v6",
+        },
+        origin="market",
+        base_weight=0.2,
+    )
+    role = learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "adjacent_role",
+            "anchor": "Senior UX Researcher",
+            "source_domain": "web",
+        },
+        origin="llm_gap_reflection",
+        base_weight=0.2,
+    )
+
+    selected = learning.select_strategies(
+        "run-1",
+        limit=4,
+        exploration_floor=0.0,
+    )
+    selected_ids = {item.id for item in selected}
+
+    assert local.id in selected_ids
+    assert role.id in selected_ids
+    assert sum(
+        item.dimensions.get("kind") == "company_revisit"
+        for item in selected
+    ) == 2
+    assert selected_ids & {item.id for item in companies}
+
+
 def test_normalized_attachment_evidence_bypasses_legacy_equivalent_cooldown(
     tmp_path: Path,
 ) -> None:
