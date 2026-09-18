@@ -6,6 +6,29 @@ from nerve_center.api.app import create_app
 from nerve_center.config import Settings
 
 
+def _approve_required_job_scout_permissions(client: TestClient) -> None:
+    reviews = client.get(
+        "/api/v1/module-permissions",
+        params={"module_id": "job_scout"},
+    ).json()
+    assert len(reviews) == 1
+    review = reviews[0]
+    for permission in review["permissions"]:
+        if not permission["required"]:
+            continue
+        response = client.post(
+            f"/api/v1/module-permissions/{review['id']}/permissions/"
+            f"{permission['key']}/approve",
+            json={"actor": "test", "provenance": {"source": "test_api"}},
+        )
+        assert response.status_code == 200
+    enabled = client.patch(
+        "/api/v1/modules/job_scout",
+        json={"lifecycle_state": "enabled"},
+    )
+    assert enabled.status_code == 200
+
+
 def test_health_and_run_lifecycle(tmp_path: Path) -> None:
     app = create_app(Settings(data_dir=tmp_path))
 
@@ -49,6 +72,7 @@ def test_module_inventory_and_pause_gate_run_admission(tmp_path: Path) -> None:
     app = create_app(Settings(data_dir=tmp_path))
 
     with TestClient(app) as client:
+        _approve_required_job_scout_permissions(client)
         modules = client.get("/api/v1/modules")
         paused = client.patch(
             "/api/v1/modules/job_scout",
@@ -75,6 +99,7 @@ def test_paused_module_cannot_start_previously_queued_run(tmp_path: Path) -> Non
     app = create_app(Settings(data_dir=tmp_path))
 
     with TestClient(app) as client:
+        _approve_required_job_scout_permissions(client)
         created = client.post(
             "/api/v1/runs",
             json={"task_id": "job_scout.discovery", "duration_seconds": 60},
@@ -114,6 +139,7 @@ def test_overlapping_active_sessions_are_rejected(tmp_path: Path) -> None:
     app = create_app(Settings(data_dir=tmp_path))
 
     with TestClient(app) as client:
+        _approve_required_job_scout_permissions(client)
         first = client.post("/api/v1/sessions", json={"duration_seconds": 60})
         second = client.post("/api/v1/sessions", json={"duration_seconds": 60})
         client.post(f"/api/v1/sessions/{first.json()['id']}/emergency-stop")
@@ -127,6 +153,7 @@ def test_durable_work_queue_api_lifecycle(tmp_path: Path) -> None:
     app = create_app(Settings(data_dir=tmp_path))
 
     with TestClient(app) as client:
+        _approve_required_job_scout_permissions(client)
         run = client.post(
             "/api/v1/runs",
             json={"task_id": "job_scout.discovery", "duration_seconds": 60},
