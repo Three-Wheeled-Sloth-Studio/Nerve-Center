@@ -57,6 +57,7 @@ from nerve_center.persistence.modules import ModuleNotFoundError, ModuleReposito
 from nerve_center.persistence.providers import ModelEvidenceRepository, ProviderCallRepository
 from nerve_center.persistence.runs import RunRepository
 from nerve_center.persistence.sessions import SessionNotFoundError, SessionRepository
+from nerve_center.persistence.summary import SummaryRepository
 from nerve_center.persistence.work_queue import WorkQueueRepository
 from nerve_center.plugins.code_shop.bootstrap import install_code_shop
 from nerve_center.plugins.job_scout.bootstrap import install_job_scout
@@ -74,6 +75,8 @@ from nerve_center.scheduler.runner import RunnerService
 from nerve_center.scheduler.service import SchedulerService
 from nerve_center.scheduler.sessions import WorkSessionConflictError, WorkSessionService
 from nerve_center.scheduler.work_queue import WorkQueueService
+from nerve_center.summary.api import register_summary_routes
+from nerve_center.summary.service import SummaryService
 
 LOCAL_DESKTOP_ORIGINS = [
     "http://127.0.0.1:1420",
@@ -97,6 +100,7 @@ def create_app(
     model_evidence = ModelEvidenceRepository(database)
     model_lab_repository = ModelLabRepository(database)
     attention = AttentionService(AttentionRepository(database))
+    summary = SummaryService(SummaryRepository(database))
     work_queue = WorkQueueService(
         WorkQueueRepository(database), model_evidence=model_evidence
     )
@@ -226,8 +230,10 @@ def create_app(
     application.state.provider_manager = provider_manager
     application.state.model_lab = model_lab
     application.state.attention = attention
+    application.state.summary = summary
     register_runtime_routes(application, module_supervisor)
     register_attention_routes(application, attention)
+    register_summary_routes(application, summary)
     register_model_lab_routes(application, model_lab)
 
     def queue_error(error: Exception) -> HTTPException:
