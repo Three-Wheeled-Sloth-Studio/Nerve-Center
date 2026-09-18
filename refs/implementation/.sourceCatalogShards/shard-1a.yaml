@@ -353,7 +353,7 @@ source_catalog:
   - path: tests/test_job_scout_query_portfolio.py
     analysis_version: 1
     language: python
-    content_hash: b018f8d6fa536d69b9607ee68fdc8040c8a555e6
+    content_hash: 2b970c39b56353fa765cf27e22c6850f39d39999
     dependencies:
     - asyncio
     - nerve_center.config
@@ -595,7 +595,7 @@ source_catalog:
     - name: test_reflection_semantics_reject_low_intent_and_preserve_adjacent_roles
       kind: function
       line_start: 330
-      line_end: 402
+      line_end: 427
       signature: test_reflection_semantics_reject_low_intent_and_preserve_adjacent_roles() -> None
       inputs: []
       output: None
@@ -606,8 +606,8 @@ source_catalog:
       - *id008
     - name: _NoNetworkSearch.__init__
       kind: method
-      line_start: 406
-      line_end: 407
+      line_start: 431
+      line_end: 432
       signature: _NoNetworkSearch.__init__(self) -> None
       inputs:
       - self
@@ -617,8 +617,8 @@ source_catalog:
       dependency_targets: []
     - name: _NoNetworkSearch.search
       kind: method
-      line_start: 409
-      line_end: 411
+      line_start: 434
+      line_end: 436
       signature: '_NoNetworkSearch.search(self, _query: str) -> list[object]'
       inputs:
       - self
@@ -629,8 +629,8 @@ source_catalog:
       dependency_targets: []
     - name: _ConfigStore.load
       kind: method
-      line_start: 415
-      line_end: 422
+      line_start: 440
+      line_end: 447
       signature: _ConfigStore.load(self) -> JobScoutConfiguration
       inputs:
       - self
@@ -641,8 +641,8 @@ source_catalog:
       dependency_targets: []
     - name: _Coordinator.__init__
       kind: method
-      line_start: 426
-      line_end: 427
+      line_start: 451
+      line_end: 452
       signature: _Coordinator.__init__(self) -> None
       inputs:
       - self
@@ -653,8 +653,8 @@ source_catalog:
       dependency_targets: []
     - name: _Coordinator._discover_keywords
       kind: method
-      line_start: 429
-      line_end: 430
+      line_start: 454
+      line_end: 455
       signature: '_Coordinator._discover_keywords(self, _configuration: JobScoutConfiguration) -> SimpleNamespace'
       inputs:
       - self
@@ -666,8 +666,8 @@ source_catalog:
       dependency_targets: []
     - name: test_invalid_strategy_is_rejected_before_network_request
       kind: function
-      line_start: 433
-      line_end: 451
+      line_start: 458
+      line_end: 476
       signature: test_invalid_strategy_is_rejected_before_network_request() -> None
       inputs: []
       output: None
@@ -688,8 +688,8 @@ source_catalog:
         symbol: SourceAwareJobScoutDiscoveryLoop._execute_public_search
     - name: test_cross_strategy_convergence_promotes_deepening_not_fit
       kind: function
-      line_start: 454
-      line_end: 485
+      line_start: 479
+      line_end: 510
       signature: 'test_cross_strategy_convergence_promotes_deepening_not_fit(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -729,8 +729,8 @@ source_catalog:
         symbol: DiscoveryQualityRepository.record_company_evidence
     - name: test_strategy_attempt_audit_records_weight_movement
       kind: function
-      line_start: 488
-      line_end: 523
+      line_start: 513
+      line_end: 548
       signature: 'test_strategy_attempt_audit_records_weight_movement(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -755,8 +755,8 @@ source_catalog:
       - *id013
     - name: test_structured_refresh_gets_one_time_initial_preference
       kind: function
-      line_start: 526
-      line_end: 540
+      line_start: 551
+      line_end: 565
       signature: 'test_structured_refresh_gets_one_time_initial_preference(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -781,8 +781,8 @@ source_catalog:
         symbol: DiscoveryQualityRepository.promote_initial_structured_refresh
     - name: test_due_structured_source_is_preferred_through_real_seeding_path
       kind: function
-      line_start: 543
-      line_end: 565
+      line_start: 568
+      line_end: 590
       signature: 'test_due_structured_source_is_preferred_through_real_seeding_path(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -812,8 +812,8 @@ source_catalog:
         symbol: SourceAwareJobScoutDiscoveryLoop._seed_due_source_strategies
     - name: test_unhealthy_structured_source_gets_no_initial_priority_bonus
       kind: function
-      line_start: 568
-      line_end: 591
+      line_start: 593
+      line_end: 616
       signature: 'test_unhealthy_structured_source_gets_no_initial_priority_bonus(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -839,8 +839,8 @@ source_catalog:
       - *id017
     - name: test_stale_invented_archetype_does_not_perpetuate_coverage_gap
       kind: function
-      line_start: 594
-      line_end: 619
+      line_start: 619
+      line_end: 644
       signature: 'test_stale_invented_archetype_does_not_perpetuate_coverage_gap(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -864,8 +864,8 @@ source_catalog:
       - *id015
     - name: test_reflection_result_rejects_low_intent_strategies_before_persistence
       kind: function
-      line_start: 622
-      line_end: 690
+      line_start: 647
+      line_end: 728
       signature: 'test_reflection_result_rejects_low_intent_strategies_before_persistence(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -897,8 +897,8 @@ source_catalog:
         symbol: SourceAwareJobScoutDiscoveryLoop.apply_reflection_result
     - name: test_reflection_eligibility_quarantines_invalid_persisted_strategy
       kind: function
-      line_start: 693
-      line_end: 737
+      line_start: 731
+      line_end: 775
       signature: 'test_reflection_eligibility_quarantines_invalid_persisted_strategy(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -926,8 +926,8 @@ source_catalog:
         symbol: SourceAwareJobScoutDiscoveryLoop._ineligible_strategy_ids
     - name: test_coverage_gaps_are_explicit_and_bounded
       kind: function
-      line_start: 740
-      line_end: 798
+      line_start: 778
+      line_end: 836
       signature: 'test_coverage_gaps_are_explicit_and_bounded(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -954,8 +954,8 @@ source_catalog:
       - *id015
     - name: test_reflection_work_is_explicitly_gap_driven
       kind: function
-      line_start: 801
-      line_end: 819
+      line_start: 839
+      line_end: 857
       signature: 'test_reflection_work_is_explicitly_gap_driven(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'

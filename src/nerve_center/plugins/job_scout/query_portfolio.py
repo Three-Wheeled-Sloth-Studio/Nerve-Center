@@ -422,14 +422,26 @@ def lint_query_dimensions(
             return QueryLintResult(False, ("seniority_mismatch",))
 
     archetype = " ".join(dimensions.get("employer_archetype", "").split()).strip()
-    if family == "employer_archetype":
-        if not archetype:
-            return QueryLintResult(False, ("missing_employer_archetype",))
-        supported_archetypes = {
-            _normalize_phrase(item) for item in _archetype_terms(evidence)
+    supported_archetypes = {
+        _normalize_phrase(item) for item in _archetype_terms(evidence)
+    }
+    if family == "employer_archetype" and not archetype:
+        return QueryLintResult(False, ("missing_employer_archetype",))
+    if archetype and _normalize_phrase(archetype) not in supported_archetypes:
+        return QueryLintResult(False, ("unsupported_employer_archetype",))
+    if (
+        family in {
+            "direct_role",
+            "adjacent_role",
+            "seniority_variant",
+            "domain_capability",
+            "employer_archetype",
+            "gap_reflection",
         }
-        if _normalize_phrase(archetype) not in supported_archetypes:
-            return QueryLintResult(False, ("unsupported_employer_archetype",))
+        and _archetype_terms([anchor])
+        and normalized_anchor not in supported_archetypes
+    ):
+        return QueryLintResult(False, ("unsupported_employer_archetype_anchor",))
 
     exclusions = _split_terms(dimensions.get("exclude", ""))
     contradictory = sorted(anchor_tokens & {_normalize_term(item) for item in exclusions})

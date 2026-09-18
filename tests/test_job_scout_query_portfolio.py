@@ -379,6 +379,25 @@ def test_reflection_semantics_reject_low_intent_and_preserve_adjacent_roles() ->
         },
         evidence_terms=evidence,
     )
+    disguised_archetype = compile_strategy_query(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "gap_reflection",
+            "anchor": "Human-Centered Design Company local employer",
+            "source_domain": "web",
+        },
+        evidence_terms=evidence,
+    )
+    cross_family_archetype = compile_strategy_query(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "domain_capability",
+            "anchor": "Design Roles",
+            "employer_archetype": "Human-Centered Design company",
+            "source_domain": "dribbble.com",
+        },
+        evidence_terms=evidence,
+    )
     adjacent = compile_strategy_query(
         {
             "kind": "public_search",
@@ -399,6 +418,12 @@ def test_reflection_semantics_reject_low_intent_and_preserve_adjacent_roles() ->
     assert mislabeled_archetype.warnings == ("missing_employer_archetype",)
     assert mislabeled_capability.valid is False
     assert mislabeled_capability.warnings == ("seniority_mismatch",)
+    assert disguised_archetype.valid is False
+    assert disguised_archetype.warnings == (
+        "unsupported_employer_archetype_anchor",
+    )
+    assert cross_family_archetype.valid is False
+    assert cross_family_archetype.warnings == ("unsupported_employer_archetype",)
     assert adjacent.valid is True
 
 
@@ -676,6 +701,19 @@ def test_reflection_result_rejects_low_intent_strategies_before_persistence(
                     "anchor": "Product Management Internship",
                     "source_domain": "web",
                     "rationale": "Lower the requested seniority.",
+                },
+                {
+                    "hypothesis_family": "gap_reflection",
+                    "anchor": "Human-Centered Design Company local employer",
+                    "source_domain": "web",
+                    "rationale": "Hide an invented employer class in the anchor.",
+                },
+                {
+                    "hypothesis_family": "domain_capability",
+                    "anchor": "Design Roles",
+                    "employer_archetype": "Human-Centered Design company",
+                    "source_domain": "dribbble.com",
+                    "rationale": "Hide an invented employer class in another family.",
                 },
             ]
         },
