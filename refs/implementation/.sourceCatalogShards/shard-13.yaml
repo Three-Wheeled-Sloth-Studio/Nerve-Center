@@ -1164,7 +1164,8 @@ source_catalog:
       - response.json
       parser: python-ast
       dependency_targets:
-      - path: src/nerve_center/api/app.py
+      - &id022
+        path: src/nerve_center/api/app.py
         symbol: create_app
     - name: _queue_spec
       kind: function
@@ -1181,3 +1182,213 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id008
+  - path: tests/test_summary.py
+    analysis_version: 1
+    language: python
+    content_hash: 37ccbd742b651aeefb712c1740b078ce36ec514e
+    dependencies:
+    - datetime
+    - fastapi.testclient
+    - nerve_center.api.app
+    - nerve_center.attention.domain
+    - nerve_center.code_shop.domain
+    - nerve_center.config
+    - nerve_center.domain.run
+    - nerve_center.domain.run_window
+    - nerve_center.domain.work_queue
+    - nerve_center.persistence.attention
+    - nerve_center.persistence.code_shop
+    - nerve_center.persistence.database
+    - nerve_center.persistence.model_lab
+    - nerve_center.persistence.runs
+    - nerve_center.persistence.work_queue
+    - pathlib
+    provides:
+    - _window
+    - _terminal_run
+    - _query
+    - test_summary_empty_window_and_invalid_window_are_deterministic
+    - test_summary_aggregates_only_durable_attributable_window_evidence
+    - test_summary_survives_restart_and_has_no_mutation_side_effects
+    symbols:
+    - name: _window
+      kind: function
+      line_start: 21
+      line_end: 22
+      signature: '_window(now: datetime) -> tuple[datetime, datetime]'
+      inputs:
+      - 'now: datetime'
+      output: tuple[datetime, datetime]
+      dependencies:
+      - timedelta
+      parser: python-ast
+      dependency_targets: []
+    - name: _terminal_run
+      kind: function
+      line_start: 25
+      line_end: 51
+      signature: '_terminal_run(repository: RunRepository, task_id: str, status: RunStatus, now: datetime, summary: str) ->
+        str'
+      inputs:
+      - 'repository: RunRepository'
+      - 'task_id: str'
+      - 'status: RunStatus'
+      - 'now: datetime'
+      - 'summary: str'
+      output: str
+      dependencies:
+      - DurationRunWindow
+      - repository.create
+      - repository.transition
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - *id019
+      - *id020
+      - *id021
+      - path: src/nerve_center/persistence/attention.py
+        symbol: AttentionRepository.transition
+      - path: src/nerve_center/persistence/runs.py
+        symbol: RunRepository.transition
+    - name: _query
+      kind: function
+      line_start: 54
+      line_end: 60
+      signature: '_query(client: TestClient, start: datetime, end: datetime) -> dict'
+      inputs:
+      - 'client: TestClient'
+      - 'start: datetime'
+      - 'end: datetime'
+      output: dict
+      dependencies:
+      - client.get
+      - end.isoformat
+      - response.json
+      - start.isoformat
+      parser: python-ast
+      dependency_targets: []
+    - name: test_summary_empty_window_and_invalid_window_are_deterministic
+      kind: function
+      line_start: 63
+      line_end: 86
+      signature: 'test_summary_empty_window_and_invalid_window_are_deterministic(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Settings
+      - TestClient
+      - _query
+      - client.get
+      - create_app
+      - datetime
+      - end.isoformat
+      - start.isoformat
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - &id023
+        path: tests/test_summary.py
+        symbol: _query
+      - *id022
+    - name: test_summary_aggregates_only_durable_attributable_window_evidence
+      kind: function
+      line_start: 89
+      line_end: 268
+      signature: 'test_summary_aggregates_only_durable_attributable_window_evidence(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - AttentionRepository
+      - CodeShopRepository
+      - Database
+      - GitHubRepositoryIdentity
+      - ModelLabRepository
+      - RunRepository
+      - Settings
+      - TestClient
+      - WorkQueueRepository
+      - WorkRequestSpec
+      - _query
+      - _terminal_run
+      - _window
+      - attention.submit
+      - code_shop.create_task
+      - code_shop.record_attempt
+      - code_shop.upsert_project
+      - create_app
+      - database.initialize
+      - datetime.now
+      - model_lab.add_corpus
+      - model_lab.record_result
+      - model_lab.start_session
+      - queue.claim_next
+      parser: python-ast
+      dependency_targets:
+      - *id023
+      - &id024
+        path: tests/test_module_runtime_integration.py
+        symbol: _terminal_run
+      - &id025
+        path: tests/test_summary.py
+        symbol: _terminal_run
+      - &id026
+        path: tests/test_summary.py
+        symbol: _window
+      - path: src/nerve_center/code_shop/api.py
+        symbol: register_code_shop_routes.create_task
+      - path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.create_task
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.create_task
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.upsert_project
+      - *id022
+      - *id018
+      - path: src/nerve_center/persistence/model_lab.py
+        symbol: ModelLabRepository.add_corpus
+      - path: src/nerve_center/persistence/model_lab.py
+        symbol: ModelLabRepository.record_result
+      - path: src/nerve_center/api/app.py
+        symbol: create_app.start_session
+      - path: src/nerve_center/model_lab/api.py
+        symbol: register_model_lab_routes.start_session
+      - path: src/nerve_center/persistence/model_lab.py
+        symbol: ModelLabRepository.start_session
+      - path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository.claim_next
+      - path: src/nerve_center/scheduler/work_queue.py
+        symbol: WorkQueueService.claim_next
+    - name: test_summary_survives_restart_and_has_no_mutation_side_effects
+      kind: function
+      line_start: 271
+      line_end: 328
+      signature: 'test_summary_survives_restart_and_has_no_mutation_side_effects(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - AttentionRepository
+      - Database
+      - RunRepository
+      - Settings
+      - TestClient
+      - _query
+      - _terminal_run
+      - _window
+      - attention.get
+      - attention.submit
+      - client.get
+      - client.get('/api/v1/attention/dependencies/restart:test/blocked').json
+      - create_app
+      - database.initialize
+      - datetime.now
+      parser: python-ast
+      dependency_targets:
+      - *id023
+      - *id024
+      - *id025
+      - *id026
+      - *id022
+      - *id018

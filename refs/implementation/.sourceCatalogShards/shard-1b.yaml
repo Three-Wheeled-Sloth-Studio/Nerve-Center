@@ -63,6 +63,13 @@ source_catalog:
     - nerve_center.discovery.connectors.sitemap
     provides: []
     symbols: []
+  - path: src/nerve_center/summary/__init__.py
+    analysis_version: 1
+    language: python
+    content_hash: 84949649a13ebefb401ca647aeb79f5741b353e6
+    dependencies: []
+    provides: []
+    symbols: []
   - path: tests/test_job_scout_continuous_session.py
     analysis_version: 1
     language: python

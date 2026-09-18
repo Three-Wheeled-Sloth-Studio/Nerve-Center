@@ -286,6 +286,68 @@ source_catalog:
     - nerve_center.profile.models
     provides: []
     symbols: []
+  - path: src/nerve_center/summary/service.py
+    analysis_version: 1
+    language: python
+    content_hash: 0b929b3a95e3ddf28c44e5db6ab9e31ac6f59da7
+    dependencies:
+    - __future__
+    - datetime
+    - nerve_center.persistence.summary
+    - nerve_center.summary.domain
+    provides:
+    - SummaryService.__init__
+    - SummaryService.snapshot
+    - _utc
+    symbols:
+    - name: SummaryService.__init__
+      kind: method
+      line_start: 12
+      line_end: 13
+      signature: 'SummaryService.__init__(self, repository: SummaryRepository) -> None'
+      inputs:
+      - self
+      - 'repository: SummaryRepository'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: SummaryService.snapshot
+      kind: method
+      line_start: 15
+      line_end: 29
+      signature: 'SummaryService.snapshot(self, starts_at: datetime, ends_at: datetime) -> SummarySnapshot'
+      inputs:
+      - self
+      - 'starts_at: datetime'
+      - 'ends_at: datetime'
+      output: SummarySnapshot
+      dependencies:
+      - SummarySnapshot
+      - ValueError
+      - _utc
+      - self.repository.list_items
+      - tuple
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/attention/api.py
+        symbol: register_attention_routes.list_items
+      - path: src/nerve_center/persistence/summary.py
+        symbol: SummaryRepository.list_items
+    - name: _utc
+      kind: function
+      line_start: 32
+      line_end: 35
+      signature: '_utc(value: datetime) -> datetime'
+      inputs:
+      - 'value: datetime'
+      output: datetime
+      dependencies:
+      - ValueError
+      - value.astimezone
+      - value.utcoffset
+      parser: python-ast
+      dependency_targets: []
   - path: tests/test_profile_persistence.py
     analysis_version: 1
     language: python

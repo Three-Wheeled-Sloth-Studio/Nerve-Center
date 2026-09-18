@@ -386,6 +386,8 @@ source_catalog:
         symbol: SourceAwareJobScoutDiscoveryLoop.reflection_work_request
       - path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: JobScoutDiscoveryLoop.summary
+      - path: src/nerve_center/summary/api.py
+        symbol: register_summary_routes.summary
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.record_reflection_request
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py

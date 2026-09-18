@@ -1311,6 +1311,18 @@ source_catalog:
       dependency_targets:
       - *id025
       - *id026
+  - path: src/nerve_center/summary/domain.py
+    analysis_version: 1
+    language: python
+    content_hash: e5d77881f6419a801da6a52b0e36beef37ecb4cb
+    dependencies:
+    - __future__
+    - dataclasses
+    - datetime
+    - enum
+    - typing
+    provides: []
+    symbols: []
   - path: tests/test_discovery_api.py
     analysis_version: 1
     language: python

@@ -2124,3 +2124,59 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id031
+  - path: src/nerve_center/summary/api.py
+    analysis_version: 1
+    language: python
+    content_hash: 931f7de7d99c646e9eb7ec62841e18e7bc34ebbd
+    dependencies:
+    - __future__
+    - dataclasses
+    - datetime
+    - fastapi
+    - nerve_center.summary.service
+    - typing
+    provides:
+    - register_summary_routes
+    - register_summary_routes.summary
+    symbols:
+    - name: register_summary_routes
+      kind: function
+      line_start: 14
+      line_end: 23
+      signature: 'register_summary_routes(application: FastAPI, service: SummaryService) -> None'
+      inputs:
+      - 'application: FastAPI'
+      - 'service: SummaryService'
+      output: None
+      dependencies:
+      - HTTPException
+      - Query
+      - application.get
+      - asdict
+      - service.snapshot
+      - str
+      parser: python-ast
+      dependency_targets:
+      - &id040
+        path: src/nerve_center/summary/service.py
+        symbol: SummaryService.snapshot
+    - name: register_summary_routes.summary
+      kind: function
+      line_start: 16
+      line_end: 23
+      signature: 'register_summary_routes.summary(starts_at: Annotated[datetime, Query()], ends_at: Annotated[datetime, Query()])
+        -> dict[str, Any]'
+      inputs:
+      - 'starts_at: Annotated[datetime, Query()]'
+      - 'ends_at: Annotated[datetime, Query()]'
+      output: dict[str, Any]
+      dependencies:
+      - HTTPException
+      - Query
+      - application.get
+      - asdict
+      - service.snapshot
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id040

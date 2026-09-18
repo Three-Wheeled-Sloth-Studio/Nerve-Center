@@ -4,6 +4,274 @@ source_catalog:
   format_version: 1
   bucket: 1a
   files:
+  - path: src/nerve_center/persistence/summary.py
+    analysis_version: 1
+    language: python
+    content_hash: 9cd215f7fef4385c6a0d6fc3de45921d6c92d418
+    dependencies:
+    - __future__
+    - datetime
+    - nerve_center.attention.domain
+    - nerve_center.persistence.attention
+    - nerve_center.persistence.code_shop
+    - nerve_center.persistence.database
+    - nerve_center.persistence.model_lab
+    - nerve_center.persistence.models
+    - nerve_center.summary.domain
+    - sqlalchemy
+    provides:
+    - SummaryRepository.__init__
+    - SummaryRepository.list_items
+    - SummaryRepository._run_items
+    - SummaryRepository._failed_work_items
+    - SummaryRepository._attention_items
+    - SummaryRepository._comparison_items
+    - SummaryRepository._code_shop_items
+    - _module_by_task
+    - _utc
+    - _required_utc
+    symbols:
+    - name: SummaryRepository.__init__
+      kind: method
+      line_start: 19
+      line_end: 20
+      signature: 'SummaryRepository.__init__(self, database: Database) -> None'
+      inputs:
+      - self
+      - 'database: Database'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: SummaryRepository.list_items
+      kind: method
+      line_start: 22
+      line_end: 43
+      signature: 'SummaryRepository.list_items(self, starts_at: datetime, ends_at: datetime) -> list[SummaryItem]'
+      inputs:
+      - self
+      - 'starts_at: datetime'
+      - 'ends_at: datetime'
+      output: list[SummaryItem]
+      dependencies:
+      - _module_by_task
+      - _utc
+      - select
+      - self._attention_items
+      - self._code_shop_items
+      - self._comparison_items
+      - self._failed_work_items
+      - self._run_items
+      - self.database.session
+      - session.scalars
+      - session.scalars(select(ModuleModel)).all
+      - sorted
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/summary.py
+        symbol: _module_by_task
+      - &id001
+        path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager.select
+      - path: src/nerve_center/persistence/summary.py
+        symbol: SummaryRepository._attention_items
+      - path: src/nerve_center/persistence/summary.py
+        symbol: SummaryRepository._code_shop_items
+      - path: src/nerve_center/persistence/summary.py
+        symbol: SummaryRepository._comparison_items
+      - path: src/nerve_center/persistence/summary.py
+        symbol: SummaryRepository._failed_work_items
+      - path: src/nerve_center/persistence/summary.py
+        symbol: SummaryRepository._run_items
+      - &id016
+        path: src/nerve_center/persistence/database.py
+        symbol: Database.session
+      - &id017
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.session
+    - name: SummaryRepository._run_items
+      kind: method
+      line_start: 46
+      line_end: 85
+      signature: 'SummaryRepository._run_items(session: object, starts_at: datetime, ends_at: datetime, module_by_task: dict[str,
+        str]) -> list[SummaryItem]'
+      inputs:
+      - 'session: object'
+      - 'starts_at: datetime'
+      - 'ends_at: datetime'
+      - 'module_by_task: dict[str, str]'
+      output: list[SummaryItem]
+      dependencies:
+      - RunModel.finished_at.is_not
+      - RunModel.status.in_
+      - SummaryItem
+      - _required_utc
+      - items.append
+      - module_by_task.get
+      - select
+      - select(RunModel).where
+      - session.scalars
+      - session.scalars(select(RunModel).where(RunModel.finished_at.is_not(None), RunModel.finished_at >= starts_at, RunModel.finished_at
+        < ends_at, RunModel.status.in_(('succeeded', 'partial', 'failed', 'missed')))).all
+      parser: python-ast
+      dependency_targets:
+      - &id002
+        path: src/nerve_center/persistence/summary.py
+        symbol: _required_utc
+      - &id003
+        path: src/nerve_center/persistence/work_queue.py
+        symbol: _required_utc
+      - &id004
+        path: src/nerve_center/persistence/scoring.py
+        symbol: OpportunityScoreRepository.append
+      - *id001
+    - name: SummaryRepository._failed_work_items
+      kind: method
+      line_start: 88
+      line_end: 119
+      signature: 'SummaryRepository._failed_work_items(session: object, starts_at: datetime, ends_at: datetime) -> list[SummaryItem]'
+      inputs:
+      - 'session: object'
+      - 'starts_at: datetime'
+      - 'ends_at: datetime'
+      output: list[SummaryItem]
+      dependencies:
+      - SummaryItem
+      - WorkRequestModel.completed_at.is_not
+      - _required_utc
+      - select
+      - select(WorkRequestModel).where
+      - session.scalars
+      - session.scalars(select(WorkRequestModel).where(WorkRequestModel.status == 'failed', WorkRequestModel.completed_at.is_not(None),
+        WorkRequestModel.completed_at >= starts_at, WorkRequestModel.completed_at < ends_at)).all
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id001
+    - name: SummaryRepository._attention_items
+      kind: method
+      line_start: 122
+      line_end: 159
+      signature: 'SummaryRepository._attention_items(session: object, starts_at: datetime, ends_at: datetime) -> list[SummaryItem]'
+      inputs:
+      - 'session: object'
+      - 'starts_at: datetime'
+      - 'ends_at: datetime'
+      output: list[SummaryItem]
+      dependencies:
+      - SummaryItem
+      - _required_utc
+      - items.append
+      - list
+      - select
+      - select(AttentionItemModel).where
+      - session.scalars
+      - session.scalars(select(AttentionItemModel).where(AttentionItemModel.state == AttentionState.OPEN.value, AttentionItemModel.created_at
+        >= starts_at, AttentionItemModel.created_at < ends_at)).all
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id004
+      - *id001
+    - name: SummaryRepository._comparison_items
+      kind: method
+      line_start: 162
+      line_end: 197
+      signature: 'SummaryRepository._comparison_items(session: object, starts_at: datetime, ends_at: datetime) -> list[SummaryItem]'
+      inputs:
+      - 'session: object'
+      - 'starts_at: datetime'
+      - 'ends_at: datetime'
+      output: list[SummaryItem]
+      dependencies:
+      - SummaryItem
+      - _required_utc
+      - select
+      - select(BenchmarkResultModel, BenchmarkCorpusModel).join
+      - select(BenchmarkResultModel, BenchmarkCorpusModel).join(BenchmarkCorpusModel, BenchmarkCorpusModel.id == BenchmarkResultModel.corpus_id).where
+      - session.execute
+      - session.execute(select(BenchmarkResultModel, BenchmarkCorpusModel).join(BenchmarkCorpusModel, BenchmarkCorpusModel.id
+        == BenchmarkResultModel.corpus_id).where(BenchmarkResultModel.created_at >= starts_at, BenchmarkResultModel.created_at
+        < ends_at)).all
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id001
+    - name: SummaryRepository._code_shop_items
+      kind: method
+      line_start: 200
+      line_end: 241
+      signature: 'SummaryRepository._code_shop_items(session: object, starts_at: datetime, ends_at: datetime) -> list[SummaryItem]'
+      inputs:
+      - 'session: object'
+      - 'starts_at: datetime'
+      - 'ends_at: datetime'
+      output: list[SummaryItem]
+      dependencies:
+      - CodeShopAttemptModel.finished_at.is_not
+      - CodeShopAttemptModel.status.in_
+      - SummaryItem
+      - _required_utc
+      - select
+      - select(CodeShopAttemptModel, CodeShopTaskModel).join
+      - select(CodeShopAttemptModel, CodeShopTaskModel).join(CodeShopTaskModel, CodeShopTaskModel.id == CodeShopAttemptModel.task_id).where
+      - session.execute
+      - session.execute(select(CodeShopAttemptModel, CodeShopTaskModel).join(CodeShopTaskModel, CodeShopTaskModel.id == CodeShopAttemptModel.task_id).where(CodeShopAttemptModel.finished_at.is_not(None),
+        CodeShopAttemptModel.finished_at >= starts_at, CodeShopAttemptModel.finished_at < ends_at, CodeShopAttemptModel.status.in_(('succeeded',
+        'failed')))).all
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id001
+    - name: _module_by_task
+      kind: function
+      line_start: 244
+      line_end: 251
+      signature: '_module_by_task(models: list[ModuleModel]) -> dict[str, str]'
+      inputs:
+      - 'models: list[ModuleModel]'
+      output: dict[str, str]
+      dependencies:
+      - dict
+      - isinstance
+      - manifest.get
+      - str
+      - task.get
+      parser: python-ast
+      dependency_targets: []
+    - name: _utc
+      kind: function
+      line_start: 254
+      line_end: 257
+      signature: '_utc(value: datetime) -> datetime'
+      inputs:
+      - 'value: datetime'
+      output: datetime
+      dependencies:
+      - ValueError
+      - value.astimezone
+      - value.utcoffset
+      parser: python-ast
+      dependency_targets: []
+    - name: _required_utc
+      kind: function
+      line_start: 260
+      line_end: 265
+      signature: '_required_utc(value: datetime | None) -> datetime'
+      inputs:
+      - 'value: datetime | None'
+      output: datetime
+      dependencies:
+      - ValueError
+      - value.astimezone
+      - value.replace
+      - value.utcoffset
+      parser: python-ast
+      dependency_targets: []
   - path: src/nerve_center/plugins/code_shop/runtime.py
     analysis_version: 1
     language: python
@@ -146,10 +414,10 @@ source_catalog:
       - '{''web'', ''indeed.com'', ''job-boards.greenhouse.io'', ''jobs.lever.co''}.issubset'
       parser: python-ast
       dependency_targets:
-      - &id001
+      - &id005
         path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: build_query_portfolio
-      - &id002
+      - &id006
         path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: compile_strategy_query
       - path: src/nerve_center/plugins/job_scout/query_portfolio.py
@@ -169,7 +437,7 @@ source_catalog:
       - range
       parser: python-ast
       dependency_targets:
-      - *id001
+      - *id005
     - name: test_market_strategies_cover_employment_centers_and_region_alias_probes
       kind: function
       line_start: 127
@@ -194,20 +462,20 @@ source_catalog:
       - '{''Greensboro, NC'', ''Durham, NC''}.issubset'
       parser: python-ast
       dependency_targets:
-      - &id003
+      - &id007
         path: tests/test_applications.py
         symbol: _database
-      - &id004
+      - &id008
         path: tests/test_discovery_persistence.py
         symbol: _database
-      - &id005
+      - &id009
         path: tests/test_job_scout_discovery_learning.py
         symbol: _database
-      - &id006
+      - &id010
         path: tests/test_job_scout_query_portfolio.py
         symbol: _database
-      - *id002
-      - &id009
+      - *id006
+      - &id013
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.list_strategies
       - path: src/nerve_center/plugins/job_scout/discovery_loop.py
@@ -225,7 +493,7 @@ source_catalog:
       - compile_strategy_query
       parser: python-ast
       dependency_targets:
-      - *id002
+      - *id006
     - name: test_local_employer_deepening_has_bounded_canonical_career_failbacks
       kind: function
       line_start: 224
@@ -284,7 +552,7 @@ source_catalog:
       - compile_strategy_query
       parser: python-ast
       dependency_targets:
-      - *id002
+      - *id006
     - name: _NoNetworkSearch.__init__
       kind: method
       line_start: 315
@@ -394,14 +662,14 @@ source_catalog:
         symbol: JobOpeningRepository.upsert
       - path: src/nerve_center/persistence/scoring.py
         symbol: ScoringRuleRepository.upsert
-      - *id003
-      - *id004
-      - *id005
-      - *id006
-      - &id007
+      - *id007
+      - *id008
+      - *id009
+      - *id010
+      - &id011
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.ensure_strategy
-      - &id008
+      - &id012
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.get_strategy
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
@@ -427,13 +695,13 @@ source_catalog:
       - round
       parser: python-ast
       dependency_targets:
-      - *id003
-      - *id004
-      - *id005
-      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - *id010
       - path: src/nerve_center/plugins/job_scout/discovery_quality.py
         symbol: DiscoveryQualityRepository.discovery_audit
-      - *id007
+      - *id011
     - name: test_structured_refresh_gets_one_time_initial_preference
       kind: function
       line_start: 435
@@ -452,12 +720,12 @@ source_catalog:
       - learning.record_attempt
       parser: python-ast
       dependency_targets:
-      - *id003
-      - *id004
-      - *id005
-      - *id006
       - *id007
       - *id008
+      - *id009
+      - *id010
+      - *id011
+      - *id012
       - path: src/nerve_center/plugins/job_scout/discovery_quality.py
         symbol: DiscoveryQualityRepository.promote_initial_structured_refresh
     - name: test_due_structured_source_is_preferred_through_real_seeding_path
@@ -480,15 +748,15 @@ source_catalog:
       - object.__new__
       parser: python-ast
       dependency_targets:
-      - *id003
-      - *id004
-      - *id005
-      - *id006
+      - *id007
+      - *id008
       - *id009
-      - &id010
+      - *id010
+      - *id013
+      - &id014
         path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: JobScoutDiscoveryLoop._seed_due_source_strategies
-      - &id011
+      - &id015
         path: src/nerve_center/plugins/job_scout/discovery_quality.py
         symbol: SourceAwareJobScoutDiscoveryLoop._seed_due_source_strategies
     - name: test_unhealthy_structured_source_gets_no_initial_priority_bonus
@@ -511,13 +779,13 @@ source_catalog:
       - object.__new__
       parser: python-ast
       dependency_targets:
-      - *id003
-      - *id004
-      - *id005
-      - *id006
+      - *id007
+      - *id008
       - *id009
       - *id010
-      - *id011
+      - *id013
+      - *id014
+      - *id015
     - name: test_coverage_gaps_are_explicit_and_bounded
       kind: function
       line_start: 503
@@ -539,14 +807,14 @@ source_catalog:
       - learning.record_attempt
       parser: python-ast
       dependency_targets:
-      - *id003
-      - *id004
-      - *id005
-      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - *id010
       - path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: build_coverage_gap_profile
-      - *id007
-      - *id009
+      - *id011
+      - *id013
     - name: test_reflection_work_is_explicitly_gap_driven
       kind: function
       line_start: 564
@@ -566,14 +834,12 @@ source_catalog:
       - object.__new__
       parser: python-ast
       dependency_targets:
-      - *id003
-      - *id004
-      - *id005
-      - *id006
-      - path: src/nerve_center/persistence/database.py
-        symbol: Database.session
-      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
-        symbol: JobScoutDiscoveryRepository.session
+      - *id007
+      - *id008
+      - *id009
+      - *id010
+      - *id016
+      - *id017
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.update_session
       - path: src/nerve_center/plugins/job_scout/discovery_loop.py

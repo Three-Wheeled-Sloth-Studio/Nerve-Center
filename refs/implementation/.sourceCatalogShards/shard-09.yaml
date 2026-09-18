@@ -808,6 +808,8 @@ source_catalog:
         symbol: _available_port
       - path: tests/test_module_runtime_integration.py
         symbol: _terminal_run
+      - path: tests/test_summary.py
+        symbol: _terminal_run
       - path: tests/test_module_runtime_integration.py
         symbol: _wait_until
       - path: src/nerve_center/runtime/client.py
