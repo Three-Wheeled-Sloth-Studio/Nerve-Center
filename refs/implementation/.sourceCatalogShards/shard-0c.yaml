@@ -1167,7 +1167,7 @@ source_catalog:
   - path: tests/test_sessions.py
     analysis_version: 1
     language: python
-    content_hash: dd97291f1c4de5c7c138259fbefcc6c41523832b
+    content_hash: b9849c8e9484d995ad9610f2a20507ad75450ba7
     dependencies:
     - asyncio
     - datetime

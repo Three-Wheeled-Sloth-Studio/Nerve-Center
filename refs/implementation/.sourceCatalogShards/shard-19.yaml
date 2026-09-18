@@ -1297,7 +1297,7 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id027
-      - &id034
+      - &id035
         path: src/nerve_center/providers/manager.py
         symbol: ProviderManager.select
       - *id028
@@ -1382,9 +1382,12 @@ source_catalog:
       - &id033
         path: tests/test_code_shop.py
         symbol: _checkout
+      - &id034
+        path: tests/test_module_permissions.py
+        symbol: _checkout
       - *id028
       - *id029
-      - &id035
+      - &id036
         path: src/nerve_center/persistence/code_shop.py
         symbol: CodeShopRepository.get_project
       - *id031
@@ -1406,6 +1409,7 @@ source_catalog:
       dependency_targets:
       - *id032
       - *id033
+      - *id034
       - *id028
       - *id029
     - name: CodeShopRepository.remove_checkout
@@ -1457,13 +1461,13 @@ source_catalog:
       - uuid4
       parser: python-ast
       dependency_targets:
-      - &id036
+      - &id037
         path: src/nerve_center/persistence/code_shop.py
         symbol: _policy
-      - *id034
+      - *id035
       - *id028
       - *id029
-      - *id035
+      - *id036
       - *id031
       - *id030
     - name: CodeShopRepository.get_policy
@@ -1485,8 +1489,8 @@ source_catalog:
       - session.scalar
       parser: python-ast
       dependency_targets:
-      - *id036
-      - *id034
+      - *id037
+      - *id035
       - *id028
       - *id029
     - name: CodeShopRepository.list_policies
@@ -1508,8 +1512,8 @@ source_catalog:
       - session.scalars(select(CodeShopAuthorityPolicyModel).where(CodeShopAuthorityPolicyModel.repository_id == repository_id).order_by(CodeShopAuthorityPolicyModel.action)).all
       parser: python-ast
       dependency_targets:
-      - *id036
-      - *id034
+      - *id037
+      - *id035
       - *id028
       - *id029
     - name: CodeShopRepository.create_task
@@ -1538,12 +1542,12 @@ source_catalog:
       - uuid4
       parser: python-ast
       dependency_targets:
-      - &id037
+      - &id038
         path: src/nerve_center/persistence/code_shop.py
         symbol: _task
       - *id028
       - *id029
-      - *id035
+      - *id036
       - *id031
       - *id030
     - name: CodeShopRepository.get_task
@@ -1562,7 +1566,7 @@ source_catalog:
       - session.get
       parser: python-ast
       dependency_targets:
-      - *id037
+      - *id038
       - *id028
       - *id029
     - name: CodeShopRepository.list_tasks
@@ -1587,8 +1591,8 @@ source_catalog:
       - statement.where
       parser: python-ast
       dependency_targets:
-      - *id037
-      - *id034
+      - *id038
+      - *id035
       - *id028
       - *id029
     - name: CodeShopRepository.set_task_state
@@ -1612,7 +1616,7 @@ source_catalog:
       - session.get
       parser: python-ast
       dependency_targets:
-      - *id037
+      - *id038
       - *id028
       - *id029
       - *id030
@@ -1658,10 +1662,10 @@ source_catalog:
         symbol: _attempt
       - path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository._attempt
-      - *id034
+      - *id035
       - *id028
       - *id029
-      - &id038
+      - &id039
         path: src/nerve_center/persistence/code_shop.py
         symbol: CodeShopRepository.get_task
       - *id031
@@ -1684,7 +1688,7 @@ source_catalog:
       - session.scalar
       parser: python-ast
       dependency_targets:
-      - *id034
+      - *id035
       - *id028
       - *id029
     - name: CodeShopRepository.record_decision
@@ -1753,12 +1757,12 @@ source_catalog:
       - uuid4
       parser: python-ast
       dependency_targets:
-      - &id039
+      - &id040
         path: src/nerve_center/persistence/code_shop.py
         symbol: _escalation
       - *id028
       - *id029
-      - *id038
+      - *id039
       - *id031
       - *id030
     - name: CodeShopRepository.has_open_escalation
@@ -1779,7 +1783,7 @@ source_catalog:
       - session.scalar
       parser: python-ast
       dependency_targets:
-      - *id034
+      - *id035
       - *id028
       - *id029
     - name: CodeShopRepository.list_escalations
@@ -1804,8 +1808,8 @@ source_catalog:
       - statement.where
       parser: python-ast
       dependency_targets:
-      - *id039
-      - *id034
+      - *id040
+      - *id035
       - *id028
       - *id029
     - name: CodeShopRepository.record_outcome
@@ -1838,7 +1842,7 @@ source_catalog:
         symbol: _outcome
       - *id028
       - *id029
-      - *id038
+      - *id039
       - *id031
       - *id030
     - name: _project
@@ -2157,7 +2161,7 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - &id040
+      - &id041
         path: src/nerve_center/summary/service.py
         symbol: SummaryService.snapshot
     - name: register_summary_routes.summary
@@ -2179,4 +2183,4 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - *id040
+      - *id041

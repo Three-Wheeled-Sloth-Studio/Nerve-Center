@@ -348,6 +348,355 @@ source_catalog:
       - value.utcoffset
       parser: python-ast
       dependency_targets: []
+  - path: tests/test_module_permissions.py
+    analysis_version: 1
+    language: python
+    content_hash: 6cdb41482dff32a665871f4149075deaaa15a1b4
+    dependencies:
+    - datetime
+    - fastapi.testclient
+    - nerve_center.api.app
+    - nerve_center.code_shop.domain
+    - nerve_center.code_shop.github
+    - nerve_center.config
+    - nerve_center.domain.module
+    - nerve_center.module_permissions.domain
+    - nerve_center.persistence.database
+    - nerve_center.persistence.models
+    - nerve_center.persistence.module_permissions
+    - nerve_center.persistence.modules
+    - pathlib
+    - pytest
+    provides:
+    - _manifest
+    - _public_required
+    - _storage_required
+    - _browser_optional
+    - test_no_permission_module_needs_no_synthetic_review
+    - test_required_permission_blocks_enablement_until_approved_and_survives_restart
+    - test_optional_denial_does_not_block_after_required_permissions_are_approved
+    - test_identical_permission_set_carries_forward_but_changed_set_becomes_pending
+    - test_review_rejects_undeclared_and_prohibited_approvals
+    - test_schema13_existing_manifest_gets_explicit_migration_approval
+    - _connector
+    - _checkout
+    - test_permission_api_approves_only_manifest_requests_and_does_not_grant_code_shop_authority
+    symbols:
+    - name: _manifest
+      kind: function
+      line_start: 33
+      line_end: 63
+      signature: '_manifest(version: str, permissions: tuple[ModulePermission, ...]) -> ModuleManifest'
+      inputs:
+      - 'version: str'
+      - 'permissions: tuple[ModulePermission, ...]'
+      output: ModuleManifest
+      dependencies:
+      - ModuleCompatibility
+      - ModuleLaunchDefinition
+      - ModuleManifest
+      - ModuleTaskDeclaration
+      parser: python-ast
+      dependency_targets: []
+    - name: _public_required
+      kind: function
+      line_start: 66
+      line_end: 72
+      signature: _public_required() -> ModulePermission
+      inputs: []
+      output: ModulePermission
+      dependencies:
+      - ModulePermission
+      parser: python-ast
+      dependency_targets: []
+    - name: _storage_required
+      kind: function
+      line_start: 75
+      line_end: 81
+      signature: _storage_required() -> ModulePermission
+      inputs: []
+      output: ModulePermission
+      dependencies:
+      - ModulePermission
+      parser: python-ast
+      dependency_targets: []
+    - name: _browser_optional
+      kind: function
+      line_start: 84
+      line_end: 90
+      signature: _browser_optional() -> ModulePermission
+      inputs: []
+      output: ModulePermission
+      dependencies:
+      - ModulePermission
+      parser: python-ast
+      dependency_targets: []
+    - name: test_no_permission_module_needs_no_synthetic_review
+      kind: function
+      line_start: 93
+      line_end: 102
+      signature: 'test_no_permission_module_needs_no_synthetic_review(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Database
+      - ModuleRepository
+      - Settings
+      - _manifest
+      - database.initialize
+      - repository.permission_reviews.list
+      - repository.synchronize
+      parser: python-ast
+      dependency_targets:
+      - &id003
+        path: tests/test_module_permissions.py
+        symbol: _manifest
+      - &id004
+        path: src/nerve_center/persistence/database.py
+        symbol: Database.initialize
+      - &id005
+        path: src/nerve_center/persistence/modules.py
+        symbol: ModuleRepository.synchronize
+    - name: test_required_permission_blocks_enablement_until_approved_and_survives_restart
+      kind: function
+      line_start: 105
+      line_end: 142
+      signature: 'test_required_permission_blocks_enablement_until_approved_and_survives_restart(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Database
+      - ModuleRepository
+      - Settings
+      - _manifest
+      - _public_required
+      - database.initialize
+      - pytest.raises
+      - repository.permission_reviews.decide
+      - repository.permission_reviews.list
+      - repository.set_lifecycle
+      - repository.synchronize
+      - restarted.get
+      - restarted.permission_reviews.list
+      - restarted.synchronize
+      - restarted_database.initialize
+      parser: python-ast
+      dependency_targets:
+      - *id003
+      - &id006
+        path: tests/test_module_permissions.py
+        symbol: _public_required
+      - *id004
+      - &id007
+        path: src/nerve_center/persistence/module_permissions.py
+        symbol: ModulePermissionReviewRepository.decide
+      - &id008
+        path: src/nerve_center/persistence/modules.py
+        symbol: ModuleRepository.set_lifecycle
+      - *id005
+    - name: test_optional_denial_does_not_block_after_required_permissions_are_approved
+      kind: function
+      line_start: 145
+      line_end: 175
+      signature: 'test_optional_denial_does_not_block_after_required_permissions_are_approved(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Database
+      - ModuleRepository
+      - Settings
+      - _browser_optional
+      - _manifest
+      - _public_required
+      - database.initialize
+      - repository.permission_reviews.decide
+      - repository.permission_reviews.list
+      - repository.set_lifecycle
+      - repository.synchronize
+      parser: python-ast
+      dependency_targets:
+      - path: tests/test_module_permissions.py
+        symbol: _browser_optional
+      - *id003
+      - *id006
+      - *id004
+      - *id007
+      - *id008
+      - *id005
+    - name: test_identical_permission_set_carries_forward_but_changed_set_becomes_pending
+      kind: function
+      line_start: 178
+      line_end: 218
+      signature: 'test_identical_permission_set_carries_forward_but_changed_set_becomes_pending(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Database
+      - ModuleRepository
+      - Settings
+      - _manifest
+      - _public_required
+      - _storage_required
+      - database.initialize
+      - repository.get
+      - repository.permission_reviews.decide
+      - repository.permission_reviews.latest_for_manifest
+      - repository.permission_reviews.list
+      - repository.set_lifecycle
+      - repository.synchronize
+      parser: python-ast
+      dependency_targets:
+      - *id003
+      - *id006
+      - path: tests/test_module_permissions.py
+        symbol: _storage_required
+      - *id004
+      - *id007
+      - &id009
+        path: src/nerve_center/persistence/module_permissions.py
+        symbol: ModulePermissionReviewRepository.latest_for_manifest
+      - *id008
+      - *id005
+    - name: test_review_rejects_undeclared_and_prohibited_approvals
+      kind: function
+      line_start: 221
+      line_end: 253
+      signature: 'test_review_rejects_undeclared_and_prohibited_approvals(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Database
+      - ModulePermission
+      - ModulePermissionReviewRepository
+      - Settings
+      - _manifest
+      - database.initialize
+      - pytest.raises
+      - reviews.decide
+      - reviews.ensure_review
+      parser: python-ast
+      dependency_targets:
+      - *id003
+      - *id004
+      - *id007
+      - path: src/nerve_center/persistence/module_permissions.py
+        symbol: ModulePermissionReviewRepository.ensure_review
+    - name: test_schema13_existing_manifest_gets_explicit_migration_approval
+      kind: function
+      line_start: 256
+      line_end: 290
+      signature: 'test_schema13_existing_manifest_gets_explicit_migration_approval(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Database
+      - ModuleModel
+      - ModuleRepository
+      - Settings
+      - _manifest
+      - _public_required
+      - any
+      - database.initialize
+      - database.session
+      - datetime.now
+      - len
+      - old.to_dict
+      - repository.get
+      - repository.permission_reviews.latest_for_manifest
+      - repository.permission_reviews.list
+      - repository.synchronize
+      - review.decisions.values
+      - session.add
+      parser: python-ast
+      dependency_targets:
+      - *id003
+      - *id006
+      - *id004
+      - path: src/nerve_center/persistence/database.py
+        symbol: Database.session
+      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.session
+      - *id009
+      - *id005
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _extract_structured_employer_names.add
+    - name: _connector
+      kind: function
+      line_start: 293
+      line_end: 303
+      signature: _connector() -> StaticGitHubRepositoryConnector
+      inputs: []
+      output: StaticGitHubRepositoryConnector
+      dependencies:
+      - GitHubRepositoryIdentity
+      - StaticGitHubRepositoryConnector
+      parser: python-ast
+      dependency_targets: []
+    - name: _checkout
+      kind: function
+      line_start: 306
+      line_end: 314
+      signature: '_checkout(root: Path) -> Path'
+      inputs:
+      - 'root: Path'
+      output: Path
+      dependencies:
+      - (path / '.git' / 'config').write_text
+      - (path / '.git').mkdir
+      parser: python-ast
+      dependency_targets: []
+    - name: test_permission_api_approves_only_manifest_requests_and_does_not_grant_code_shop_authority
+      kind: function
+      line_start: 317
+      line_end: 392
+      signature: 'test_permission_api_approves_only_manifest_requests_and_does_not_grant_code_shop_authority(tmp_path: Path)
+        -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Settings
+      - TestClient
+      - _checkout
+      - _connector
+      - approved_root.mkdir
+      - client.get
+      - 'client.get(''/api/v1/module-permissions'', params={''module_id'': ''job_scout''}).json'
+      - client.get('/api/v1/modules').json
+      - client.get('/api/v1/modules/code_shop/projects/101/authority').json
+      - client.patch
+      - client.post
+      - 'client.post(''/api/v1/modules/code_shop/tasks'', json={''repository_id'': ''101'', ''title'': ''Permission boundary'',
+        ''capability'': ''code_implementation'', ''source_backlog'': {''issue'': 63}}).json'
+      - client.put
+      - create_app
+      - evaluation.json
+      - next
+      - str
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: _checkout
+      - path: tests/test_code_shop.py
+        symbol: _checkout
+      - path: tests/test_module_permissions.py
+        symbol: _checkout
+      - path: tests/test_code_shop.py
+        symbol: _connector
+      - path: tests/test_module_permissions.py
+        symbol: _connector
+      - path: src/nerve_center/persistence/discovery.py
+        symbol: SearchCacheRepository.put
+      - path: tests/test_public_search_fallback.py
+        symbol: MemorySearchCache.put
+      - path: src/nerve_center/api/app.py
+        symbol: create_app
   - path: tests/test_profile_persistence.py
     analysis_version: 1
     language: python
@@ -388,8 +737,7 @@ source_catalog:
       - source.write_text
       parser: python-ast
       dependency_targets:
-      - path: src/nerve_center/persistence/database.py
-        symbol: Database.initialize
+      - *id004
       - path: src/nerve_center/profile/documents.py
         symbol: import_source_document
       - path: src/nerve_center/persistence/profile.py

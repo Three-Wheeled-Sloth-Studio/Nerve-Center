@@ -1144,13 +1144,14 @@ source_catalog:
   - path: tests/test_api.py
     analysis_version: 1
     language: python
-    content_hash: 83b16eec4232e5623a4a50cccd39ca1d6a44ecea
+    content_hash: e376bcd6066da9e8f2527e65eafcb6e6f691c55f
     dependencies:
     - fastapi.testclient
     - nerve_center.api.app
     - nerve_center.config
     - pathlib
     provides:
+    - _approve_required_job_scout_permissions
     - test_health_and_run_lifecycle
     - test_unknown_task_is_rejected
     - test_module_inventory_and_pause_gate_run_admission
@@ -1159,10 +1160,26 @@ source_catalog:
     - test_overlapping_active_sessions_are_rejected
     - test_durable_work_queue_api_lifecycle
     symbols:
-    - name: test_health_and_run_lifecycle
+    - name: _approve_required_job_scout_permissions
       kind: function
       line_start: 9
-      line_end: 33
+      line_end: 29
+      signature: '_approve_required_job_scout_permissions(client: TestClient) -> None'
+      inputs:
+      - 'client: TestClient'
+      output: None
+      dependencies:
+      - client.get
+      - 'client.get(''/api/v1/module-permissions'', params={''module_id'': ''job_scout''}).json'
+      - client.patch
+      - client.post
+      - len
+      parser: python-ast
+      dependency_targets: []
+    - name: test_health_and_run_lifecycle
+      kind: function
+      line_start: 32
+      line_end: 56
       signature: 'test_health_and_run_lifecycle(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1186,8 +1203,8 @@ source_catalog:
         symbol: create_app
     - name: test_unknown_task_is_rejected
       kind: function
-      line_start: 36
-      line_end: 45
+      line_start: 59
+      line_end: 68
       signature: 'test_unknown_task_is_rejected(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1202,8 +1219,8 @@ source_catalog:
       - *id021
     - name: test_module_inventory_and_pause_gate_run_admission
       kind: function
-      line_start: 48
-      line_end: 71
+      line_start: 71
+      line_end: 95
       signature: 'test_module_inventory_and_pause_gate_run_admission(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1211,6 +1228,7 @@ source_catalog:
       dependencies:
       - Settings
       - TestClient
+      - _approve_required_job_scout_permissions
       - client.get
       - client.patch
       - client.post
@@ -1221,11 +1239,14 @@ source_catalog:
       - '{''code_shop'', ''job_scout''}.issubset'
       parser: python-ast
       dependency_targets:
+      - &id022
+        path: tests/test_api.py
+        symbol: _approve_required_job_scout_permissions
       - *id021
     - name: test_paused_module_cannot_start_previously_queued_run
       kind: function
-      line_start: 74
-      line_end: 90
+      line_start: 98
+      line_end: 115
       signature: 'test_paused_module_cannot_start_previously_queued_run(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1233,6 +1254,7 @@ source_catalog:
       dependencies:
       - Settings
       - TestClient
+      - _approve_required_job_scout_permissions
       - client.patch
       - client.post
       - create_app
@@ -1240,11 +1262,12 @@ source_catalog:
       - started.json
       parser: python-ast
       dependency_targets:
+      - *id022
       - *id021
     - name: test_recurring_session_persists_concrete_next_window
       kind: function
-      line_start: 93
-      line_end: 110
+      line_start: 118
+      line_end: 135
       signature: 'test_recurring_session_persists_concrete_next_window(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1260,8 +1283,8 @@ source_catalog:
       - *id021
     - name: test_overlapping_active_sessions_are_rejected
       kind: function
-      line_start: 113
-      line_end: 123
+      line_start: 138
+      line_end: 149
       signature: 'test_overlapping_active_sessions_are_rejected(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1269,17 +1292,19 @@ source_catalog:
       dependencies:
       - Settings
       - TestClient
+      - _approve_required_job_scout_permissions
       - client.post
       - create_app
       - first.json
       - second.json
       parser: python-ast
       dependency_targets:
+      - *id022
       - *id021
     - name: test_durable_work_queue_api_lifecycle
       kind: function
-      line_start: 126
-      line_end: 175
+      line_start: 152
+      line_end: 202
       signature: 'test_durable_work_queue_api_lifecycle(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1287,6 +1312,7 @@ source_catalog:
       dependencies:
       - Settings
       - TestClient
+      - _approve_required_job_scout_permissions
       - attempt.json
       - attempts.json
       - client.get
@@ -1303,6 +1329,7 @@ source_catalog:
       - queue_status.json
       parser: python-ast
       dependency_targets:
+      - *id022
       - *id021
       - path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository.acknowledge

@@ -740,14 +740,6 @@ source_catalog:
       - &id008
         path: src/nerve_center/persistence/sessions.py
         symbol: _snapshot
-      - path: src/nerve_center/domain/module.py
-        symbol: ModuleManifest.to_dict
-      - path: src/nerve_center/domain/module_runtime.py
-        symbol: ModuleRuntimeReport.to_dict
-      - path: src/nerve_center/domain/module_runtime.py
-        symbol: ModuleRunAssignment.to_dict
-      - path: src/nerve_center/domain/session.py
-        symbol: RecurrenceRule.to_dict
       - &id009
         path: src/nerve_center/persistence/database.py
         symbol: Database.session

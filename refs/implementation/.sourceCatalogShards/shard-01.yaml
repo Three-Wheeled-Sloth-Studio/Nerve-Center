@@ -734,7 +734,7 @@ source_catalog:
   - path: tests/test_discovery_persistence.py
     analysis_version: 1
     language: python
-    content_hash: 94afdd7ebdcf2466a6d8dd82bbca3d2a3b3eb850
+    content_hash: 57758e68df8d19b630f8611abeffa816dcf67d83
     dependencies:
     - datetime
     - nerve_center.config

@@ -1610,6 +1610,9 @@ source_catalog:
         path: tests/test_code_shop.py
         symbol: _connector
       - &id026
+        path: tests/test_module_permissions.py
+        symbol: _connector
+      - &id027
         path: src/nerve_center/api/app.py
         symbol: create_app
     - name: test_project_checkout_and_explicit_allow_admit_only_bounded_execution
@@ -1638,25 +1641,29 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - &id030
+      - &id032
         path: tests/test_code_shop.py
         symbol: _allow
-      - &id027
+      - &id028
         path: src/nerve_center/persistence/code_shop.py
         symbol: _checkout
-      - &id028
+      - &id029
         path: tests/test_code_shop.py
         symbol: _checkout
+      - &id030
+        path: tests/test_module_permissions.py
+        symbol: _checkout
       - *id025
-      - &id031
+      - *id026
+      - &id033
         path: tests/test_code_shop.py
         symbol: _create_task
-      - &id029
+      - &id031
         path: tests/test_code_shop.py
         symbol: _select_and_enable
       - *id008
       - *id009
-      - *id026
+      - *id027
     - name: test_checkout_escape_and_remote_mismatch_are_rejected
       kind: function
       line_start: 159
@@ -1679,13 +1686,15 @@ source_catalog:
       - wrong_remote.json
       parser: python-ast
       dependency_targets:
-      - *id027
       - *id028
-      - *id025
       - *id029
+      - *id030
+      - *id025
+      - *id026
+      - *id031
       - *id008
       - *id009
-      - *id026
+      - *id027
     - name: test_unlinked_and_observe_only_projects_cannot_mutate
       kind: function
       line_start: 186
@@ -1713,15 +1722,17 @@ source_catalog:
       - unlinked.json
       parser: python-ast
       dependency_targets:
-      - *id030
-      - *id027
+      - *id032
       - *id028
-      - *id025
-      - *id031
       - *id029
+      - *id030
+      - *id025
+      - *id026
+      - *id033
+      - *id031
       - *id008
       - *id009
-      - *id026
+      - *id027
     - name: test_ask_and_high_risk_actions_enter_attention_and_untrusted_module_is_denied
       kind: function
       line_start: 238
@@ -1750,14 +1761,16 @@ source_catalog:
       - untrusted.json
       parser: python-ast
       dependency_targets:
-      - *id027
       - *id028
-      - *id025
-      - *id031
       - *id029
+      - *id030
+      - *id025
+      - *id026
+      - *id033
+      - *id031
       - *id008
       - *id009
-      - *id026
+      - *id027
     - name: test_model_blind_task_contract_and_failed_attempt_escalation_survive_restart
       kind: function
       line_start: 319
@@ -1787,9 +1800,10 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id025
-      - *id031
-      - *id029
       - *id026
+      - *id033
+      - *id031
+      - *id027
     - name: test_explicit_authority_scope_restricts_paths
       kind: function
       line_start: 377
@@ -1814,14 +1828,16 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - *id027
       - *id028
-      - *id025
-      - *id031
       - *id029
+      - *id030
+      - *id025
+      - *id026
+      - *id033
+      - *id031
       - *id008
       - *id009
-      - *id026
+      - *id027
   - path: tests/test_run_repository.py
     analysis_version: 1
     language: python
@@ -1875,19 +1891,19 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - &id032
+      - &id034
         path: tests/test_run_repository.py
         symbol: make_repository
-      - &id033
+      - &id035
         path: tests/test_sessions.py
         symbol: make_repository
-      - &id034
+      - &id036
         path: src/nerve_center/attention/api.py
         symbol: register_attention_routes.create
-      - &id035
+      - &id037
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.create
-      - &id036
+      - &id038
         path: src/nerve_center/persistence/sessions.py
         symbol: SessionRepository.create
     - name: test_expired_fixed_run_is_missed
@@ -1906,11 +1922,11 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id032
-      - *id033
       - *id034
       - *id035
       - *id036
+      - *id037
+      - *id038
     - name: test_invalid_transition_is_rejected
       kind: function
       line_start: 43
@@ -1929,12 +1945,12 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id032
-      - *id033
       - *id034
       - *id035
       - *id036
-      - &id037
+      - *id037
+      - *id038
+      - &id039
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.request_cancel
       - path: src/nerve_center/persistence/attention.py
@@ -1957,9 +1973,9 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id032
-      - *id033
       - *id034
       - *id035
       - *id036
       - *id037
+      - *id038
+      - *id039

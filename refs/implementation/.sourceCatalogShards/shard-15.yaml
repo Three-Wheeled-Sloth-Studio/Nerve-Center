@@ -849,6 +849,125 @@ source_catalog:
     - nerve_center.model_lab.service
     provides: []
     symbols: []
+  - path: src/nerve_center/module_permissions/api.py
+    analysis_version: 1
+    language: python
+    content_hash: d2a048e514069473c8d3b25fa83634bd3f5452c8
+    dependencies:
+    - __future__
+    - dataclasses
+    - fastapi
+    - nerve_center.module_permissions.domain
+    - nerve_center.module_permissions.service
+    - pydantic
+    - typing
+    provides:
+    - register_module_permission_routes
+    - register_module_permission_routes.list_reviews
+    - register_module_permission_routes.get_review
+    - register_module_permission_routes.approve
+    - register_module_permission_routes.deny
+    symbols:
+    - name: register_module_permission_routes
+      kind: function
+      line_start: 24
+      line_end: 92
+      signature: 'register_module_permission_routes(application: FastAPI, service: ModulePermissionReviewService) -> None'
+      inputs:
+      - 'application: FastAPI'
+      - 'service: ModulePermissionReviewService'
+      output: None
+      dependencies:
+      - HTTPException
+      - Query
+      - application.get
+      - application.post
+      - asdict
+      - service.approve
+      - service.deny
+      - service.get
+      - service.list
+      - str
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/module_permissions/api.py
+        symbol: register_module_permission_routes.approve
+      - path: src/nerve_center/module_permissions/service.py
+        symbol: ModulePermissionReviewService.approve
+      - path: src/nerve_center/module_permissions/api.py
+        symbol: register_module_permission_routes.deny
+      - path: src/nerve_center/module_permissions/service.py
+        symbol: ModulePermissionReviewService.deny
+    - name: register_module_permission_routes.list_reviews
+      kind: function
+      line_start: 29
+      line_end: 41
+      signature: 'register_module_permission_routes.list_reviews(module_id: str | None, state: PermissionReviewState | None,
+        limit: Annotated[int, Query(ge) -> list[dict[str, Any]]'
+      inputs:
+      - 'module_id: str | None'
+      - 'state: PermissionReviewState | None'
+      - 'limit: Annotated[int, Query(ge'
+      output: list[dict[str, Any]]
+      dependencies:
+      - Query
+      - application.get
+      - asdict
+      - service.list
+      parser: python-ast
+      dependency_targets: []
+    - name: register_module_permission_routes.get_review
+      kind: function
+      line_start: 44
+      line_end: 48
+      signature: 'register_module_permission_routes.get_review(review_id: str) -> dict[str, Any]'
+      inputs:
+      - 'review_id: str'
+      output: dict[str, Any]
+      dependencies:
+      - HTTPException
+      - application.get
+      - asdict
+      - service.get
+      - str
+      parser: python-ast
+      dependency_targets: []
+    - name: register_module_permission_routes.approve
+      kind: function
+      line_start: 53
+      line_end: 70
+      signature: 'register_module_permission_routes.approve(review_id: str, permission_key: str, request: PermissionDecisionRequest)
+        -> dict[str, Any]'
+      inputs:
+      - 'review_id: str'
+      - 'permission_key: str'
+      - 'request: PermissionDecisionRequest'
+      output: dict[str, Any]
+      dependencies:
+      - HTTPException
+      - application.post
+      - asdict
+      - str
+      parser: python-ast
+      dependency_targets: []
+    - name: register_module_permission_routes.deny
+      kind: function
+      line_start: 75
+      line_end: 92
+      signature: 'register_module_permission_routes.deny(review_id: str, permission_key: str, request: PermissionDecisionRequest)
+        -> dict[str, Any]'
+      inputs:
+      - 'review_id: str'
+      - 'permission_key: str'
+      - 'request: PermissionDecisionRequest'
+      output: dict[str, Any]
+      dependencies:
+      - HTTPException
+      - application.post
+      - asdict
+      - str
+      parser: python-ast
+      dependency_targets: []
   - path: src/nerve_center/persistence/runs.py
     analysis_version: 1
     language: python

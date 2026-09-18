@@ -357,6 +357,126 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets: []
+  - path: src/nerve_center/module_permissions/domain.py
+    analysis_version: 1
+    language: python
+    content_hash: 319fc2d72bba9c1adcd660ebad141578c70b0763
+    dependencies:
+    - __future__
+    - dataclasses
+    - datetime
+    - enum
+    - hashlib
+    - json
+    - nerve_center.domain.module
+    - typing
+    provides:
+    - NormalizedPermission.to_dict
+    - normalize_permissions
+    - permission_fingerprint
+    - permission_class
+    - review_state
+    - _canonical_permission
+    symbols:
+    - name: NormalizedPermission.to_dict
+      kind: method
+      line_start: 43
+      line_end: 51
+      signature: NormalizedPermission.to_dict(self) -> dict[str, Any]
+      inputs:
+      - self
+      output: dict[str, Any]
+      dependencies:
+      - list
+      parser: python-ast
+      dependency_targets: []
+    - name: normalize_permissions
+      kind: function
+      line_start: 68
+      line_end: 90
+      signature: 'normalize_permissions(manifest: ModuleManifest) -> tuple[NormalizedPermission, ...]'
+      inputs:
+      - 'manifest: ModuleManifest'
+      output: tuple[NormalizedPermission, ...]
+      dependencies:
+      - NormalizedPermission
+      - _canonical_permission
+      - bool
+      - hashlib.sha256
+      - hashlib.sha256(json.dumps(canonical, sort_keys=True, separators=(',', ':')).encode('utf-8')).hexdigest
+      - json.dumps
+      - json.dumps(canonical, sort_keys=True, separators=(',', ':')).encode
+      - normalized.values
+      - permission_class
+      - sorted
+      - str
+      - tuple
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/module_permissions/domain.py
+        symbol: _canonical_permission
+      - path: src/nerve_center/module_permissions/domain.py
+        symbol: permission_class
+    - name: permission_fingerprint
+      kind: function
+      line_start: 93
+      line_end: 106
+      signature: 'permission_fingerprint(permissions: tuple[NormalizedPermission, ...]) -> str'
+      inputs:
+      - 'permissions: tuple[NormalizedPermission, ...]'
+      output: str
+      dependencies:
+      - hashlib.sha256
+      - hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(',', ':')).encode('utf-8')).hexdigest
+      - json.dumps
+      - json.dumps(payload, sort_keys=True, separators=(',', ':')).encode
+      - list
+      parser: python-ast
+      dependency_targets: []
+    - name: permission_class
+      kind: function
+      line_start: 109
+      line_end: 133
+      signature: 'permission_class(permission: ModulePermission) -> PermissionClass'
+      inputs:
+      - 'permission: ModulePermission'
+      output: PermissionClass
+      dependencies:
+      - scope.strip
+      - scopes.issubset
+      parser: python-ast
+      dependency_targets: []
+    - name: review_state
+      kind: function
+      line_start: 136
+      line_end: 153
+      signature: 'review_state(permissions: tuple[NormalizedPermission, ...], decisions: dict[str, dict[str, Any]]) -> tuple[PermissionReviewState,
+        bool]'
+      inputs:
+      - 'permissions: tuple[NormalizedPermission, ...]'
+      - 'decisions: dict[str, dict[str, Any]]'
+      output: tuple[PermissionReviewState, bool]
+      dependencies:
+      - all
+      - decisions.get
+      - decisions.get(item.key, {}).get
+      parser: python-ast
+      dependency_targets: []
+    - name: _canonical_permission
+      kind: function
+      line_start: 156
+      line_end: 162
+      signature: '_canonical_permission(permission: ModulePermission) -> dict[str, Any]'
+      inputs:
+      - 'permission: ModulePermission'
+      output: dict[str, Any]
+      dependencies:
+      - bool
+      - permission.rationale.strip
+      - scope.strip
+      - sorted
+      parser: python-ast
+      dependency_targets: []
   - path: src/nerve_center/providers/base.py
     analysis_version: 1
     language: python

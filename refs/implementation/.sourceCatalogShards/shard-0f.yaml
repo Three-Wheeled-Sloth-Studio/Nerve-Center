@@ -11,10 +11,350 @@ source_catalog:
     dependencies: []
     provides: []
     symbols: []
+  - path: src/nerve_center/persistence/module_permissions.py
+    analysis_version: 1
+    language: python
+    content_hash: 53272b450862e16cd9958d77a726b489295c935e
+    dependencies:
+    - __future__
+    - datetime
+    - nerve_center.domain.module
+    - nerve_center.module_permissions.domain
+    - nerve_center.persistence.database
+    - nerve_center.persistence.models
+    - sqlalchemy
+    - sqlalchemy.orm
+    - typing
+    - uuid
+    provides:
+    - ModulePermissionReviewRepository.__init__
+    - ModulePermissionReviewRepository.ensure_review
+    - ModulePermissionReviewRepository.bootstrap_legacy
+    - ModulePermissionReviewRepository.list
+    - ModulePermissionReviewRepository.get
+    - ModulePermissionReviewRepository.latest_for_manifest
+    - ModulePermissionReviewRepository.decide
+    - ModulePermissionReviewRepository.operationally_allowed
+    - ModulePermissionReviewRepository._create_model
+    - _review
+    - _permissions
+    - _utc
+    symbols:
+    - name: ModulePermissionReviewRepository.__init__
+      kind: method
+      line_start: 50
+      line_end: 51
+      signature: 'ModulePermissionReviewRepository.__init__(self, database: Database) -> None'
+      inputs:
+      - self
+      - 'database: Database'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ModulePermissionReviewRepository.ensure_review
+      kind: method
+      line_start: 53
+      line_end: 99
+      signature: 'ModulePermissionReviewRepository.ensure_review(self, manifest: ModuleManifest) -> PermissionReview | None'
+      inputs:
+      - self
+      - 'manifest: ModuleManifest'
+      output: PermissionReview | None
+      dependencies:
+      - ModulePermissionReviewModel.updated_at.desc
+      - _review
+      - decision.get
+      - dict
+      - dict(inherited.decisions or {}).items
+      - normalize_permissions
+      - permission_fingerprint
+      - select
+      - select(ModulePermissionReviewModel).where
+      - select(ModulePermissionReviewModel).where(ModulePermissionReviewModel.module_id == manifest.module_id, ModulePermissionReviewModel.permission_fingerprint
+        == fingerprint).order_by
+      - select(ModulePermissionReviewModel).where(ModulePermissionReviewModel.module_id == manifest.module_id, ModulePermissionReviewModel.permission_fingerprint
+        == fingerprint).order_by(ModulePermissionReviewModel.updated_at.desc()).limit
+      - self._create_model
+      - self.database.session
+      - session.add
+      - session.flush
+      - session.scalar
+      parser: python-ast
+      dependency_targets:
+      - &id001
+        path: src/nerve_center/persistence/module_permissions.py
+        symbol: _review
+      - &id002
+        path: src/nerve_center/module_permissions/domain.py
+        symbol: normalize_permissions
+      - &id003
+        path: src/nerve_center/module_permissions/domain.py
+        symbol: permission_fingerprint
+      - &id004
+        path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager.select
+      - &id005
+        path: src/nerve_center/persistence/module_permissions.py
+        symbol: ModulePermissionReviewRepository._create_model
+      - &id006
+        path: src/nerve_center/persistence/database.py
+        symbol: Database.session
+      - &id007
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.session
+      - &id008
+        path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _extract_structured_employer_names.add
+      - &id009
+        path: scripts/agent_context.py
+        symbol: _markdown_blocks.flush
+    - name: ModulePermissionReviewRepository.bootstrap_legacy
+      kind: method
+      line_start: 101
+      line_end: 137
+      signature: 'ModulePermissionReviewRepository.bootstrap_legacy(self, manifest: ModuleManifest) -> PermissionReview |
+        None'
+      inputs:
+      - self
+      - 'manifest: ModuleManifest'
+      output: PermissionReview | None
+      dependencies:
+      - _review
+      - datetime.now
+      - normalize_permissions
+      - now.isoformat
+      - permission_fingerprint
+      - select
+      - select(ModulePermissionReviewModel).where
+      - self._create_model
+      - self.database.session
+      - session.add
+      - session.flush
+      - session.scalar
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+      - *id005
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+    - name: ModulePermissionReviewRepository.list
+      kind: method
+      line_start: 139
+      line_end: 155
+      signature: 'ModulePermissionReviewRepository.list(self, module_id: str | None, state: PermissionReviewState | None,
+        limit: int) -> list[PermissionReview]'
+      inputs:
+      - self
+      - 'module_id: str | None'
+      - 'state: PermissionReviewState | None'
+      - 'limit: int'
+      output: list[PermissionReview]
+      dependencies:
+      - ModulePermissionReviewModel.updated_at.desc
+      - _review
+      - select
+      - self.database.session
+      - session.scalars
+      - session.scalars(statement).all
+      - statement.order_by
+      - statement.order_by(ModulePermissionReviewModel.updated_at.desc()).limit
+      - statement.where
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id004
+      - *id006
+      - *id007
+    - name: ModulePermissionReviewRepository.get
+      kind: method
+      line_start: 157
+      line_end: 162
+      signature: 'ModulePermissionReviewRepository.get(self, review_id: str) -> PermissionReview'
+      inputs:
+      - self
+      - 'review_id: str'
+      output: PermissionReview
+      dependencies:
+      - KeyError
+      - _review
+      - self.database.session
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id006
+      - *id007
+    - name: ModulePermissionReviewRepository.latest_for_manifest
+      kind: method
+      line_start: 164
+      line_end: 180
+      signature: 'ModulePermissionReviewRepository.latest_for_manifest(self, manifest: ModuleManifest) -> PermissionReview
+        | None'
+      inputs:
+      - self
+      - 'manifest: ModuleManifest'
+      output: PermissionReview | None
+      dependencies:
+      - ModulePermissionReviewModel.updated_at.desc
+      - _review
+      - normalize_permissions
+      - permission_fingerprint
+      - select
+      - select(ModulePermissionReviewModel).where
+      - select(ModulePermissionReviewModel).where(ModulePermissionReviewModel.module_id == manifest.module_id, ModulePermissionReviewModel.module_version
+        == manifest.version, ModulePermissionReviewModel.permission_fingerprint == fingerprint).order_by
+      - select(ModulePermissionReviewModel).where(ModulePermissionReviewModel.module_id == manifest.module_id, ModulePermissionReviewModel.module_version
+        == manifest.version, ModulePermissionReviewModel.permission_fingerprint == fingerprint).order_by(ModulePermissionReviewModel.updated_at.desc()).limit
+      - self.database.session
+      - session.scalar
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+      - *id006
+      - *id007
+    - name: ModulePermissionReviewRepository.decide
+      kind: method
+      line_start: 182
+      line_end: 225
+      signature: 'ModulePermissionReviewRepository.decide(self, review_id: str, permission_key: str, decision: PermissionDecision,
+        actor: str, provenance: dict[str, Any]) -> PermissionReview'
+      inputs:
+      - self
+      - 'review_id: str'
+      - 'permission_key: str'
+      - 'decision: PermissionDecision'
+      - 'actor: str'
+      - 'provenance: dict[str, Any]'
+      output: PermissionReview
+      dependencies:
+      - KeyError
+      - ValueError
+      - _permissions
+      - _review
+      - actor.strip
+      - datetime.now
+      - dict
+      - dict(model.decisions or {}).items
+      - next
+      - now.isoformat
+      - review_state
+      - self.database.session
+      - session.flush
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - &id011
+        path: src/nerve_center/persistence/module_permissions.py
+        symbol: _permissions
+      - *id001
+      - &id010
+        path: src/nerve_center/module_permissions/domain.py
+        symbol: review_state
+      - *id006
+      - *id007
+      - *id009
+    - name: ModulePermissionReviewRepository.operationally_allowed
+      kind: method
+      line_start: 227
+      line_end: 229
+      signature: 'ModulePermissionReviewRepository.operationally_allowed(self, manifest: ModuleManifest) -> bool'
+      inputs:
+      - self
+      - 'manifest: ModuleManifest'
+      output: bool
+      dependencies:
+      - self.ensure_review
+      parser: python-ast
+      dependency_targets:
+      - &id012
+        path: src/nerve_center/persistence/module_permissions.py
+        symbol: ModulePermissionReviewRepository.ensure_review
+    - name: ModulePermissionReviewRepository._create_model
+      kind: method
+      line_start: 232
+      line_end: 252
+      signature: 'ModulePermissionReviewRepository._create_model(manifest: ModuleManifest, permissions: tuple[NormalizedPermission,
+        ...], fingerprint: str, decisions: dict[str, dict[str, Any]], now: datetime | None) -> ModulePermissionReviewModel'
+      inputs:
+      - 'manifest: ModuleManifest'
+      - 'permissions: tuple[NormalizedPermission, ...]'
+      - 'fingerprint: str'
+      - 'decisions: dict[str, dict[str, Any]]'
+      - 'now: datetime | None'
+      output: ModulePermissionReviewModel
+      dependencies:
+      - ModulePermissionReviewModel
+      - datetime.now
+      - item.to_dict
+      - review_state
+      - str
+      - uuid4
+      parser: python-ast
+      dependency_targets:
+      - *id010
+    - name: _review
+      kind: function
+      line_start: 255
+      line_end: 272
+      signature: '_review(model: ModulePermissionReviewModel) -> PermissionReview'
+      inputs:
+      - 'model: ModulePermissionReviewModel'
+      output: PermissionReview
+      dependencies:
+      - PermissionReview
+      - _permissions
+      - _utc
+      - dict
+      - dict(model.decisions or {}).items
+      - review_state
+      parser: python-ast
+      dependency_targets:
+      - *id011
+      - *id010
+    - name: _permissions
+      kind: function
+      line_start: 275
+      line_end: 288
+      signature: '_permissions(values: list[dict[str, Any]] | None) -> tuple[NormalizedPermission, ...]'
+      inputs:
+      - 'values: list[dict[str, Any]] | None'
+      output: tuple[NormalizedPermission, ...]
+      dependencies:
+      - ModulePermissionKind
+      - NormalizedPermission
+      - PermissionClass
+      - bool
+      - item.get
+      - str
+      - tuple
+      parser: python-ast
+      dependency_targets: []
+    - name: _utc
+      kind: function
+      line_start: 291
+      line_end: 294
+      signature: '_utc(value: datetime) -> datetime'
+      inputs:
+      - 'value: datetime'
+      output: datetime
+      dependencies:
+      - value.astimezone
+      - value.replace
+      - value.utcoffset
+      parser: python-ast
+      dependency_targets: []
   - path: src/nerve_center/persistence/modules.py
     analysis_version: 1
     language: python
-    content_hash: 56bda2e545db9401e225e926edbf36373cdf8f36
+    content_hash: e9d902994af88970a50f8e80223811c301483c9b
     dependencies:
     - __future__
     - collections.abc
@@ -22,6 +362,7 @@ source_catalog:
     - nerve_center.domain.module
     - nerve_center.persistence.database
     - nerve_center.persistence.models
+    - nerve_center.persistence.module_permissions
     - sqlalchemy
     provides:
     - ModuleRepository.__init__
@@ -33,29 +374,34 @@ source_catalog:
     symbols:
     - name: ModuleRepository.__init__
       kind: method
-      line_start: 24
-      line_end: 25
-      signature: 'ModuleRepository.__init__(self, database: Database) -> None'
+      line_start: 25
+      line_end: 33
+      signature: 'ModuleRepository.__init__(self, database: Database, permission_reviews: ModulePermissionReviewRepository
+        | None) -> None'
       inputs:
       - self
       - 'database: Database'
+      - 'permission_reviews: ModulePermissionReviewRepository | None'
       output: None
-      dependencies: []
+      dependencies:
+      - ModulePermissionReviewRepository
       parser: python-ast
       dependency_targets: []
     - name: ModuleRepository.synchronize
       kind: method
-      line_start: 27
-      line_end: 61
+      line_start: 35
+      line_end: 87
       signature: 'ModuleRepository.synchronize(self, manifests: Iterable[ModuleManifest]) -> list[InstalledModule]'
       inputs:
       - self
       - 'manifests: Iterable[ModuleManifest]'
       output: list[InstalledModule]
       dependencies:
+      - ModuleManifest.from_dict
       - ModuleModel
       - available.items
       - datetime.now
+      - dict
       - existing.get
       - existing.items
       - manifest.to_dict
@@ -64,36 +410,32 @@ source_catalog:
       - self.database.settings.module_data_dir
       - self.database.settings.module_data_dir(manifest.storage_namespace).mkdir
       - self.list
+      - self.permission_reviews.bootstrap_legacy
+      - self.permission_reviews.ensure_review
       - session.add
       - session.scalars
       - session.scalars(select(ModuleModel)).all
       parser: python-ast
       dependency_targets:
-      - path: src/nerve_center/domain/module.py
-        symbol: ModuleManifest.to_dict
-      - path: src/nerve_center/domain/module_runtime.py
-        symbol: ModuleRuntimeReport.to_dict
-      - path: src/nerve_center/domain/module_runtime.py
-        symbol: ModuleRunAssignment.to_dict
-      - path: src/nerve_center/domain/session.py
-        symbol: RecurrenceRule.to_dict
-      - &id001
-        path: src/nerve_center/providers/manager.py
-        symbol: ProviderManager.select
-      - &id002
-        path: src/nerve_center/persistence/database.py
-        symbol: Database.session
-      - &id003
-        path: src/nerve_center/plugins/job_scout/discovery_learning.py
-        symbol: JobScoutDiscoveryRepository.session
+      - &id016
+        path: src/nerve_center/domain/module.py
+        symbol: ModuleManifest.from_dict
+      - &id017
+        path: src/nerve_center/domain/session.py
+        symbol: RecurrenceRule.from_dict
+      - *id004
+      - *id006
+      - *id007
       - path: src/nerve_center/config.py
         symbol: Settings.module_data_dir
-      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
-        symbol: _extract_structured_employer_names.add
+      - path: src/nerve_center/persistence/module_permissions.py
+        symbol: ModulePermissionReviewRepository.bootstrap_legacy
+      - *id012
+      - *id008
     - name: ModuleRepository.list
       kind: method
-      line_start: 63
-      line_end: 68
+      line_start: 89
+      line_end: 94
       signature: ModuleRepository.list(self) -> list[InstalledModule]
       inputs:
       - self
@@ -107,22 +449,22 @@ source_catalog:
       - session.scalars(select(ModuleModel).order_by(ModuleModel.module_id)).all
       parser: python-ast
       dependency_targets:
-      - *id001
-      - &id004
+      - *id004
+      - &id013
         path: src/nerve_center/persistence/modules.py
         symbol: ModuleRepository._snapshot
-      - &id005
+      - &id014
         path: src/nerve_center/persistence/runs.py
         symbol: _snapshot
-      - &id006
+      - &id015
         path: src/nerve_center/persistence/sessions.py
         symbol: _snapshot
-      - *id002
-      - *id003
+      - *id006
+      - *id007
     - name: ModuleRepository.get
       kind: method
-      line_start: 70
-      line_end: 75
+      line_start: 96
+      line_end: 101
       signature: 'ModuleRepository.get(self, module_id: str) -> InstalledModule'
       inputs:
       - self
@@ -134,15 +476,15 @@ source_catalog:
       - self.database.session
       parser: python-ast
       dependency_targets:
-      - *id004
-      - *id005
+      - *id013
+      - *id014
+      - *id015
       - *id006
-      - *id002
-      - *id003
+      - *id007
     - name: ModuleRepository.set_lifecycle
       kind: method
-      line_start: 77
-      line_end: 91
+      line_start: 103
+      line_end: 123
       signature: 'ModuleRepository.set_lifecycle(self, module_id: str, lifecycle_state: ModuleLifecycleState) -> InstalledModule'
       inputs:
       - self
@@ -155,21 +497,24 @@ source_catalog:
       - datetime.now
       - self._snapshot
       - self.database.session
+      - self.get
+      - self.permission_reviews.operationally_allowed
       - session.flush
       - session.get
       parser: python-ast
       dependency_targets:
-      - *id004
-      - *id005
+      - *id013
+      - *id014
+      - *id015
       - *id006
-      - *id002
-      - *id003
-      - path: scripts/agent_context.py
-        symbol: _markdown_blocks.flush
+      - *id007
+      - path: src/nerve_center/persistence/module_permissions.py
+        symbol: ModulePermissionReviewRepository.operationally_allowed
+      - *id009
     - name: ModuleRepository._snapshot
       kind: method
-      line_start: 94
-      line_end: 99
+      line_start: 126
+      line_end: 131
       signature: 'ModuleRepository._snapshot(model: ModuleModel) -> InstalledModule'
       inputs:
       - 'model: ModuleModel'
@@ -181,10 +526,8 @@ source_catalog:
       - dict
       parser: python-ast
       dependency_targets:
-      - path: src/nerve_center/domain/module.py
-        symbol: ModuleManifest.from_dict
-      - path: src/nerve_center/domain/session.py
-        symbol: RecurrenceRule.from_dict
+      - *id016
+      - *id017
   - path: src/nerve_center/runtime/client.py
     analysis_version: 1
     language: python
@@ -255,10 +598,10 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - &id007
+      - &id018
         path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository._request
-      - &id008
+      - &id019
         path: src/nerve_center/runtime/client.py
         symbol: ModuleRuntimeClient._request
     - name: ModuleRuntimeClient.next_work
@@ -275,8 +618,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id007
-      - *id008
+      - *id018
+      - *id019
     - name: ModuleRuntimeClient.module_control
       kind: method
       line_start: 35
@@ -291,8 +634,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id007
-      - *id008
+      - *id018
+      - *id019
     - name: ModuleRuntimeClient.control
       kind: method
       line_start: 38
@@ -308,8 +651,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id007
-      - *id008
+      - *id018
+      - *id019
     - name: ModuleRuntimeClient.checkpoint
       kind: method
       line_start: 44
@@ -325,8 +668,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id007
-      - *id008
+      - *id018
+      - *id019
     - name: ModuleRuntimeClient.consume
       kind: method
       line_start: 49
@@ -342,8 +685,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id007
-      - *id008
+      - *id018
+      - *id019
     - name: ModuleRuntimeClient.invoke
       kind: method
       line_start: 56
@@ -364,8 +707,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id007
-      - *id008
+      - *id018
+      - *id019
     - name: ModuleRuntimeClient.submit_work
       kind: method
       line_start: 70
@@ -383,8 +726,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id007
-      - *id008
+      - *id018
+      - *id019
     - name: ModuleRuntimeClient.results
       kind: method
       line_start: 82
@@ -399,8 +742,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id007
-      - *id008
+      - *id018
+      - *id019
     - name: ModuleRuntimeClient.acknowledge_result
       kind: method
       line_start: 88
@@ -417,8 +760,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id007
-      - *id008
+      - *id018
+      - *id019
     - name: ModuleRuntimeClient.complete
       kind: method
       line_start: 101
@@ -437,8 +780,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id007
-      - *id008
+      - *id018
+      - *id019
     - name: ModuleRuntimeClient._request
       kind: method
       line_start: 114
@@ -469,7 +812,7 @@ source_catalog:
   - path: tests/test_applications.py
     analysis_version: 1
     language: python
-    content_hash: 640e4ce93025f28c6f5f07a3b30a37350839a87c
+    content_hash: b549a9727a5bb5f7765b79e9eb3e6038df58689f
     dependencies:
     - datetime
     - fastapi
@@ -512,7 +855,7 @@ source_catalog:
       - database.initialize
       parser: python-ast
       dependency_targets:
-      - &id015
+      - &id026
         path: src/nerve_center/persistence/database.py
         symbol: Database.initialize
     - name: _seed
@@ -537,16 +880,16 @@ source_catalog:
       - datetime.now
       parser: python-ast
       dependency_targets:
-      - &id018
+      - &id029
         path: src/nerve_center/persistence/discovery.py
         symbol: CompanyRepository.upsert
-      - &id019
+      - &id030
         path: src/nerve_center/persistence/discovery.py
         symbol: DiscoverySourceRepository.upsert
-      - &id020
+      - &id031
         path: src/nerve_center/persistence/discovery.py
         symbol: JobOpeningRepository.upsert
-      - &id021
+      - &id032
         path: src/nerve_center/persistence/scoring.py
         symbol: ScoringRuleRepository.upsert
     - name: _opportunity_score
@@ -593,10 +936,10 @@ source_catalog:
       - self.scores.append
       parser: python-ast
       dependency_targets:
-      - &id014
+      - &id025
         path: tests/test_applications.py
         symbol: _opportunity_score
-      - &id017
+      - &id028
         path: src/nerve_center/persistence/scoring.py
         symbol: OpportunityScoreRepository.append
     - name: _RescoreStub.ensure_provisional_score
@@ -632,19 +975,19 @@ source_catalog:
       - repository.save
       parser: python-ast
       dependency_targets:
-      - &id009
+      - &id020
         path: tests/test_applications.py
         symbol: _database
-      - &id010
+      - &id021
         path: tests/test_discovery_persistence.py
         symbol: _database
-      - &id011
+      - &id022
         path: tests/test_job_scout_discovery_learning.py
         symbol: _database
-      - &id012
+      - &id023
         path: tests/test_job_scout_query_portfolio.py
         symbol: _database
-      - &id013
+      - &id024
         path: tests/test_applications.py
         symbol: _seed
       - path: src/nerve_center/attention/api.py
@@ -680,12 +1023,12 @@ source_catalog:
       - visible.json()[0]['next_action'].startswith
       parser: python-ast
       dependency_targets:
-      - *id009
-      - *id010
-      - *id011
-      - *id012
-      - *id013
-      - &id016
+      - *id020
+      - *id021
+      - *id022
+      - *id023
+      - *id024
+      - &id027
         path: src/nerve_center/applications/api.py
         symbol: register_application_routes
     - name: test_review_backfills_stale_score_without_provisional_or_llm_path
@@ -718,11 +1061,11 @@ source_catalog:
       - scores.list
       parser: python-ast
       dependency_targets:
-      - *id014
-      - *id013
-      - *id015
-      - *id016
-      - *id017
+      - *id025
+      - *id024
+      - *id026
+      - *id027
+      - *id028
     - name: test_review_keeps_distant_roles_for_explicit_scored_location_filtering
       kind: function
       line_start: 252
@@ -750,10 +1093,10 @@ source_catalog:
       - response.json
       parser: python-ast
       dependency_targets:
-      - *id018
-      - *id019
-      - *id020
-      - *id021
-      - *id013
-      - *id015
-      - *id016
+      - *id029
+      - *id030
+      - *id031
+      - *id032
+      - *id024
+      - *id026
+      - *id027

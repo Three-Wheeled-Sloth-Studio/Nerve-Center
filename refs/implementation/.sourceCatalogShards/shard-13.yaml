@@ -349,6 +349,99 @@ source_catalog:
       - super
       parser: python-ast
       dependency_targets: []
+  - path: src/nerve_center/module_permissions/service.py
+    analysis_version: 1
+    language: python
+    content_hash: f0d8b5014f46335d970bca7af6c5745a6ce9fd34
+    dependencies:
+    - __future__
+    - nerve_center.module_permissions.domain
+    - nerve_center.persistence.module_permissions
+    - typing
+    provides:
+    - ModulePermissionReviewService.__init__
+    - ModulePermissionReviewService.list
+    - ModulePermissionReviewService.get
+    - ModulePermissionReviewService.approve
+    - ModulePermissionReviewService.deny
+    symbols:
+    - name: ModulePermissionReviewService.__init__
+      kind: method
+      line_start: 16
+      line_end: 17
+      signature: 'ModulePermissionReviewService.__init__(self, repository: ModulePermissionReviewRepository) -> None'
+      inputs:
+      - self
+      - 'repository: ModulePermissionReviewRepository'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ModulePermissionReviewService.list
+      kind: method
+      line_start: 19
+      line_end: 26
+      signature: 'ModulePermissionReviewService.list(self, module_id: str | None, state: PermissionReviewState | None, limit:
+        int) -> list[PermissionReview]'
+      inputs:
+      - self
+      - 'module_id: str | None'
+      - 'state: PermissionReviewState | None'
+      - 'limit: int'
+      output: list[PermissionReview]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ModulePermissionReviewService.get
+      kind: method
+      line_start: 28
+      line_end: 29
+      signature: 'ModulePermissionReviewService.get(self, review_id: str) -> PermissionReview'
+      inputs:
+      - self
+      - 'review_id: str'
+      output: PermissionReview
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: ModulePermissionReviewService.approve
+      kind: method
+      line_start: 31
+      line_end: 45
+      signature: 'ModulePermissionReviewService.approve(self, review_id: str, permission_key: str, actor: str, provenance:
+        dict[str, Any]) -> PermissionReview'
+      inputs:
+      - self
+      - 'review_id: str'
+      - 'permission_key: str'
+      - 'actor: str'
+      - 'provenance: dict[str, Any]'
+      output: PermissionReview
+      dependencies:
+      - self.repository.decide
+      parser: python-ast
+      dependency_targets:
+      - &id003
+        path: src/nerve_center/persistence/module_permissions.py
+        symbol: ModulePermissionReviewRepository.decide
+    - name: ModulePermissionReviewService.deny
+      kind: method
+      line_start: 47
+      line_end: 61
+      signature: 'ModulePermissionReviewService.deny(self, review_id: str, permission_key: str, actor: str, provenance: dict[str,
+        Any]) -> PermissionReview'
+      inputs:
+      - self
+      - 'review_id: str'
+      - 'permission_key: str'
+      - 'actor: str'
+      - 'provenance: dict[str, Any]'
+      output: PermissionReview
+      dependencies:
+      - self.repository.decide
+      parser: python-ast
+      dependency_targets:
+      - *id003
   - path: src/nerve_center/plugins/__init__.py
     analysis_version: 1
     language: python
@@ -405,16 +498,16 @@ source_catalog:
       - uuid4
       parser: python-ast
       dependency_targets:
-      - &id003
-        path: src/nerve_center/plugins/job_scout/configuration.py
-        symbol: JobScoutCoordinator.load_resume
       - &id004
         path: src/nerve_center/plugins/job_scout/configuration.py
-        symbol: register_job_scout_configuration_routes.load_resume
+        symbol: JobScoutCoordinator.load_resume
       - &id005
+        path: src/nerve_center/plugins/job_scout/configuration.py
+        symbol: register_job_scout_configuration_routes.load_resume
+      - &id006
         path: src/nerve_center/providers/errors.py
         symbol: ProviderError.as_dict
-      - &id006
+      - &id007
         path: src/nerve_center/config.py
         symbol: Settings.module_data_dir
     - name: register_job_scout_upload_route.upload_resume
@@ -446,10 +539,10 @@ source_catalog:
       - uuid4
       parser: python-ast
       dependency_targets:
-      - *id003
       - *id004
       - *id005
       - *id006
+      - *id007
   - path: tests/test_fit_analysis.py
     analysis_version: 1
     language: python
@@ -532,7 +625,7 @@ source_catalog:
       - asyncio.run
       parser: python-ast
       dependency_targets:
-      - &id007
+      - &id008
         path: src/nerve_center/scoring/fit.py
         symbol: JobFitAnalyzer.analyze
     - name: test_fit_analysis_normalizes_fractional_dimension_scale
@@ -554,7 +647,7 @@ source_catalog:
       - asyncio.run
       parser: python-ast
       dependency_targets:
-      - *id007
+      - *id008
   - path: tests/test_profile_api.py
     analysis_version: 1
     language: python
@@ -810,16 +903,16 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - &id019
+      - &id020
         path: src/nerve_center/attention/api.py
         symbol: register_attention_routes.create
-      - &id020
+      - &id021
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.create
-      - &id021
+      - &id022
         path: src/nerve_center/persistence/sessions.py
         symbol: SessionRepository.create
-      - &id018
+      - &id019
         path: src/nerve_center/persistence/database.py
         symbol: Database.initialize
     - name: model_request
@@ -848,7 +941,7 @@ source_catalog:
       - model_request
       parser: python-ast
       dependency_targets:
-      - &id008
+      - &id009
         path: tests/test_provider_manager.py
         symbol: model_request
     - name: test_manager_uses_metadata_prior_instead_of_alphabetical_cold_start
@@ -867,7 +960,7 @@ source_catalog:
       - model_request
       parser: python-ast
       dependency_targets:
-      - *id008
+      - *id009
     - name: test_manager_honors_manager_owned_preferred_model
       kind: function
       line_start: 153
@@ -883,7 +976,7 @@ source_catalog:
       - model_request
       parser: python-ast
       dependency_targets:
-      - *id008
+      - *id009
     - name: test_manager_can_bound_execution_to_manager_owned_preferred_model
       kind: function
       line_start: 168
@@ -901,7 +994,7 @@ source_catalog:
       - pytest.raises
       parser: python-ast
       dependency_targets:
-      - *id008
+      - *id009
     - name: test_manager_rejects_missing_preferred_model_when_fallback_disabled
       kind: function
       line_start: 183
@@ -918,7 +1011,7 @@ source_catalog:
       - pytest.raises
       parser: python-ast
       dependency_targets:
-      - *id008
+      - *id009
     - name: test_strict_schema_failure_uses_configured_fallback_then_returns_to_primary
       kind: function
       line_start: 198
@@ -935,7 +1028,7 @@ source_catalog:
       - model_request().model_copy
       parser: python-ast
       dependency_targets:
-      - *id008
+      - *id009
     - name: test_provider_executor_completes_valid_model_blind_work
       kind: function
       line_start: 224
@@ -956,31 +1049,31 @@ source_catalog:
       - queue.submit
       parser: python-ast
       dependency_targets:
-      - &id009
+      - &id010
         path: tests/test_provider_manager.py
         symbol: _queue_spec
-      - &id010
+      - &id011
         path: src/nerve_center/scheduler/provider_worker.py
         symbol: ProviderWorkExecutor.tick
-      - &id011
+      - &id012
         path: src/nerve_center/scheduler/service.py
         symbol: SchedulerService.tick
-      - &id012
+      - &id013
         path: src/nerve_center/scheduler/sessions.py
         symbol: WorkSessionService.tick
-      - &id013
+      - &id014
         path: tests/test_provider_manager.py
         symbol: make_queue
-      - &id014
+      - &id015
         path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository.deliver_results
-      - &id015
-        path: src/nerve_center/runtime/supervisor.py
-        symbol: ModuleWorkQueue.deliver_results
       - &id016
         path: src/nerve_center/runtime/supervisor.py
-        symbol: ModuleSupervisor.deliver_results
+        symbol: ModuleWorkQueue.deliver_results
       - &id017
+        path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.deliver_results
+      - &id018
         path: src/nerve_center/scheduler/work_queue.py
         symbol: WorkQueueService.deliver_results
     - name: test_provider_executor_rejects_schema_invalid_result
@@ -1003,7 +1096,6 @@ source_catalog:
       - queue.submit
       parser: python-ast
       dependency_targets:
-      - *id009
       - *id010
       - *id011
       - *id012
@@ -1012,6 +1104,7 @@ source_catalog:
       - *id015
       - *id016
       - *id017
+      - *id018
     - name: test_manager_prefers_task_model_with_stronger_observed_results
       kind: function
       line_start: 259
@@ -1033,7 +1126,7 @@ source_catalog:
       - model_request
       parser: python-ast
       dependency_targets:
-      - *id018
+      - *id019
       - path: src/nerve_center/code_shop/api.py
         symbol: register_code_shop_routes.record_outcome
       - path: src/nerve_center/code_shop/service.py
@@ -1042,7 +1135,7 @@ source_catalog:
         symbol: CodeShopRepository.record_outcome
       - path: src/nerve_center/persistence/providers.py
         symbol: ModelEvidenceRepository.record_outcome
-      - *id008
+      - *id009
     - name: test_manager_falls_back_without_exposing_models_to_request
       kind: function
       line_start: 281
@@ -1059,7 +1152,7 @@ source_catalog:
       - model_request
       parser: python-ast
       dependency_targets:
-      - *id008
+      - *id009
     - name: test_module_acknowledgement_records_acceptance_evidence
       kind: function
       line_start: 292
@@ -1091,26 +1184,26 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id019
       - *id020
       - *id021
-      - *id009
-      - *id018
+      - *id022
+      - *id010
+      - *id019
       - path: src/nerve_center/persistence/providers.py
         symbol: ModelEvidenceRepository.task_evidence
-      - *id010
       - *id011
       - *id012
+      - *id013
       - path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository.acknowledge
       - path: src/nerve_center/runtime/supervisor.py
         symbol: ModuleWorkQueue.acknowledge
       - path: src/nerve_center/scheduler/work_queue.py
         symbol: WorkQueueService.acknowledge
-      - *id014
       - *id015
       - *id016
       - *id017
+      - *id018
     - name: test_schema_failure_falls_back_within_the_same_queue_attempt
       kind: function
       line_start: 318
@@ -1139,14 +1232,14 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id019
       - *id020
       - *id021
-      - *id009
-      - *id018
+      - *id022
       - *id010
+      - *id019
       - *id011
       - *id012
+      - *id013
     - name: test_provider_catalog_is_inspectable_without_exposing_routing_control
       kind: function
       line_start: 341
@@ -1164,7 +1257,7 @@ source_catalog:
       - response.json
       parser: python-ast
       dependency_targets:
-      - &id022
+      - &id023
         path: src/nerve_center/api/app.py
         symbol: create_app
     - name: _queue_spec
@@ -1181,7 +1274,7 @@ source_catalog:
       - model_request
       parser: python-ast
       dependency_targets:
-      - *id008
+      - *id009
   - path: tests/test_summary.py
     analysis_version: 1
     language: python
@@ -1243,9 +1336,9 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id019
       - *id020
       - *id021
+      - *id022
       - path: src/nerve_center/persistence/attention.py
         symbol: AttentionRepository.transition
       - path: src/nerve_center/persistence/runs.py
@@ -1287,10 +1380,10 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - &id023
+      - &id024
         path: tests/test_summary.py
         symbol: _query
-      - *id022
+      - *id023
     - name: test_summary_aggregates_only_durable_attributable_window_evidence
       kind: function
       line_start: 89
@@ -1326,14 +1419,14 @@ source_catalog:
       - queue.claim_next
       parser: python-ast
       dependency_targets:
-      - *id023
-      - &id024
+      - *id024
+      - &id025
         path: tests/test_module_runtime_integration.py
         symbol: _terminal_run
-      - &id025
+      - &id026
         path: tests/test_summary.py
         symbol: _terminal_run
-      - &id026
+      - &id027
         path: tests/test_summary.py
         symbol: _window
       - path: src/nerve_center/code_shop/api.py
@@ -1344,8 +1437,8 @@ source_catalog:
         symbol: CodeShopRepository.create_task
       - path: src/nerve_center/persistence/code_shop.py
         symbol: CodeShopRepository.upsert_project
-      - *id022
-      - *id018
+      - *id023
+      - *id019
       - path: src/nerve_center/persistence/model_lab.py
         symbol: ModelLabRepository.add_corpus
       - path: src/nerve_center/persistence/model_lab.py
@@ -1386,9 +1479,9 @@ source_catalog:
       - datetime.now
       parser: python-ast
       dependency_targets:
-      - *id023
       - *id024
       - *id025
       - *id026
-      - *id022
-      - *id018
+      - *id027
+      - *id023
+      - *id019

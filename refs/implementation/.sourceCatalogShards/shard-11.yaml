@@ -1050,18 +1050,6 @@ source_catalog:
       - self.authorize
       parser: python-ast
       dependency_targets:
-      - &id030
-        path: src/nerve_center/domain/module.py
-        symbol: ModuleManifest.to_dict
-      - &id031
-        path: src/nerve_center/domain/module_runtime.py
-        symbol: ModuleRuntimeReport.to_dict
-      - &id032
-        path: src/nerve_center/domain/module_runtime.py
-        symbol: ModuleRunAssignment.to_dict
-      - &id033
-        path: src/nerve_center/domain/session.py
-        symbol: RecurrenceRule.to_dict
       - *id018
       - &id021
         path: src/nerve_center/runtime/supervisor.py
@@ -1528,8 +1516,4 @@ source_catalog:
       - datetime.now
       - values.update
       parser: python-ast
-      dependency_targets:
-      - *id030
-      - *id031
-      - *id032
-      - *id033
+      dependency_targets: []

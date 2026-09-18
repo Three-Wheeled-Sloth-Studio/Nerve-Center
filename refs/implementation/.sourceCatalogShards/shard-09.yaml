@@ -757,7 +757,7 @@ source_catalog:
   - path: tests/test_module_runtime_integration.py
     analysis_version: 1
     language: python
-    content_hash: b1cb38ae53ee323c0d5c086bb1d1ad0464fdafd9
+    content_hash: 825976cfe7892953031fc1489bbaf15316cf3ce8
     dependencies:
     - httpx
     - nerve_center.api.app
@@ -776,7 +776,7 @@ source_catalog:
     - name: test_job_scout_run_crosses_supervised_process_boundary
       kind: function
       line_start: 13
-      line_end: 48
+      line_end: 71
       signature: 'test_job_scout_run_crosses_supervised_process_boundary(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -786,22 +786,26 @@ source_catalog:
       - _available_port
       - _terminal_run
       - _wait_until
+      - approved.raise_for_status
       - client.close
       - client.get
+      - 'client.get(''/api/v1/module-permissions'', params={''module_id'': ''job_scout''}).json'
       - client.get('/api/v1/modules/job_scout').json
       - client.get(f'/api/v1/runs/{run_id}').json
+      - client.patch
       - client.post
       - create_app
       - created.json
       - created.raise_for_status
+      - enabled.raise_for_status
       - httpx.Client
+      - len
       - stopped.json
       - stopped.raise_for_status
       - thread.join
       - thread.start
       - threading.Thread
       - uvicorn.Config
-      - uvicorn.Server
       parser: python-ast
       dependency_targets:
       - path: tests/test_module_runtime_integration.py
@@ -826,8 +830,8 @@ source_catalog:
         symbol: WorkSessionService.start
     - name: _terminal_run
       kind: function
-      line_start: 51
-      line_end: 54
+      line_start: 74
+      line_end: 77
       signature: '_terminal_run(value: dict)'
       inputs:
       - 'value: dict'
@@ -837,8 +841,8 @@ source_catalog:
       dependency_targets: []
     - name: _wait_until
       kind: function
-      line_start: 57
-      line_end: 68
+      line_start: 80
+      line_end: 91
       signature: '_wait_until(operation, timeout_seconds: float)'
       inputs:
       - operation
@@ -853,8 +857,8 @@ source_catalog:
       dependency_targets: []
     - name: _available_port
       kind: function
-      line_start: 71
-      line_end: 74
+      line_start: 94
+      line_end: 97
       signature: _available_port() -> int
       inputs: []
       output: int

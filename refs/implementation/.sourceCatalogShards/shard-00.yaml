@@ -62,6 +62,13 @@ source_catalog:
       - &id007
         path: src/nerve_center/persistence/scoring.py
         symbol: OpportunityScoreRepository.append
+  - path: src/nerve_center/module_permissions/__init__.py
+    analysis_version: 1
+    language: python
+    content_hash: c98dc8a7abedfa21383e76cf5026037653a68bbb
+    dependencies: []
+    provides: []
+    symbols: []
   - path: src/nerve_center/persistence/attention.py
     analysis_version: 1
     language: python

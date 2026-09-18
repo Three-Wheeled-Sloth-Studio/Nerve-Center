@@ -2627,7 +2627,7 @@ source_catalog:
   - path: tests/test_scoring_persistence.py
     analysis_version: 1
     language: python
-    content_hash: 0f033aaa7bad896272a450bf97b3787f13388325
+    content_hash: fac17f3f67f38f938ea0d82276e8dbb345dca770
     dependencies:
     - nerve_center.config
     - nerve_center.discovery.models

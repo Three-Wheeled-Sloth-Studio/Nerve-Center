@@ -987,18 +987,6 @@ source_catalog:
       - supervisor.submit_work
       parser: python-ast
       dependency_targets:
-      - &id020
-        path: src/nerve_center/domain/module.py
-        symbol: ModuleManifest.to_dict
-      - &id021
-        path: src/nerve_center/domain/module_runtime.py
-        symbol: ModuleRuntimeReport.to_dict
-      - &id022
-        path: src/nerve_center/domain/module_runtime.py
-        symbol: ModuleRunAssignment.to_dict
-      - &id023
-        path: src/nerve_center/domain/session.py
-        symbol: RecurrenceRule.to_dict
       - path: src/nerve_center/runtime/api.py
         symbol: register_runtime_routes.acknowledge_result
       - path: src/nerve_center/runtime/client.py
@@ -1011,16 +999,16 @@ source_catalog:
         symbol: register_runtime_routes.consume_resource
       - path: src/nerve_center/runtime/supervisor.py
         symbol: ModuleSupervisor.consume_resource
-      - &id027
+      - &id023
         path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository.deliver_results
-      - &id028
+      - &id024
         path: src/nerve_center/runtime/supervisor.py
         symbol: ModuleWorkQueue.deliver_results
-      - &id029
+      - &id025
         path: src/nerve_center/runtime/supervisor.py
         symbol: ModuleSupervisor.deliver_results
-      - &id030
+      - &id026
         path: src/nerve_center/scheduler/work_queue.py
         symbol: WorkQueueService.deliver_results
       - path: src/nerve_center/runtime/api.py
@@ -1037,13 +1025,17 @@ source_catalog:
         symbol: ModuleRuntimeClient.module_control
       - path: src/nerve_center/runtime/supervisor.py
         symbol: ModuleSupervisor.module_control
-      - &id024
+      - &id020
         path: src/nerve_center/runtime/supervisor.py
         symbol: ModuleSupervisor.next_assignment
       - path: src/nerve_center/runtime/api.py
         symbol: register_runtime_routes.submit_work
       - path: src/nerve_center/runtime/client.py
         symbol: ModuleRuntimeClient.submit_work
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.submit_work
+      - path: tests/test_job_scout_continuous_session.py
+        symbol: Client.submit_work
     - name: register_runtime_routes.token
       kind: function
       line_start: 69
@@ -1093,14 +1085,10 @@ source_catalog:
       - translate
       parser: python-ast
       dependency_targets:
-      - *id020
-      - *id021
-      - *id022
-      - *id023
-      - &id025
+      - &id021
         path: src/nerve_center/runtime/api.py
         symbol: register_runtime_routes.token
-      - &id026
+      - &id022
         path: src/nerve_center/runtime/api.py
         symbol: register_runtime_routes.translate
     - name: register_runtime_routes.next_work
@@ -1120,9 +1108,9 @@ source_catalog:
       - translate
       parser: python-ast
       dependency_targets:
-      - *id024
-      - *id025
-      - *id026
+      - *id020
+      - *id021
+      - *id022
     - name: register_runtime_routes.module_control
       kind: function
       line_start: 106
@@ -1139,8 +1127,8 @@ source_catalog:
       - translate
       parser: python-ast
       dependency_targets:
-      - *id025
-      - *id026
+      - *id021
+      - *id022
     - name: register_runtime_routes.control
       kind: function
       line_start: 113
@@ -1158,8 +1146,8 @@ source_catalog:
       - translate
       parser: python-ast
       dependency_targets:
-      - *id025
-      - *id026
+      - *id021
+      - *id022
     - name: register_runtime_routes.checkpoint
       kind: function
       line_start: 120
@@ -1179,8 +1167,8 @@ source_catalog:
       - translate
       parser: python-ast
       dependency_targets:
-      - *id025
-      - *id026
+      - *id021
+      - *id022
     - name: register_runtime_routes.consume_resource
       kind: function
       line_start: 132
@@ -1200,8 +1188,8 @@ source_catalog:
       - translate
       parser: python-ast
       dependency_targets:
-      - *id025
-      - *id026
+      - *id021
+      - *id022
     - name: register_runtime_routes.invoke
       kind: function
       line_start: 150
@@ -1221,8 +1209,8 @@ source_catalog:
       - translate
       parser: python-ast
       dependency_targets:
-      - *id025
-      - *id026
+      - *id021
+      - *id022
     - name: register_runtime_routes.submit_work
       kind: function
       line_start: 168
@@ -1243,8 +1231,8 @@ source_catalog:
       - translate
       parser: python-ast
       dependency_targets:
-      - *id025
-      - *id026
+      - *id021
+      - *id022
     - name: register_runtime_routes.results
       kind: function
       line_start: 185
@@ -1262,12 +1250,12 @@ source_catalog:
       - translate
       parser: python-ast
       dependency_targets:
-      - *id027
-      - *id028
-      - *id029
-      - *id030
+      - *id023
+      - *id024
       - *id025
       - *id026
+      - *id021
+      - *id022
     - name: register_runtime_routes.acknowledge_result
       kind: function
       line_start: 192
@@ -1287,8 +1275,8 @@ source_catalog:
       - translate
       parser: python-ast
       dependency_targets:
-      - *id025
-      - *id026
+      - *id021
+      - *id022
     - name: register_runtime_routes.complete
       kind: function
       line_start: 210
@@ -1309,8 +1297,8 @@ source_catalog:
       - translate
       parser: python-ast
       dependency_targets:
-      - *id025
-      - *id026
+      - *id021
+      - *id022
   - path: src/nerve_center/summary/domain.py
     analysis_version: 1
     language: python
@@ -1379,7 +1367,7 @@ source_catalog:
       - register_discovery_routes
       parser: python-ast
       dependency_targets:
-      - &id031
+      - &id027
         path: src/nerve_center/persistence/database.py
         symbol: Database.initialize
       - path: src/nerve_center/discovery/api.py
@@ -1445,10 +1433,10 @@ source_catalog:
         symbol: JobOpeningRepository.upsert
       - path: src/nerve_center/persistence/scoring.py
         symbol: ScoringRuleRepository.upsert
-      - *id031
+      - *id027
       - path: src/nerve_center/plugins/job_scout/discovery_quality.py
         symbol: DiscoveryQualityRepository.discovery_audit
-      - &id032
+      - &id028
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.ensure_strategy
   - path: tests/test_job_scout_reference_audit.py
@@ -1482,7 +1470,7 @@ source_catalog:
       - database.initialize
       parser: python-ast
       dependency_targets:
-      - *id031
+      - *id027
     - name: test_reference_attempt_evidence_is_bounded_and_run_attributed
       kind: function
       line_start: 19
@@ -1501,12 +1489,12 @@ source_catalog:
       - len
       parser: python-ast
       dependency_targets:
-      - &id033
+      - &id029
         path: tests/test_job_scout_reference_audit.py
         symbol: _learning
       - path: src/nerve_center/plugins/job_scout/bootstrap.py
         symbol: _recent_reference_attempt_evidence
-      - *id032
+      - *id028
     - name: test_public_search_attempt_evidence_is_run_scoped_and_transport_explicit
       kind: function
       line_start: 119
@@ -1524,10 +1512,10 @@ source_catalog:
       - len
       parser: python-ast
       dependency_targets:
-      - *id033
+      - *id029
       - path: src/nerve_center/plugins/job_scout/bootstrap.py
         symbol: _recent_public_search_attempt_evidence
-      - *id032
+      - *id028
   - path: tests/test_module_contracts.py
     analysis_version: 1
     language: python
@@ -1576,13 +1564,9 @@ source_catalog:
         symbol: ModuleManifest.from_dict
       - path: src/nerve_center/domain/session.py
         symbol: RecurrenceRule.from_dict
-      - &id034
+      - &id030
         path: tests/test_module_contracts.py
         symbol: manifest
-      - *id020
-      - *id021
-      - *id022
-      - *id023
       - path: src/nerve_center/domain/module.py
         symbol: ModuleManifest.supports_core
     - name: test_manifest_rejects_task_outside_module_namespace
@@ -1599,7 +1583,7 @@ source_catalog:
       - replace
       parser: python-ast
       dependency_targets:
-      - *id034
+      - *id030
     - name: test_manifest_rejects_unsupported_contract_version
       kind: function
       line_start: 82
@@ -1613,4 +1597,4 @@ source_catalog:
       - replace
       parser: python-ast
       dependency_targets:
-      - *id034
+      - *id030
