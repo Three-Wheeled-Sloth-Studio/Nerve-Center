@@ -37,6 +37,10 @@ def test_attention_submission_is_idempotent_and_survives_restart(tmp_path: Path)
         blocked = client.get(
             "/api/v1/attention/dependencies/example:branch:1/blocked"
         )
+        unrelated_run = client.post(
+            "/api/v1/runs",
+            json={"task_id": "synthetic", "duration_seconds": 60},
+        )
 
     restarted = create_app(settings)
     with TestClient(restarted) as client:
@@ -49,6 +53,7 @@ def test_attention_submission_is_idempotent_and_survives_restart(tmp_path: Path)
     assert duplicate.json()["item"]["id"] == item_id
     assert duplicate.json()["item"]["title"] == "Needs a decision"
     assert blocked.json()["blocked"] is True
+    assert unrelated_run.status_code == 201
     assert fetched.json()["context"] == {"fact": "preserved"}
     assert [event["event_type"] for event in history.json()] == ["created"]
 
