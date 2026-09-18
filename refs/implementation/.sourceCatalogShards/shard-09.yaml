@@ -7,7 +7,7 @@ source_catalog:
   - path: src/nerve_center/__init__.py
     analysis_version: 1
     language: python
-    content_hash: 18db8898297256620e8f4f6c678d720df431ed66
+    content_hash: 6e9f9a49c5b45f184df133353fb9116ec8796aee
     dependencies: []
     provides: []
     symbols: []
