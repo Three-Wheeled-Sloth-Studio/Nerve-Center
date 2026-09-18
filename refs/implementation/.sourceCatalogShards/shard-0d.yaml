@@ -818,7 +818,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/query_portfolio.py
     analysis_version: 1
     language: python
-    content_hash: 9afc501fc772304de73ad7690052e96d33c3bd56
+    content_hash: cbea84cc2fecca2f8c1117349114a3f4e5649adf
     dependencies:
     - __future__
     - collections.abc
@@ -854,8 +854,8 @@ source_catalog:
     symbols:
     - name: source_capabilities
       kind: function
-      line_start: 73
-      line_end: 97
+      line_start: 119
+      line_end: 143
       signature: 'source_capabilities(source_domain: str) -> SourceCapabilities'
       inputs:
       - 'source_domain: str'
@@ -875,8 +875,8 @@ source_catalog:
         symbol: _clean_domain
     - name: build_query_portfolio
       kind: function
-      line_start: 100
-      line_end: 205
+      line_start: 146
+      line_end: 247
       signature: 'build_query_portfolio(target_titles: list[str], keywords: list[str], locations: list[str], source_domains:
         list[str], limit: int) -> list[dict[str, str]]'
       inputs:
@@ -910,11 +910,12 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: _adjacent_anchors
-      - path: src/nerve_center/plugins/job_scout/query_portfolio.py
+      - &id011
+        path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: _archetype_terms
       - *id006
       - *id007
-      - &id011
+      - &id012
         path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: _generic_anchor
       - path: src/nerve_center/plugins/job_scout/query_portfolio.py
@@ -928,13 +929,13 @@ source_catalog:
         symbol: compile_strategy_query
       - path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: _extract_structured_employer_names.add
-      - &id013
+      - &id014
         path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: source_capabilities
     - name: compile_strategy_query
       kind: function
-      line_start: 208
-      line_end: 301
+      line_start: 250
+      line_end: 343
       signature: 'compile_strategy_query(dimensions: dict[str, str], evidence_terms: Iterable[str]) -> CompiledQuery'
       inputs:
       - 'dimensions: dict[str, str]'
@@ -971,7 +972,7 @@ source_catalog:
       - *id007
       - path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: _market_search_terms
-      - &id012
+      - &id013
         path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: _split_terms
       - *id009
@@ -979,8 +980,8 @@ source_catalog:
         symbol: lint_query_dimensions
     - name: compile_employer_deepening_queries
       kind: function
-      line_start: 304
-      line_end: 333
+      line_start: 346
+      line_end: 375
       signature: 'compile_employer_deepening_queries(dimensions: dict[str, str], evidence_terms: Iterable[str]) -> tuple[CompiledQuery,
         ...]'
       inputs:
@@ -1004,8 +1005,8 @@ source_catalog:
       - *id010
     - name: _market_search_terms
       kind: function
-      line_start: 336
-      line_end: 339
+      line_start: 378
+      line_end: 381
       signature: '_market_search_terms(value: str) -> str'
       inputs:
       - 'value: str'
@@ -1018,8 +1019,8 @@ source_catalog:
       dependency_targets: []
     - name: lint_query_dimensions
       kind: function
-      line_start: 342
-      line_end: 392
+      line_start: 384
+      line_end: 466
       signature: 'lint_query_dimensions(dimensions: dict[str, str], evidence_terms: Iterable[str], capabilities: SourceCapabilities
         | None) -> QueryLintResult'
       inputs:
@@ -1030,15 +1031,20 @@ source_catalog:
       dependencies:
       - ''' ''.join'
       - ''' ''.join(dimensions.get(''anchor'', '''').split()).strip'
+      - ''' ''.join(dimensions.get(''employer_archetype'', '''').split()).strip'
       - QueryLintResult
+      - _archetype_terms
       - _generic_anchor
       - _normalize_phrase
       - _normalize_term
+      - _seniority_levels
       - _split_terms
       - _tokens
       - clean_list
       - dimensions.get
       - dimensions.get('anchor', '').split
+      - dimensions.get('employer_archetype', '').split
+      - dimensions.get('hypothesis_family', '').strip
       - dimensions.get('location', '').strip
       - dimensions.get(key, '').strip
       - normalized_fields.count
@@ -1047,24 +1053,27 @@ source_catalog:
       - str
       - tuple
       - warnings.append
-      - warnings.extend
       parser: python-ast
       dependency_targets:
       - *id011
-      - &id014
-        path: src/nerve_center/plugins/job_scout/query_portfolio.py
-        symbol: _normalize_phrase
+      - *id012
       - &id015
         path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: _normalize_phrase
+      - &id017
+        path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: _normalize_term
-      - *id012
-      - *id009
+      - &id016
+        path: src/nerve_center/plugins/job_scout/query_portfolio.py
+        symbol: _seniority_levels
       - *id013
+      - *id009
+      - *id014
       - *id008
     - name: build_coverage_gap_profile
       kind: function
-      line_start: 395
-      line_end: 506
+      line_start: 469
+      line_end: 585
       signature: 'build_coverage_gap_profile(target_titles: list[str], keywords: list[str], locations: list[str], remote_preference:
         str, strategies: list[DiscoveryStrategySnapshot], openings: list[NormalizedJobOpening], sources: list[DiscoverySource])
         -> dict[str, list[str]]'
@@ -1080,8 +1089,10 @@ source_catalog:
       dependencies:
       - ''' ''.join'
       - ''' ''.join((f''{item.title} {item.description}'' for item in openings)).casefold'
+      - _archetype_terms
       - _clean_domain
       - _coverage_overlap
+      - _normalize_phrase
       - _seniority_levels
       - _source_domain_observed
       - _tokens
@@ -1089,6 +1100,7 @@ source_catalog:
       - clean_list
       - gaps.items
       - gaps['domain_capability'].append
+      - gaps['employer_archetype'].append
       - gaps['geography'].append
       - gaps['role'].append
       - gaps['work_arrangement'].append
@@ -1099,12 +1111,13 @@ source_catalog:
       - useful.issubset
       parser: python-ast
       dependency_targets:
+      - *id011
       - *id006
       - *id007
       - path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: _coverage_overlap
-      - path: src/nerve_center/plugins/job_scout/query_portfolio.py
-        symbol: _seniority_levels
+      - *id015
+      - *id016
       - path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: _source_domain_observed
       - *id009
@@ -1113,8 +1126,8 @@ source_catalog:
         symbol: opening_matches_market
     - name: preferred_structured_source_ids
       kind: function
-      line_start: 509
-      line_end: 514
+      line_start: 588
+      line_end: 593
       signature: 'preferred_structured_source_ids(sources: list[DiscoverySource]) -> set[str]'
       inputs:
       - 'sources: list[DiscoverySource]'
@@ -1124,8 +1137,8 @@ source_catalog:
       dependency_targets: []
     - name: _source_domain_observed
       kind: function
-      line_start: 517
-      line_end: 527
+      line_start: 596
+      line_end: 606
       signature: '_source_domain_observed(domain: str, sources: list[DiscoverySource]) -> bool'
       inputs:
       - 'domain: str'
@@ -1141,8 +1154,8 @@ source_catalog:
       - *id007
     - name: _adjacent_anchors
       kind: function
-      line_start: 530
-      line_end: 551
+      line_start: 609
+      line_end: 630
       signature: '_adjacent_anchors(target_titles: list[str], capability_terms: list[str]) -> list[str]'
       inputs:
       - 'target_titles: list[str]'
@@ -1160,8 +1173,8 @@ source_catalog:
       - *id008
     - name: _seniority_variants
       kind: function
-      line_start: 554
-      line_end: 566
+      line_start: 633
+      line_end: 645
       signature: '_seniority_variants(target_titles: list[str]) -> list[str]'
       inputs:
       - 'target_titles: list[str]'
@@ -1177,8 +1190,8 @@ source_catalog:
       - *id009
     - name: _archetype_terms
       kind: function
-      line_start: 569
-      line_end: 582
+      line_start: 648
+      line_end: 661
       signature: '_archetype_terms(capability_terms: list[str]) -> list[str]'
       inputs:
       - 'capability_terms: list[str]'
@@ -1193,8 +1206,8 @@ source_catalog:
       - *id008
     - name: _seniority_levels
       kind: function
-      line_start: 585
-      line_end: 599
+      line_start: 664
+      line_end: 678
       signature: '_seniority_levels(value: str) -> list[str]'
       inputs:
       - 'value: str'
@@ -1204,12 +1217,12 @@ source_catalog:
       - levels.append
       parser: python-ast
       dependency_targets:
-      - *id014
+      - *id015
       - *id008
     - name: _generic_anchor
       kind: function
-      line_start: 602
-      line_end: 604
+      line_start: 681
+      line_end: 683
       signature: '_generic_anchor(value: str) -> bool'
       inputs:
       - 'value: str'
@@ -1222,8 +1235,8 @@ source_catalog:
       dependency_targets: []
     - name: _split_terms
       kind: function
-      line_start: 607
-      line_end: 608
+      line_start: 686
+      line_end: 687
       signature: '_split_terms(value: str) -> list[str]'
       inputs:
       - 'value: str'
@@ -1237,8 +1250,8 @@ source_catalog:
       - *id009
     - name: _tokens
       kind: function
-      line_start: 611
-      line_end: 616
+      line_start: 690
+      line_end: 695
       signature: '_tokens(value: str) -> set[str]'
       inputs:
       - 'value: str'
@@ -1249,11 +1262,11 @@ source_catalog:
       - re.findall
       parser: python-ast
       dependency_targets:
-      - *id015
+      - *id017
     - name: _normalize_term
       kind: function
-      line_start: 619
-      line_end: 625
+      line_start: 698
+      line_end: 704
       signature: '_normalize_term(value: str) -> str'
       inputs:
       - 'value: str'
@@ -1266,8 +1279,8 @@ source_catalog:
       dependency_targets: []
     - name: _normalize_phrase
       kind: function
-      line_start: 628
-      line_end: 629
+      line_start: 707
+      line_end: 708
       signature: '_normalize_phrase(value: str) -> str'
       inputs:
       - 'value: str'
@@ -1280,8 +1293,8 @@ source_catalog:
       dependency_targets: []
     - name: _coverage_overlap
       kind: function
-      line_start: 632
-      line_end: 633
+      line_start: 711
+      line_end: 712
       signature: '_coverage_overlap(left: set[str], right: set[str]) -> float'
       inputs:
       - 'left: set[str]'
@@ -1294,8 +1307,8 @@ source_catalog:
       dependency_targets: []
     - name: _clean_domain
       kind: function
-      line_start: 636
-      line_end: 641
+      line_start: 715
+      line_end: 720
       signature: '_clean_domain(value: str) -> str'
       inputs:
       - 'value: str'
@@ -1406,16 +1419,16 @@ source_catalog:
       - len
       parser: python-ast
       dependency_targets:
-      - &id019
+      - &id021
         path: src/nerve_center/plugins/job_scout/attachment_discovery.py
         symbol: _prioritize_civic_reference_results
-      - &id016
+      - &id018
         path: src/nerve_center/persistence/model_lab.py
         symbol: _result
-      - &id017
+      - &id019
         path: tests/test_job_scout_reference_selection.py
         symbol: _result
-      - &id018
+      - &id020
         path: tests/test_module_runtime.py
         symbol: _result
     - name: test_supported_employer_document_outranks_generic_civic_page
@@ -1432,9 +1445,9 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/plugins/job_scout/attachment_discovery.py
         symbol: _reference_intent_rank
-      - *id016
-      - *id017
       - *id018
+      - *id019
+      - *id020
     - name: test_reference_preselection_preserves_non_civic_results_and_raw_order
       kind: function
       line_start: 60
@@ -1448,10 +1461,10 @@ source_catalog:
       - _result
       parser: python-ast
       dependency_targets:
-      - *id019
-      - *id016
-      - *id017
+      - *id021
       - *id018
+      - *id019
+      - *id020
     - name: test_civic_self_employment_page_is_not_a_landscape_reference
       kind: function
       line_start: 84
@@ -1465,10 +1478,10 @@ source_catalog:
       - next
       parser: python-ast
       dependency_targets:
-      - *id019
-      - *id016
-      - *id017
+      - *id021
       - *id018
+      - *id019
+      - *id020
     - name: test_reference_adapter_preserves_ranked_fallback_pool_and_raw_count
       kind: function
       line_start: 105
@@ -1488,9 +1501,9 @@ source_catalog:
       - sum
       parser: python-ast
       dependency_targets:
-      - *id016
-      - *id017
       - *id018
+      - *id019
+      - *id020
     - name: test_reference_adapter_preserves_ranked_fallback_pool_and_raw_count.Search.search_references
       kind: method
       line_start: 115
