@@ -5,7 +5,7 @@ identity:
   name: Nerve Center
   repository_url: https://github.com/Three-Wheeled-Sloth-Studio/Nerve-Center
   summary: Local-first single-user orchestration platform for scheduled desktop tasks that may use local tools and local language models.
-  current_phase: MVP hardening and Job Scout workflow expansion
+  current_phase: MVP hardening and second reference-module orchestration
 thesis:
   core_promise: Keep scheduled, agent-assisted desktop work durable, inspectable, local-first, and user-controlled.
 audience:

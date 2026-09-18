@@ -264,13 +264,13 @@ The Ollama grammar receives the empirically supported numeric, minimum-length, a
 
 Live run `e284029f-b796-4fd6-8b0e-6b9c3222f1f5` passed the short scoring gate with 5/5 successful full scores, zero scoring failures, 44/500 requests, and 9/60 LLM calls. Each fit request tried and repaired Gemma first, then succeeded on Qwen without a Qwen repair; general discovery reflections remained on Gemma and succeeded after its bounded repair. This replaces the prior 0/8 and 0/4 evidence and makes the remaining structured-scoring work a quality-evaluation concern rather than a basic completion blocker.
 
-## Code Shop second reference-module foundation (staged)
+## Code Shop second reference-module foundation (implemented)
 
-Issue **#54: Establish safe Code Shop orchestration foundation** is staged for implementation directly on `dev`.
+Issue **#54: Establish safe Code Shop orchestration foundation** is implemented in `0.12.27`. The manager-owned foundation landed at implementation checkpoint `6112a760cdb00821c5fdefdeff695b7a46559076`; deterministic source/OKF artifacts were refreshed at `4f90c65bb7cfb260f795d27b8c0bc4cbf1df7c0f`. Bounded validation passed refs/context checks, Ruff, 20 focused Code Shop/API/module tests, and the complete 284-test Python suite.
 
 Code Shop is the permanent display name with stable module ID and storage namespace `code_shop`. GitHub is authoritative for repository identity and metadata; Nerve Center stores user selection, lifecycle, authority, and machine-local checkout linkage keyed to that identity. Users discover repositories through a manager-owned GitHub connector and explicitly link a checkout folder rather than defining project identity with a path.
 
-The first slice adds the built-in module declaration, manager-owned project registry and trust provenance, explicit `allow`/`ask`/`deny` authority envelopes, checkout containment and remote verification, a typed privileged-execution contract, durable engineering workflow/escalation/outcome records, model-blind capability vocabulary, minimal manager APIs, and deterministic boundary tests. Production shell/GitHub mutation, deployment, credential mutation, destructive Git, hosted execution, external premium-agent invocation, and learned policy mutation remain deferred.
+The implemented first slice adds the built-in module declaration, manager-owned project registry and trust provenance, explicit `allow`/`ask`/`deny` authority envelopes, checkout containment and remote verification, a typed privileged-execution contract, durable engineering workflow/escalation/outcome records, model-blind capability vocabulary, minimal manager APIs, and deterministic boundary tests. Production shell/GitHub mutation, deployment, credential mutation, destructive Git, hosted execution, external premium-agent invocation, and learned policy mutation remain deferred.
 
 The consequential-action boundary is cautiously expanded only for manager-verified official modules operating under explicit user project policy, durable task attribution, capability declarations, scope checks, and manager risk policy. High-risk and destructive actions cannot become silently autonomous through ordinary project write authority. See `refs/planning/code-shop-foundation.md` and decisions NC-048 through NC-051.
 

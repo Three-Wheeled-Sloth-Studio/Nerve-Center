@@ -7,6 +7,24 @@ tags: [nerve-center, handoff]
 ---
 # Current Handoff
 
+## 2026-09-18 - Code Shop foundation implemented; Attention/Review #61 next
+
+Code Shop Issue #54 is implemented as the second first-party reference-module foundation. Implementation checkpoint `6112a760cdb00821c5fdefdeff695b7a46559076` plus generated-artifact checkpoint `4f90c65bb7cfb260f795d27b8c0bc4cbf1df7c0f` establish:
+
+- built-in official module `code_shop` with manager-derived trust provenance and stable storage namespace `code_shop`;
+- GitHub-authoritative project identity behind a manager connector contract, with durable project lifecycle and synchronized metadata;
+- machine-local checkout links that require approved-root containment and a matching GitHub remote identity;
+- explicit project action authority `allow | ask | deny`, optional branch/path scope, separate manager risk findings, and durable authority decisions;
+- model-blind engineering capabilities for architecture planning, decomposition, implementation, debugging, review, and research;
+- typed privileged-execution requests with a deterministic no-op host only; production shell, GitHub mutation, hosted runners, deployment, credential mutation, and destructive Git remain deferred;
+- durable engineering tasks, attempts/outcomes, escalations, and automatic bounded-failure escalation;
+- minimal manager APIs plus a supervised Code Shop worker that may submit model-blind task capability requests but cannot directly execute privileged actions.
+
+The database schema advances from 11 to 12 and the public application version advances to `0.12.27`. Bounded validation passed deterministic source/OKF/ref checks, Agent Academy context generation, Ruff, 20 focused tests, and the full 284-test Python suite.
+
+Issue #61, `[Core] Add manager-owned Attention and Review queue foundation`, is the next bounded slice. It should turn Code Shop's domain-specific escalation into a generic manager-owned human-attention primitive while preserving dependency-local blocking and avoiding connector/permission expansion in the same slice.
+
+
 ## 2026-09-17 - Issue #60 accepted; Code Shop #54 next
 
 Exact-runtime acceptance run `5d3f2ad8-2c01-4dde-b640-0ae467585d35` completed successfully through planned `admission_draining` on Git `0169e148de9b56e571c525a6a920bed654e7c303`. Runtime identity is explicit: `uses_checkout_source=true`, the module resolved from `D:\\Apps\\Nerve-Center\\src`, and the managed API used the same checkout source root.
@@ -63,10 +81,10 @@ The next acceptance gate remains an isolated five-minute run. It should prove th
 ## Current state
 
 - Work directly on `dev`; do not create a feature branch or PR unless explicitly requested.
-- Application version is `0.12.26`.
+- Application version is `0.12.27`.
 - Agent Academy alignment baseline is `e4118f96cc0138490b950402ba711399580ee854`; bounded source discovery, handoff required reads, capability-aware sub-agent guidance, and source-modularity rules are now part of Nerve Center's engineering contract.
 - The current local-acquisition implementation checkpoint is `fe1608e5e7bc4f309d8a823340f78200a9886ba6`. Exact-runtime gates are pinned to the checkout source; clean employer deepening and truthful provider-challenge accounting are proven; DuckDuckGo challenge state now opens a bounded provider circuit breaker so later strategies can use Bing public HTML without adding a same-strategy retry. Targeted validation passed in workflow `35270065108`; full helper-free exact-head CI is required before the next live gate.
-- Issue #57 and Issue #60 are closed as completed. Code Shop Issue #54 is the next active bounded implementation slice.
+- Issue #57 and Issue #60 are closed as completed. Code Shop Issue #54 is implemented; core Attention/Review Issue #61 is the next active bounded slice.
 - Job Scout remains an iterative market-research loop: `expand -> converge -> deepen -> reflect -> re-expand`. Discovery optimizes recall; ranking/scoring provides precision.
 - Extracted employer names are hypotheses only. They must pass through ordinary public search and official-career resolution before becoming durable company/location evidence.
 - No named employer, city, or region exception exists in production logic.
@@ -256,35 +274,29 @@ No named company, city, or region exception was added. No extra network path or 
 
 ## Next bounded slice
 
-Return to staged Code Shop Issue #54. Do not extend Job Scout work from the completed #60 gate unless new evidence contradicts the accepted provider/cache behavior.
+Proceed with core Issue #61: manager-owned Attention and Review queue foundation. Keep Code Shop #54 closed once exact-head CI is green; do not reopen its accepted safety boundary unless contradictory evidence appears.
 
-Issue #54 establishes Code Shop as Nerve Center's second reference module and the smallest manager-owned foundation for safe autonomous software-engineering orchestration. Preserve the accepted architecture in the issue:
+The next slice should:
 
-1. Code Shop display name with stable module/storage ID `code_shop`;
-2. GitHub-authoritative repository identity and metadata;
-3. durable project registry with `enabled`, `paused`, `observe_only`, `needs_attention`, and `excluded` lifecycle;
-4. machine-local checkout linkage validated for approved-root containment and Git remote identity;
-5. project action policy `allow | ask | deny` plus separate manager risk escalation;
-6. official/trusted module provenance derived by the manager, never asserted by module input;
-7. model-blind capability requests for architecture planning, decomposition, implementation, debugging, review, and research;
-8. typed manager-owned privileged execution-host capability contract, with deterministic/no-op test adapter only in this slice;
-9. durable engineering task, attempt/outcome, authority-decision, and escalation records;
-10. minimal manager API surface and deterministic boundary tests needed to prove the contracts.
+1. define generic durable Attention/Review items and audit history;
+2. support idempotent module submission and explicit dependency keys;
+3. block only dependent workflow branches while unrelated work remains admissible;
+4. expose minimal manager create/list/read/resolve/dismiss/history APIs;
+5. link Code Shop escalations to exactly one manager Attention item while retaining Code Shop-specific evidence;
+6. prove restart, idempotency, and dependency isolation deterministically.
 
-Explicitly defer unrestricted shell access, production GitHub mutation, hosted-runner execution, autonomous deployment or credential changes, destructive Git operations, premium-agent escalation, learned policy mutation, self-modification, and polished dashboard UI.
+Explicitly defer morning-summary delivery, polished desktop queue UI, install-time permission review, private/authenticated connector expansion, external draft/write connectors, and consequential-action expansion.
 
 ## Required Reads For Next Slice
 
-- `refs/handoffs/currentHandoff.md` - authoritative completed Job Scout baseline and Code Shop transition.
-- `refs/handoffs/next-dev-prompt.md` - exact bounded Code Shop execution prompt.
-- Issue #54 and its latest comments - authoritative Code Shop architecture, safety boundary, scope, and acceptance criteria.
-- Only source-catalog matches returned by the generated Code Shop agent-context packet.
-- Relevant validation commands returned by the packet; do not broadly scan unrelated Job Scout implementation.
+- `refs/handoffs/currentHandoff.md`
+- `refs/handoffs/next-dev-prompt.md`
+- Issue #61 and its latest comments
+- `refs/planning/mvp-roadmap.md` around Increment 13
+- only source-catalog matches returned for attention/review, Code Shop escalation, persistence, and manager API seams
 
 ## Re-entry
 
 ```powershell
-python scripts/agent_context.py --focus "Code Shop safe orchestration foundation project registry checkout authority execution host" --issue 54
+python scripts/agent_context.py --focus "manager attention review queue dependency blocking Code Shop escalation" --issue 61
 ```
-
-Start with the generated packet's required reads and source-catalog matches. Query the source catalog again before broader repository search if a concrete dependency remains unresolved.
