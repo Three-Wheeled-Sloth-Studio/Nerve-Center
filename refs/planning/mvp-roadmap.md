@@ -357,6 +357,20 @@ Issue **#65: Add manager-owned backup and pre-migration snapshot foundation** is
 
 ## Reference-module continuation
 
+### Job Scout reflection-intent correction (implemented)
+
+Issue **#66: Keep gap reflection aligned with career intent** is implemented as a bounded relevance-quality correction with no application-version or schema change.
+
+Accepted behavior:
+
+1. Career capability phrases remain usable for broad `domain_capability` exploration but are not automatically converted into invented employer archetypes by appending `company`.
+2. General query-portfolio generation does not create local-employer searches from capability terms; local-employer acquisition remains the dedicated market-reference lane using explicit employer-list/headquarters anchors.
+3. Deterministic query linting rejects arbitrary stale local-employer anchors before request spend, rejects workshops/courses/events as role anchors, and rejects internship/entry-level anchors when configured evidence requests senior/director-level work.
+4. LLM-proposed employer archetypes must be grounded in explicit configured/discovered career evidence.
+5. Employer-archetype coverage gaps are requested-vs-observed rather than a replay of every historical zero-yield reflected label.
+6. Reflection contract v3 explicitly preserves configured career level and distinguishes capability evidence from employer-archetype evidence.
+7. Legitimate adjacent-role and domain exploration stays available. Provider selection/fallback, scheduler weights, cooldowns, request caps, scoring/ranking, manager schemas, and core authority are unchanged.
+
 Job Scout remains the first reference module and should continue to improve when new evidence justifies it, but its domain roadmap is subordinate to the core boundary:
 
 - resume and evidence-profile management remain module configuration;
