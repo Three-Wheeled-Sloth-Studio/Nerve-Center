@@ -33,6 +33,8 @@ Code Shop foundation implementation checkpoint: `6112a760cdb00821c5fdefdeff695b7
 
 Generated discovery-artifact checkpoint: `4f90c65bb7cfb260f795d27b8c0bc4cbf1df7c0f`.
 
+Final Code Shop exact-head CI checkpoint: `adb4074a44cfc551641ab05942706cbfbfabf628`, run `35354405129`, all Python / desktop-web / desktop-rust jobs green.
+
 Application version: `0.12.27`. Database schema: 12.
 
 The manager now owns Code Shop project identity/lifecycle, checkout verification, explicit action authority, risk evaluation, typed execution-host requests, and durable engineering task/attempt/outcome/decision/escalation state. The Code Shop worker is model-blind and has no direct privileged execution authority. The current execution host is deliberately deterministic/no-op.

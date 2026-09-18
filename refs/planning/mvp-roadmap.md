@@ -266,7 +266,7 @@ Live run `e284029f-b796-4fd6-8b0e-6b9c3222f1f5` passed the short scoring gate wi
 
 ## Code Shop second reference-module foundation (implemented)
 
-Issue **#54: Establish safe Code Shop orchestration foundation** is implemented in `0.12.27`. The manager-owned foundation landed at implementation checkpoint `6112a760cdb00821c5fdefdeff695b7a46559076`; deterministic source/OKF artifacts were refreshed at `4f90c65bb7cfb260f795d27b8c0bc4cbf1df7c0f`. Bounded validation passed refs/context checks, Ruff, 20 focused Code Shop/API/module tests, and the complete 284-test Python suite.
+Issue **#54: Establish safe Code Shop orchestration foundation** is implemented in `0.12.27`. The manager-owned foundation landed at implementation checkpoint `6112a760cdb00821c5fdefdeff695b7a46559076`; deterministic source/OKF artifacts were refreshed at `4f90c65bb7cfb260f795d27b8c0bc4cbf1df7c0f`. Bounded validation passed refs/context checks, Ruff, 20 focused Code Shop/API/module tests, and the complete 284-test Python suite. Final exact-head standard CI run `35354405129` on `adb4074a44cfc551641ab05942706cbfbfabf628` also passed the desktop web and Rust/Tauri jobs.
 
 Code Shop is the permanent display name with stable module ID and storage namespace `code_shop`. GitHub is authoritative for repository identity and metadata; Nerve Center stores user selection, lifecycle, authority, and machine-local checkout linkage keyed to that identity. Users discover repositories through a manager-owned GitHub connector and explicitly link a checkout folder rather than defining project identity with a path.
 

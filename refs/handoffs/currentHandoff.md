@@ -20,7 +20,7 @@ Code Shop Issue #54 is implemented as the second first-party reference-module fo
 - durable engineering tasks, attempts/outcomes, escalations, and automatic bounded-failure escalation;
 - minimal manager APIs plus a supervised Code Shop worker that may submit model-blind task capability requests but cannot directly execute privileged actions.
 
-The database schema advances from 11 to 12 and the public application version advances to `0.12.27`. Bounded validation passed deterministic source/OKF/ref checks, Agent Academy context generation, Ruff, 20 focused tests, and the full 284-test Python suite.
+The database schema advances from 11 to 12 and the public application version advances to `0.12.27`. Bounded validation passed deterministic source/OKF/ref checks, Agent Academy context generation, Ruff, 20 focused tests, and the full 284-test Python suite. Final exact-head standard CI run `35354405129` passed on `adb4074a44cfc551641ab05942706cbfbfabf628`: source catalog 194 files / 1701 symbols, 11 OKF indexes, initialized refs validation, 6,283-character agent-context check, 284 Python tests, desktop web build, and desktop Rust/Tauri check all green.
 
 Issue #61, `[Core] Add manager-owned Attention and Review queue foundation`, is the next bounded slice. It should turn Code Shop's domain-specific escalation into a generic manager-owned human-attention primitive while preserving dependency-local blocking and avoiding connector/permission expansion in the same slice.
 
