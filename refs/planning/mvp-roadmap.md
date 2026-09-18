@@ -309,18 +309,28 @@ Accepted behavior:
 
 Implementation checkpoint `66bee379efc7ba41c5fe17a0a9a7c129522c5467` plus lint correction `8e1914fe2d88f47f47bf1ba3dc63801cb6de5b63` passed bounded validation; generated discovery artifacts were refreshed at `4841ea65b3b98a562bad73a5d2f0e73ef83b3ca8`. Validation: source catalog 206 files / 1750 symbols, 11 OKF indexes, initialized refs validation, 20 focused tests, 290 total Python tests, desktop web, and desktop Rust/Tauri all green. Final standard CI run `35360119430` is green on exact head `804e13d41d24e15d53da6f56e3d6229571a6d40c`.
 
-Issue **#63: Add install-time module permission review foundation** is the next bounded Increment 13 slice. Permission review must remain manager-owned and distinct from official-module trust, Code Shop project/action authority, and manager risk evaluation.
+### Install-time module permission review foundation (implemented)
 
-- Add manager-owned Attention and Review queues.
-- Let modules supply domain context, allowed dispositions, validation, and downstream meaning.
-- Block only dependent workflow branches by default.
-- Add morning summaries for completed, blocked, failed, degraded, and comparison work.
-- Add install-time module permission review.
-- Define public-read, authenticated-read, local-write, external-draft, and prohibited external-action classes.
-- Allow authenticated read and non-public remote drafts only through explicit manager-owned connectors.
-- Keep browser automation read-only for the initial product; defer form filling.
+Issue **#63: Add install-time module permission review foundation** is implemented in `0.12.30` with additive schema 14.
+
+Accepted behavior:
+
+1. Manifest permission requests are normalized deterministically and reviewed in manager-owned durable records keyed to module, exact version, and permission fingerprint.
+2. Modules with no declared permissions remain operable without a synthetic review.
+3. Fresh modules with unapproved required permissions remain paused; operational enablement is rejected until those exact declared requirements are approved.
+4. Optional permissions may be denied without blocking operation after all required permissions are approved.
+5. Identical permission fingerprints may carry decisions forward to a new version-specific review only with explicit carry-forward provenance; any changed fingerprint creates a new pending review.
+6. Upgrading an already-installed pre-schema-14 module creates explicit migration provenance for its compatible prior permission use rather than treating built-in/official trust as permission approval.
+7. The manager API can inspect reviews and approve/deny only permissions actually declared by that review; prohibited external-action permissions are not approvable.
+8. Permission approval remains separate from built-in trust and cannot grant Code Shop project/action authority, bypass manager risk evaluation, or create authenticated/private connectors or external writes.
+
+Implementation checkpoint `4a2ad34772668334cf0e0e74106d60ed71d4e392`, compatibility corrections through `ceb710fc35398718366a43ab6d4576a8c3117216`, and generated-artifact checkpoint `7345692fc40e385c57536fd7c44fd49ee6f9e12a` passed bounded validation run `35363736308`: source catalog 212 files / 1792 symbols, 11 OKF indexes, initialized refs validation, 7,054-character agent-context validation, Ruff, 27 focused tests, 297 total Python tests, desktop web, and desktop Rust/Tauri all green.
+
+Authenticated/private connectors, credential UX/storage, external drafts/writes, third-party marketplace/sandboxing, learned permission policy, and polished permission UI remain deferred.
 
 ## Increment 14: Resource profiles, durability, and updates
+
+Issue **#64: Add manager-owned reusable resource profile foundation** is the next bounded slice.
 
 - Add global resource defaults and per-session overrides for CPU, memory, GPU/VRAM, concurrency, queue depth, storage, network, exploration, and optional cloud spend.
 - Add named reusable profiles such as Quiet, Balanced, Overnight, and Model Exploration.
