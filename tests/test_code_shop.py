@@ -360,3 +360,56 @@ def test_model_blind_task_contract_and_failed_attempt_escalation_survive_restart
     assert any(item["id"] == task["id"] for item in tasks)
     assert escalations[0]["task_id"] == task["id"]
     assert projects[0]["lifecycle"] == "needs_attention"
+
+
+def test_explicit_authority_scope_restricts_paths(tmp_path: Path) -> None:
+    approved = tmp_path / "approved"
+    approved.mkdir()
+    checkout = _checkout(approved)
+    app = create_app(
+        Settings(data_dir=tmp_path / "data", code_shop_checkout_roots=(approved,)),
+        code_shop_connector=_connector(),
+    )
+
+    with TestClient(app) as client:
+        _select_and_enable(client)
+        client.put(
+            "/api/v1/modules/code_shop/projects/101/checkout",
+            json={"path": str(checkout)},
+        )
+        policy = client.put(
+            "/api/v1/modules/code_shop/projects/101/authority/checkout_write",
+            json={
+                "policy": "allow",
+                "scope": {"allowed_paths": ["src"]},
+                "provenance": {"source": "user"},
+            },
+        )
+        task = _create_task(client)
+        denied = client.post(
+            "/api/v1/modules/code_shop/execution/evaluate",
+            json={
+                "task_id": task["id"],
+                "repository_id": "101",
+                "action": "checkout_write",
+                "capability": "repo.write",
+                "resource_paths": ["README.md"],
+                "idempotency_key": "scope-denied",
+            },
+        )
+        admitted = client.post(
+            "/api/v1/modules/code_shop/execution/evaluate",
+            json={
+                "task_id": task["id"],
+                "repository_id": "101",
+                "action": "checkout_write",
+                "capability": "repo.write",
+                "resource_paths": ["src/example.py"],
+                "idempotency_key": "scope-admitted",
+            },
+        )
+
+    assert policy.status_code == 200
+    assert denied.json()["effective_decision"] == "deny"
+    assert "explicit authority scope" in denied.json()["reason"]
+    assert admitted.json()["effective_decision"] == "execute"

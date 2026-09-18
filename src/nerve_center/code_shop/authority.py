@@ -134,6 +134,9 @@ class AuthorityEvaluator:
                 ("attention_required_high_risk_action",),
                 "manager risk policy requires explicit human handling",
             )
+        policy_scope_evaluation = self._policy_scope(policy, checkout, request)
+        if policy_scope_evaluation is not None:
+            return policy_scope_evaluation
         branch_evaluation = self._branch_scope(project, request)
         if branch_evaluation is not None:
             return branch_evaluation
@@ -147,6 +150,51 @@ class AuthorityEvaluator:
             (),
             "trusted module, explicit allow policy, verified scope, and acceptable risk",
         )
+
+    @staticmethod
+    def _policy_scope(
+        policy: AuthorityPolicyEnvelope,
+        checkout: CheckoutLink,
+        request: ExecutionRequest,
+    ) -> AuthorityEvaluation | None:
+        scope = policy.scope or {}
+        allowed_branches = {
+            str(item)
+            for item in scope.get("allowed_branches", [])
+            if str(item).strip()
+        }
+        if (
+            allowed_branches
+            and request.branch is not None
+            and request.branch not in allowed_branches
+        ):
+            return _deny(
+                f"branch {request.branch!r} is outside the explicit authority scope"
+            )
+
+        allowed_paths = [
+            str(item)
+            for item in scope.get("allowed_paths", [])
+            if str(item).strip()
+        ]
+        if allowed_paths and request.resource_paths:
+            try:
+                roots = [
+                    resolve_scoped_path(checkout.canonical_path, item)
+                    for item in allowed_paths
+                ]
+                for resource_path in request.resource_paths:
+                    target = resolve_scoped_path(
+                        checkout.canonical_path, resource_path
+                    )
+                    if not any(_contains(root, target) for root in roots):
+                        return _deny(
+                            f"resource path {resource_path!r} is outside the "
+                            "explicit authority scope"
+                        )
+            except CheckoutValidationError as error:
+                return _deny(str(error))
+        return None
 
     @staticmethod
     def _branch_scope(
@@ -177,3 +225,11 @@ def _deny(reason: str) -> AuthorityEvaluation:
 
 def _attention(reason: str) -> AuthorityEvaluation:
     return AuthorityEvaluation(EffectiveDecision.REQUEST_ATTENTION, (), reason)
+
+
+def _contains(root: object, target: object) -> bool:
+    try:
+        target.relative_to(root)  # type: ignore[attr-defined]
+        return True
+    except ValueError:
+        return False
