@@ -577,12 +577,18 @@ class SourceAwareJobScoutDiscoveryLoop(JobScoutDiscoveryLoop):
             "Use the explicit uncovered-space profile below as the primary assignment. "
             "Propose up to six materially different public discovery strategies that "
             "target real gaps, not superficial query rewordings. Preserve broad "
-            f"exploration. Coverage gaps: {gaps}. {payload['user_prompt']}"
+            "exploration while preserving the configured career level. Do not propose "
+            "internships, entry-level roles, workshops, courses, events, or other "
+            "non-role activities for a senior target. Treat capability phrases as "
+            "domain/capability evidence unless the supplied career evidence explicitly "
+            "names an employer archetype; do not manufacture an archetype by adding "
+            "'company'. "
+            f"Coverage gaps: {gaps}. {payload['user_prompt']}"
         )
         request["payload"] = payload
         request["output_contract"] = _quality_reflection_schema()
         request["requirements"] = {
-            "contract_version": "job-scout-discovery-reflection-v2"
+            "contract_version": "job-scout-discovery-reflection-v3"
         }
         return request
 
