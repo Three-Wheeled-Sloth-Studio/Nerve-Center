@@ -34,6 +34,10 @@ class SessionRepository:
         recurrence: RecurrenceRule | None = None,
         recurrence_parent_id: str | None = None,
         resource_policy: dict[str, int] | None = None,
+        resource_profile_id: str | None = None,
+        resource_overrides: dict[str, int | float] | None = None,
+        effective_resource_limits: dict[str, int | float | None] | None = None,
+        resource_enforcement: dict[str, str] | None = None,
         now: datetime | None = None,
     ) -> WorkSessionSnapshot:
         current = _utc(now)
@@ -66,6 +70,10 @@ class SessionRepository:
             module_run_ids={},
             module_priorities={},
             resource_policy=dict(resource_policy or {}),
+            resource_profile_id=resource_profile_id,
+            resource_overrides=dict(resource_overrides or {}),
+            effective_resource_limits=dict(effective_resource_limits or {}),
+            resource_enforcement=dict(resource_enforcement or {}),
             emergency_stop=False,
             result_summary=summary,
         )
@@ -220,9 +228,29 @@ def _snapshot(model: WorkSessionModel) -> WorkSessionSnapshot:
         resource_policy={
             key: int(value) for key, value in (model.resource_policy or {}).items()
         },
+        resource_profile_id=model.resource_profile_id,
+        resource_overrides=dict(model.resource_overrides or {}),
+        effective_resource_limits=_effective_limits(model),
+        resource_enforcement=_resource_enforcement(model),
         emergency_stop=model.emergency_stop,
         result_summary=model.result_summary,
     )
+
+
+def _effective_limits(model: WorkSessionModel) -> dict[str, int | float | None]:
+    values = dict(model.effective_resource_limits or {})
+    if values:
+        return values
+    return {
+        key: int(value) for key, value in (model.resource_policy or {}).items()
+    }
+
+
+def _resource_enforcement(model: WorkSessionModel) -> dict[str, str]:
+    values = dict(model.resource_enforcement or {})
+    if values:
+        return values
+    return {key: "enforced" for key in (model.resource_policy or {})}
 
 
 def _utc(value: datetime | None) -> datetime:

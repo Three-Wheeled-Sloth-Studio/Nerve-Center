@@ -113,6 +113,10 @@ class WorkSessionSnapshot:
     module_run_ids: dict[str, str] = field(default_factory=dict)
     module_priorities: dict[str, int] = field(default_factory=dict)
     resource_policy: dict[str, int] = field(default_factory=dict)
+    resource_profile_id: str | None = None
+    resource_overrides: dict[str, int | float] = field(default_factory=dict)
+    effective_resource_limits: dict[str, int | float | None] = field(default_factory=dict)
+    resource_enforcement: dict[str, str] = field(default_factory=dict)
     emergency_stop: bool = False
     result_summary: str | None = None
 

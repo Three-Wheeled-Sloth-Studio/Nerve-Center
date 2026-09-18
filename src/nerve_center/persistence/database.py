@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from nerve_center.config import Settings
 from nerve_center.persistence.models import Base
 
-SCHEMA_VERSION = 14
+SCHEMA_VERSION = 15
 
 
 class Database:
@@ -29,6 +29,7 @@ class Database:
         import_module("nerve_center.persistence.code_shop")
         import_module("nerve_center.persistence.model_lab")
         import_module("nerve_center.persistence.module_permissions")
+        import_module("nerve_center.persistence.resource_profiles")
         Base.metadata.create_all(self.engine)
         with self.engine.begin() as connection:
             self.previous_schema_version = _migrate(connection)
@@ -85,6 +86,38 @@ def _migrate(connection: Connection) -> int:
         if "module_priority" not in columns:
             connection.execute(
                 text("ALTER TABLE runs ADD COLUMN module_priority INTEGER NOT NULL DEFAULT 10")
+            )
+    if "core_sessions" in tables:
+        session_columns = {
+            row[1]
+            for row in connection.execute(
+                text("PRAGMA table_info(core_sessions)")
+            ).fetchall()
+        }
+        if "resource_profile_id" not in session_columns:
+            connection.execute(
+                text("ALTER TABLE core_sessions ADD COLUMN resource_profile_id VARCHAR(100)")
+            )
+        if "resource_overrides" not in session_columns:
+            connection.execute(
+                text(
+                    "ALTER TABLE core_sessions "
+                    "ADD COLUMN resource_overrides JSON NOT NULL DEFAULT '{}'"
+                )
+            )
+        if "effective_resource_limits" not in session_columns:
+            connection.execute(
+                text(
+                    "ALTER TABLE core_sessions "
+                    "ADD COLUMN effective_resource_limits JSON NOT NULL DEFAULT '{}'"
+                )
+            )
+        if "resource_enforcement" not in session_columns:
+            connection.execute(
+                text(
+                    "ALTER TABLE core_sessions "
+                    "ADD COLUMN resource_enforcement JSON NOT NULL DEFAULT '{}'"
+                )
             )
     connection.execute(
         text("UPDATE schema_state SET version = :version"),

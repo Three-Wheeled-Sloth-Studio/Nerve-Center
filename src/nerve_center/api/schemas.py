@@ -24,6 +24,7 @@ from nerve_center.domain.work_queue import (
     WorkResultSnapshot,
 )
 from nerve_center.profile.models import ClaimCategory, ClaimDecision, HypothesisDecision
+from nerve_center.resource_profiles.schemas import ResourceLimitsRequest
 
 
 class ResourceBudgetRequest(BaseModel):
@@ -41,7 +42,9 @@ class RunCreateRequest(BaseModel):
     starts_at: datetime | None = None
     ends_at: datetime | None = None
     configuration: dict[str, Any] = Field(default_factory=dict)
-    budget: ResourceBudgetRequest = Field(default_factory=ResourceBudgetRequest)
+    resource_profile_id: str | None = Field(default=None, min_length=1, max_length=100)
+    resource_overrides: ResourceLimitsRequest = Field(default_factory=ResourceLimitsRequest)
+    budget: ResourceBudgetRequest | None = None
 
     @model_validator(mode="after")
     def validate_window(self) -> Self:
@@ -144,7 +147,9 @@ class SessionCreateRequest(BaseModel):
     recurrence_local_start_time: str | None = None
     recurrence_duration_seconds: int | None = Field(default=None, ge=1)
     recurrence_weekdays: list[int] = Field(default_factory=lambda: list(range(7)))
-    resource_policy: ResourceBudgetRequest = Field(default_factory=ResourceBudgetRequest)
+    resource_profile_id: str | None = Field(default=None, min_length=1, max_length=100)
+    resource_overrides: ResourceLimitsRequest = Field(default_factory=ResourceLimitsRequest)
+    resource_policy: ResourceBudgetRequest | None = None
 
     @model_validator(mode="after")
     def validate_mode(self) -> Self:
@@ -198,6 +203,10 @@ class SessionResponse(BaseModel):
     module_run_ids: dict[str, str]
     module_priorities: dict[str, int]
     resource_policy: dict[str, int]
+    resource_profile_id: str | None
+    resource_overrides: dict[str, int | float]
+    effective_resource_limits: dict[str, int | float | None]
+    resource_enforcement: dict[str, str]
     emergency_stop: bool
     result_summary: str | None
 
@@ -217,6 +226,10 @@ class SessionResponse(BaseModel):
             module_run_ids=snapshot.module_run_ids,
             module_priorities=snapshot.module_priorities,
             resource_policy=snapshot.resource_policy,
+            resource_profile_id=snapshot.resource_profile_id,
+            resource_overrides=snapshot.resource_overrides,
+            effective_resource_limits=snapshot.effective_resource_limits,
+            resource_enforcement=snapshot.resource_enforcement,
             emergency_stop=snapshot.emergency_stop,
             result_summary=snapshot.result_summary,
         )

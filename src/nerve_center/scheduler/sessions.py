@@ -49,11 +49,23 @@ class WorkSessionService:
         duration_seconds: int,
         *,
         resource_policy: dict[str, int] | None = None,
+        resource_profile_id: str | None = None,
+        resource_overrides: dict[str, int | float] | None = None,
+        effective_resource_limits: dict[str, int | float | None] | None = None,
+        resource_enforcement: dict[str, str] | None = None,
         now: datetime | None = None,
     ) -> WorkSessionSnapshot:
         current = _utc(now)
         window = DurationRunWindow(timedelta(seconds=duration_seconds)).resolve(current)
-        return self.sessions.create(window, resource_policy=resource_policy, now=current)
+        return self.sessions.create(
+            window,
+            resource_policy=resource_policy,
+            resource_profile_id=resource_profile_id,
+            resource_overrides=resource_overrides,
+            effective_resource_limits=effective_resource_limits,
+            resource_enforcement=resource_enforcement,
+            now=current,
+        )
 
     def create_fixed(
         self,
@@ -61,17 +73,33 @@ class WorkSessionService:
         ends_at: datetime,
         *,
         resource_policy: dict[str, int] | None = None,
+        resource_profile_id: str | None = None,
+        resource_overrides: dict[str, int | float] | None = None,
+        effective_resource_limits: dict[str, int | float | None] | None = None,
+        resource_enforcement: dict[str, str] | None = None,
         now: datetime | None = None,
     ) -> WorkSessionSnapshot:
         current = _utc(now)
         window = FixedRunWindow(starts_at, ends_at).resolve(current)
-        return self.sessions.create(window, resource_policy=resource_policy, now=current)
+        return self.sessions.create(
+            window,
+            resource_policy=resource_policy,
+            resource_profile_id=resource_profile_id,
+            resource_overrides=resource_overrides,
+            effective_resource_limits=effective_resource_limits,
+            resource_enforcement=resource_enforcement,
+            now=current,
+        )
 
     def create_recurring(
         self,
         recurrence: RecurrenceRule,
         *,
         resource_policy: dict[str, int] | None = None,
+        resource_profile_id: str | None = None,
+        resource_overrides: dict[str, int | float] | None = None,
+        effective_resource_limits: dict[str, int | float | None] | None = None,
+        resource_enforcement: dict[str, str] | None = None,
         now: datetime | None = None,
     ) -> WorkSessionSnapshot:
         current = _utc(now)
@@ -80,6 +108,10 @@ class WorkSessionService:
             ResolvedRunWindow(starts_at, ends_at),
             recurrence=recurrence,
             resource_policy=resource_policy,
+            resource_profile_id=resource_profile_id,
+            resource_overrides=resource_overrides,
+            effective_resource_limits=effective_resource_limits,
+            resource_enforcement=resource_enforcement,
             now=current,
         )
 
@@ -284,6 +316,10 @@ class WorkSessionService:
             recurrence=snapshot.recurrence,
             recurrence_parent_id=snapshot.id,
             resource_policy=snapshot.resource_policy,
+            resource_profile_id=snapshot.resource_profile_id,
+            resource_overrides=snapshot.resource_overrides,
+            effective_resource_limits=snapshot.effective_resource_limits,
+            resource_enforcement=snapshot.resource_enforcement,
             now=after,
         )
 

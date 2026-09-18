@@ -58,6 +58,10 @@ from nerve_center.persistence.model_lab import ModelLabRepository
 from nerve_center.persistence.module_permissions import ModulePermissionReviewRepository
 from nerve_center.persistence.modules import ModuleNotFoundError, ModuleRepository
 from nerve_center.persistence.providers import ModelEvidenceRepository, ProviderCallRepository
+from nerve_center.persistence.resource_profiles import (
+    ResourceProfileNotFoundError,
+    ResourceProfileRepository,
+)
 from nerve_center.persistence.runs import RunRepository
 from nerve_center.persistence.sessions import SessionNotFoundError, SessionRepository
 from nerve_center.persistence.summary import SummaryRepository
@@ -69,6 +73,8 @@ from nerve_center.providers.base import JsonProvider, StructuredProvider
 from nerve_center.providers.errors import ProviderError
 from nerve_center.providers.manager import ProviderManager
 from nerve_center.providers.ollama import OllamaProvider
+from nerve_center.resource_profiles.api import register_resource_profile_routes
+from nerve_center.resource_profiles.service import ResourceProfileService
 from nerve_center.runtime.api import register_runtime_routes
 from nerve_center.runtime.plugin import ModuleProcessTaskPlugin
 from nerve_center.runtime.supervisor import ModuleSupervisor
@@ -102,6 +108,7 @@ def create_app(
     module_permissions = ModulePermissionReviewService(permission_review_repository)
     module_repository = ModuleRepository(database, permission_review_repository)
     session_repository = SessionRepository(database)
+    resource_profiles = ResourceProfileService(ResourceProfileRepository(database))
     model_evidence = ModelEvidenceRepository(database)
     model_lab_repository = ModelLabRepository(database)
     attention = AttentionService(AttentionRepository(database))
@@ -139,6 +146,7 @@ def create_app(
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         database.initialize()
+        resource_profiles.initialize()
         module_repository.synchronize(registry.list_modules())
         runner.recover_interrupted()
         work_queue.recover_interrupted()
@@ -237,10 +245,12 @@ def create_app(
     application.state.attention = attention
     application.state.summary = summary
     application.state.module_permissions = module_permissions
+    application.state.resource_profiles = resource_profiles
     register_runtime_routes(application, module_supervisor)
     register_attention_routes(application, attention)
     register_summary_routes(application, summary)
     register_module_permission_routes(application, module_permissions)
+    register_resource_profile_routes(application, resource_profiles)
     register_model_lab_routes(application, model_lab)
 
     def queue_error(error: Exception) -> HTTPException:
@@ -271,14 +281,37 @@ def create_app(
     async def create_session(request: SessionCreateRequest) -> SessionResponse:
         try:
             recurrence = request.recurrence()
-            resource_policy = request.resource_policy.model_dump()
+            overrides = (
+                request.resource_policy.model_dump()
+                if request.resource_policy is not None
+                else {}
+            )
+            overrides.update(request.resource_overrides.to_mapping())
+            effective = resource_profiles.resolve(
+                profile_id=request.resource_profile_id,
+                overrides=overrides,
+            )
+            budget = effective.enforced_budget()
+            resource_metadata = {
+                "resource_policy": {
+                    "max_requests": budget.max_requests,
+                    "max_llm_calls": budget.max_llm_calls,
+                    "max_parallel_work": budget.max_parallel_work,
+                },
+                "resource_profile_id": effective.profile_id,
+                "resource_overrides": overrides,
+                "effective_resource_limits": effective.limits,
+                "resource_enforcement": effective.enforcement,
+            }
             if request.duration_seconds is not None:
                 snapshot = work_sessions.create_duration(
-                    request.duration_seconds, resource_policy=resource_policy
+                    request.duration_seconds,
+                    **resource_metadata,
                 )
             elif recurrence is not None:
                 snapshot = work_sessions.create_recurring(
-                    recurrence, resource_policy=resource_policy
+                    recurrence,
+                    **resource_metadata,
                 )
             else:
                 if request.starts_at is None or request.ends_at is None:
@@ -286,11 +319,13 @@ def create_app(
                 snapshot = work_sessions.create_fixed(
                     request.starts_at,
                     request.ends_at,
-                    resource_policy=resource_policy,
+                    **resource_metadata,
                 )
             if snapshot.status.value == "requested":
                 snapshot = await work_sessions.start(snapshot.id)
             return SessionResponse.from_snapshot(snapshot)
+        except ResourceProfileNotFoundError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
         except WorkSessionConflictError as error:
             raise HTTPException(status_code=409, detail=str(error)) from error
         except ValueError as error:
@@ -480,11 +515,21 @@ def create_app(
                         status_code=409,
                         detail=f"module {module.module_id} is {installed.lifecycle_state.value}",
                     )
+            overrides = (
+                request.budget.model_dump()
+                if request.budget is not None
+                else {}
+            )
+            overrides.update(request.resource_overrides.to_mapping())
+            effective = resource_profiles.resolve(
+                profile_id=request.resource_profile_id,
+                overrides=overrides,
+            )
             snapshot = repository.create(
                 task_id=request.task_id,
                 window=request.to_window(),
                 configuration=request.configuration,
-                budget=request.budget.to_domain(),
+                budget=effective.enforced_budget(),
             )
             return RunResponse.from_snapshot(snapshot)
         except KeyError as error:

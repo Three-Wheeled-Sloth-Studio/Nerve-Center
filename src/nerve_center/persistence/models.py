@@ -81,6 +81,10 @@ class WorkSessionModel(Base):
     module_run_ids: Mapped[dict[str, str]] = mapped_column(JSON, default=dict)
     module_priorities: Mapped[dict[str, int]] = mapped_column(JSON, default=dict)
     resource_policy: Mapped[dict[str, int]] = mapped_column(JSON, default=dict)
+    resource_profile_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    resource_overrides: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    effective_resource_limits: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    resource_enforcement: Mapped[dict[str, str]] = mapped_column(JSON, default=dict)
     emergency_stop: Mapped[bool] = mapped_column(Boolean, default=False)
     result_summary: Mapped[str | None] = mapped_column(Text)
 
