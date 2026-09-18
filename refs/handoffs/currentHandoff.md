@@ -7,6 +7,28 @@ tags: [nerve-center, handoff]
 ---
 # Current Handoff
 
+## 2026-09-18 - Attention/Review #61 implemented; morning summary #62 next
+
+Issue #61 implements the first generic manager-owned human-attention primitive in `0.12.28` / schema 13.
+
+Implementation checkpoint `dd58e0c338afea5a066efcc8f663d47cd878f048` plus generated-artifact checkpoint `bbdae93b3cce5f04efa02b3783bebb625fd47ab3` establish:
+
+- durable generic `attention` and `review` items with manager-owned identity, state, context, allowed dispositions, validation/downstream meaning, dependency keys, and audit history;
+- idempotent module submission;
+- explicit resolve/dismiss transitions and history;
+- dependency-local blocking rather than module/project-wide blocking;
+- minimal manager APIs for create/list/read/resolve/dismiss/history and dependency-block inspection;
+- Code Shop escalation linkage to exactly one manager Attention item while preserving the Code Shop escalation record;
+- a safety regression proving module-supplied Attention content cannot grant Code Shop authority;
+- a liveness regression proving an unrelated synthetic run remains admissible while an Attention dependency is open.
+
+Code Shop bounded-failure escalation now leaves an enabled project enabled and marks the specific engineering task `escalation_recommended`; the linked Attention dependency `code_shop:task:<task_id>` carries the human-decision block.
+
+Bounded validation run `35356015569` was green: source catalog 200 files / 1729 symbols, 11 OKF indexes, initialized refs validation, Agent Academy context validation, Ruff, 17 focused tests, 287 total Python tests, desktop web build, and desktop Rust/Tauri check all passed.
+
+Issue #62, `[Core] Add manager morning summary foundation`, is the next bounded slice. It is read-only reporting over durable manager-owned evidence; scheduled delivery, external messaging/connectors, UI polish, and automatic remediation remain deferred.
+
+
 ## 2026-09-18 - Code Shop foundation implemented; Attention/Review #61 next
 
 Code Shop Issue #54 is implemented as the second first-party reference-module foundation. Implementation checkpoint `6112a760cdb00821c5fdefdeff695b7a46559076` plus generated-artifact checkpoint `4f90c65bb7cfb260f795d27b8c0bc4cbf1df7c0f` establish:
@@ -81,7 +103,7 @@ The next acceptance gate remains an isolated five-minute run. It should prove th
 ## Current state
 
 - Work directly on `dev`; do not create a feature branch or PR unless explicitly requested.
-- Application version is `0.12.27`.
+- Application version is `0.12.28`.
 - Agent Academy alignment baseline is `e4118f96cc0138490b950402ba711399580ee854`; bounded source discovery, handoff required reads, capability-aware sub-agent guidance, and source-modularity rules are now part of Nerve Center's engineering contract.
 - The current local-acquisition implementation checkpoint is `fe1608e5e7bc4f309d8a823340f78200a9886ba6`. Exact-runtime gates are pinned to the checkout source; clean employer deepening and truthful provider-challenge accounting are proven; DuckDuckGo challenge state now opens a bounded provider circuit breaker so later strategies can use Bing public HTML without adding a same-strategy retry. Targeted validation passed in workflow `35270065108`; full helper-free exact-head CI is required before the next live gate.
 - Issue #57 and Issue #60 are closed as completed. Code Shop Issue #54 is implemented; core Attention/Review Issue #61 is the next active bounded slice.
@@ -274,29 +296,29 @@ No named company, city, or region exception was added. No extra network path or 
 
 ## Next bounded slice
 
-Proceed with core Issue #61: manager-owned Attention and Review queue foundation. Keep Code Shop #54 closed once exact-head CI is green; do not reopen its accepted safety boundary unless contradictory evidence appears.
+Proceed with core Issue #62: manager morning summary foundation.
 
-The next slice should:
+The first slice should:
 
-1. define generic durable Attention/Review items and audit history;
-2. support idempotent module submission and explicit dependency keys;
-3. block only dependent workflow branches while unrelated work remains admissible;
-4. expose minimal manager create/list/read/resolve/dismiss/history APIs;
-5. link Code Shop escalations to exactly one manager Attention item while retaining Code Shop-specific evidence;
-6. prove restart, idempotency, and dependency isolation deterministically.
+1. define an explicit `starts_at` / `ends_at` summary snapshot;
+2. aggregate attributable durable evidence for completed, failed, blocked/attention-required, degraded, and comparison/review work where existing sources support it;
+3. link every surfaced item back to manager-owned source IDs/module IDs;
+4. represent pending Attention/Review items without duplication or mutation;
+5. expose a minimal read-only API;
+6. prove empty windows, mixed categories, restart durability, and no mutation side effects.
 
-Explicitly defer morning-summary delivery, polished desktop queue UI, install-time permission review, private/authenticated connector expansion, external draft/write connectors, and consequential-action expansion.
+Do not infer a sleep schedule. Do not add scheduled/push delivery, email/Slack/notification connectors, polished summary UI, automatic retries/remediation, or LLM-authored narrative in this slice.
 
 ## Required Reads For Next Slice
 
 - `refs/handoffs/currentHandoff.md`
 - `refs/handoffs/next-dev-prompt.md`
-- Issue #61 and its latest comments
+- Issue #62 and its latest comments
 - `refs/planning/mvp-roadmap.md` around Increment 13
-- only source-catalog matches returned for attention/review, Code Shop escalation, persistence, and manager API seams
+- source-catalog matches for attention, runs, work queue, module/runtime state, Model Lab comparison evidence, and manager API seams
 
 ## Re-entry
 
 ```powershell
-python scripts/agent_context.py --focus "manager attention review queue dependency blocking Code Shop escalation" --issue 61
+python scripts/agent_context.py --focus "manager morning summary completed blocked failed degraded comparison attention" --issue 62
 ```
