@@ -330,10 +330,25 @@ Authenticated/private connectors, credential UX/storage, external drafts/writes,
 
 ## Increment 14: Resource profiles, durability, and updates
 
-Issue **#64: Add manager-owned reusable resource profile foundation** is the next bounded slice.
+### Manager-owned reusable resource profiles (implemented)
 
-- Add global resource defaults and per-session overrides for CPU, memory, GPU/VRAM, concurrency, queue depth, storage, network, exploration, and optional cloud spend.
-- Add named reusable profiles such as Quiet, Balanced, Overnight, and Model Exploration.
+Issue **#64: Add manager-owned reusable resource profile foundation** is implemented in `0.12.31` with additive schema 15.
+
+Accepted behavior:
+
+1. Durable named profiles and one selected global profile are manager-owned; `manager-default` provides a stable fallback.
+2. Effective limits resolve deterministically as explicit manager override > selected named profile > manager default > built-in safe fallback.
+3. `max_requests`, `max_llm_calls`, and `max_parallel_work` are enforced through existing run/session budget seams.
+4. Memory, VRAM, queue depth, and exploration ceilings are persisted and inspectable but explicitly reported as unenforced until real runtime enforcement exists.
+5. Cloud-spend ceilings are explicitly `unenforced_no_authority`; they cannot authorize purchasing or provider spend.
+6. Sessions persist the resolved profile identity, explicit overrides, effective limits, enforcement metadata, and enforced run budget.
+7. Direct runs inherit the selected manager profile when no legacy explicit budget is supplied.
+8. Module/task configuration cannot increase manager-owned ceilings; resource profiles cannot grant module permissions or Code Shop/action authority.
+
+Implementation checkpoint `7281c49799bac21a6dab6083c7b6d988b95e27ae`, lint correction `6735debe949dbb4db73b10114988a98ef4f2786a`, and generated-artifact checkpoint `41d09d070a7fabb0a3fda3e68d743a53452b28de` passed bounded validation run `35370973810`: source catalog 219 files / 1837 symbols, 11 OKF indexes, initialized refs validation, 7,055-character agent-context validation, Ruff, 33 focused tests, 301 total Python tests, desktop web, and desktop Rust/Tauri all green.
+
+Issue **#65: Add manager-owned backup and pre-migration snapshot foundation** is the next bounded slice.
+
 - Add lightweight daily backups and pre-migration snapshots.
 - Add compatibility-aware independent core and module updates.
 - Support one global Stable or Development channel.
