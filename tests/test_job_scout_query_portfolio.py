@@ -71,7 +71,7 @@ def test_portfolio_compiles_materially_distinct_source_aware_families() -> None:
         "direct_role",
         "adjacent_role",
         "seniority_variant",
-        "local_employer",
+        "domain_capability",
     }.issubset(families)
     assert {
         "web",
@@ -98,14 +98,30 @@ def test_portfolio_compiles_materially_distinct_source_aware_families() -> None:
     assert "Greensboro" in broad.query
     assert "jobs careers" in broad.query
     assert source_capabilities("indeed.com").include_location is True
-    local_employer = next(
-        item
-        for dimensions, item in zip(portfolio, compiled, strict=True)
-        if dimensions["hypothesis_family"] == "local_employer"
+    assert not any(
+        item["hypothesis_family"] == "local_employer" for item in portfolio
     )
-    assert local_employer.source_path == "broad_web"
-    assert "company" in local_employer.query.casefold()
-    assert "Greensboro" in local_employer.query
+
+
+def test_capability_phrase_is_not_invented_as_employer_archetype() -> None:
+    portfolio = build_query_portfolio(
+        target_titles=["Director of Product Management"],
+        keywords=["Human-Centered Design", "analytics"],
+        locations=["Greensboro, NC"],
+        source_domains=[],
+        limit=24,
+    )
+
+    assert any(
+        item["hypothesis_family"] == "domain_capability"
+        and item["anchor"] == "Human-Centered Design"
+        for item in portfolio
+    )
+    assert not any(
+        item.get("employer_archetype") == "Human-Centered Design company"
+        or item.get("anchor") == "Human-Centered Design company"
+        for item in portfolio
+    )
 
 
 def test_bounded_portfolio_rotates_starting_market_across_source_buckets() -> None:
@@ -311,6 +327,59 @@ def test_query_linter_rejects_contradictions_and_unsupported_requirements() -> N
     assert catch_all.warnings == ("catch_all_anchor",)
 
 
+def test_reflection_semantics_reject_low_intent_and_preserve_adjacent_roles() -> None:
+    evidence = [
+        "Director of Product Management",
+        "Human-Centered Design",
+        "analytics",
+    ]
+    malformed_local = compile_strategy_query(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "local_employer",
+            "anchor": "Human-Centered Design company",
+            "location": "High Point, NC",
+            "source_domain": "web",
+        },
+        evidence_terms=evidence,
+    )
+    internship = compile_strategy_query(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "adjacent_role",
+            "anchor": "Human-Centered Design Intern",
+            "source_domain": "web",
+        },
+        evidence_terms=evidence,
+    )
+    workshop = compile_strategy_query(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "gap_reflection",
+            "anchor": "Design Thinking Workshop",
+            "source_domain": "web",
+        },
+        evidence_terms=evidence,
+    )
+    adjacent = compile_strategy_query(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "adjacent_role",
+            "anchor": "Senior UX Researcher",
+            "source_domain": "web",
+        },
+        evidence_terms=evidence,
+    )
+
+    assert malformed_local.valid is False
+    assert malformed_local.warnings == ("unsupported_local_employer_anchor",)
+    assert internship.valid is False
+    assert internship.warnings == ("seniority_mismatch",)
+    assert workshop.valid is False
+    assert workshop.warnings == ("non_role_activity_anchor",)
+    assert adjacent.valid is True
+
+
 class _NoNetworkSearch:
     def __init__(self) -> None:
         self.calls = 0
@@ -500,6 +569,93 @@ def test_unhealthy_structured_source_gets_no_initial_priority_bonus(tmp_path: Pa
     assert strategy.learned_weight == 1.0
 
 
+def test_stale_invented_archetype_does_not_perpetuate_coverage_gap(
+    tmp_path: Path,
+) -> None:
+    learning = DiscoveryQualityRepository(_database(tmp_path))
+    learning.ensure_strategy(
+        {
+            "kind": "public_search",
+            "hypothesis_family": "employer_archetype",
+            "anchor": "Product Manager",
+            "employer_archetype": "Human-Centered Design company",
+            "source_domain": "web",
+        },
+        origin="llm_gap_reflection",
+    )
+
+    gaps = build_coverage_gap_profile(
+        target_titles=["Director of Product Management"],
+        keywords=["Human-Centered Design", "analytics"],
+        locations=[],
+        remote_preference="any",
+        strategies=learning.list_strategies(),
+        openings=[],
+        sources=[],
+    )
+
+    assert "employer_archetype" not in gaps
+
+
+def test_reflection_result_rejects_low_intent_strategies_before_persistence(
+    tmp_path: Path,
+) -> None:
+    learning = DiscoveryQualityRepository(_database(tmp_path))
+    learning.record_reflection_request("request-1", "run-1", 1)
+    store = SimpleNamespace(
+        load=lambda: JobScoutConfiguration(
+            target_titles=["Director of Product Management"],
+            locations=["Greensboro, NC"],
+            remote_preference="remote",
+            manual_keywords=["Human-Centered Design", "analytics"],
+            public_job_boards=[],
+        )
+    )
+    loop = object.__new__(SourceAwareJobScoutDiscoveryLoop)
+    loop.learning = learning
+    loop.coordinator = SimpleNamespace(
+        store=store,
+        _discover_keywords=lambda _configuration: SimpleNamespace(
+            keywords=["Human-Centered Design", "analytics"]
+        ),
+    )
+
+    created = loop.apply_reflection_result(
+        "request-1",
+        {
+            "strategies": [
+                {
+                    "hypothesis_family": "adjacent_role",
+                    "anchor": "Human-Centered Design Intern",
+                    "source_domain": "web",
+                    "rationale": "Explore internships.",
+                },
+                {
+                    "hypothesis_family": "gap_reflection",
+                    "anchor": "Design Thinking Workshop",
+                    "source_domain": "web",
+                    "rationale": "Explore workshops.",
+                },
+                {
+                    "hypothesis_family": "employer_archetype",
+                    "anchor": "Product Manager",
+                    "employer_archetype": "Human-Centered Design company",
+                    "source_domain": "web",
+                    "rationale": "Treat the capability as a company class.",
+                },
+            ]
+        },
+    )
+
+    assert created == 0
+    assert not [
+        item
+        for item in learning.list_strategies()
+        if item.origin == "llm_gap_reflection"
+    ]
+    assert learning.reflection_request("request-1")["status"] == "applied"
+
+
 def test_coverage_gaps_are_explicit_and_bounded(tmp_path: Path) -> None:
     database = _database(tmp_path)
     learning = DiscoveryQualityRepository(database)
@@ -574,7 +730,7 @@ def test_reflection_work_is_explicitly_gap_driven(tmp_path: Path) -> None:
 
     assert (
         work["requirements"]["contract_version"]
-        == "job-scout-discovery-reflection-v2"
+        == "job-scout-discovery-reflection-v3"
     )
     assert "Coverage gaps:" in work["payload"]["user_prompt"]
     assert "Greensboro, NC" in work["payload"]["user_prompt"]
