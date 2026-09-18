@@ -343,12 +343,6 @@ source_catalog:
       - *id004
       - *id001
       - *id002
-      - path: src/nerve_center/providers/manager.py
-        symbol: ProviderManager.execute
-      - path: src/nerve_center/runtime/supervisor.py
-        symbol: ModuleSupervisor.execute
-      - path: tests/test_scheduler.py
-        symbol: test_tick_starts_due_fixed_run.execute
   - path: src/nerve_center/plugins/job_scout/reference_attachments.py
     analysis_version: 1
     language: python
@@ -1499,6 +1493,332 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id005
+  - path: tests/test_code_shop.py
+    analysis_version: 1
+    language: python
+    content_hash: ee556f39b1f49673083d028d346287ab17db1c88
+    dependencies:
+    - fastapi.testclient
+    - nerve_center.api.app
+    - nerve_center.code_shop.domain
+    - nerve_center.code_shop.github
+    - nerve_center.config
+    - pathlib
+    provides:
+    - _connector
+    - _checkout
+    - _select_and_enable
+    - _create_task
+    - _allow
+    - test_code_shop_is_registered_as_builtin_official_module
+    - test_project_checkout_and_explicit_allow_admit_only_bounded_execution
+    - test_checkout_escape_and_remote_mismatch_are_rejected
+    - test_unlinked_and_observe_only_projects_cannot_mutate
+    - test_ask_and_high_risk_actions_enter_attention_and_untrusted_module_is_denied
+    - test_model_blind_task_contract_and_failed_attempt_escalation_survive_restart
+    - test_explicit_authority_scope_restricts_paths
+    symbols:
+    - name: _connector
+      kind: function
+      line_start: 11
+      line_end: 22
+      signature: _connector() -> StaticGitHubRepositoryConnector
+      inputs: []
+      output: StaticGitHubRepositoryConnector
+      dependencies:
+      - GitHubRepositoryIdentity
+      - StaticGitHubRepositoryConnector
+      parser: python-ast
+      dependency_targets: []
+    - name: _checkout
+      kind: function
+      line_start: 25
+      line_end: 38
+      signature: '_checkout(root: Path, repository: str) -> Path'
+      inputs:
+      - 'root: Path'
+      - 'repository: str'
+      output: Path
+      dependencies:
+      - (path / '.git' / 'config').write_text
+      - (path / '.git').mkdir
+      parser: python-ast
+      dependency_targets: []
+    - name: _select_and_enable
+      kind: function
+      line_start: 41
+      line_end: 55
+      signature: '_select_and_enable(client: TestClient) -> dict'
+      inputs:
+      - 'client: TestClient'
+      output: dict
+      dependencies:
+      - client.patch
+      - client.post
+      - enabled.json
+      parser: python-ast
+      dependency_targets: []
+    - name: _create_task
+      kind: function
+      line_start: 58
+      line_end: 69
+      signature: '_create_task(client: TestClient) -> dict'
+      inputs:
+      - 'client: TestClient'
+      output: dict
+      dependencies:
+      - client.post
+      - response.json
+      parser: python-ast
+      dependency_targets: []
+    - name: _allow
+      kind: function
+      line_start: 72
+      line_end: 77
+      signature: '_allow(client: TestClient, action: str) -> None'
+      inputs:
+      - 'client: TestClient'
+      - 'action: str'
+      output: None
+      dependencies:
+      - client.put
+      parser: python-ast
+      dependency_targets:
+      - *id008
+      - *id009
+    - name: test_code_shop_is_registered_as_builtin_official_module
+      kind: function
+      line_start: 80
+      line_end: 100
+      signature: 'test_code_shop_is_registered_as_builtin_official_module(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Settings
+      - TestClient
+      - _connector
+      - client.get
+      - client.get('/api/v1/modules').json
+      - create_app
+      - next
+      - trust.json
+      - '{''code_shop'', ''job_scout''}.issubset'
+      parser: python-ast
+      dependency_targets:
+      - &id025
+        path: tests/test_code_shop.py
+        symbol: _connector
+      - &id026
+        path: src/nerve_center/api/app.py
+        symbol: create_app
+    - name: test_project_checkout_and_explicit_allow_admit_only_bounded_execution
+      kind: function
+      line_start: 103
+      line_end: 156
+      signature: 'test_project_checkout_and_explicit_allow_admit_only_bounded_execution(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Settings
+      - TestClient
+      - _allow
+      - _checkout
+      - _connector
+      - _create_task
+      - _select_and_enable
+      - approved.mkdir
+      - client.post
+      - client.put
+      - create_app
+      - evaluated.json
+      - executed.json
+      - linked.json
+      - str
+      parser: python-ast
+      dependency_targets:
+      - &id030
+        path: tests/test_code_shop.py
+        symbol: _allow
+      - &id027
+        path: src/nerve_center/persistence/code_shop.py
+        symbol: _checkout
+      - &id028
+        path: tests/test_code_shop.py
+        symbol: _checkout
+      - *id025
+      - &id031
+        path: tests/test_code_shop.py
+        symbol: _create_task
+      - &id029
+        path: tests/test_code_shop.py
+        symbol: _select_and_enable
+      - *id008
+      - *id009
+      - *id026
+    - name: test_checkout_escape_and_remote_mismatch_are_rejected
+      kind: function
+      line_start: 159
+      line_end: 183
+      signature: 'test_checkout_escape_and_remote_mismatch_are_rejected(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Settings
+      - TestClient
+      - _checkout
+      - _connector
+      - _select_and_enable
+      - approved.mkdir
+      - client.put
+      - create_app
+      - outside_root.json
+      - str
+      - wrong_remote.json
+      parser: python-ast
+      dependency_targets:
+      - *id027
+      - *id028
+      - *id025
+      - *id029
+      - *id008
+      - *id009
+      - *id026
+    - name: test_unlinked_and_observe_only_projects_cannot_mutate
+      kind: function
+      line_start: 186
+      line_end: 235
+      signature: 'test_unlinked_and_observe_only_projects_cannot_mutate(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Settings
+      - TestClient
+      - _allow
+      - _checkout
+      - _connector
+      - _create_task
+      - _select_and_enable
+      - approved.mkdir
+      - client.patch
+      - client.post
+      - client.put
+      - create_app
+      - observe_mutation.json
+      - observe_read.json
+      - str
+      - unlinked.json
+      parser: python-ast
+      dependency_targets:
+      - *id030
+      - *id027
+      - *id028
+      - *id025
+      - *id031
+      - *id029
+      - *id008
+      - *id009
+      - *id026
+    - name: test_ask_and_high_risk_actions_enter_attention_and_untrusted_module_is_denied
+      kind: function
+      line_start: 238
+      line_end: 316
+      signature: 'test_ask_and_high_risk_actions_enter_attention_and_untrusted_module_is_denied(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Settings
+      - TestClient
+      - _checkout
+      - _connector
+      - _create_task
+      - _select_and_enable
+      - approved.mkdir
+      - asked.json
+      - client.get
+      - client.get('/api/v1/modules/code_shop/projects').json
+      - client.patch
+      - client.post
+      - client.put
+      - create_app
+      - risky.json
+      - str
+      - untrusted.json
+      parser: python-ast
+      dependency_targets:
+      - *id027
+      - *id028
+      - *id025
+      - *id031
+      - *id029
+      - *id008
+      - *id009
+      - *id026
+    - name: test_model_blind_task_contract_and_failed_attempt_escalation_survive_restart
+      kind: function
+      line_start: 319
+      line_end: 362
+      signature: 'test_model_blind_task_contract_and_failed_attempt_escalation_survive_restart(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Settings
+      - TestClient
+      - _connector
+      - _create_task
+      - _select_and_enable
+      - any
+      - client.get
+      - client.get('/api/v1/modules/code_shop/escalations').json
+      - client.get('/api/v1/modules/code_shop/projects').json
+      - client.get('/api/v1/modules/code_shop/tasks').json
+      - client.post
+      - create_app
+      - final.json
+      - range
+      parser: python-ast
+      dependency_targets:
+      - *id025
+      - *id031
+      - *id029
+      - *id026
+    - name: test_explicit_authority_scope_restricts_paths
+      kind: function
+      line_start: 365
+      line_end: 415
+      signature: 'test_explicit_authority_scope_restricts_paths(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Settings
+      - TestClient
+      - _checkout
+      - _connector
+      - _create_task
+      - _select_and_enable
+      - admitted.json
+      - approved.mkdir
+      - client.post
+      - client.put
+      - create_app
+      - denied.json
+      - str
+      parser: python-ast
+      dependency_targets:
+      - *id027
+      - *id028
+      - *id025
+      - *id031
+      - *id029
+      - *id008
+      - *id009
+      - *id026
   - path: tests/test_run_repository.py
     analysis_version: 1
     language: python
@@ -1552,16 +1872,16 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - &id025
+      - &id032
         path: tests/test_run_repository.py
         symbol: make_repository
-      - &id026
+      - &id033
         path: tests/test_sessions.py
         symbol: make_repository
-      - &id027
+      - &id034
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.create
-      - &id028
+      - &id035
         path: src/nerve_center/persistence/sessions.py
         symbol: SessionRepository.create
     - name: test_expired_fixed_run_is_missed
@@ -1580,10 +1900,10 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id025
-      - *id026
-      - *id027
-      - *id028
+      - *id032
+      - *id033
+      - *id034
+      - *id035
     - name: test_invalid_transition_is_rejected
       kind: function
       line_start: 43
@@ -1602,11 +1922,11 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id025
-      - *id026
-      - *id027
-      - *id028
-      - &id029
+      - *id032
+      - *id033
+      - *id034
+      - *id035
+      - &id036
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.request_cancel
       - path: src/nerve_center/persistence/runs.py
@@ -1627,8 +1947,8 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id025
-      - *id026
-      - *id027
-      - *id028
-      - *id029
+      - *id032
+      - *id033
+      - *id034
+      - *id035
+      - *id036

@@ -11,6 +11,515 @@ source_catalog:
     dependencies: []
     provides: []
     symbols: []
+  - path: src/nerve_center/code_shop/service.py
+    analysis_version: 1
+    language: python
+    content_hash: 4ff01964f16c82eb68e765895aecc0acfc8afc6e
+    dependencies:
+    - __future__
+    - dataclasses
+    - nerve_center.code_shop.authority
+    - nerve_center.code_shop.checkout
+    - nerve_center.code_shop.domain
+    - nerve_center.code_shop.execution
+    - nerve_center.code_shop.github
+    - nerve_center.persistence.code_shop
+    - pathlib
+    - typing
+    provides:
+    - CodeShopService.__init__
+    - CodeShopService.trust_provenance
+    - CodeShopService.discover_repositories
+    - CodeShopService.select_repository
+    - CodeShopService.synchronize_projects
+    - CodeShopService.list_projects
+    - CodeShopService.configure_project
+    - CodeShopService.link_checkout
+    - CodeShopService.unlink_checkout
+    - CodeShopService.checkout
+    - CodeShopService.set_policy
+    - CodeShopService.policies
+    - CodeShopService.create_task
+    - CodeShopService.list_tasks
+    - CodeShopService.record_attempt
+    - CodeShopService.record_outcome
+    - CodeShopService.raise_escalation
+    - CodeShopService.list_escalations
+    - CodeShopService.evaluate
+    - CodeShopService.execute
+    - CodeShopService.overview
+    - CodeShopService._optional_task
+    symbols:
+    - name: CodeShopService.__init__
+      kind: method
+      line_start: 41
+      line_end: 55
+      signature: 'CodeShopService.__init__(self, repository: CodeShopRepository, connector: GitHubRepositoryConnector, approved_checkout_roots:
+        tuple[Path, ...], execution_host: ExecutionHost | None, official_module_ids: tuple[str, ...]) -> None'
+      inputs:
+      - self
+      - 'repository: CodeShopRepository'
+      - 'connector: GitHubRepositoryConnector'
+      - 'approved_checkout_roots: tuple[Path, ...]'
+      - 'execution_host: ExecutionHost | None'
+      - 'official_module_ids: tuple[str, ...]'
+      output: None
+      dependencies:
+      - AuthorityEvaluator
+      - DeterministicExecutionHost
+      - frozenset
+      - tuple
+      parser: python-ast
+      dependency_targets: []
+    - name: CodeShopService.trust_provenance
+      kind: method
+      line_start: 57
+      line_end: 62
+      signature: 'CodeShopService.trust_provenance(self, module_id: str) -> ModuleTrustProvenance'
+      inputs:
+      - self
+      - 'module_id: str'
+      output: ModuleTrustProvenance
+      dependencies:
+      - ModuleTrustProvenance
+      parser: python-ast
+      dependency_targets: []
+    - name: CodeShopService.discover_repositories
+      kind: method
+      line_start: 64
+      line_end: 65
+      signature: CodeShopService.discover_repositories(self) -> list[GitHubRepositoryIdentity]
+      inputs:
+      - self
+      output: list[GitHubRepositoryIdentity]
+      dependencies:
+      - self.connector.list_repositories
+      parser: python-ast
+      dependency_targets:
+      - &id001
+        path: src/nerve_center/code_shop/github.py
+        symbol: GitHubRepositoryConnector.list_repositories
+      - &id002
+        path: src/nerve_center/code_shop/github.py
+        symbol: EmptyGitHubRepositoryConnector.list_repositories
+      - &id003
+        path: src/nerve_center/code_shop/github.py
+        symbol: StaticGitHubRepositoryConnector.list_repositories
+    - name: CodeShopService.select_repository
+      kind: method
+      line_start: 67
+      line_end: 75
+      signature: 'CodeShopService.select_repository(self, repository_id: str) -> CodeShopProject'
+      inputs:
+      - self
+      - 'repository_id: str'
+      output: CodeShopProject
+      dependencies:
+      - KeyError
+      - self.connector.list_repositories
+      - self.repository.upsert_project
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+      - *id003
+      - &id004
+        path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.upsert_project
+    - name: CodeShopService.synchronize_projects
+      kind: method
+      line_start: 77
+      line_end: 85
+      signature: CodeShopService.synchronize_projects(self) -> list[CodeShopProject]
+      inputs:
+      - self
+      output: list[CodeShopProject]
+      dependencies:
+      - discovered.get
+      - self.connector.list_repositories
+      - self.repository.list_projects
+      - self.repository.upsert_project
+      parser: python-ast
+      dependency_targets:
+      - *id001
+      - *id002
+      - *id003
+      - &id010
+        path: src/nerve_center/code_shop/api.py
+        symbol: register_code_shop_routes.list_projects
+      - &id011
+        path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.list_projects
+      - &id012
+        path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.list_projects
+      - *id004
+    - name: CodeShopService.list_projects
+      kind: method
+      line_start: 87
+      line_end: 88
+      signature: CodeShopService.list_projects(self) -> list[CodeShopProject]
+      inputs:
+      - self
+      output: list[CodeShopProject]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: CodeShopService.configure_project
+      kind: method
+      line_start: 90
+      line_end: 105
+      signature: 'CodeShopService.configure_project(self, repository_id: str, lifecycle: ProjectLifecycle | None, priority:
+        int | None, branch_policy: dict[str, Any] | None, hosted_runner_eligible: bool | None) -> CodeShopProject'
+      inputs:
+      - self
+      - 'repository_id: str'
+      - 'lifecycle: ProjectLifecycle | None'
+      - 'priority: int | None'
+      - 'branch_policy: dict[str, Any] | None'
+      - 'hosted_runner_eligible: bool | None'
+      output: CodeShopProject
+      dependencies:
+      - self.repository.update_project
+      parser: python-ast
+      dependency_targets:
+      - &id007
+        path: src/nerve_center/code_shop/api.py
+        symbol: register_code_shop_routes.update_project
+      - &id008
+        path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.update_project
+    - name: CodeShopService.link_checkout
+      kind: method
+      line_start: 107
+      line_end: 117
+      signature: 'CodeShopService.link_checkout(self, repository_id: str, path: str) -> CheckoutLink'
+      inputs:
+      - self
+      - 'repository_id: str'
+      - 'path: str'
+      output: CheckoutLink
+      dependencies:
+      - self.repository.get_project
+      - self.repository.set_checkout
+      - verify_checkout
+      parser: python-ast
+      dependency_targets:
+      - &id005
+        path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.get_project
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.set_checkout
+      - path: src/nerve_center/code_shop/checkout.py
+        symbol: verify_checkout
+    - name: CodeShopService.unlink_checkout
+      kind: method
+      line_start: 119
+      line_end: 121
+      signature: 'CodeShopService.unlink_checkout(self, repository_id: str) -> None'
+      inputs:
+      - self
+      - 'repository_id: str'
+      output: None
+      dependencies:
+      - self.repository.get_project
+      - self.repository.remove_checkout
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.remove_checkout
+    - name: CodeShopService.checkout
+      kind: method
+      line_start: 123
+      line_end: 125
+      signature: 'CodeShopService.checkout(self, repository_id: str) -> CheckoutLink | None'
+      inputs:
+      - self
+      - 'repository_id: str'
+      output: CheckoutLink | None
+      dependencies:
+      - self.repository.get_checkout
+      - self.repository.get_project
+      parser: python-ast
+      dependency_targets:
+      - &id009
+        path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.get_checkout
+      - *id005
+    - name: CodeShopService.set_policy
+      kind: method
+      line_start: 127
+      line_end: 142
+      signature: 'CodeShopService.set_policy(self, repository_id: str, action: ProjectAction, policy: ActionPolicy, scope:
+        dict[str, Any] | None, provenance: dict[str, Any] | None) -> AuthorityPolicyEnvelope'
+      inputs:
+      - self
+      - 'repository_id: str'
+      - 'action: ProjectAction'
+      - 'policy: ActionPolicy'
+      - 'scope: dict[str, Any] | None'
+      - 'provenance: dict[str, Any] | None'
+      output: AuthorityPolicyEnvelope
+      dependencies:
+      - dict
+      parser: python-ast
+      dependency_targets: []
+    - name: CodeShopService.policies
+      kind: method
+      line_start: 144
+      line_end: 146
+      signature: 'CodeShopService.policies(self, repository_id: str) -> list[AuthorityPolicyEnvelope]'
+      inputs:
+      - self
+      - 'repository_id: str'
+      output: list[AuthorityPolicyEnvelope]
+      dependencies:
+      - self.repository.get_project
+      - self.repository.list_policies
+      parser: python-ast
+      dependency_targets:
+      - *id005
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.list_policies
+    - name: CodeShopService.create_task
+      kind: method
+      line_start: 148
+      line_end: 161
+      signature: 'CodeShopService.create_task(self, repository_id: str, title: str, capability: EngineeringCapability, source_backlog:
+        dict[str, Any] | None) -> EngineeringTask'
+      inputs:
+      - self
+      - 'repository_id: str'
+      - 'title: str'
+      - 'capability: EngineeringCapability'
+      - 'source_backlog: dict[str, Any] | None'
+      output: EngineeringTask
+      dependencies:
+      - dict
+      - title.strip
+      parser: python-ast
+      dependency_targets: []
+    - name: CodeShopService.list_tasks
+      kind: method
+      line_start: 163
+      line_end: 166
+      signature: 'CodeShopService.list_tasks(self, repository_id: str | None, limit: int) -> list[EngineeringTask]'
+      inputs:
+      - self
+      - 'repository_id: str | None'
+      - 'limit: int'
+      output: list[EngineeringTask]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: CodeShopService.record_attempt
+      kind: method
+      line_start: 168
+      line_end: 215
+      signature: 'CodeShopService.record_attempt(self, task_id: str, status: str, approach: str, context_inputs: dict[str,
+        Any] | None, manager_provenance: dict[str, Any] | None, touched_files: tuple[str, ...], command_summaries: tuple[str,
+        ...], resources: dict[str, Any] | None, outcome: dict[str, Any] | None, max_failed_attempts: int) -> tuple[EngineeringAttempt,
+        Escalation | None]'
+      inputs:
+      - self
+      - 'task_id: str'
+      - 'status: str'
+      - 'approach: str'
+      - 'context_inputs: dict[str, Any] | None'
+      - 'manager_provenance: dict[str, Any] | None'
+      - 'touched_files: tuple[str, ...]'
+      - 'command_summaries: tuple[str, ...]'
+      - 'resources: dict[str, Any] | None'
+      - 'outcome: dict[str, Any] | None'
+      - 'max_failed_attempts: int'
+      output: tuple[EngineeringAttempt, Escalation | None]
+      dependencies:
+      - ValueError
+      - dict
+      - self.raise_escalation
+      - self.repository.failed_attempt_count
+      - self.repository.get_task
+      - self.repository.has_open_escalation
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/code_shop/api.py
+        symbol: register_code_shop_routes.raise_escalation
+      - path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.raise_escalation
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.failed_attempt_count
+      - &id006
+        path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.get_task
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.has_open_escalation
+    - name: CodeShopService.record_outcome
+      kind: method
+      line_start: 217
+      line_end: 230
+      signature: 'CodeShopService.record_outcome(self, task_id: str, attempt_id: str | None, kind: str, payload: dict[str,
+        Any]) -> OutcomeEvidence'
+      inputs:
+      - self
+      - 'task_id: str'
+      - 'attempt_id: str | None'
+      - 'kind: str'
+      - 'payload: dict[str, Any]'
+      output: OutcomeEvidence
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: CodeShopService.raise_escalation
+      kind: method
+      line_start: 232
+      line_end: 266
+      signature: 'CodeShopService.raise_escalation(self, task_id: str, reason: str, evidence: dict[str, Any], failed_invariant:
+        str, recommended_capability: str, compact_handoff: str, dispositions: tuple[str, ...]) -> Escalation'
+      inputs:
+      - self
+      - 'task_id: str'
+      - 'reason: str'
+      - 'evidence: dict[str, Any]'
+      - 'failed_invariant: str'
+      - 'recommended_capability: str'
+      - 'compact_handoff: str'
+      - 'dispositions: tuple[str, ...]'
+      output: Escalation
+      dependencies:
+      - self.repository.create_escalation
+      - self.repository.get_task
+      - self.repository.set_task_state
+      - self.repository.update_project
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.create_escalation
+      - *id006
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.set_task_state
+      - *id007
+      - *id008
+    - name: CodeShopService.list_escalations
+      kind: method
+      line_start: 268
+      line_end: 271
+      signature: 'CodeShopService.list_escalations(self, task_id: str | None, limit: int) -> list[Escalation]'
+      inputs:
+      - self
+      - 'task_id: str | None'
+      - 'limit: int'
+      output: list[Escalation]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: CodeShopService.evaluate
+      kind: method
+      line_start: 273
+      line_end: 302
+      signature: 'CodeShopService.evaluate(self, request: ExecutionRequest) -> AuthorityDecision'
+      inputs:
+      - self
+      - 'request: ExecutionRequest'
+      output: AuthorityDecision
+      dependencies:
+      - self._optional_task
+      - self.repository.get_checkout
+      - self.repository.get_policy
+      - self.repository.get_project
+      - self.repository.record_decision
+      - self.repository.update_project
+      - self.trust_provenance
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService._optional_task
+      - *id009
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.get_policy
+      - *id005
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.record_decision
+      - *id007
+      - *id008
+      - &id013
+        path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.trust_provenance
+    - name: CodeShopService.execute
+      kind: method
+      line_start: 304
+      line_end: 326
+      signature: 'CodeShopService.execute(self, request: ExecutionRequest) -> tuple[AuthorityDecision, ExecutionResult]'
+      inputs:
+      - self
+      - 'request: ExecutionRequest'
+      output: tuple[AuthorityDecision, ExecutionResult]
+      dependencies:
+      - AuthorityNotGrantedError
+      - self.evaluate
+      - self.repository.get_checkout
+      - self.repository.record_outcome
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/code_shop/authority.py
+        symbol: AuthorityEvaluator.evaluate
+      - path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.evaluate
+      - *id009
+      - path: src/nerve_center/code_shop/api.py
+        symbol: register_code_shop_routes.record_outcome
+      - path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.record_outcome
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.record_outcome
+      - path: src/nerve_center/persistence/providers.py
+        symbol: ModelEvidenceRepository.record_outcome
+    - name: CodeShopService.overview
+      kind: method
+      line_start: 328
+      line_end: 336
+      signature: CodeShopService.overview(self) -> dict[str, Any]
+      inputs:
+      - self
+      output: dict[str, Any]
+      dependencies:
+      - asdict
+      - self.repository.list_escalations
+      - self.repository.list_projects
+      - self.repository.list_tasks
+      - self.trust_provenance
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/code_shop/api.py
+        symbol: register_code_shop_routes.list_escalations
+      - path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.list_escalations
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.list_escalations
+      - *id010
+      - *id011
+      - *id012
+      - path: src/nerve_center/code_shop/api.py
+        symbol: register_code_shop_routes.list_tasks
+      - path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.list_tasks
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.list_tasks
+      - *id013
+    - name: CodeShopService._optional_task
+      kind: method
+      line_start: 338
+      line_end: 342
+      signature: 'CodeShopService._optional_task(self, task_id: str) -> EngineeringTask | None'
+      inputs:
+      - self
+      - 'task_id: str'
+      output: EngineeringTask | None
+      dependencies:
+      - self.repository.get_task
+      parser: python-ast
+      dependency_targets:
+      - *id006
   - path: src/nerve_center/discovery/connectors/ashby.py
     analysis_version: 1
     language: python
@@ -295,13 +804,7 @@ source_catalog:
       dependencies:
       - self.supervisor.execute
       parser: python-ast
-      dependency_targets:
-      - path: src/nerve_center/providers/manager.py
-        symbol: ProviderManager.execute
-      - path: src/nerve_center/runtime/supervisor.py
-        symbol: ModuleSupervisor.execute
-      - path: tests/test_scheduler.py
-        symbol: test_tick_starts_due_fixed_run.execute
+      dependency_targets: []
   - path: tests/test_evidence_matching.py
     analysis_version: 1
     language: python
@@ -362,10 +865,10 @@ source_catalog:
       - matcher.match_requirement
       parser: python-ast
       dependency_targets:
-      - &id001
+      - &id014
         path: tests/test_evidence_matching.py
         symbol: claim
-      - &id002
+      - &id015
         path: src/nerve_center/scoring/evidence.py
         symbol: CareerEvidenceMatcher.match_requirement
     - name: test_matcher_marks_generic_cross_domain_support_as_transferable
@@ -381,8 +884,8 @@ source_catalog:
       - matcher.match_requirement
       parser: python-ast
       dependency_targets:
-      - *id001
-      - *id002
+      - *id014
+      - *id015
     - name: test_matcher_does_not_infer_unsupported_credentials
       kind: function
       line_start: 92
@@ -396,8 +899,8 @@ source_catalog:
       - matcher.match_requirement
       parser: python-ast
       dependency_targets:
-      - *id001
-      - *id002
+      - *id014
+      - *id015
     - name: test_matcher_does_not_treat_every_use_of_platform_as_product_evidence
       kind: function
       line_start: 104
@@ -411,8 +914,8 @@ source_catalog:
       - matcher.match_requirement
       parser: python-ast
       dependency_targets:
-      - *id001
-      - *id002
+      - *id014
+      - *id015
     - name: test_domain_assessment_distinguishes_direct_adjacent_transferable_and_mismatch
       kind: function
       line_start: 119
@@ -428,9 +931,9 @@ source_catalog:
       - opening
       parser: python-ast
       dependency_targets:
-      - *id001
+      - *id014
       - path: src/nerve_center/scoring/evidence.py
         symbol: CareerEvidenceMatcher.assess_domain
-      - *id002
+      - *id015
       - path: tests/test_evidence_matching.py
         symbol: opening

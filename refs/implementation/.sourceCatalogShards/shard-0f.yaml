@@ -469,7 +469,7 @@ source_catalog:
   - path: tests/test_applications.py
     analysis_version: 1
     language: python
-    content_hash: 4ef4cd5a1254b2409b46c601f20a55269fb24c48
+    content_hash: 03b8a5b50ba18962274554830451e9b965862e7b
     dependencies:
     - datetime
     - fastapi

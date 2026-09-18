@@ -722,6 +722,50 @@ source_catalog:
       - SourceDocument.model_validate
       parser: python-ast
       dependency_targets: []
+  - path: src/nerve_center/plugins/code_shop/bootstrap.py
+    analysis_version: 1
+    language: python
+    content_hash: 24631f1f9193068fa4ac5b66746d44542c9a16e1
+    dependencies:
+    - dataclasses
+    - fastapi
+    - nerve_center.code_shop.api
+    - nerve_center.code_shop.github
+    - nerve_center.code_shop.service
+    - nerve_center.config
+    - nerve_center.domain.module
+    - nerve_center.persistence.code_shop
+    - nerve_center.persistence.database
+    - nerve_center.plugins.code_shop.manifest
+    - nerve_center.plugins.code_shop.runtime
+    provides:
+    - install_code_shop
+    symbols:
+    - name: install_code_shop
+      kind: function
+      line_start: 25
+      line_end: 42
+      signature: 'install_code_shop(application: FastAPI, database: Database, settings: Settings, connector: GitHubRepositoryConnector)
+        -> CodeShopModulePackage'
+      inputs:
+      - 'application: FastAPI'
+      - 'database: Database'
+      - 'settings: Settings'
+      - 'connector: GitHubRepositoryConnector'
+      output: CodeShopModulePackage
+      dependencies:
+      - CodeShopModulePackage
+      - CodeShopOperationBridge
+      - CodeShopRepository
+      - CodeShopService
+      - code_shop_manifest
+      - register_code_shop_routes
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/code_shop/manifest.py
+        symbol: code_shop_manifest
+      - path: src/nerve_center/code_shop/api.py
+        symbol: register_code_shop_routes
   - path: src/nerve_center/scoring/location.py
     analysis_version: 1
     language: python
@@ -1098,7 +1142,7 @@ source_catalog:
   - path: tests/test_api.py
     analysis_version: 1
     language: python
-    content_hash: 3aff74e95c0f24636b2c4d1ceb42e14e3a540e49
+    content_hash: 83b16eec4232e5623a4a50cccd39ca1d6a44ecea
     dependencies:
     - fastapi.testclient
     - nerve_center.api.app
@@ -1157,7 +1201,7 @@ source_catalog:
     - name: test_module_inventory_and_pause_gate_run_admission
       kind: function
       line_start: 48
-      line_end: 70
+      line_end: 71
       signature: 'test_module_inventory_and_pause_gate_run_admission(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1172,13 +1216,14 @@ source_catalog:
       - modules.json
       - paused.json
       - resumed.json
+      - '{''code_shop'', ''job_scout''}.issubset'
       parser: python-ast
       dependency_targets:
       - *id021
     - name: test_paused_module_cannot_start_previously_queued_run
       kind: function
-      line_start: 73
-      line_end: 89
+      line_start: 74
+      line_end: 90
       signature: 'test_paused_module_cannot_start_previously_queued_run(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1196,8 +1241,8 @@ source_catalog:
       - *id021
     - name: test_recurring_session_persists_concrete_next_window
       kind: function
-      line_start: 92
-      line_end: 109
+      line_start: 93
+      line_end: 110
       signature: 'test_recurring_session_persists_concrete_next_window(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1213,8 +1258,8 @@ source_catalog:
       - *id021
     - name: test_overlapping_active_sessions_are_rejected
       kind: function
-      line_start: 112
-      line_end: 122
+      line_start: 113
+      line_end: 123
       signature: 'test_overlapping_active_sessions_are_rejected(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1231,8 +1276,8 @@ source_catalog:
       - *id021
     - name: test_durable_work_queue_api_lifecycle
       kind: function
-      line_start: 125
-      line_end: 174
+      line_start: 126
+      line_end: 175
       signature: 'test_durable_work_queue_api_lifecycle(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'

@@ -138,13 +138,13 @@ source_catalog:
         symbol: StubProcess.kill
       - path: tests/test_module_runtime.py
         symbol: StubProcess.terminate
-      - &id008
+      - &id009
         path: src/nerve_center/discovery/fetching.py
         symbol: DomainRequestGate.wait
-      - &id009
+      - &id010
         path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService.wait
-      - &id010
+      - &id011
         path: tests/test_module_runtime.py
         symbol: StubProcess.wait
     - name: remove_data_directory
@@ -248,6 +248,9 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - &id006
+        path: src/nerve_center/code_shop/api.py
+        symbol: _translate
+      - &id007
         path: src/nerve_center/model_lab/api.py
         symbol: _translate
       - &id004
@@ -256,6 +259,10 @@ source_catalog:
       - &id005
         path: tests/test_public_search_fallback.py
         symbol: MemorySearchCache.put
+      - path: src/nerve_center/code_shop/api.py
+        symbol: register_code_shop_routes.overview
+      - path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.overview
       - path: src/nerve_center/model_lab/api.py
         symbol: register_model_lab_routes.overview
       - path: src/nerve_center/model_lab/service.py
@@ -264,7 +271,7 @@ source_catalog:
         symbol: register_model_lab_routes.replay
       - path: src/nerve_center/model_lab/service.py
         symbol: ModelLabService.replay
-      - &id007
+      - &id008
         path: src/nerve_center/model_lab/service.py
         symbol: ModelLabService.start_exploration
       - path: src/nerve_center/model_lab/api.py
@@ -318,6 +325,7 @@ source_catalog:
       dependency_targets:
       - *id006
       - *id007
+      - *id008
     - name: register_model_lab_routes.replay
       kind: function
       line_start: 53
@@ -334,6 +342,7 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id006
+      - *id007
     - name: _translate
       kind: function
       line_start: 70
@@ -633,6 +642,12 @@ source_catalog:
       - self._stop.clear
       parser: python-ast
       dependency_targets:
+      - path: src/nerve_center/code_shop/api.py
+        symbol: register_code_shop_routes.create_task
+      - path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.create_task
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.create_task
       - path: src/nerve_center/scheduler/service.py
         symbol: SchedulerService._run_loop
     - name: SchedulerService.stop
@@ -696,9 +711,9 @@ source_catalog:
       - self.tick
       parser: python-ast
       dependency_targets:
-      - *id008
       - *id009
       - *id010
+      - *id011
       - path: src/nerve_center/scheduler/provider_worker.py
         symbol: ProviderWorkExecutor.tick
       - path: src/nerve_center/scheduler/service.py

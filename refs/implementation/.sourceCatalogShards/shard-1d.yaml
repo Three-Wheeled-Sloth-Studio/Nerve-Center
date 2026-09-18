@@ -1483,12 +1483,6 @@ source_catalog:
       - path: src/nerve_center/plugins/job_scout/bootstrap.py
         symbol: _recent_reference_attempt_evidence
       - *id032
-      - &id034
-        path: src/nerve_center/plugins/job_scout/discovery_learning.py
-        symbol: JobScoutDiscoveryRepository.record_attempt
-      - &id035
-        path: src/nerve_center/plugins/job_scout/discovery_quality.py
-        symbol: DiscoveryQualityRepository.record_attempt
     - name: test_public_search_attempt_evidence_is_run_scoped_and_transport_explicit
       kind: function
       line_start: 119
@@ -1510,8 +1504,6 @@ source_catalog:
       - path: src/nerve_center/plugins/job_scout/bootstrap.py
         symbol: _recent_public_search_attempt_evidence
       - *id032
-      - *id034
-      - *id035
   - path: tests/test_module_contracts.py
     analysis_version: 1
     language: python
@@ -1560,7 +1552,7 @@ source_catalog:
         symbol: ModuleManifest.from_dict
       - path: src/nerve_center/domain/session.py
         symbol: RecurrenceRule.from_dict
-      - &id036
+      - &id034
         path: tests/test_module_contracts.py
         symbol: manifest
       - *id020
@@ -1583,7 +1575,7 @@ source_catalog:
       - replace
       parser: python-ast
       dependency_targets:
-      - *id036
+      - *id034
     - name: test_manifest_rejects_unsupported_contract_version
       kind: function
       line_start: 82
@@ -1597,4 +1589,4 @@ source_catalog:
       - replace
       parser: python-ast
       dependency_targets:
-      - *id036
+      - *id034

@@ -17,7 +17,7 @@ source_catalog:
   - path: src/nerve_center/config.py
     analysis_version: 1
     language: python
-    content_hash: 217a4d6f4f243b3b0349a7507a2ad31e915a7973
+    content_hash: 1906a4593ab8acafecabecae7770b19f6f24570b
     dependencies:
     - __future__
     - pathlib
@@ -34,8 +34,8 @@ source_catalog:
     symbols:
     - name: Settings.manager_endpoint
       kind: method
-      line_start: 33
-      line_end: 35
+      line_start: 34
+      line_end: 36
       signature: Settings.manager_endpoint(self) -> str
       inputs:
       - self
@@ -45,8 +45,8 @@ source_catalog:
       dependency_targets: []
     - name: Settings.database_path
       kind: method
-      line_start: 38
-      line_end: 39
+      line_start: 39
+      line_end: 40
       signature: Settings.database_path(self) -> Path
       inputs:
       - self
@@ -56,8 +56,8 @@ source_catalog:
       dependency_targets: []
     - name: Settings.database_url
       kind: method
-      line_start: 42
-      line_end: 43
+      line_start: 43
+      line_end: 44
       signature: Settings.database_url(self) -> str
       inputs:
       - self
@@ -68,8 +68,8 @@ source_catalog:
       dependency_targets: []
     - name: Settings.modules_data_dir
       kind: method
-      line_start: 46
-      line_end: 47
+      line_start: 47
+      line_end: 48
       signature: Settings.modules_data_dir(self) -> Path
       inputs:
       - self
@@ -79,8 +79,8 @@ source_catalog:
       dependency_targets: []
     - name: Settings.module_data_dir
       kind: method
-      line_start: 49
-      line_end: 55
+      line_start: 50
+      line_end: 56
       signature: 'Settings.module_data_dir(self, storage_namespace: str) -> Path'
       inputs:
       - self
@@ -93,8 +93,8 @@ source_catalog:
       dependency_targets: []
     - name: Settings.ensure_runtime_directories
       kind: method
-      line_start: 57
-      line_end: 59
+      line_start: 58
+      line_end: 60
       signature: Settings.ensure_runtime_directories(self) -> None
       inputs:
       - self

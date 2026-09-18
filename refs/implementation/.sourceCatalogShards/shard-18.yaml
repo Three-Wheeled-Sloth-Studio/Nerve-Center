@@ -68,6 +68,31 @@ source_catalog:
       dependency_targets:
       - path: scripts/summarize_job_scout_run.py
         symbol: summarize
+  - path: src/nerve_center/plugins/code_shop/manifest.py
+    analysis_version: 1
+    language: python
+    content_hash: 7a0acbee8f60c3adbcaeda2f0df98bebf6e78947
+    dependencies:
+    - nerve_center
+    - nerve_center.domain.module
+    provides:
+    - code_shop_manifest
+    symbols:
+    - name: code_shop_manifest
+      kind: function
+      line_start: 15
+      line_end: 69
+      signature: code_shop_manifest() -> ModuleManifest
+      inputs: []
+      output: ModuleManifest
+      dependencies:
+      - ModuleCompatibility
+      - ModuleLaunchDefinition
+      - ModuleManifest
+      - ModuleTaskDeclaration
+      - ModuleUiContribution
+      parser: python-ast
+      dependency_targets: []
   - path: src/nerve_center/scoring/models.py
     analysis_version: 1
     language: python

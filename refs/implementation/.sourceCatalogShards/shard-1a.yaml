@@ -4,6 +4,68 @@ source_catalog:
   format_version: 1
   bucket: 1a
   files:
+  - path: src/nerve_center/plugins/code_shop/runtime.py
+    analysis_version: 1
+    language: python
+    content_hash: f2514e7874dd87354d17719127c8221070ccaf11
+    dependencies:
+    - __future__
+    - dataclasses
+    - nerve_center.code_shop.domain
+    - nerve_center.code_shop.service
+    - typing
+    provides:
+    - CodeShopOperationBridge.__init__
+    - CodeShopOperationBridge.invoke
+    symbols:
+    - name: CodeShopOperationBridge.__init__
+      kind: method
+      line_start: 13
+      line_end: 14
+      signature: 'CodeShopOperationBridge.__init__(self, service: CodeShopService) -> None'
+      inputs:
+      - self
+      - 'service: CodeShopService'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: CodeShopOperationBridge.invoke
+      kind: method
+      line_start: 16
+      line_end: 29
+      signature: 'CodeShopOperationBridge.invoke(self, operation: str, payload: dict[str, Any]) -> dict[str, Any]'
+      inputs:
+      - self
+      - 'operation: str'
+      - 'payload: dict[str, Any]'
+      output: dict[str, Any]
+      dependencies:
+      - EngineeringCapability
+      - KeyError
+      - ValueError
+      - asdict
+      - dict
+      - payload.get
+      - self.service.create_task
+      - self.service.overview
+      - str
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/code_shop/api.py
+        symbol: register_code_shop_routes.create_task
+      - path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.create_task
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.create_task
+      - path: src/nerve_center/code_shop/api.py
+        symbol: register_code_shop_routes.overview
+      - path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.overview
+      - path: src/nerve_center/model_lab/api.py
+        symbol: register_model_lab_routes.overview
+      - path: src/nerve_center/model_lab/service.py
+        symbol: ModelLabService.overview
   - path: tests/test_job_scout_query_portfolio.py
     analysis_version: 1
     language: python
@@ -145,7 +207,7 @@ source_catalog:
         path: tests/test_job_scout_query_portfolio.py
         symbol: _database
       - *id002
-      - &id011
+      - &id009
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.list_strategies
       - path: src/nerve_center/plugins/job_scout/discovery_loop.py
@@ -372,12 +434,6 @@ source_catalog:
       - path: src/nerve_center/plugins/job_scout/discovery_quality.py
         symbol: DiscoveryQualityRepository.discovery_audit
       - *id007
-      - &id009
-        path: src/nerve_center/plugins/job_scout/discovery_learning.py
-        symbol: JobScoutDiscoveryRepository.record_attempt
-      - &id010
-        path: src/nerve_center/plugins/job_scout/discovery_quality.py
-        symbol: DiscoveryQualityRepository.record_attempt
     - name: test_structured_refresh_gets_one_time_initial_preference
       kind: function
       line_start: 435
@@ -404,8 +460,6 @@ source_catalog:
       - *id008
       - path: src/nerve_center/plugins/job_scout/discovery_quality.py
         symbol: DiscoveryQualityRepository.promote_initial_structured_refresh
-      - *id009
-      - *id010
     - name: test_due_structured_source_is_preferred_through_real_seeding_path
       kind: function
       line_start: 452
@@ -430,11 +484,11 @@ source_catalog:
       - *id004
       - *id005
       - *id006
-      - *id011
-      - &id012
+      - *id009
+      - &id010
         path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: JobScoutDiscoveryLoop._seed_due_source_strategies
-      - &id013
+      - &id011
         path: src/nerve_center/plugins/job_scout/discovery_quality.py
         symbol: SourceAwareJobScoutDiscoveryLoop._seed_due_source_strategies
     - name: test_unhealthy_structured_source_gets_no_initial_priority_bonus
@@ -461,9 +515,9 @@ source_catalog:
       - *id004
       - *id005
       - *id006
+      - *id009
+      - *id010
       - *id011
-      - *id012
-      - *id013
     - name: test_coverage_gaps_are_explicit_and_bounded
       kind: function
       line_start: 503
@@ -492,9 +546,7 @@ source_catalog:
       - path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: build_coverage_gap_profile
       - *id007
-      - *id011
       - *id009
-      - *id010
     - name: test_reflection_work_is_explicitly_gap_driven
       kind: function
       line_start: 564

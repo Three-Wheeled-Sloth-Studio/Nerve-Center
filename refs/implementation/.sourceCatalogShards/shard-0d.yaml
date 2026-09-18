@@ -452,6 +452,137 @@ source_catalog:
       dependency_targets:
       - path: scripts/build_windows_backend.py
         symbol: build_command
+  - path: src/nerve_center/code_shop/checkout.py
+    analysis_version: 1
+    language: python
+    content_hash: 7000fdf2afb31d5d4871d49cd705743ab1a74946
+    dependencies:
+    - __future__
+    - configparser
+    - dataclasses
+    - nerve_center.code_shop.domain
+    - pathlib
+    - re
+    - urllib.parse
+    provides:
+    - verify_checkout
+    - normalize_github_remote
+    - resolve_scoped_path
+    - _approved_root
+    - _normalize_path
+    symbols:
+    - name: verify_checkout
+      kind: function
+      line_start: 28
+      line_end: 67
+      signature: 'verify_checkout(project: CodeShopProject, checkout_path: str | Path, approved_roots: tuple[Path, ...]) ->
+        CheckoutVerification'
+      inputs:
+      - 'project: CodeShopProject'
+      - 'checkout_path: str | Path'
+      - 'approved_roots: tuple[Path, ...]'
+      output: CheckoutVerification
+      dependencies:
+      - CheckoutValidationError
+      - CheckoutVerification
+      - Path
+      - Path(checkout_path).expanduser
+      - Path(checkout_path).expanduser().resolve
+      - _approved_root
+      - config_path.is_file
+      - configparser.ConfigParser
+      - matches.append
+      - normalize_github_remote
+      - parser.get
+      - parser.get(section, 'url', fallback='').strip
+      - parser.read
+      - parser.sections
+      - path.is_dir
+      - project.full_name.lower
+      - section.removeprefix
+      - section.removeprefix('remote "').removesuffix
+      - section.startswith
+      - str
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/code_shop/checkout.py
+        symbol: _approved_root
+      - &id008
+        path: src/nerve_center/persistence/scoring.py
+        symbol: OpportunityScoreRepository.append
+      - path: src/nerve_center/code_shop/checkout.py
+        symbol: normalize_github_remote
+    - name: normalize_github_remote
+      kind: function
+      line_start: 70
+      line_end: 80
+      signature: 'normalize_github_remote(value: str) -> str | None'
+      inputs:
+      - 'value: str'
+      output: str | None
+      dependencies:
+      - _SCP_GITHUB.fullmatch
+      - _normalize_path
+      - parsed.path.lstrip
+      - scp.group
+      - urlparse
+      - value.strip
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/code_shop/checkout.py
+        symbol: _normalize_path
+    - name: resolve_scoped_path
+      kind: function
+      line_start: 83
+      line_end: 97
+      signature: 'resolve_scoped_path(checkout_path: str, resource_path: str) -> Path'
+      inputs:
+      - 'checkout_path: str'
+      - 'resource_path: str'
+      output: Path
+      dependencies:
+      - (checkout / candidate).resolve
+      - CheckoutValidationError
+      - Path
+      - Path(checkout_path).resolve
+      - candidate.is_absolute
+      - candidate.resolve
+      - resolved.relative_to
+      parser: python-ast
+      dependency_targets: []
+    - name: _approved_root
+      kind: function
+      line_start: 100
+      line_end: 108
+      signature: '_approved_root(path: Path, roots: tuple[Path, ...]) -> Path'
+      inputs:
+      - 'path: Path'
+      - 'roots: tuple[Path, ...]'
+      output: Path
+      dependencies:
+      - CheckoutValidationError
+      - configured.expanduser
+      - configured.expanduser().resolve
+      - path.relative_to
+      parser: python-ast
+      dependency_targets: []
+    - name: _normalize_path
+      kind: function
+      line_start: 111
+      line_end: 118
+      signature: '_normalize_path(value: str) -> str | None'
+      inputs:
+      - 'value: str'
+      output: str | None
+      dependencies:
+      - f'{parts[0]}/{parts[1]}'.lower
+      - len
+      - path.endswith
+      - path.split
+      - value.strip
+      - value.strip().strip
+      parser: python-ast
+      dependency_targets: []
   - path: src/nerve_center/discovery/service.py
     analysis_version: 1
     language: python
@@ -783,23 +914,21 @@ source_catalog:
         symbol: _archetype_terms
       - *id006
       - *id007
-      - &id010
+      - &id011
         path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: _generic_anchor
       - path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: _seniority_variants
-      - &id013
-        path: src/nerve_center/persistence/scoring.py
-        symbol: OpportunityScoreRepository.append
-      - &id008
+      - *id008
+      - &id009
         path: src/nerve_center/plugins/job_scout/settings.py
         symbol: clean_list
-      - &id009
+      - &id010
         path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: compile_strategy_query
       - path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: _extract_structured_employer_names.add
-      - &id012
+      - &id013
         path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: source_capabilities
     - name: compile_strategy_query
@@ -842,10 +971,10 @@ source_catalog:
       - *id007
       - path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: _market_search_terms
-      - &id011
+      - &id012
         path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: _split_terms
-      - *id008
+      - *id009
       - path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: lint_query_dimensions
     - name: compile_employer_deepening_queries
@@ -871,8 +1000,8 @@ source_catalog:
       - tuple
       parser: python-ast
       dependency_targets:
-      - *id008
       - *id009
+      - *id010
     - name: _market_search_terms
       kind: function
       line_start: 336
@@ -921,17 +1050,17 @@ source_catalog:
       - warnings.extend
       parser: python-ast
       dependency_targets:
-      - *id010
+      - *id011
       - &id014
         path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: _normalize_phrase
       - &id015
         path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: _normalize_term
-      - *id011
-      - *id008
       - *id012
+      - *id009
       - *id013
+      - *id008
     - name: build_coverage_gap_profile
       kind: function
       line_start: 395
@@ -978,8 +1107,8 @@ source_catalog:
         symbol: _seniority_levels
       - path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: _source_domain_observed
+      - *id009
       - *id008
-      - *id013
       - path: src/nerve_center/scoring/location.py
         symbol: opening_matches_market
     - name: preferred_structured_source_ids
@@ -1027,8 +1156,8 @@ source_catalog:
       - result.append
       parser: python-ast
       dependency_targets:
+      - *id009
       - *id008
-      - *id013
     - name: _seniority_variants
       kind: function
       line_start: 554
@@ -1045,7 +1174,7 @@ source_catalog:
       - result.extend
       parser: python-ast
       dependency_targets:
-      - *id008
+      - *id009
     - name: _archetype_terms
       kind: function
       line_start: 569
@@ -1060,8 +1189,8 @@ source_catalog:
       - result.append
       parser: python-ast
       dependency_targets:
+      - *id009
       - *id008
-      - *id013
     - name: _seniority_levels
       kind: function
       line_start: 585
@@ -1076,7 +1205,7 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id014
-      - *id013
+      - *id008
     - name: _generic_anchor
       kind: function
       line_start: 602
@@ -1105,7 +1234,7 @@ source_catalog:
       - value.strip
       parser: python-ast
       dependency_targets:
-      - *id008
+      - *id009
     - name: _tokens
       kind: function
       line_start: 611

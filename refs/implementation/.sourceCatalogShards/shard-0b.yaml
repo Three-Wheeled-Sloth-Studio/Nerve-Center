@@ -12,6 +12,18 @@ source_catalog:
     - ./types
     provides: []
     symbols: []
+  - path: src/nerve_center/code_shop/domain.py
+    analysis_version: 1
+    language: python
+    content_hash: 9923fd3ff391fa26f0661085ea54b8bc100339c1
+    dependencies:
+    - __future__
+    - dataclasses
+    - datetime
+    - enum
+    - typing
+    provides: []
+    symbols: []
   - path: src/nerve_center/plugins/job_scout/__init__.py
     analysis_version: 1
     language: python
@@ -149,15 +161,6 @@ source_catalog:
       - &id004
         path: src/nerve_center/providers/manager.py
         symbol: ProviderManager.select
-      - &id005
-        path: src/nerve_center/providers/manager.py
-        symbol: ProviderManager.execute
-      - &id006
-        path: src/nerve_center/runtime/supervisor.py
-        symbol: ModuleSupervisor.execute
-      - &id007
-        path: tests/test_scheduler.py
-        symbol: test_tick_starts_due_fixed_run.execute
     - name: _recent_public_search_attempt_evidence
       kind: function
       line_start: 189
@@ -195,9 +198,6 @@ source_catalog:
       - *id002
       - *id003
       - *id004
-      - *id005
-      - *id006
-      - *id007
     - name: _register_discovery_learning_routes
       kind: function
       line_start: 253
@@ -223,22 +223,22 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - &id010
+      - &id007
         path: src/nerve_center/plugins/job_scout/bootstrap.py
         symbol: _recent_public_search_attempt_evidence
-      - &id011
+      - &id008
         path: src/nerve_center/plugins/job_scout/bootstrap.py
         symbol: _recent_reference_attempt_evidence
-      - &id012
+      - &id009
         path: src/nerve_center/plugins/job_scout/discovery_quality.py
         symbol: DiscoveryQualityRepository.discovery_audit
-      - &id008
+      - &id005
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.list_strategies
-      - &id009
+      - &id006
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.list_strategy_families
-      - &id013
+      - &id010
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.reflection_hypotheses
       - *id002
@@ -259,8 +259,8 @@ source_catalog:
       - rows.append
       parser: python-ast
       dependency_targets:
-      - *id008
-      - *id009
+      - *id005
+      - *id006
       - *id001
     - name: _register_discovery_learning_routes.get_discovery_audit
       kind: function
@@ -278,9 +278,9 @@ source_catalog:
       - learning.discovery_audit
       parser: python-ast
       dependency_targets:
-      - *id010
-      - *id011
-      - *id012
+      - *id007
+      - *id008
+      - *id009
     - name: _register_discovery_learning_routes.get_discovery_session
       kind: function
       line_start: 315
@@ -311,7 +311,7 @@ source_catalog:
       - learning.reflection_hypotheses
       parser: python-ast
       dependency_targets:
-      - *id013
+      - *id010
   - path: src/nerve_center/providers/__init__.py
     analysis_version: 1
     language: python
@@ -394,10 +394,16 @@ source_catalog:
       - task.add_done_callback
       parser: python-ast
       dependency_targets:
-      - &id014
+      - path: src/nerve_center/code_shop/api.py
+        symbol: register_code_shop_routes.create_task
+      - path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.create_task
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.create_task
+      - &id011
         path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService._execute
-      - &id015
+      - &id012
         path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService._prepare_start
     - name: RunnerService.execute_now
@@ -415,8 +421,8 @@ source_catalog:
       - self._prepare_start
       parser: python-ast
       dependency_targets:
-      - *id014
-      - *id015
+      - *id011
+      - *id012
     - name: RunnerService.cancel
       kind: method
       line_start: 56
@@ -430,7 +436,7 @@ source_catalog:
       - self.repository.request_cancel
       parser: python-ast
       dependency_targets:
-      - &id016
+      - &id013
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.request_cancel
     - name: RunnerService.wait
@@ -471,7 +477,7 @@ source_catalog:
         symbol: RunnerService.wait
       - path: tests/test_module_runtime.py
         symbol: StubProcess.wait
-      - *id016
+      - *id013
       - path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository.cancel
       - path: src/nerve_center/scheduler/runner.py
@@ -504,8 +510,8 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/scheduler/registry.py
         symbol: TaskRegistry.module_for_task
-      - *id016
-      - &id017
+      - *id013
+      - &id014
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.transition
     - name: RunnerService._execute
@@ -547,7 +553,7 @@ source_catalog:
         symbol: RunRepository.save_checkpoint
       - path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService._execute.save_checkpoint
-      - *id017
+      - *id014
     - name: RunnerService._execute.cancellation_requested
       kind: method
       line_start: 147
@@ -586,7 +592,7 @@ source_catalog:
       - self.repository.transition
       parser: python-ast
       dependency_targets:
-      - *id017
+      - *id014
   - path: tests/test_documents.py
     analysis_version: 1
     language: python
@@ -617,7 +623,7 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - &id018
+      - &id015
         path: src/nerve_center/profile/documents.py
         symbol: import_source_document
     - name: test_imports_docx
@@ -635,7 +641,7 @@ source_catalog:
       - import_source_document
       parser: python-ast
       dependency_targets:
-      - *id018
+      - *id015
     - name: test_imports_pdf
       kind: function
       line_start: 35
@@ -653,4 +659,4 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - *id018
+      - *id015

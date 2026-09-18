@@ -1182,6 +1182,798 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id019
+  - path: src/nerve_center/persistence/code_shop.py
+    analysis_version: 1
+    language: python
+    content_hash: cfcce9f5e801f4f5845a47a0508f186980fb17b3
+    dependencies:
+    - __future__
+    - datetime
+    - nerve_center.code_shop.domain
+    - nerve_center.persistence.database
+    - nerve_center.persistence.models
+    - sqlalchemy
+    - sqlalchemy.orm
+    - typing
+    - uuid
+    provides:
+    - CodeShopRepository.__init__
+    - CodeShopRepository.upsert_project
+    - CodeShopRepository.list_projects
+    - CodeShopRepository.get_project
+    - CodeShopRepository.update_project
+    - CodeShopRepository.set_checkout
+    - CodeShopRepository.get_checkout
+    - CodeShopRepository.remove_checkout
+    - CodeShopRepository.set_policy
+    - CodeShopRepository.get_policy
+    - CodeShopRepository.list_policies
+    - CodeShopRepository.create_task
+    - CodeShopRepository.get_task
+    - CodeShopRepository.list_tasks
+    - CodeShopRepository.set_task_state
+    - CodeShopRepository.record_attempt
+    - CodeShopRepository.failed_attempt_count
+    - CodeShopRepository.record_decision
+    - CodeShopRepository.create_escalation
+    - CodeShopRepository.has_open_escalation
+    - CodeShopRepository.list_escalations
+    - CodeShopRepository.record_outcome
+    - _project
+    - _checkout
+    - _policy
+    - _task
+    - _attempt
+    - _decision
+    - _escalation
+    - _outcome
+    - _utc
+    symbols:
+    - name: CodeShopRepository.__init__
+      kind: method
+      line_start: 177
+      line_end: 178
+      signature: 'CodeShopRepository.__init__(self, database: Database) -> None'
+      inputs:
+      - self
+      - 'database: Database'
+      output: None
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: CodeShopRepository.upsert_project
+      kind: method
+      line_start: 180
+      line_end: 206
+      signature: 'CodeShopRepository.upsert_project(self, identity: GitHubRepositoryIdentity) -> CodeShopProject'
+      inputs:
+      - self
+      - 'identity: GitHubRepositoryIdentity'
+      output: CodeShopProject
+      dependencies:
+      - CodeShopProjectModel
+      - _project
+      - datetime.now
+      - dict
+      - self.database.session
+      - session.add
+      - session.flush
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - &id027
+        path: src/nerve_center/persistence/code_shop.py
+        symbol: _project
+      - &id028
+        path: src/nerve_center/persistence/database.py
+        symbol: Database.session
+      - &id029
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.session
+      - &id031
+        path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _extract_structured_employer_names.add
+      - &id030
+        path: scripts/agent_context.py
+        symbol: _markdown_blocks.flush
+    - name: CodeShopRepository.list_projects
+      kind: method
+      line_start: 208
+      line_end: 213
+      signature: CodeShopRepository.list_projects(self) -> list[CodeShopProject]
+      inputs:
+      - self
+      output: list[CodeShopProject]
+      dependencies:
+      - CodeShopProjectModel.priority.desc
+      - _project
+      - select
+      - select(CodeShopProjectModel).order_by
+      - self.database.session
+      - session.scalars
+      - session.scalars(select(CodeShopProjectModel).order_by(CodeShopProjectModel.priority.desc())).all
+      parser: python-ast
+      dependency_targets:
+      - *id027
+      - &id034
+        path: src/nerve_center/providers/manager.py
+        symbol: ProviderManager.select
+      - *id028
+      - *id029
+    - name: CodeShopRepository.get_project
+      kind: method
+      line_start: 215
+      line_end: 220
+      signature: 'CodeShopRepository.get_project(self, repository_id: str) -> CodeShopProject'
+      inputs:
+      - self
+      - 'repository_id: str'
+      output: CodeShopProject
+      dependencies:
+      - KeyError
+      - _project
+      - self.database.session
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - *id027
+      - *id028
+      - *id029
+    - name: CodeShopRepository.update_project
+      kind: method
+      line_start: 222
+      line_end: 245
+      signature: 'CodeShopRepository.update_project(self, repository_id: str, lifecycle: ProjectLifecycle | None, priority:
+        int | None, branch_policy: dict[str, Any] | None, hosted_runner_eligible: bool | None) -> CodeShopProject'
+      inputs:
+      - self
+      - 'repository_id: str'
+      - 'lifecycle: ProjectLifecycle | None'
+      - 'priority: int | None'
+      - 'branch_policy: dict[str, Any] | None'
+      - 'hosted_runner_eligible: bool | None'
+      output: CodeShopProject
+      dependencies:
+      - KeyError
+      - _project
+      - datetime.now
+      - dict
+      - self.database.session
+      - session.flush
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - *id027
+      - *id028
+      - *id029
+      - *id030
+    - name: CodeShopRepository.set_checkout
+      kind: method
+      line_start: 247
+      line_end: 270
+      signature: 'CodeShopRepository.set_checkout(self, repository_id: str, canonical_path: str, approved_root: str, remote_identity:
+        str, verified: bool, verification_detail: dict[str, Any]) -> CheckoutLink'
+      inputs:
+      - self
+      - 'repository_id: str'
+      - 'canonical_path: str'
+      - 'approved_root: str'
+      - 'remote_identity: str'
+      - 'verified: bool'
+      - 'verification_detail: dict[str, Any]'
+      output: CheckoutLink
+      dependencies:
+      - CodeShopCheckoutModel
+      - _checkout
+      - datetime.now
+      - dict
+      - self.database.session
+      - self.get_project
+      - session.add
+      - session.flush
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - &id032
+        path: src/nerve_center/persistence/code_shop.py
+        symbol: _checkout
+      - &id033
+        path: tests/test_code_shop.py
+        symbol: _checkout
+      - *id028
+      - *id029
+      - &id035
+        path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.get_project
+      - *id031
+      - *id030
+    - name: CodeShopRepository.get_checkout
+      kind: method
+      line_start: 272
+      line_end: 275
+      signature: 'CodeShopRepository.get_checkout(self, repository_id: str) -> CheckoutLink | None'
+      inputs:
+      - self
+      - 'repository_id: str'
+      output: CheckoutLink | None
+      dependencies:
+      - _checkout
+      - self.database.session
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - *id032
+      - *id033
+      - *id028
+      - *id029
+    - name: CodeShopRepository.remove_checkout
+      kind: method
+      line_start: 277
+      line_end: 281
+      signature: 'CodeShopRepository.remove_checkout(self, repository_id: str) -> None'
+      inputs:
+      - self
+      - 'repository_id: str'
+      output: None
+      dependencies:
+      - self.database.session
+      - session.delete
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - *id028
+      - *id029
+      - path: src/nerve_center/persistence/scoring.py
+        symbol: ScoringRuleRepository.delete
+    - name: CodeShopRepository.set_policy
+      kind: method
+      line_start: 283
+      line_end: 316
+      signature: 'CodeShopRepository.set_policy(self, repository_id: str, action: ProjectAction, policy: ActionPolicy, scope:
+        dict[str, Any], provenance: dict[str, Any]) -> AuthorityPolicyEnvelope'
+      inputs:
+      - self
+      - 'repository_id: str'
+      - 'action: ProjectAction'
+      - 'policy: ActionPolicy'
+      - 'scope: dict[str, Any]'
+      - 'provenance: dict[str, Any]'
+      output: AuthorityPolicyEnvelope
+      dependencies:
+      - CodeShopAuthorityPolicyModel
+      - _policy
+      - datetime.now
+      - dict
+      - select
+      - select(CodeShopAuthorityPolicyModel).where
+      - self.database.session
+      - self.get_project
+      - session.add
+      - session.flush
+      - session.scalar
+      - str
+      - uuid4
+      parser: python-ast
+      dependency_targets:
+      - &id036
+        path: src/nerve_center/persistence/code_shop.py
+        symbol: _policy
+      - *id034
+      - *id028
+      - *id029
+      - *id035
+      - *id031
+      - *id030
+    - name: CodeShopRepository.get_policy
+      kind: method
+      line_start: 318
+      line_end: 328
+      signature: 'CodeShopRepository.get_policy(self, repository_id: str, action: ProjectAction) -> AuthorityPolicyEnvelope
+        | None'
+      inputs:
+      - self
+      - 'repository_id: str'
+      - 'action: ProjectAction'
+      output: AuthorityPolicyEnvelope | None
+      dependencies:
+      - _policy
+      - select
+      - select(CodeShopAuthorityPolicyModel).where
+      - self.database.session
+      - session.scalar
+      parser: python-ast
+      dependency_targets:
+      - *id036
+      - *id034
+      - *id028
+      - *id029
+    - name: CodeShopRepository.list_policies
+      kind: method
+      line_start: 330
+      line_end: 337
+      signature: 'CodeShopRepository.list_policies(self, repository_id: str) -> list[AuthorityPolicyEnvelope]'
+      inputs:
+      - self
+      - 'repository_id: str'
+      output: list[AuthorityPolicyEnvelope]
+      dependencies:
+      - _policy
+      - select
+      - select(CodeShopAuthorityPolicyModel).where
+      - select(CodeShopAuthorityPolicyModel).where(CodeShopAuthorityPolicyModel.repository_id == repository_id).order_by
+      - self.database.session
+      - session.scalars
+      - session.scalars(select(CodeShopAuthorityPolicyModel).where(CodeShopAuthorityPolicyModel.repository_id == repository_id).order_by(CodeShopAuthorityPolicyModel.action)).all
+      parser: python-ast
+      dependency_targets:
+      - *id036
+      - *id034
+      - *id028
+      - *id029
+    - name: CodeShopRepository.create_task
+      kind: method
+      line_start: 339
+      line_end: 363
+      signature: 'CodeShopRepository.create_task(self, repository_id: str, title: str, capability: EngineeringCapability,
+        source_backlog: dict[str, Any]) -> EngineeringTask'
+      inputs:
+      - self
+      - 'repository_id: str'
+      - 'title: str'
+      - 'capability: EngineeringCapability'
+      - 'source_backlog: dict[str, Any]'
+      output: EngineeringTask
+      dependencies:
+      - CodeShopTaskModel
+      - _task
+      - datetime.now
+      - dict
+      - self.database.session
+      - self.get_project
+      - session.add
+      - session.flush
+      - str
+      - uuid4
+      parser: python-ast
+      dependency_targets:
+      - &id037
+        path: src/nerve_center/persistence/code_shop.py
+        symbol: _task
+      - *id028
+      - *id029
+      - *id035
+      - *id031
+      - *id030
+    - name: CodeShopRepository.get_task
+      kind: method
+      line_start: 365
+      line_end: 370
+      signature: 'CodeShopRepository.get_task(self, task_id: str) -> EngineeringTask'
+      inputs:
+      - self
+      - 'task_id: str'
+      output: EngineeringTask
+      dependencies:
+      - KeyError
+      - _task
+      - self.database.session
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - *id037
+      - *id028
+      - *id029
+    - name: CodeShopRepository.list_tasks
+      kind: method
+      line_start: 372
+      line_end: 380
+      signature: 'CodeShopRepository.list_tasks(self, repository_id: str | None, limit: int) -> list[EngineeringTask]'
+      inputs:
+      - self
+      - 'repository_id: str | None'
+      - 'limit: int'
+      output: list[EngineeringTask]
+      dependencies:
+      - CodeShopTaskModel.created_at.desc
+      - _task
+      - select
+      - self.database.session
+      - session.scalars
+      - session.scalars(statement).all
+      - statement.order_by
+      - statement.order_by(CodeShopTaskModel.created_at.desc()).limit
+      - statement.where
+      parser: python-ast
+      dependency_targets:
+      - *id037
+      - *id034
+      - *id028
+      - *id029
+    - name: CodeShopRepository.set_task_state
+      kind: method
+      line_start: 382
+      line_end: 397
+      signature: 'CodeShopRepository.set_task_state(self, task_id: str, state: EngineeringTaskState, blocker: str | None)
+        -> EngineeringTask'
+      inputs:
+      - self
+      - 'task_id: str'
+      - 'state: EngineeringTaskState'
+      - 'blocker: str | None'
+      output: EngineeringTask
+      dependencies:
+      - KeyError
+      - _task
+      - datetime.now
+      - self.database.session
+      - session.flush
+      - session.get
+      parser: python-ast
+      dependency_targets:
+      - *id037
+      - *id028
+      - *id029
+      - *id030
+    - name: CodeShopRepository.record_attempt
+      kind: method
+      line_start: 399
+      line_end: 437
+      signature: 'CodeShopRepository.record_attempt(self, task_id: str, status: str, approach: str, context_inputs: dict[str,
+        Any], manager_provenance: dict[str, Any], touched_files: tuple[str, ...], command_summaries: tuple[str, ...], resources:
+        dict[str, Any], outcome: dict[str, Any]) -> EngineeringAttempt'
+      inputs:
+      - self
+      - 'task_id: str'
+      - 'status: str'
+      - 'approach: str'
+      - 'context_inputs: dict[str, Any]'
+      - 'manager_provenance: dict[str, Any]'
+      - 'touched_files: tuple[str, ...]'
+      - 'command_summaries: tuple[str, ...]'
+      - 'resources: dict[str, Any]'
+      - 'outcome: dict[str, Any]'
+      output: EngineeringAttempt
+      dependencies:
+      - CodeShopAttemptModel
+      - _attempt
+      - datetime.now
+      - dict
+      - func.max
+      - int
+      - list
+      - select
+      - select(func.max(CodeShopAttemptModel.number)).where
+      - self.database.session
+      - self.get_task
+      - session.add
+      - session.flush
+      - session.scalar
+      - str
+      - uuid4
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: _attempt
+      - path: src/nerve_center/persistence/work_queue.py
+        symbol: WorkQueueRepository._attempt
+      - *id034
+      - *id028
+      - *id029
+      - &id038
+        path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.get_task
+      - *id031
+      - *id030
+    - name: CodeShopRepository.failed_attempt_count
+      kind: method
+      line_start: 439
+      line_end: 447
+      signature: 'CodeShopRepository.failed_attempt_count(self, task_id: str) -> int'
+      inputs:
+      - self
+      - 'task_id: str'
+      output: int
+      dependencies:
+      - func.count
+      - int
+      - select
+      - select(func.count(CodeShopAttemptModel.id)).where
+      - self.database.session
+      - session.scalar
+      parser: python-ast
+      dependency_targets:
+      - *id034
+      - *id028
+      - *id029
+    - name: CodeShopRepository.record_decision
+      kind: method
+      line_start: 449
+      line_end: 476
+      signature: 'CodeShopRepository.record_decision(self, task_id: str, repository_id: str, module_id: str, action: ProjectAction,
+        capability: ExecutionCapability, effective_decision: EffectiveDecision, risk_findings: tuple[str, ...], reason: str)
+        -> AuthorityDecision'
+      inputs:
+      - self
+      - 'task_id: str'
+      - 'repository_id: str'
+      - 'module_id: str'
+      - 'action: ProjectAction'
+      - 'capability: ExecutionCapability'
+      - 'effective_decision: EffectiveDecision'
+      - 'risk_findings: tuple[str, ...]'
+      - 'reason: str'
+      output: AuthorityDecision
+      dependencies:
+      - CodeShopAuthorityDecisionModel
+      - _decision
+      - datetime.now
+      - list
+      - self.database.session
+      - session.add
+      - session.flush
+      - str
+      - uuid4
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: _decision
+      - *id028
+      - *id029
+      - *id031
+      - *id030
+    - name: CodeShopRepository.create_escalation
+      kind: method
+      line_start: 478
+      line_end: 506
+      signature: 'CodeShopRepository.create_escalation(self, task_id: str, reason: str, evidence: dict[str, Any], failed_invariant:
+        str, recommended_capability: str, compact_handoff: str, dispositions: tuple[str, ...]) -> Escalation'
+      inputs:
+      - self
+      - 'task_id: str'
+      - 'reason: str'
+      - 'evidence: dict[str, Any]'
+      - 'failed_invariant: str'
+      - 'recommended_capability: str'
+      - 'compact_handoff: str'
+      - 'dispositions: tuple[str, ...]'
+      output: Escalation
+      dependencies:
+      - CodeShopEscalationModel
+      - _escalation
+      - datetime.now
+      - dict
+      - list
+      - self.database.session
+      - self.get_task
+      - session.add
+      - session.flush
+      - str
+      - uuid4
+      parser: python-ast
+      dependency_targets:
+      - &id039
+        path: src/nerve_center/persistence/code_shop.py
+        symbol: _escalation
+      - *id028
+      - *id029
+      - *id038
+      - *id031
+      - *id030
+    - name: CodeShopRepository.has_open_escalation
+      kind: method
+      line_start: 508
+      line_end: 516
+      signature: 'CodeShopRepository.has_open_escalation(self, task_id: str) -> bool'
+      inputs:
+      - self
+      - 'task_id: str'
+      output: bool
+      dependencies:
+      - bool
+      - func.count
+      - select
+      - select(func.count(CodeShopEscalationModel.id)).where
+      - self.database.session
+      - session.scalar
+      parser: python-ast
+      dependency_targets:
+      - *id034
+      - *id028
+      - *id029
+    - name: CodeShopRepository.list_escalations
+      kind: method
+      line_start: 518
+      line_end: 526
+      signature: 'CodeShopRepository.list_escalations(self, task_id: str | None, limit: int) -> list[Escalation]'
+      inputs:
+      - self
+      - 'task_id: str | None'
+      - 'limit: int'
+      output: list[Escalation]
+      dependencies:
+      - CodeShopEscalationModel.created_at.desc
+      - _escalation
+      - select
+      - self.database.session
+      - session.scalars
+      - session.scalars(statement).all
+      - statement.order_by
+      - statement.order_by(CodeShopEscalationModel.created_at.desc()).limit
+      - statement.where
+      parser: python-ast
+      dependency_targets:
+      - *id039
+      - *id034
+      - *id028
+      - *id029
+    - name: CodeShopRepository.record_outcome
+      kind: method
+      line_start: 528
+      line_end: 548
+      signature: 'CodeShopRepository.record_outcome(self, task_id: str, attempt_id: str | None, kind: str, payload: dict[str,
+        Any]) -> OutcomeEvidence'
+      inputs:
+      - self
+      - 'task_id: str'
+      - 'attempt_id: str | None'
+      - 'kind: str'
+      - 'payload: dict[str, Any]'
+      output: OutcomeEvidence
+      dependencies:
+      - CodeShopOutcomeEvidenceModel
+      - _outcome
+      - datetime.now
+      - dict
+      - self.database.session
+      - self.get_task
+      - session.add
+      - session.flush
+      - str
+      - uuid4
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: _outcome
+      - *id028
+      - *id029
+      - *id038
+      - *id031
+      - *id030
+    - name: _project
+      kind: function
+      line_start: 551
+      line_end: 564
+      signature: '_project(model: CodeShopProjectModel) -> CodeShopProject'
+      inputs:
+      - 'model: CodeShopProjectModel'
+      output: CodeShopProject
+      dependencies:
+      - CodeShopProject
+      - ProjectLifecycle
+      - _utc
+      - dict
+      parser: python-ast
+      dependency_targets: []
+    - name: _checkout
+      kind: function
+      line_start: 567
+      line_end: 576
+      signature: '_checkout(model: CodeShopCheckoutModel) -> CheckoutLink'
+      inputs:
+      - 'model: CodeShopCheckoutModel'
+      output: CheckoutLink
+      dependencies:
+      - CheckoutLink
+      - _utc
+      - dict
+      parser: python-ast
+      dependency_targets: []
+    - name: _policy
+      kind: function
+      line_start: 579
+      line_end: 588
+      signature: '_policy(model: CodeShopAuthorityPolicyModel) -> AuthorityPolicyEnvelope'
+      inputs:
+      - 'model: CodeShopAuthorityPolicyModel'
+      output: AuthorityPolicyEnvelope
+      dependencies:
+      - ActionPolicy
+      - AuthorityPolicyEnvelope
+      - ProjectAction
+      - _utc
+      - dict
+      parser: python-ast
+      dependency_targets: []
+    - name: _task
+      kind: function
+      line_start: 591
+      line_end: 602
+      signature: '_task(model: CodeShopTaskModel) -> EngineeringTask'
+      inputs:
+      - 'model: CodeShopTaskModel'
+      output: EngineeringTask
+      dependencies:
+      - EngineeringCapability
+      - EngineeringTask
+      - EngineeringTaskState
+      - _utc
+      - dict
+      parser: python-ast
+      dependency_targets: []
+    - name: _attempt
+      kind: function
+      line_start: 605
+      line_end: 620
+      signature: '_attempt(model: CodeShopAttemptModel) -> EngineeringAttempt'
+      inputs:
+      - 'model: CodeShopAttemptModel'
+      output: EngineeringAttempt
+      dependencies:
+      - EngineeringAttempt
+      - _utc
+      - dict
+      - tuple
+      parser: python-ast
+      dependency_targets: []
+    - name: _decision
+      kind: function
+      line_start: 623
+      line_end: 635
+      signature: '_decision(model: CodeShopAuthorityDecisionModel) -> AuthorityDecision'
+      inputs:
+      - 'model: CodeShopAuthorityDecisionModel'
+      output: AuthorityDecision
+      dependencies:
+      - AuthorityDecision
+      - EffectiveDecision
+      - ExecutionCapability
+      - ProjectAction
+      - _utc
+      - tuple
+      parser: python-ast
+      dependency_targets: []
+    - name: _escalation
+      kind: function
+      line_start: 638
+      line_end: 651
+      signature: '_escalation(model: CodeShopEscalationModel) -> Escalation'
+      inputs:
+      - 'model: CodeShopEscalationModel'
+      output: Escalation
+      dependencies:
+      - Escalation
+      - _utc
+      - dict
+      - tuple
+      parser: python-ast
+      dependency_targets: []
+    - name: _outcome
+      kind: function
+      line_start: 654
+      line_end: 662
+      signature: '_outcome(model: CodeShopOutcomeEvidenceModel) -> OutcomeEvidence'
+      inputs:
+      - 'model: CodeShopOutcomeEvidenceModel'
+      output: OutcomeEvidence
+      dependencies:
+      - OutcomeEvidence
+      - _utc
+      - dict
+      parser: python-ast
+      dependency_targets: []
+    - name: _utc
+      kind: function
+      line_start: 665
+      line_end: 668
+      signature: '_utc(value: datetime) -> datetime'
+      inputs:
+      - 'value: datetime'
+      output: datetime
+      dependencies:
+      - value.astimezone
+      - value.replace
+      parser: python-ast
+      dependency_targets: []
   - path: src/nerve_center/scoring/qualification_importance.py
     analysis_version: 1
     language: python
@@ -1329,5 +2121,4 @@ source_catalog:
       - value.casefold
       parser: python-ast
       dependency_targets:
-      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
-        symbol: _extract_structured_employer_names.add
+      - *id031

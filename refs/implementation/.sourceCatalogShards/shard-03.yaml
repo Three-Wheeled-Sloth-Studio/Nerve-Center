@@ -167,6 +167,116 @@ source_catalog:
       - asdict
       parser: python-ast
       dependency_targets: []
+  - path: src/nerve_center/plugins/code_shop/worker.py
+    analysis_version: 1
+    language: python
+    content_hash: 67362153ec9254a3e5ef35c514309c5763532463
+    dependencies:
+    - __future__
+    - asyncio
+    - contextlib
+    - nerve_center.runtime.client
+    - os
+    - typing
+    provides:
+    - run_worker
+    - _execute_assignment
+    - _required_environment
+    - main
+    symbols:
+    - name: run_worker
+      kind: function
+      line_start: 13
+      line_end: 33
+      signature: run_worker() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - ModuleRuntimeClient
+      - _execute_assignment
+      - _required_environment
+      - asyncio.sleep
+      - client.close
+      - client.heartbeat
+      - client.module_control
+      - client.next_work
+      - suppress
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/code_shop/worker.py
+        symbol: _execute_assignment
+      - path: src/nerve_center/plugins/job_scout/worker.py
+        symbol: _execute_assignment
+      - path: src/nerve_center/plugins/code_shop/worker.py
+        symbol: _required_environment
+      - path: src/nerve_center/plugins/job_scout/worker.py
+        symbol: _required_environment
+      - path: src/nerve_center/runtime/client.py
+        symbol: ModuleRuntimeClient.close
+      - path: src/nerve_center/runtime/api.py
+        symbol: register_runtime_routes.heartbeat
+      - path: src/nerve_center/runtime/client.py
+        symbol: ModuleRuntimeClient.heartbeat
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.heartbeat
+      - path: tests/test_job_scout_continuous_session.py
+        symbol: Client.heartbeat
+      - path: src/nerve_center/runtime/api.py
+        symbol: register_runtime_routes.module_control
+      - path: src/nerve_center/runtime/client.py
+        symbol: ModuleRuntimeClient.module_control
+      - path: src/nerve_center/runtime/supervisor.py
+        symbol: ModuleSupervisor.module_control
+      - path: src/nerve_center/runtime/api.py
+        symbol: register_runtime_routes.next_work
+      - path: src/nerve_center/runtime/client.py
+        symbol: ModuleRuntimeClient.next_work
+    - name: _execute_assignment
+      kind: function
+      line_start: 36
+      line_end: 68
+      signature: '_execute_assignment(client: ModuleRuntimeClient, assignment: dict[str, Any]) -> None'
+      inputs:
+      - 'client: ModuleRuntimeClient'
+      - 'assignment: dict[str, Any]'
+      output: None
+      dependencies:
+      - assignment.get
+      - client.complete
+      - client.invoke
+      - dict
+      - str
+      parser: python-ast
+      dependency_targets: []
+    - name: _required_environment
+      kind: function
+      line_start: 71
+      line_end: 75
+      signature: '_required_environment(name: str) -> str'
+      inputs:
+      - 'name: str'
+      output: str
+      dependencies:
+      - RuntimeError
+      - os.environ.get
+      parser: python-ast
+      dependency_targets: []
+    - name: main
+      kind: function
+      line_start: 78
+      line_end: 79
+      signature: main() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - asyncio.run
+      - run_worker
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/code_shop/worker.py
+        symbol: run_worker
+      - path: src/nerve_center/plugins/job_scout/worker.py
+        symbol: run_worker
   - path: src/nerve_center/profile/__init__.py
     analysis_version: 1
     language: python

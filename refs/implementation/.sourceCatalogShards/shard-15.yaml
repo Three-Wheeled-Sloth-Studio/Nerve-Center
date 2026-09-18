@@ -4,6 +4,539 @@ source_catalog:
   format_version: 1
   bucket: '15'
   files:
+  - path: src/nerve_center/code_shop/api.py
+    analysis_version: 1
+    language: python
+    content_hash: bfdad82264d8beded27d9f90787061972b6a6747
+    dependencies:
+    - __future__
+    - dataclasses
+    - fastapi
+    - nerve_center.code_shop.checkout
+    - nerve_center.code_shop.domain
+    - nerve_center.code_shop.service
+    - pydantic
+    - typing
+    provides:
+    - ExecutionRequestBody.to_domain
+    - register_code_shop_routes
+    - register_code_shop_routes.overview
+    - register_code_shop_routes.trust
+    - register_code_shop_routes.discovered_repositories
+    - register_code_shop_routes.select_project
+    - register_code_shop_routes.synchronize_projects
+    - register_code_shop_routes.list_projects
+    - register_code_shop_routes.update_project
+    - register_code_shop_routes.link_checkout
+    - register_code_shop_routes.unlink_checkout
+    - register_code_shop_routes.list_authority
+    - register_code_shop_routes.set_authority
+    - register_code_shop_routes.create_task
+    - register_code_shop_routes.list_tasks
+    - register_code_shop_routes.record_attempt
+    - register_code_shop_routes.record_outcome
+    - register_code_shop_routes.raise_escalation
+    - register_code_shop_routes.list_escalations
+    - register_code_shop_routes.evaluate_execution
+    - register_code_shop_routes.execute
+    - _translate
+    symbols:
+    - name: ExecutionRequestBody.to_domain
+      kind: method
+      line_start: 92
+      line_end: 106
+      signature: ExecutionRequestBody.to_domain(self) -> ExecutionRequest
+      inputs:
+      - self
+      output: ExecutionRequest
+      dependencies:
+      - ExecutionRequest
+      - dict
+      - tuple
+      parser: python-ast
+      dependency_targets: []
+    - name: register_code_shop_routes
+      kind: function
+      line_start: 109
+      line_end: 266
+      signature: 'register_code_shop_routes(application: FastAPI, service: CodeShopService) -> None'
+      inputs:
+      - 'application: FastAPI'
+      - 'service: CodeShopService'
+      output: None
+      dependencies:
+      - APIRouter
+      - Query
+      - _translate
+      - application.include_router
+      - asdict
+      - request.model_dump
+      - request.to_domain
+      - router.delete
+      - router.get
+      - router.patch
+      - router.post
+      - router.put
+      - service.configure_project
+      - service.create_task
+      - service.discover_repositories
+      - service.evaluate
+      - service.execute
+      - service.link_checkout
+      - service.list_escalations
+      - service.list_projects
+      - service.list_tasks
+      - service.overview
+      - service.policies
+      - service.raise_escalation
+      parser: python-ast
+      dependency_targets:
+      - &id002
+        path: src/nerve_center/code_shop/api.py
+        symbol: _translate
+      - &id003
+        path: src/nerve_center/model_lab/api.py
+        symbol: _translate
+      - &id008
+        path: src/nerve_center/api/schemas.py
+        symbol: ResourceBudgetRequest.to_domain
+      - &id009
+        path: src/nerve_center/api/schemas.py
+        symbol: WorkRequestCreateRequest.to_domain
+      - &id010
+        path: src/nerve_center/code_shop/api.py
+        symbol: ExecutionRequestBody.to_domain
+      - &id007
+        path: src/nerve_center/persistence/scoring.py
+        symbol: ScoringRuleRepository.delete
+      - &id005
+        path: src/nerve_center/persistence/discovery.py
+        symbol: SearchCacheRepository.put
+      - &id006
+        path: tests/test_public_search_fallback.py
+        symbol: MemorySearchCache.put
+      - &id004
+        path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.configure_project
+      - path: src/nerve_center/code_shop/api.py
+        symbol: register_code_shop_routes.create_task
+      - path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.create_task
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.create_task
+      - &id001
+        path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.discover_repositories
+      - &id011
+        path: src/nerve_center/code_shop/authority.py
+        symbol: AuthorityEvaluator.evaluate
+      - &id012
+        path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.evaluate
+      - path: src/nerve_center/code_shop/api.py
+        symbol: register_code_shop_routes.link_checkout
+      - path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.link_checkout
+      - path: src/nerve_center/code_shop/api.py
+        symbol: register_code_shop_routes.list_escalations
+      - path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.list_escalations
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.list_escalations
+      - path: src/nerve_center/code_shop/api.py
+        symbol: register_code_shop_routes.list_projects
+      - path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.list_projects
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.list_projects
+      - path: src/nerve_center/code_shop/api.py
+        symbol: register_code_shop_routes.list_tasks
+    - name: register_code_shop_routes.overview
+      kind: function
+      line_start: 113
+      line_end: 114
+      signature: register_code_shop_routes.overview() -> dict[str, Any]
+      inputs: []
+      output: dict[str, Any]
+      dependencies:
+      - router.get
+      parser: python-ast
+      dependency_targets: []
+    - name: register_code_shop_routes.trust
+      kind: function
+      line_start: 117
+      line_end: 118
+      signature: register_code_shop_routes.trust() -> dict[str, Any]
+      inputs: []
+      output: dict[str, Any]
+      dependencies:
+      - asdict
+      - router.get
+      - service.trust_provenance
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.trust_provenance
+    - name: register_code_shop_routes.discovered_repositories
+      kind: function
+      line_start: 121
+      line_end: 122
+      signature: register_code_shop_routes.discovered_repositories() -> list[dict[str, Any]]
+      inputs: []
+      output: list[dict[str, Any]]
+      dependencies:
+      - asdict
+      - router.get
+      - service.discover_repositories
+      parser: python-ast
+      dependency_targets:
+      - *id001
+    - name: register_code_shop_routes.select_project
+      kind: function
+      line_start: 125
+      line_end: 129
+      signature: 'register_code_shop_routes.select_project(repository_id: str) -> dict[str, Any]'
+      inputs:
+      - 'repository_id: str'
+      output: dict[str, Any]
+      dependencies:
+      - _translate
+      - asdict
+      - router.post
+      - service.select_repository
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.select_repository
+    - name: register_code_shop_routes.synchronize_projects
+      kind: function
+      line_start: 132
+      line_end: 133
+      signature: register_code_shop_routes.synchronize_projects() -> list[dict[str, Any]]
+      inputs: []
+      output: list[dict[str, Any]]
+      dependencies:
+      - asdict
+      - router.post
+      parser: python-ast
+      dependency_targets: []
+    - name: register_code_shop_routes.list_projects
+      kind: function
+      line_start: 136
+      line_end: 137
+      signature: register_code_shop_routes.list_projects() -> list[dict[str, Any]]
+      inputs: []
+      output: list[dict[str, Any]]
+      dependencies:
+      - asdict
+      - router.get
+      parser: python-ast
+      dependency_targets: []
+    - name: register_code_shop_routes.update_project
+      kind: function
+      line_start: 140
+      line_end: 149
+      signature: 'register_code_shop_routes.update_project(repository_id: str, request: ProjectUpdateRequest) -> dict[str,
+        Any]'
+      inputs:
+      - 'repository_id: str'
+      - 'request: ProjectUpdateRequest'
+      output: dict[str, Any]
+      dependencies:
+      - _translate
+      - asdict
+      - request.model_dump
+      - router.patch
+      - service.configure_project
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id004
+    - name: register_code_shop_routes.link_checkout
+      kind: function
+      line_start: 152
+      line_end: 159
+      signature: 'register_code_shop_routes.link_checkout(repository_id: str, request: CheckoutLinkRequest) -> dict[str, Any]'
+      inputs:
+      - 'repository_id: str'
+      - 'request: CheckoutLinkRequest'
+      output: dict[str, Any]
+      dependencies:
+      - _translate
+      - asdict
+      - router.put
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id005
+      - *id006
+    - name: register_code_shop_routes.unlink_checkout
+      kind: function
+      line_start: 162
+      line_end: 166
+      signature: 'register_code_shop_routes.unlink_checkout(repository_id: str) -> None'
+      inputs:
+      - 'repository_id: str'
+      output: None
+      dependencies:
+      - _translate
+      - router.delete
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id007
+    - name: register_code_shop_routes.list_authority
+      kind: function
+      line_start: 169
+      line_end: 173
+      signature: 'register_code_shop_routes.list_authority(repository_id: str) -> list[dict[str, Any]]'
+      inputs:
+      - 'repository_id: str'
+      output: list[dict[str, Any]]
+      dependencies:
+      - _translate
+      - asdict
+      - router.get
+      - service.policies
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.policies
+    - name: register_code_shop_routes.set_authority
+      kind: function
+      line_start: 176
+      line_end: 192
+      signature: 'register_code_shop_routes.set_authority(repository_id: str, action: ProjectAction, request: AuthorityPolicyRequest)
+        -> dict[str, Any]'
+      inputs:
+      - 'repository_id: str'
+      - 'action: ProjectAction'
+      - 'request: AuthorityPolicyRequest'
+      output: dict[str, Any]
+      dependencies:
+      - _translate
+      - asdict
+      - router.put
+      - service.set_policy
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id005
+      - *id006
+      - path: src/nerve_center/code_shop/service.py
+        symbol: CodeShopService.set_policy
+      - path: src/nerve_center/persistence/code_shop.py
+        symbol: CodeShopRepository.set_policy
+    - name: register_code_shop_routes.create_task
+      kind: function
+      line_start: 195
+      line_end: 199
+      signature: 'register_code_shop_routes.create_task(request: TaskCreateRequest) -> dict[str, Any]'
+      inputs:
+      - 'request: TaskCreateRequest'
+      output: dict[str, Any]
+      dependencies:
+      - _translate
+      - asdict
+      - request.model_dump
+      - router.post
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+    - name: register_code_shop_routes.list_tasks
+      kind: function
+      line_start: 202
+      line_end: 206
+      signature: 'register_code_shop_routes.list_tasks(repository_id: str | None, limit: int) -> list[dict[str, Any]]'
+      inputs:
+      - 'repository_id: str | None'
+      - 'limit: int'
+      output: list[dict[str, Any]]
+      dependencies:
+      - Query
+      - asdict
+      - router.get
+      parser: python-ast
+      dependency_targets: []
+    - name: register_code_shop_routes.record_attempt
+      kind: function
+      line_start: 209
+      line_end: 220
+      signature: 'register_code_shop_routes.record_attempt(task_id: str, request: AttemptCreateRequest) -> dict[str, Any]'
+      inputs:
+      - 'task_id: str'
+      - 'request: AttemptCreateRequest'
+      output: dict[str, Any]
+      dependencies:
+      - _translate
+      - asdict
+      - request.model_dump
+      - router.post
+      - tuple
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+    - name: register_code_shop_routes.record_outcome
+      kind: function
+      line_start: 223
+      line_end: 227
+      signature: 'register_code_shop_routes.record_outcome(task_id: str, request: OutcomeCreateRequest) -> dict[str, Any]'
+      inputs:
+      - 'task_id: str'
+      - 'request: OutcomeCreateRequest'
+      output: dict[str, Any]
+      dependencies:
+      - _translate
+      - asdict
+      - request.model_dump
+      - router.post
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+    - name: register_code_shop_routes.raise_escalation
+      kind: function
+      line_start: 230
+      line_end: 242
+      signature: 'register_code_shop_routes.raise_escalation(task_id: str, request: EscalationCreateRequest) -> dict[str,
+        Any]'
+      inputs:
+      - 'task_id: str'
+      - 'request: EscalationCreateRequest'
+      output: dict[str, Any]
+      dependencies:
+      - _translate
+      - asdict
+      - request.model_dump
+      - router.post
+      - tuple
+      - values.pop
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+    - name: register_code_shop_routes.list_escalations
+      kind: function
+      line_start: 245
+      line_end: 249
+      signature: 'register_code_shop_routes.list_escalations(task_id: str | None, limit: int) -> list[dict[str, Any]]'
+      inputs:
+      - 'task_id: str | None'
+      - 'limit: int'
+      output: list[dict[str, Any]]
+      dependencies:
+      - Query
+      - asdict
+      - router.get
+      parser: python-ast
+      dependency_targets: []
+    - name: register_code_shop_routes.evaluate_execution
+      kind: function
+      line_start: 252
+      line_end: 256
+      signature: 'register_code_shop_routes.evaluate_execution(request: ExecutionRequestBody) -> dict[str, Any]'
+      inputs:
+      - 'request: ExecutionRequestBody'
+      output: dict[str, Any]
+      dependencies:
+      - _translate
+      - asdict
+      - request.to_domain
+      - router.post
+      - service.evaluate
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id008
+      - *id009
+      - *id010
+      - *id011
+      - *id012
+    - name: register_code_shop_routes.execute
+      kind: function
+      line_start: 259
+      line_end: 264
+      signature: 'register_code_shop_routes.execute(request: ExecutionRequestBody) -> dict[str, Any]'
+      inputs:
+      - 'request: ExecutionRequestBody'
+      output: dict[str, Any]
+      dependencies:
+      - _translate
+      - asdict
+      - request.to_domain
+      - router.post
+      parser: python-ast
+      dependency_targets:
+      - *id002
+      - *id003
+      - *id008
+      - *id009
+      - *id010
+    - name: _translate
+      kind: function
+      line_start: 269
+      line_end: 278
+      signature: '_translate(error: Exception) -> HTTPException'
+      inputs:
+      - 'error: Exception'
+      output: HTTPException
+      dependencies:
+      - HTTPException
+      - isinstance
+      - str
+      parser: python-ast
+      dependency_targets: []
+  - path: src/nerve_center/code_shop/execution.py
+    analysis_version: 1
+    language: python
+    content_hash: f6af57d971c2f319e6d1c19d09ab2351f3a44994
+    dependencies:
+    - __future__
+    - nerve_center.code_shop.domain
+    - typing
+    provides:
+    - ExecutionHost.execute
+    - DeterministicExecutionHost.execute
+    symbols:
+    - name: ExecutionHost.execute
+      kind: method
+      line_start: 11
+      line_end: 15
+      signature: 'ExecutionHost.execute(self, request: ExecutionRequest, checkout: CheckoutLink) -> ExecutionResult'
+      inputs:
+      - self
+      - 'request: ExecutionRequest'
+      - 'checkout: CheckoutLink'
+      output: ExecutionResult
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: DeterministicExecutionHost.execute
+      kind: method
+      line_start: 21
+      line_end: 37
+      signature: 'DeterministicExecutionHost.execute(self, request: ExecutionRequest, checkout: CheckoutLink) -> ExecutionResult'
+      inputs:
+      - self
+      - 'request: ExecutionRequest'
+      - 'checkout: CheckoutLink'
+      output: ExecutionResult
+      dependencies:
+      - ExecutionResult
+      - sorted
+      parser: python-ast
+      dependency_targets: []
   - path: src/nerve_center/discovery/api.py
     analysis_version: 1
     language: python
@@ -71,31 +604,31 @@ source_catalog:
       - sources.list
       parser: python-ast
       dependency_targets:
-      - &id001
+      - &id013
         path: src/nerve_center/discovery/normalization.py
         symbol: canonical_domain
-      - &id002
+      - &id014
         path: src/nerve_center/discovery/normalization.py
         symbol: canonicalize_url
-      - &id003
+      - &id015
         path: src/nerve_center/persistence/discovery.py
         symbol: CompanyRepository.upsert
-      - &id004
+      - &id016
         path: src/nerve_center/persistence/discovery.py
         symbol: DiscoverySourceRepository.upsert
-      - &id005
+      - &id017
         path: src/nerve_center/persistence/discovery.py
         symbol: JobOpeningRepository.upsert
-      - &id006
+      - &id018
         path: src/nerve_center/persistence/scoring.py
         symbol: ScoringRuleRepository.upsert
-      - &id007
+      - &id019
         path: src/nerve_center/discovery/service.py
         symbol: DiscoveryService.register_direct_career_url
-      - &id008
+      - &id020
         path: src/nerve_center/discovery/api.py
         symbol: register_discovery_routes.scan_source
-      - &id009
+      - &id021
         path: src/nerve_center/discovery/service.py
         symbol: DiscoveryService.scan_source
     - name: register_discovery_routes.create_company
@@ -118,12 +651,12 @@ source_catalog:
       - stable_company_id
       parser: python-ast
       dependency_targets:
-      - *id001
-      - *id002
-      - *id003
-      - *id004
-      - *id005
-      - *id006
+      - *id013
+      - *id014
+      - *id015
+      - *id016
+      - *id017
+      - *id018
       - path: src/nerve_center/discovery/normalization.py
         symbol: stable_company_id
     - name: register_discovery_routes.list_companies
@@ -158,11 +691,11 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - *id002
-      - *id003
-      - *id004
-      - *id005
-      - *id006
+      - *id014
+      - *id015
+      - *id016
+      - *id017
+      - *id018
       - path: src/nerve_center/discovery/normalization.py
         symbol: stable_source_id
     - name: register_discovery_routes.list_sources
@@ -237,7 +770,7 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - *id007
+      - *id019
   - path: src/nerve_center/discovery/plugin.py
     analysis_version: 1
     language: python
@@ -292,20 +825,20 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - &id018
+      - &id030
         path: src/nerve_center/persistence/scoring.py
         symbol: OpportunityScoreRepository.append
       - path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService._execute.cancellation_requested
-      - &id024
+      - &id036
         path: src/nerve_center/domain/budget.py
         symbol: ResourceBudgetTracker.work_slot
       - path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.save_checkpoint
       - path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService._execute.save_checkpoint
-      - *id008
-      - *id009
+      - *id020
+      - *id021
       - path: src/nerve_center/persistence/discovery.py
         symbol: DiscoverySourceRepository.list_due
   - path: src/nerve_center/model_lab/__init__.py
@@ -401,25 +934,25 @@ source_catalog:
       - window.resolve
       parser: python-ast
       dependency_targets:
-      - &id010
+      - &id022
         path: src/nerve_center/persistence/modules.py
         symbol: ModuleRepository._snapshot
-      - &id011
+      - &id023
         path: src/nerve_center/persistence/runs.py
         symbol: _snapshot
-      - &id012
+      - &id024
         path: src/nerve_center/persistence/sessions.py
         symbol: _snapshot
-      - &id013
+      - &id025
         path: src/nerve_center/persistence/database.py
         symbol: Database.session
-      - &id014
+      - &id026
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.session
-      - &id016
+      - &id028
         path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: _extract_structured_employer_names.add
-      - &id017
+      - &id029
         path: scripts/agent_context.py
         symbol: _markdown_blocks.flush
     - name: RunRepository.get
@@ -437,11 +970,11 @@ source_catalog:
       - self.database.session
       parser: python-ast
       dependency_targets:
-      - *id010
-      - *id011
-      - *id012
-      - *id013
-      - *id014
+      - *id022
+      - *id023
+      - *id024
+      - *id025
+      - *id026
     - name: RunRepository.list_recent
       kind: method
       line_start: 116
@@ -462,14 +995,14 @@ source_catalog:
       - session.scalars(select(RunModel).order_by(RunModel.requested_at.desc()).limit(limit)).all
       parser: python-ast
       dependency_targets:
-      - *id010
-      - *id011
-      - *id012
-      - &id015
+      - *id022
+      - *id023
+      - *id024
+      - &id027
         path: src/nerve_center/providers/manager.py
         symbol: ProviderManager.select
-      - *id013
-      - *id014
+      - *id025
+      - *id026
     - name: RunRepository.list_scheduled
       kind: method
       line_start: 123
@@ -489,12 +1022,12 @@ source_catalog:
       - session.scalars(select(RunModel).where(RunModel.status == RunStatus.SCHEDULED.value).order_by(RunModel.requested_starts_at.asc())).all
       parser: python-ast
       dependency_targets:
-      - *id010
-      - *id011
-      - *id012
-      - *id015
-      - *id013
-      - *id014
+      - *id022
+      - *id023
+      - *id024
+      - *id027
+      - *id025
+      - *id026
     - name: RunRepository.list_events
       kind: method
       line_start: 132
@@ -520,9 +1053,9 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/persistence/runs.py
         symbol: _event_snapshot
-      - *id015
-      - *id013
-      - *id014
+      - *id027
+      - *id025
+      - *id026
     - name: RunRepository.transition
       kind: method
       line_start: 143
@@ -555,13 +1088,13 @@ source_catalog:
       - session.get
       parser: python-ast
       dependency_targets:
-      - *id010
-      - *id011
-      - *id012
-      - *id013
-      - *id014
-      - *id016
-      - *id017
+      - *id022
+      - *id023
+      - *id024
+      - *id025
+      - *id026
+      - *id028
+      - *id029
     - name: RunRepository.request_cancel
       kind: method
       line_start: 194
@@ -584,13 +1117,13 @@ source_catalog:
       - session.get
       parser: python-ast
       dependency_targets:
-      - *id010
-      - *id011
-      - *id012
-      - *id013
-      - *id014
-      - *id016
-      - *id017
+      - *id022
+      - *id023
+      - *id024
+      - *id025
+      - *id026
+      - *id028
+      - *id029
     - name: RunRepository.save_checkpoint
       kind: method
       line_start: 230
@@ -614,13 +1147,13 @@ source_catalog:
       - sorted
       parser: python-ast
       dependency_targets:
-      - *id010
-      - *id011
-      - *id012
-      - *id013
-      - *id014
-      - *id016
-      - *id017
+      - *id022
+      - *id023
+      - *id024
+      - *id025
+      - *id026
+      - *id028
+      - *id029
     - name: RunRepository.save_budget_usage
       kind: method
       line_start: 251
@@ -641,12 +1174,12 @@ source_catalog:
       - session.get
       parser: python-ast
       dependency_targets:
-      - *id010
-      - *id011
-      - *id012
-      - *id013
-      - *id014
-      - *id017
+      - *id022
+      - *id023
+      - *id024
+      - *id025
+      - *id026
+      - *id029
     - name: RunRepository.recover_interrupted
       kind: method
       line_start: 262
@@ -672,15 +1205,15 @@ source_catalog:
       - session.scalars(select(RunModel).where(RunModel.status.in_([RunStatus.RUNNING.value, RunStatus.CANCELLING.value]))).all
       parser: python-ast
       dependency_targets:
-      - *id010
-      - *id011
-      - *id012
-      - *id018
-      - *id015
-      - *id013
-      - *id014
-      - *id016
-      - *id017
+      - *id022
+      - *id023
+      - *id024
+      - *id030
+      - *id027
+      - *id025
+      - *id026
+      - *id028
+      - *id029
     - name: _snapshot
       kind: function
       line_start: 291
@@ -700,19 +1233,19 @@ source_catalog:
       - int
       parser: python-ast
       dependency_targets:
-      - &id019
+      - &id031
         path: src/nerve_center/persistence/runs.py
         symbol: _restore_required_utc
-      - &id020
+      - &id032
         path: src/nerve_center/persistence/sessions.py
         symbol: _restore_required_utc
-      - &id021
+      - &id033
         path: src/nerve_center/persistence/runs.py
         symbol: _restore_utc
-      - &id022
+      - &id034
         path: src/nerve_center/persistence/sessions.py
         symbol: _restore_utc
-      - &id023
+      - &id035
         path: src/nerve_center/persistence/work_queue.py
         symbol: _restore_utc
     - name: _event_snapshot
@@ -729,8 +1262,8 @@ source_catalog:
       - dict
       parser: python-ast
       dependency_targets:
-      - *id019
-      - *id020
+      - *id031
+      - *id032
     - name: _utc
       kind: function
       line_start: 330
@@ -773,9 +1306,9 @@ source_catalog:
       - _restore_utc
       parser: python-ast
       dependency_targets:
-      - *id021
-      - *id022
-      - *id023
+      - *id033
+      - *id034
+      - *id035
   - path: tests/test_budget.py
     analysis_version: 1
     language: python
@@ -820,7 +1353,7 @@ source_catalog:
       - use_slot
       parser: python-ast
       dependency_targets:
-      - *id024
+      - *id036
       - path: tests/test_budget.py
         symbol: test_parallel_work_slot_is_usable.use_slot
     - name: test_parallel_work_slot_is_usable.use_slot
@@ -834,7 +1367,7 @@ source_catalog:
       - tracker.work_slot
       parser: python-ast
       dependency_targets:
-      - *id024
+      - *id036
   - path: tests/test_runner.py
     analysis_version: 1
     language: python
@@ -903,16 +1436,16 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - &id025
+      - &id037
         path: tests/test_runner.py
         symbol: make_runner
-      - &id026
+      - &id038
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.create
-      - &id027
+      - &id039
         path: src/nerve_center/persistence/sessions.py
         symbol: SessionRepository.create
-      - &id028
+      - &id040
         path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService.execute_now
     - name: test_restart_recovery_marks_running_run_interrupted
@@ -934,9 +1467,9 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id025
-      - *id026
-      - *id027
+      - *id037
+      - *id038
+      - *id039
       - path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.transition
       - path: src/nerve_center/persistence/runs.py
@@ -965,16 +1498,16 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id025
-      - *id026
-      - *id027
+      - *id037
+      - *id038
+      - *id039
       - path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository.cancel
       - path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService.cancel
       - path: src/nerve_center/scheduler/work_queue.py
         symbol: WorkQueueService.cancel
-      - *id028
+      - *id040
     - name: test_runner_stops_when_request_budget_is_exhausted
       kind: function
       line_start: 67
@@ -993,7 +1526,7 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id025
-      - *id026
-      - *id027
-      - *id028
+      - *id037
+      - *id038
+      - *id039
+      - *id040

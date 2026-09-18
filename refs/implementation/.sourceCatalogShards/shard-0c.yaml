@@ -307,12 +307,6 @@ source_catalog:
         symbol: ProviderManager.select
       - *id002
       - *id003
-      - path: src/nerve_center/providers/manager.py
-        symbol: ProviderManager.execute
-      - path: src/nerve_center/runtime/supervisor.py
-        symbol: ModuleSupervisor.execute
-      - path: tests/test_scheduler.py
-        symbol: test_tick_starts_due_fixed_run.execute
     - name: ModelLabRepository.add_corpus
       kind: method
       line_start: 224
@@ -1166,7 +1160,7 @@ source_catalog:
   - path: tests/test_sessions.py
     analysis_version: 1
     language: python
-    content_hash: 28cd7fb0ec3695e2ca22e4698495c6b9295b399d
+    content_hash: efc69723e42a74febe8e410c076af66dbe4177d6
     dependencies:
     - asyncio
     - datetime

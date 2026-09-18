@@ -1348,7 +1348,3 @@ source_catalog:
         symbol: JobScoutDiscoveryRepository.ensure_strategy
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.get_strategy
-      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
-        symbol: JobScoutDiscoveryRepository.record_attempt
-      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
-        symbol: DiscoveryQualityRepository.record_attempt

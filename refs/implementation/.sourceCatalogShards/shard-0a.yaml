@@ -4,6 +4,13 @@ source_catalog:
   format_version: 1
   bucket: 0a
   files:
+  - path: src/nerve_center/code_shop/__init__.py
+    analysis_version: 1
+    language: python
+    content_hash: 670243f2c54b42289851fdacb2671c0eadc81bce
+    dependencies: []
+    provides: []
+    symbols: []
   - path: src/nerve_center/discovery/models.py
     analysis_version: 1
     language: python
