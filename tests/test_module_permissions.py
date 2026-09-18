@@ -26,8 +26,8 @@ from nerve_center.module_permissions.domain import (
 )
 from nerve_center.persistence.database import Database
 from nerve_center.persistence.models import ModuleModel
-from nerve_center.persistence.modules import ModuleRepository
 from nerve_center.persistence.module_permissions import ModulePermissionReviewRepository
+from nerve_center.persistence.modules import ModuleRepository
 
 
 def _manifest(
