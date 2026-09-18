@@ -469,7 +469,7 @@ source_catalog:
   - path: tests/test_applications.py
     analysis_version: 1
     language: python
-    content_hash: 03b8a5b50ba18962274554830451e9b965862e7b
+    content_hash: 640e4ce93025f28c6f5f07a3b30a37350839a87c
     dependencies:
     - datetime
     - fastapi
@@ -647,8 +647,14 @@ source_catalog:
       - &id013
         path: tests/test_applications.py
         symbol: _seed
+      - path: src/nerve_center/attention/api.py
+        symbol: register_attention_routes.history
+      - path: src/nerve_center/attention/service.py
+        symbol: AttentionService.history
       - path: src/nerve_center/persistence/applications.py
         symbol: ApplicationRepository.history
+      - path: src/nerve_center/persistence/attention.py
+        symbol: AttentionRepository.history
     - name: test_review_api_tracks_reversible_pursuit_state
       kind: function
       line_start: 178

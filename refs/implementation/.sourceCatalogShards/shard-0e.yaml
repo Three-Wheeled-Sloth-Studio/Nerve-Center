@@ -1496,7 +1496,7 @@ source_catalog:
   - path: tests/test_code_shop.py
     analysis_version: 1
     language: python
-    content_hash: ee556f39b1f49673083d028d346287ab17db1c88
+    content_hash: 711268253b94fc43894443e3da74429ec9fabf34
     dependencies:
     - fastapi.testclient
     - nerve_center.api.app
@@ -1761,7 +1761,7 @@ source_catalog:
     - name: test_model_blind_task_contract_and_failed_attempt_escalation_survive_restart
       kind: function
       line_start: 319
-      line_end: 362
+      line_end: 374
       signature: 'test_model_blind_task_contract_and_failed_attempt_escalation_survive_restart(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1774,12 +1774,15 @@ source_catalog:
       - _select_and_enable
       - any
       - client.get
+      - 'client.get(''/api/v1/attention'', params={''module_id'': ''code_shop''}).json'
       - client.get('/api/v1/modules/code_shop/escalations').json
       - client.get('/api/v1/modules/code_shop/projects').json
       - client.get('/api/v1/modules/code_shop/tasks').json
+      - client.get(f"/api/v1/attention/dependencies/code_shop:task:{task['id']}/blocked").json
       - client.post
       - create_app
       - final.json
+      - len
       - range
       parser: python-ast
       dependency_targets:
@@ -1789,8 +1792,8 @@ source_catalog:
       - *id026
     - name: test_explicit_authority_scope_restricts_paths
       kind: function
-      line_start: 365
-      line_end: 415
+      line_start: 377
+      line_end: 427
       signature: 'test_explicit_authority_scope_restricts_paths(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1879,9 +1882,12 @@ source_catalog:
         path: tests/test_sessions.py
         symbol: make_repository
       - &id034
+        path: src/nerve_center/attention/api.py
+        symbol: register_attention_routes.create
+      - &id035
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.create
-      - &id035
+      - &id036
         path: src/nerve_center/persistence/sessions.py
         symbol: SessionRepository.create
     - name: test_expired_fixed_run_is_missed
@@ -1904,6 +1910,7 @@ source_catalog:
       - *id033
       - *id034
       - *id035
+      - *id036
     - name: test_invalid_transition_is_rejected
       kind: function
       line_start: 43
@@ -1926,9 +1933,12 @@ source_catalog:
       - *id033
       - *id034
       - *id035
-      - &id036
+      - *id036
+      - &id037
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.request_cancel
+      - path: src/nerve_center/persistence/attention.py
+        symbol: AttentionRepository.transition
       - path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.transition
     - name: test_cancel_is_idempotent
@@ -1952,3 +1962,4 @@ source_catalog:
       - *id034
       - *id035
       - *id036
+      - *id037

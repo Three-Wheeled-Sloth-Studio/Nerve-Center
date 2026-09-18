@@ -413,7 +413,7 @@ source_catalog:
   - path: src/nerve_center/persistence/database.py
     analysis_version: 1
     language: python
-    content_hash: e0d2c0229a874931cb85fc837976349bffe52e65
+    content_hash: 0c11121da09c13a6d5e850d6003c2295e27efe08
     dependencies:
     - __future__
     - collections.abc
@@ -447,7 +447,7 @@ source_catalog:
     - name: Database.initialize
       kind: method
       line_start: 24
-      line_end: 31
+      line_end: 32
       signature: Database.initialize(self) -> None
       inputs:
       - self
@@ -466,8 +466,8 @@ source_catalog:
         symbol: Settings.ensure_runtime_directories
     - name: Database.session
       kind: method
-      line_start: 34
-      line_end: 41
+      line_start: 35
+      line_end: 42
       signature: Database.session(self) -> Iterator[Session]
       inputs:
       - self
@@ -480,8 +480,8 @@ source_catalog:
       dependency_targets: []
     - name: _migrate
       kind: function
-      line_start: 44
-      line_end: 84
+      line_start: 45
+      line_end: 85
       signature: '_migrate(connection: Connection) -> None'
       inputs:
       - 'connection: Connection'
@@ -496,8 +496,8 @@ source_catalog:
       dependency_targets: []
     - name: _configure_sqlite
       kind: function
-      line_start: 87
-      line_end: 92
+      line_start: 88
+      line_end: 93
       signature: '_configure_sqlite(dbapi_connection: object, _connection_record: object) -> None'
       inputs:
       - 'dbapi_connection: object'

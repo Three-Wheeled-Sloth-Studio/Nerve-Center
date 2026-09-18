@@ -14,10 +14,12 @@ source_catalog:
   - path: src/nerve_center/code_shop/service.py
     analysis_version: 1
     language: python
-    content_hash: 4ff01964f16c82eb68e765895aecc0acfc8afc6e
+    content_hash: ea9177fa4ab1173fbd535cf61aa2e8c5b5aa0985
     dependencies:
     - __future__
     - dataclasses
+    - nerve_center.attention.domain
+    - nerve_center.attention.service
     - nerve_center.code_shop.authority
     - nerve_center.code_shop.checkout
     - nerve_center.code_shop.domain
@@ -52,10 +54,11 @@ source_catalog:
     symbols:
     - name: CodeShopService.__init__
       kind: method
-      line_start: 41
-      line_end: 55
+      line_start: 43
+      line_end: 59
       signature: 'CodeShopService.__init__(self, repository: CodeShopRepository, connector: GitHubRepositoryConnector, approved_checkout_roots:
-        tuple[Path, ...], execution_host: ExecutionHost | None, official_module_ids: tuple[str, ...]) -> None'
+        tuple[Path, ...], execution_host: ExecutionHost | None, official_module_ids: tuple[str, ...], attention: AttentionService
+        | None) -> None'
       inputs:
       - self
       - 'repository: CodeShopRepository'
@@ -63,6 +66,7 @@ source_catalog:
       - 'approved_checkout_roots: tuple[Path, ...]'
       - 'execution_host: ExecutionHost | None'
       - 'official_module_ids: tuple[str, ...]'
+      - 'attention: AttentionService | None'
       output: None
       dependencies:
       - AuthorityEvaluator
@@ -73,8 +77,8 @@ source_catalog:
       dependency_targets: []
     - name: CodeShopService.trust_provenance
       kind: method
-      line_start: 57
-      line_end: 62
+      line_start: 61
+      line_end: 66
       signature: 'CodeShopService.trust_provenance(self, module_id: str) -> ModuleTrustProvenance'
       inputs:
       - self
@@ -86,8 +90,8 @@ source_catalog:
       dependency_targets: []
     - name: CodeShopService.discover_repositories
       kind: method
-      line_start: 64
-      line_end: 65
+      line_start: 68
+      line_end: 69
       signature: CodeShopService.discover_repositories(self) -> list[GitHubRepositoryIdentity]
       inputs:
       - self
@@ -107,8 +111,8 @@ source_catalog:
         symbol: StaticGitHubRepositoryConnector.list_repositories
     - name: CodeShopService.select_repository
       kind: method
-      line_start: 67
-      line_end: 75
+      line_start: 71
+      line_end: 79
       signature: 'CodeShopService.select_repository(self, repository_id: str) -> CodeShopProject'
       inputs:
       - self
@@ -128,8 +132,8 @@ source_catalog:
         symbol: CodeShopRepository.upsert_project
     - name: CodeShopService.synchronize_projects
       kind: method
-      line_start: 77
-      line_end: 85
+      line_start: 81
+      line_end: 89
       signature: CodeShopService.synchronize_projects(self) -> list[CodeShopProject]
       inputs:
       - self
@@ -156,8 +160,8 @@ source_catalog:
       - *id004
     - name: CodeShopService.list_projects
       kind: method
-      line_start: 87
-      line_end: 88
+      line_start: 91
+      line_end: 92
       signature: CodeShopService.list_projects(self) -> list[CodeShopProject]
       inputs:
       - self
@@ -167,8 +171,8 @@ source_catalog:
       dependency_targets: []
     - name: CodeShopService.configure_project
       kind: method
-      line_start: 90
-      line_end: 105
+      line_start: 94
+      line_end: 109
       signature: 'CodeShopService.configure_project(self, repository_id: str, lifecycle: ProjectLifecycle | None, priority:
         int | None, branch_policy: dict[str, Any] | None, hosted_runner_eligible: bool | None) -> CodeShopProject'
       inputs:
@@ -183,16 +187,16 @@ source_catalog:
       - self.repository.update_project
       parser: python-ast
       dependency_targets:
-      - &id007
+      - &id008
         path: src/nerve_center/code_shop/api.py
         symbol: register_code_shop_routes.update_project
-      - &id008
+      - &id009
         path: src/nerve_center/persistence/code_shop.py
         symbol: CodeShopRepository.update_project
     - name: CodeShopService.link_checkout
       kind: method
-      line_start: 107
-      line_end: 117
+      line_start: 111
+      line_end: 121
       signature: 'CodeShopService.link_checkout(self, repository_id: str, path: str) -> CheckoutLink'
       inputs:
       - self
@@ -214,8 +218,8 @@ source_catalog:
         symbol: verify_checkout
     - name: CodeShopService.unlink_checkout
       kind: method
-      line_start: 119
-      line_end: 121
+      line_start: 123
+      line_end: 125
       signature: 'CodeShopService.unlink_checkout(self, repository_id: str) -> None'
       inputs:
       - self
@@ -231,8 +235,8 @@ source_catalog:
         symbol: CodeShopRepository.remove_checkout
     - name: CodeShopService.checkout
       kind: method
-      line_start: 123
-      line_end: 125
+      line_start: 127
+      line_end: 129
       signature: 'CodeShopService.checkout(self, repository_id: str) -> CheckoutLink | None'
       inputs:
       - self
@@ -243,14 +247,14 @@ source_catalog:
       - self.repository.get_project
       parser: python-ast
       dependency_targets:
-      - &id009
+      - &id007
         path: src/nerve_center/persistence/code_shop.py
         symbol: CodeShopRepository.get_checkout
       - *id005
     - name: CodeShopService.set_policy
       kind: method
-      line_start: 127
-      line_end: 142
+      line_start: 131
+      line_end: 146
       signature: 'CodeShopService.set_policy(self, repository_id: str, action: ProjectAction, policy: ActionPolicy, scope:
         dict[str, Any] | None, provenance: dict[str, Any] | None) -> AuthorityPolicyEnvelope'
       inputs:
@@ -267,8 +271,8 @@ source_catalog:
       dependency_targets: []
     - name: CodeShopService.policies
       kind: method
-      line_start: 144
-      line_end: 146
+      line_start: 148
+      line_end: 150
       signature: 'CodeShopService.policies(self, repository_id: str) -> list[AuthorityPolicyEnvelope]'
       inputs:
       - self
@@ -284,8 +288,8 @@ source_catalog:
         symbol: CodeShopRepository.list_policies
     - name: CodeShopService.create_task
       kind: method
-      line_start: 148
-      line_end: 161
+      line_start: 152
+      line_end: 165
       signature: 'CodeShopService.create_task(self, repository_id: str, title: str, capability: EngineeringCapability, source_backlog:
         dict[str, Any] | None) -> EngineeringTask'
       inputs:
@@ -302,8 +306,8 @@ source_catalog:
       dependency_targets: []
     - name: CodeShopService.list_tasks
       kind: method
-      line_start: 163
-      line_end: 166
+      line_start: 167
+      line_end: 170
       signature: 'CodeShopService.list_tasks(self, repository_id: str | None, limit: int) -> list[EngineeringTask]'
       inputs:
       - self
@@ -315,8 +319,8 @@ source_catalog:
       dependency_targets: []
     - name: CodeShopService.record_attempt
       kind: method
-      line_start: 168
-      line_end: 215
+      line_start: 172
+      line_end: 219
       signature: 'CodeShopService.record_attempt(self, task_id: str, status: str, approach: str, context_inputs: dict[str,
         Any] | None, manager_provenance: dict[str, Any] | None, touched_files: tuple[str, ...], command_summaries: tuple[str,
         ...], resources: dict[str, Any] | None, outcome: dict[str, Any] | None, max_failed_attempts: int) -> tuple[EngineeringAttempt,
@@ -356,8 +360,8 @@ source_catalog:
         symbol: CodeShopRepository.has_open_escalation
     - name: CodeShopService.record_outcome
       kind: method
-      line_start: 217
-      line_end: 230
+      line_start: 221
+      line_end: 234
       signature: 'CodeShopService.record_outcome(self, task_id: str, attempt_id: str | None, kind: str, payload: dict[str,
         Any]) -> OutcomeEvidence'
       inputs:
@@ -372,8 +376,8 @@ source_catalog:
       dependency_targets: []
     - name: CodeShopService.raise_escalation
       kind: method
-      line_start: 232
-      line_end: 266
+      line_start: 236
+      line_end: 290
       signature: 'CodeShopService.raise_escalation(self, task_id: str, reason: str, evidence: dict[str, Any], failed_invariant:
         str, recommended_capability: str, compact_handoff: str, dispositions: tuple[str, ...]) -> Escalation'
       inputs:
@@ -387,10 +391,11 @@ source_catalog:
       - 'dispositions: tuple[str, ...]'
       output: Escalation
       dependencies:
+      - dict
+      - self.attention.submit
       - self.repository.create_escalation
       - self.repository.get_task
       - self.repository.set_task_state
-      - self.repository.update_project
       parser: python-ast
       dependency_targets:
       - path: src/nerve_center/persistence/code_shop.py
@@ -398,12 +403,10 @@ source_catalog:
       - *id006
       - path: src/nerve_center/persistence/code_shop.py
         symbol: CodeShopRepository.set_task_state
-      - *id007
-      - *id008
     - name: CodeShopService.list_escalations
       kind: method
-      line_start: 268
-      line_end: 271
+      line_start: 292
+      line_end: 295
       signature: 'CodeShopService.list_escalations(self, task_id: str | None, limit: int) -> list[Escalation]'
       inputs:
       - self
@@ -415,8 +418,8 @@ source_catalog:
       dependency_targets: []
     - name: CodeShopService.evaluate
       kind: method
-      line_start: 273
-      line_end: 302
+      line_start: 297
+      line_end: 326
       signature: 'CodeShopService.evaluate(self, request: ExecutionRequest) -> AuthorityDecision'
       inputs:
       - self
@@ -434,21 +437,21 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/code_shop/service.py
         symbol: CodeShopService._optional_task
-      - *id009
+      - *id007
       - path: src/nerve_center/persistence/code_shop.py
         symbol: CodeShopRepository.get_policy
       - *id005
       - path: src/nerve_center/persistence/code_shop.py
         symbol: CodeShopRepository.record_decision
-      - *id007
       - *id008
+      - *id009
       - &id013
         path: src/nerve_center/code_shop/service.py
         symbol: CodeShopService.trust_provenance
     - name: CodeShopService.execute
       kind: method
-      line_start: 304
-      line_end: 326
+      line_start: 328
+      line_end: 350
       signature: 'CodeShopService.execute(self, request: ExecutionRequest) -> tuple[AuthorityDecision, ExecutionResult]'
       inputs:
       - self
@@ -465,7 +468,7 @@ source_catalog:
         symbol: AuthorityEvaluator.evaluate
       - path: src/nerve_center/code_shop/service.py
         symbol: CodeShopService.evaluate
-      - *id009
+      - *id007
       - path: src/nerve_center/code_shop/api.py
         symbol: register_code_shop_routes.record_outcome
       - path: src/nerve_center/code_shop/service.py
@@ -476,8 +479,8 @@ source_catalog:
         symbol: ModelEvidenceRepository.record_outcome
     - name: CodeShopService.overview
       kind: method
-      line_start: 328
-      line_end: 336
+      line_start: 352
+      line_end: 360
       signature: CodeShopService.overview(self) -> dict[str, Any]
       inputs:
       - self
@@ -508,8 +511,8 @@ source_catalog:
       - *id013
     - name: CodeShopService._optional_task
       kind: method
-      line_start: 338
-      line_end: 342
+      line_start: 362
+      line_end: 366
       signature: 'CodeShopService._optional_task(self, task_id: str) -> EngineeringTask | None'
       inputs:
       - self

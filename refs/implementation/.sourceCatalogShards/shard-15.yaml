@@ -1440,12 +1440,15 @@ source_catalog:
         path: tests/test_runner.py
         symbol: make_runner
       - &id038
+        path: src/nerve_center/attention/api.py
+        symbol: register_attention_routes.create
+      - &id039
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.create
-      - &id039
+      - &id040
         path: src/nerve_center/persistence/sessions.py
         symbol: SessionRepository.create
-      - &id040
+      - &id041
         path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService.execute_now
     - name: test_restart_recovery_marks_running_run_interrupted
@@ -1470,6 +1473,9 @@ source_catalog:
       - *id037
       - *id038
       - *id039
+      - *id040
+      - path: src/nerve_center/persistence/attention.py
+        symbol: AttentionRepository.transition
       - path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.transition
       - path: src/nerve_center/persistence/runs.py
@@ -1501,13 +1507,14 @@ source_catalog:
       - *id037
       - *id038
       - *id039
+      - *id040
       - path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository.cancel
       - path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService.cancel
       - path: src/nerve_center/scheduler/work_queue.py
         symbol: WorkQueueService.cancel
-      - *id040
+      - *id041
     - name: test_runner_stops_when_request_budget_is_exhausted
       kind: function
       line_start: 67
@@ -1530,3 +1537,4 @@ source_catalog:
       - *id038
       - *id039
       - *id040
+      - *id041

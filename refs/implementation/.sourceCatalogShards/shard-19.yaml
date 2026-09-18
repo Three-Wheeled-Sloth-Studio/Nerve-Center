@@ -446,6 +446,8 @@ source_catalog:
         symbol: backend_command
       - path: desktop/src-tauri/src/lib.rs
         symbol: backend_log_path
+      - path: src/nerve_center/attention/api.py
+        symbol: register_attention_routes.create
       - path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.create
       - path: src/nerve_center/persistence/sessions.py

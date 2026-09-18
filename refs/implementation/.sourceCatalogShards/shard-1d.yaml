@@ -54,6 +54,18 @@ source_catalog:
       parser: javascript-pattern
       dependency_targets:
       - *id001
+  - path: src/nerve_center/attention/domain.py
+    analysis_version: 1
+    language: python
+    content_hash: 11beb853fe097afa5bc9100aab52d3b097eba41e
+    dependencies:
+    - __future__
+    - dataclasses
+    - datetime
+    - enum
+    - typing
+    provides: []
+    symbols: []
   - path: src/nerve_center/domain/__init__.py
     analysis_version: 1
     language: python

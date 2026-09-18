@@ -2553,9 +2553,12 @@ source_catalog:
         path: tests/test_scheduler.py
         symbol: make_scheduler
       - &id059
+        path: src/nerve_center/attention/api.py
+        symbol: register_attention_routes.create
+      - &id060
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.create
-      - &id060
+      - &id061
         path: src/nerve_center/persistence/sessions.py
         symbol: SessionRepository.create
       - &id052
@@ -2617,13 +2620,14 @@ source_catalog:
       - *id058
       - *id059
       - *id060
+      - *id061
       - *id055
       - *id056
       - *id057
   - path: tests/test_scoring_persistence.py
     analysis_version: 1
     language: python
-    content_hash: 2d2ee6fff70bf8640a3bdeffb00269acd4ac08c5
+    content_hash: 0f033aaa7bad896272a450bf97b3787f13388325
     dependencies:
     - nerve_center.config
     - nerve_center.discovery.models

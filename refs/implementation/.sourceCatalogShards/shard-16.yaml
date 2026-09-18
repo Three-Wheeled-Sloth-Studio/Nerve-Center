@@ -70,7 +70,7 @@ source_catalog:
       - scoring_service.ensure_provisional_score
       parser: python-ast
       dependency_targets:
-      - &id005
+      - &id008
         path: src/nerve_center/applications/api.py
         symbol: _next_action
       - &id001
@@ -79,28 +79,37 @@ source_catalog:
       - &id002
         path: src/nerve_center/scoring/api.py
         symbol: _require_job
-      - &id006
+      - &id009
         path: src/nerve_center/applications/api.py
         symbol: _sort_value
       - &id003
         path: src/nerve_center/persistence/applications.py
         symbol: ApplicationRepository.get_or_default
       - &id004
+        path: src/nerve_center/attention/api.py
+        symbol: register_attention_routes.history
+      - &id005
+        path: src/nerve_center/attention/service.py
+        symbol: AttentionService.history
+      - &id006
         path: src/nerve_center/persistence/applications.py
         symbol: ApplicationRepository.history
       - &id007
+        path: src/nerve_center/persistence/attention.py
+        symbol: AttentionRepository.history
+      - &id010
         path: src/nerve_center/plugins/job_scout/settings.py
         symbol: JobScoutConfigurationStore.load
-      - &id008
+      - &id011
         path: tests/test_job_scout_query_portfolio.py
         symbol: _ConfigStore.load
-      - &id009
+      - &id012
         path: src/nerve_center/persistence/scoring.py
         symbol: OpportunityScoreRepository.append
-      - &id010
+      - &id013
         path: src/nerve_center/scoring/service.py
         symbol: ScoringService.ensure_provisional_score
-      - &id011
+      - &id014
         path: tests/test_applications.py
         symbol: _RescoreStub.ensure_provisional_score
     - name: register_application_routes.list_applications
@@ -166,6 +175,9 @@ source_catalog:
       - *id001
       - *id002
       - *id004
+      - *id005
+      - *id006
+      - *id007
     - name: register_application_routes.review_opportunities
       kind: function
       line_start: 63
@@ -197,14 +209,14 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - *id005
-      - *id006
-      - *id003
-      - *id007
       - *id008
       - *id009
+      - *id003
       - *id010
       - *id011
+      - *id012
+      - *id013
+      - *id014
       - path: desktop/src/display.tsx
         symbol: score
       - path: src/nerve_center/scoring/engine.py
@@ -339,13 +351,13 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/plugins/job_scout/runtime.py
         symbol: _required_string
-      - *id009
+      - *id012
       - path: src/nerve_center/plugins/job_scout/configuration.py
         symbol: JobScoutCoordinator._discover_keywords
       - path: tests/test_job_scout_query_portfolio.py
         symbol: _Coordinator._discover_keywords
-      - *id007
-      - *id008
+      - *id010
+      - *id011
       - path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: JobScoutDiscoveryLoop.apply_reflection_result
       - path: src/nerve_center/plugins/job_scout/discovery_quality.py
@@ -581,7 +593,7 @@ source_catalog:
       - path.startswith
       parser: python-ast
       dependency_targets:
-      - *id009
+      - *id012
     - name: test_monitor_returns_scored_terminal_run_without_waiting_for_open_manager.request
       kind: function
       line_start: 124
@@ -600,7 +612,7 @@ source_catalog:
       - path.startswith
       parser: python-ast
       dependency_targets:
-      - *id009
+      - *id012
     - name: test_monitor_submits_explicit_resource_policy
       kind: function
       line_start: 142
@@ -618,7 +630,7 @@ source_catalog:
       - submitted.append
       parser: python-ast
       dependency_targets:
-      - *id009
+      - *id012
     - name: test_monitor_submits_explicit_resource_policy.request
       kind: function
       line_start: 146
@@ -636,7 +648,7 @@ source_catalog:
       - submitted.append
       parser: python-ast
       dependency_targets:
-      - *id009
+      - *id012
     - name: test_monitor_tolerates_bounded_transient_status_timeout
       kind: function
       line_start: 187
@@ -724,7 +736,7 @@ source_catalog:
       dependency_targets:
       - path: scripts/run_job_scout_live.py
         symbol: configure_workspace
-      - *id009
+      - *id012
     - name: test_workspace_configuration_preserves_effective_market_and_failure_limit.request
       kind: function
       line_start: 257
@@ -742,7 +754,7 @@ source_catalog:
       - written.append
       parser: python-ast
       dependency_targets:
-      - *id009
+      - *id012
     - name: test_efficiency_summary_exposes_scoring_independent_marginal_pacing
       kind: function
       line_start: 286
@@ -865,7 +877,7 @@ source_catalog:
       - self.selected_models.append
       parser: python-ast
       dependency_targets:
-      - *id009
+      - *id012
     - name: _context
       kind: function
       line_start: 76
@@ -893,11 +905,13 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
+      - path: src/nerve_center/attention/api.py
+        symbol: register_attention_routes.create
       - path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.create
       - path: src/nerve_center/persistence/sessions.py
         symbol: SessionRepository.create
-      - &id017
+      - &id020
         path: src/nerve_center/persistence/database.py
         symbol: Database.initialize
     - name: _completed_request
@@ -941,16 +955,16 @@ source_catalog:
       - service.harvest
       parser: python-ast
       dependency_targets:
-      - &id012
+      - &id015
         path: tests/test_model_lab.py
         symbol: _completed_request
-      - &id013
+      - &id016
         path: tests/test_model_lab.py
         symbol: _context
-      - &id015
+      - &id018
         path: src/nerve_center/persistence/model_lab.py
         symbol: ModelLabRepository.list_corpus
-      - &id014
+      - &id017
         path: src/nerve_center/model_lab/service.py
         symbol: ModelLabService.harvest
     - name: test_request_and_module_capture_opt_outs_are_respected
@@ -969,19 +983,19 @@ source_catalog:
       - service.update_settings
       parser: python-ast
       dependency_targets:
-      - *id012
-      - *id013
-      - &id016
+      - *id015
+      - *id016
+      - &id019
         path: src/nerve_center/persistence/model_lab.py
         symbol: ModelLabRepository.corpus_count
-      - *id014
-      - &id021
+      - *id017
+      - &id024
         path: src/nerve_center/model_lab/api.py
         symbol: register_model_lab_routes.update_settings
-      - &id022
+      - &id025
         path: src/nerve_center/model_lab/service.py
         symbol: ModelLabService.update_settings
-      - &id023
+      - &id026
         path: src/nerve_center/persistence/model_lab.py
         symbol: ModelLabRepository.update_settings
     - name: test_benchmark_replay_is_persistent_and_does_not_change_production_evidence
@@ -1012,8 +1026,8 @@ source_catalog:
       - service.start_exploration
       parser: python-ast
       dependency_targets:
-      - *id012
-      - *id013
+      - *id015
+      - *id016
       - path: src/nerve_center/code_shop/api.py
         symbol: register_code_shop_routes.record_outcome
       - path: src/nerve_center/code_shop/service.py
@@ -1024,19 +1038,19 @@ source_catalog:
         symbol: ModelEvidenceRepository.record_outcome
       - path: src/nerve_center/persistence/providers.py
         symbol: ModelEvidenceRepository.task_evidence
-      - *id015
+      - *id018
       - path: src/nerve_center/persistence/model_lab.py
         symbol: ModelLabRepository.list_results
-      - *id016
+      - *id019
+      - *id020
       - *id017
-      - *id014
-      - &id018
+      - &id021
         path: src/nerve_center/model_lab/api.py
         symbol: register_model_lab_routes.replay
-      - &id019
+      - &id022
         path: src/nerve_center/model_lab/service.py
         symbol: ModelLabService.replay
-      - &id020
+      - &id023
         path: src/nerve_center/model_lab/service.py
         symbol: ModelLabService.start_exploration
     - name: test_exploration_budget_and_production_queue_block_replay
@@ -1063,8 +1077,8 @@ source_catalog:
       - service.start_exploration
       parser: python-ast
       dependency_targets:
-      - *id012
-      - *id013
+      - *id015
+      - *id016
       - path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository.cancel
       - path: src/nerve_center/scheduler/runner.py
@@ -1075,11 +1089,11 @@ source_catalog:
         symbol: WorkQueueRepository.list_requests
       - path: src/nerve_center/scheduler/work_queue.py
         symbol: WorkQueueService.list_requests
-      - *id015
-      - *id014
       - *id018
-      - *id019
-      - *id020
+      - *id017
+      - *id021
+      - *id022
+      - *id023
     - name: test_disabled_model_lab_does_not_change_normal_provider_routing
       kind: function
       line_start: 260
@@ -1098,11 +1112,11 @@ source_catalog:
       - service.update_settings
       parser: python-ast
       dependency_targets:
-      - *id013
-      - *id020
-      - *id021
-      - *id022
+      - *id016
       - *id023
+      - *id024
+      - *id025
+      - *id026
     - name: test_model_lab_api_exposes_catalog_and_disabled_state
       kind: function
       line_start: 281

@@ -4,34 +4,34 @@ source_catalog:
   format_version: 1
   generated_by: refs/tools/generate_source_catalog.py
   derived: true
-  tracked_source_files: 194
-  symbols: 1701
+  tracked_source_files: 200
+  symbols: 1729
   languages:
     javascript: 3
-    python: 174
+    python: 180
     rust: 3
     typescript: 14
   parsers:
     javascript-pattern: 3
-    python-ast: 1597
+    python-ast: 1625
     rust-pattern: 30
     typescript-pattern: 71
   shards:
   - path: refs/implementation/.sourceCatalogShards/shard-00.yaml
-    files: 5
-    symbols: 90
+    files: 7
+    symbols: 99
   - path: refs/implementation/.sourceCatalogShards/shard-01.yaml
     files: 7
     symbols: 56
   - path: refs/implementation/.sourceCatalogShards/shard-02.yaml
-    files: 5
-    symbols: 32
+    files: 6
+    symbols: 35
   - path: refs/implementation/.sourceCatalogShards/shard-03.yaml
     files: 6
     symbols: 14
   - path: refs/implementation/.sourceCatalogShards/shard-04.yaml
-    files: 6
-    symbols: 59
+    files: 7
+    symbols: 67
   - path: refs/implementation/.sourceCatalogShards/shard-05.yaml
     files: 3
     symbols: 53
@@ -105,14 +105,14 @@ source_catalog:
     files: 8
     symbols: 104
   - path: refs/implementation/.sourceCatalogShards/shard-1d.yaml
-    files: 12
+    files: 13
     symbols: 60
   - path: refs/implementation/.sourceCatalogShards/shard-1e.yaml
     files: 8
     symbols: 80
   - path: refs/implementation/.sourceCatalogShards/shard-1f.yaml
-    files: 12
-    symbols: 144
+    files: 13
+    symbols: 152
   query_command: python refs/tools/generate_source_catalog.py --query "<task or symbol>"
   notes:
   - Generated from source; never hand-edit this catalog or its shards.

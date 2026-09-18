@@ -725,10 +725,11 @@ source_catalog:
   - path: src/nerve_center/plugins/code_shop/bootstrap.py
     analysis_version: 1
     language: python
-    content_hash: 24631f1f9193068fa4ac5b66746d44542c9a16e1
+    content_hash: 5ca1e2cd5cb5524059fbb2e8788d83fb8376d420
     dependencies:
     - dataclasses
     - fastapi
+    - nerve_center.attention.service
     - nerve_center.code_shop.api
     - nerve_center.code_shop.github
     - nerve_center.code_shop.service
@@ -743,15 +744,16 @@ source_catalog:
     symbols:
     - name: install_code_shop
       kind: function
-      line_start: 25
-      line_end: 42
-      signature: 'install_code_shop(application: FastAPI, database: Database, settings: Settings, connector: GitHubRepositoryConnector)
-        -> CodeShopModulePackage'
+      line_start: 26
+      line_end: 45
+      signature: 'install_code_shop(application: FastAPI, database: Database, settings: Settings, connector: GitHubRepositoryConnector,
+        attention: AttentionService) -> CodeShopModulePackage'
       inputs:
       - 'application: FastAPI'
       - 'database: Database'
       - 'settings: Settings'
       - 'connector: GitHubRepositoryConnector'
+      - 'attention: AttentionService'
       output: CodeShopModulePackage
       dependencies:
       - CodeShopModulePackage

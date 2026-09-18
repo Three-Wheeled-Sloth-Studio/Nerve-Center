@@ -444,6 +444,182 @@ source_catalog:
         symbol: parser
       - path: scripts/smoke_job_scout_live.py
         symbol: parser
+  - path: src/nerve_center/attention/api.py
+    analysis_version: 1
+    language: python
+    content_hash: 3bb01da716ccfab3cb13f3c57c5454b6a65bc2cb
+    dependencies:
+    - __future__
+    - dataclasses
+    - fastapi
+    - nerve_center.attention.domain
+    - nerve_center.attention.service
+    - pydantic
+    - typing
+    provides:
+    - register_attention_routes
+    - register_attention_routes.create
+    - register_attention_routes.list_items
+    - register_attention_routes.dependency_blocked
+    - register_attention_routes.get_item
+    - register_attention_routes.history
+    - register_attention_routes.resolve
+    - register_attention_routes.dismiss
+    symbols:
+    - name: register_attention_routes
+      kind: function
+      line_start: 45
+      line_end: 146
+      signature: 'register_attention_routes(application: FastAPI, service: AttentionService) -> None'
+      inputs:
+      - 'application: FastAPI'
+      - 'service: AttentionService'
+      output: None
+      dependencies:
+      - APIRouter
+      - HTTPException
+      - Query
+      - application.include_router
+      - asdict
+      - router.get
+      - router.post
+      - service.dependency_blocked
+      - service.dismiss
+      - service.get
+      - service.history
+      - service.list
+      - service.resolve
+      - service.submit
+      - str
+      - tuple
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/attention/api.py
+        symbol: register_attention_routes.dependency_blocked
+      - path: src/nerve_center/attention/service.py
+        symbol: AttentionService.dependency_blocked
+      - path: src/nerve_center/attention/api.py
+        symbol: register_attention_routes.dismiss
+      - path: src/nerve_center/attention/service.py
+        symbol: AttentionService.dismiss
+      - path: src/nerve_center/attention/api.py
+        symbol: register_attention_routes.history
+      - path: src/nerve_center/attention/service.py
+        symbol: AttentionService.history
+      - path: src/nerve_center/persistence/applications.py
+        symbol: ApplicationRepository.history
+      - path: src/nerve_center/persistence/attention.py
+        symbol: AttentionRepository.history
+    - name: register_attention_routes.create
+      kind: function
+      line_start: 52
+      line_end: 67
+      signature: 'register_attention_routes.create(request: AttentionCreateRequest) -> dict[str, Any]'
+      inputs:
+      - 'request: AttentionCreateRequest'
+      output: dict[str, Any]
+      dependencies:
+      - asdict
+      - router.post
+      - service.submit
+      - tuple
+      parser: python-ast
+      dependency_targets: []
+    - name: register_attention_routes.list_items
+      kind: function
+      line_start: 70
+      line_end: 86
+      signature: 'register_attention_routes.list_items(state: AttentionState | None, kind: AttentionKind | None, module_id:
+        str | None, dependency_key: str | None, limit: int) -> list[dict[str, Any]]'
+      inputs:
+      - 'state: AttentionState | None'
+      - 'kind: AttentionKind | None'
+      - 'module_id: str | None'
+      - 'dependency_key: str | None'
+      - 'limit: int'
+      output: list[dict[str, Any]]
+      dependencies:
+      - Query
+      - asdict
+      - router.get
+      - service.list
+      parser: python-ast
+      dependency_targets: []
+    - name: register_attention_routes.dependency_blocked
+      kind: function
+      line_start: 89
+      line_end: 93
+      signature: 'register_attention_routes.dependency_blocked(dependency_key: str) -> dict[str, object]'
+      inputs:
+      - 'dependency_key: str'
+      output: dict[str, object]
+      dependencies:
+      - router.get
+      parser: python-ast
+      dependency_targets: []
+    - name: register_attention_routes.get_item
+      kind: function
+      line_start: 96
+      line_end: 100
+      signature: 'register_attention_routes.get_item(item_id: str) -> dict[str, Any]'
+      inputs:
+      - 'item_id: str'
+      output: dict[str, Any]
+      dependencies:
+      - HTTPException
+      - asdict
+      - router.get
+      - service.get
+      - str
+      parser: python-ast
+      dependency_targets: []
+    - name: register_attention_routes.history
+      kind: function
+      line_start: 103
+      line_end: 107
+      signature: 'register_attention_routes.history(item_id: str) -> list[dict[str, Any]]'
+      inputs:
+      - 'item_id: str'
+      output: list[dict[str, Any]]
+      dependencies:
+      - HTTPException
+      - asdict
+      - router.get
+      - str
+      parser: python-ast
+      dependency_targets: []
+    - name: register_attention_routes.resolve
+      kind: function
+      line_start: 110
+      line_end: 126
+      signature: 'register_attention_routes.resolve(item_id: str, request: AttentionResolveRequest) -> dict[str, Any]'
+      inputs:
+      - 'item_id: str'
+      - 'request: AttentionResolveRequest'
+      output: dict[str, Any]
+      dependencies:
+      - HTTPException
+      - asdict
+      - router.post
+      - str
+      parser: python-ast
+      dependency_targets: []
+    - name: register_attention_routes.dismiss
+      kind: function
+      line_start: 129
+      line_end: 144
+      signature: 'register_attention_routes.dismiss(item_id: str, request: AttentionDismissRequest) -> dict[str, Any]'
+      inputs:
+      - 'item_id: str'
+      - 'request: AttentionDismissRequest'
+      output: dict[str, Any]
+      dependencies:
+      - HTTPException
+      - asdict
+      - router.post
+      - str
+      parser: python-ast
+      dependency_targets: []
   - path: src/nerve_center/domain/task.py
     analysis_version: 1
     language: python

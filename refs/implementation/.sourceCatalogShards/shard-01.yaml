@@ -734,7 +734,7 @@ source_catalog:
   - path: tests/test_discovery_persistence.py
     analysis_version: 1
     language: python
-    content_hash: ea2df6d8a58e87b6a58fce55307d3fe389f60297
+    content_hash: 94afdd7ebdcf2466a6d8dd82bbca3d2a3b3eb850
     dependencies:
     - datetime
     - nerve_center.config
@@ -1020,6 +1020,8 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
+      - path: src/nerve_center/attention/api.py
+        symbol: register_attention_routes.create
       - path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.create
       - path: src/nerve_center/persistence/sessions.py

@@ -35,7 +35,7 @@ source_catalog:
   - path: src/nerve_center/api/app.py
     analysis_version: 1
     language: python
-    content_hash: 2a15536293e16759d619b7b2cad3ea5b052bf49f
+    content_hash: ea3dd3bc8ada8276617df59fbd05067d5bb9fe41
     dependencies:
     - __future__
     - collections.abc
@@ -44,12 +44,15 @@ source_catalog:
     - fastapi.middleware.cors
     - nerve_center
     - nerve_center.api.schemas
+    - nerve_center.attention.api
+    - nerve_center.attention.service
     - nerve_center.code_shop.github
     - nerve_center.config
     - nerve_center.domain.run
     - nerve_center.domain.work_queue
     - nerve_center.model_lab.api
     - nerve_center.model_lab.service
+    - nerve_center.persistence.attention
     - nerve_center.persistence.database
     - nerve_center.persistence.model_lab
     - nerve_center.persistence.modules
@@ -111,8 +114,8 @@ source_catalog:
     symbols:
     - name: create_app
       kind: function
-      line_start: 84
-      line_end: 517
+      line_start: 87
+      line_end: 524
       signature: 'create_app(settings: Settings | None, provider: StructuredProvider | None, code_shop_connector: GitHubRepositoryConnector
         | None) -> FastAPI'
       inputs:
@@ -121,6 +124,8 @@ source_catalog:
       - 'code_shop_connector: GitHubRepositoryConnector | None'
       output: FastAPI
       dependencies:
+      - AttentionRepository
+      - AttentionService
       - Database
       - EmptyGitHubRepositoryConnector
       - FastAPI
@@ -143,8 +148,6 @@ source_catalog:
       - RunResponse.from_snapshot
       - RunnerService
       - SchedulerService
-      - SessionRepository
-      - SessionResponse.from_snapshot
       parser: python-ast
       dependency_targets:
       - &id006
@@ -152,8 +155,8 @@ source_catalog:
         symbol: ModuleResponse.from_installed
     - name: create_app.lifespan
       kind: function
-      line_start: 127
-      line_end: 137
+      line_start: 131
+      line_end: 141
       signature: 'create_app.lifespan(_app: FastAPI) -> AsyncIterator[None]'
       inputs:
       - '_app: FastAPI'
@@ -214,8 +217,8 @@ source_catalog:
         symbol: WorkSessionService.recover
     - name: create_app.queue_error
       kind: function
-      line_start: 226
-      line_end: 233
+      line_start: 233
+      line_end: 240
       signature: 'create_app.queue_error(error: Exception) -> HTTPException'
       inputs:
       - 'error: Exception'
@@ -228,8 +231,8 @@ source_catalog:
       dependency_targets: []
     - name: create_app.health
       kind: function
-      line_start: 236
-      line_end: 237
+      line_start: 243
+      line_end: 244
       signature: create_app.health() -> dict[str, str]
       inputs: []
       output: dict[str, str]
@@ -239,8 +242,8 @@ source_catalog:
       dependency_targets: []
     - name: create_app.list_provider_models
       kind: function
-      line_start: 240
-      line_end: 244
+      line_start: 247
+      line_end: 251
       signature: create_app.list_provider_models() -> list[object]
       inputs: []
       output: list[object]
@@ -254,8 +257,8 @@ source_catalog:
       dependency_targets: []
     - name: create_app.list_provider_evidence
       kind: function
-      line_start: 247
-      line_end: 248
+      line_start: 254
+      line_end: 255
       signature: 'create_app.list_provider_evidence(task_id: str) -> list[object]'
       inputs:
       - 'task_id: str'
@@ -271,8 +274,8 @@ source_catalog:
         symbol: ModelEvidenceRepository.task_evidence
     - name: create_app.create_session
       kind: function
-      line_start: 251
-      line_end: 277
+      line_start: 258
+      line_end: 284
       signature: 'create_app.create_session(request: SessionCreateRequest) -> SessionResponse'
       inputs:
       - 'request: SessionCreateRequest'
@@ -305,8 +308,8 @@ source_catalog:
       - *id004
     - name: create_app.list_sessions
       kind: function
-      line_start: 280
-      line_end: 286
+      line_start: 287
+      line_end: 293
       signature: 'create_app.list_sessions(limit: Annotated[int, Query(ge) -> list[SessionResponse]'
       inputs:
       - 'limit: Annotated[int, Query(ge'
@@ -326,8 +329,8 @@ source_catalog:
         symbol: SessionRepository.list_recent
     - name: create_app.get_session
       kind: function
-      line_start: 289
-      line_end: 293
+      line_start: 296
+      line_end: 300
       signature: 'create_app.get_session(session_id: str) -> SessionResponse'
       inputs:
       - 'session_id: str'
@@ -342,8 +345,8 @@ source_catalog:
       dependency_targets: []
     - name: create_app.start_session
       kind: function
-      line_start: 296
-      line_end: 302
+      line_start: 303
+      line_end: 309
       signature: 'create_app.start_session(session_id: str) -> SessionResponse'
       inputs:
       - 'session_id: str'
@@ -362,8 +365,8 @@ source_catalog:
       - *id004
     - name: create_app.emergency_stop_session
       kind: function
-      line_start: 305
-      line_end: 311
+      line_start: 312
+      line_end: 318
       signature: 'create_app.emergency_stop_session(session_id: str) -> SessionResponse'
       inputs:
       - 'session_id: str'
@@ -380,8 +383,8 @@ source_catalog:
         symbol: WorkSessionService.emergency_stop
     - name: create_app.submit_work_request
       kind: function
-      line_start: 317
-      line_end: 321
+      line_start: 324
+      line_end: 328
       signature: 'create_app.submit_work_request(request: WorkRequestCreateRequest) -> WorkRequestResponse'
       inputs:
       - 'request: WorkRequestCreateRequest'
@@ -408,8 +411,8 @@ source_catalog:
         symbol: ExecutionRequestBody.to_domain
     - name: create_app.list_work_requests
       kind: function
-      line_start: 324
-      line_end: 334
+      line_start: 331
+      line_end: 341
       signature: 'create_app.list_work_requests(module_id: str | None, request_status: WorkRequestStatus | None, limit: Annotated[int,
         Query(ge) -> list[WorkRequestResponse]'
       inputs:
@@ -430,8 +433,8 @@ source_catalog:
         symbol: WorkQueueService.list_requests
     - name: create_app.work_queue_status
       kind: function
-      line_start: 337
-      line_end: 338
+      line_start: 344
+      line_end: 345
       signature: 'create_app.work_queue_status(module_id: str | None) -> QueueStatusResponse'
       inputs:
       - 'module_id: str | None'
@@ -448,8 +451,8 @@ source_catalog:
         symbol: WorkQueueService.status
     - name: create_app.get_work_request
       kind: function
-      line_start: 341
-      line_end: 345
+      line_start: 348
+      line_end: 352
       signature: 'create_app.get_work_request(request_id: str) -> WorkRequestResponse'
       inputs:
       - 'request_id: str'
@@ -464,8 +467,8 @@ source_catalog:
       - *id005
     - name: create_app.get_work_attempts
       kind: function
-      line_start: 348
-      line_end: 355
+      line_start: 355
+      line_end: 362
       signature: 'create_app.get_work_attempts(request_id: str) -> list[WorkAttemptResponse]'
       inputs:
       - 'request_id: str'
@@ -484,8 +487,8 @@ source_catalog:
         symbol: WorkQueueService.attempts
     - name: create_app.claim_work
       kind: function
-      line_start: 358
-      line_end: 363
+      line_start: 365
+      line_end: 370
       signature: 'create_app.claim_work(request: WorkClaimRequest) -> WorkAttemptResponse | None'
       inputs:
       - 'request: WorkClaimRequest'
@@ -503,8 +506,8 @@ source_catalog:
         symbol: WorkQueueService.claim_next
     - name: create_app.complete_work_attempt
       kind: function
-      line_start: 366
-      line_end: 374
+      line_start: 373
+      line_end: 381
       signature: 'create_app.complete_work_attempt(attempt_id: str, request: WorkCompleteRequest) -> WorkResultResponse'
       inputs:
       - 'attempt_id: str'
@@ -520,8 +523,8 @@ source_catalog:
       - *id005
     - name: create_app.fail_work_attempt
       kind: function
-      line_start: 377
-      line_end: 390
+      line_start: 384
+      line_end: 397
       signature: 'create_app.fail_work_attempt(attempt_id: str, request: WorkFailRequest) -> WorkRequestResponse'
       inputs:
       - 'attempt_id: str'
@@ -541,8 +544,8 @@ source_catalog:
         symbol: WorkQueueService.fail
     - name: create_app.cancel_work_request
       kind: function
-      line_start: 393
-      line_end: 397
+      line_start: 400
+      line_end: 404
       signature: 'create_app.cancel_work_request(request_id: str) -> WorkRequestResponse'
       inputs:
       - 'request_id: str'
@@ -566,8 +569,8 @@ source_catalog:
         symbol: WorkQueueService.cancel
     - name: create_app.retry_work_request
       kind: function
-      line_start: 400
-      line_end: 404
+      line_start: 407
+      line_end: 411
       signature: 'create_app.retry_work_request(request_id: str) -> WorkRequestResponse'
       inputs:
       - 'request_id: str'
@@ -588,8 +591,8 @@ source_catalog:
         symbol: WorkQueueService.retry
     - name: create_app.reprioritize_work_request
       kind: function
-      line_start: 407
-      line_end: 415
+      line_start: 414
+      line_end: 422
       signature: 'create_app.reprioritize_work_request(request_id: str, request: WorkPriorityRequest) -> WorkRequestResponse'
       inputs:
       - 'request_id: str'
@@ -609,8 +612,8 @@ source_catalog:
         symbol: WorkQueueService.reprioritize
     - name: create_app.list_modules
       kind: function
-      line_start: 418
-      line_end: 425
+      line_start: 425
+      line_end: 432
       signature: create_app.list_modules() -> list[ModuleResponse]
       inputs: []
       output: list[ModuleResponse]
@@ -627,8 +630,8 @@ source_catalog:
         symbol: ModuleSupervisor.report
     - name: create_app.get_module
       kind: function
-      line_start: 428
-      line_end: 434
+      line_start: 435
+      line_end: 441
       signature: 'create_app.get_module(module_id: str) -> ModuleResponse'
       inputs:
       - 'module_id: str'
@@ -646,8 +649,8 @@ source_catalog:
       - *id007
     - name: create_app.update_module
       kind: function
-      line_start: 437
-      line_end: 449
+      line_start: 444
+      line_end: 456
       signature: 'create_app.update_module(module_id: str, request: ModuleLifecycleRequest) -> ModuleResponse'
       inputs:
       - 'module_id: str'
@@ -671,8 +674,8 @@ source_catalog:
       - *id009
     - name: create_app.create_run
       kind: function
-      line_start: 452
-      line_end: 473
+      line_start: 459
+      line_end: 480
       signature: 'create_app.create_run(request: RunCreateRequest) -> RunResponse'
       inputs:
       - 'request: RunCreateRequest'
@@ -693,9 +696,12 @@ source_catalog:
       - path: src/nerve_center/scheduler/registry.py
         symbol: TaskRegistry.module_for_task
       - &id030
+        path: src/nerve_center/attention/api.py
+        symbol: register_attention_routes.create
+      - &id031
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.create
-      - &id031
+      - &id032
         path: src/nerve_center/persistence/sessions.py
         symbol: SessionRepository.create
       - *id010
@@ -705,8 +711,8 @@ source_catalog:
         symbol: RunCreateRequest.to_window
     - name: create_app.list_runs
       kind: function
-      line_start: 476
-      line_end: 479
+      line_start: 483
+      line_end: 486
       signature: 'create_app.list_runs(limit: Annotated[int, Query(ge) -> list[RunResponse]'
       inputs:
       - 'limit: Annotated[int, Query(ge'
@@ -722,8 +728,8 @@ source_catalog:
       - *id014
     - name: create_app.get_run
       kind: function
-      line_start: 482
-      line_end: 486
+      line_start: 489
+      line_end: 493
       signature: 'create_app.get_run(run_id: str) -> RunResponse'
       inputs:
       - 'run_id: str'
@@ -738,8 +744,8 @@ source_catalog:
       dependency_targets: []
     - name: create_app.get_run_events
       kind: function
-      line_start: 489
-      line_end: 499
+      line_start: 496
+      line_end: 506
       signature: 'create_app.get_run_events(run_id: str, limit: Annotated[int, Query(ge) -> list[RunEventResponse]'
       inputs:
       - 'run_id: str'
@@ -758,8 +764,8 @@ source_catalog:
         symbol: RunRepository.list_events
     - name: create_app.start_run
       kind: function
-      line_start: 502
-      line_end: 508
+      line_start: 509
+      line_end: 515
       signature: 'create_app.start_run(run_id: str) -> RunResponse'
       inputs:
       - 'run_id: str'
@@ -778,8 +784,8 @@ source_catalog:
       - *id004
     - name: create_app.cancel_run
       kind: function
-      line_start: 511
-      line_end: 515
+      line_start: 518
+      line_end: 522
       signature: 'create_app.cancel_run(run_id: str) -> RunResponse'
       inputs:
       - 'run_id: str'
@@ -797,8 +803,8 @@ source_catalog:
       - *id017
     - name: run
       kind: function
-      line_start: 523
-      line_end: 530
+      line_start: 530
+      line_end: 537
       signature: run() -> None
       inputs: []
       output: None
@@ -1091,7 +1097,7 @@ source_catalog:
       - self.evidence.sync_models
       parser: python-ast
       dependency_targets:
-      - &id038
+      - &id039
         path: src/nerve_center/persistence/scoring.py
         symbol: OpportunityScoreRepository.append
       - *id026
@@ -1433,32 +1439,33 @@ source_catalog:
       - supervisor.complete
       parser: python-ast
       dependency_targets:
-      - &id032
+      - &id033
         path: src/nerve_center/persistence/model_lab.py
         symbol: _result
-      - &id033
+      - &id034
         path: tests/test_job_scout_reference_selection.py
         symbol: _result
-      - &id034
+      - &id035
         path: tests/test_module_runtime.py
         symbol: _result
-      - &id035
+      - &id036
         path: src/nerve_center/code_shop/api.py
         symbol: register_code_shop_routes.create_task
-      - &id036
+      - &id037
         path: src/nerve_center/code_shop/service.py
         symbol: CodeShopService.create_task
-      - &id037
+      - &id038
         path: src/nerve_center/persistence/code_shop.py
         symbol: CodeShopRepository.create_task
       - path: tests/test_module_runtime.py
         symbol: _exercise_independent_modules.context
       - *id029
-      - &id039
+      - &id040
         path: src/nerve_center/plugins/job_scout/manifest.py
         symbol: job_scout_manifest
       - *id030
       - *id031
+      - *id032
     - name: _exercise_independent_modules.process_factory
       kind: function
       line_start: 65
@@ -1492,6 +1499,7 @@ source_catalog:
       dependency_targets:
       - *id030
       - *id031
+      - *id032
     - name: _exercise_runtime
       kind: function
       line_start: 146
@@ -1536,8 +1544,9 @@ source_catalog:
       - *id036
       - *id037
       - *id038
-      - *id029
       - *id039
+      - *id029
+      - *id040
       - path: src/nerve_center/runtime/api.py
         symbol: register_runtime_routes.acknowledge_result
       - path: src/nerve_center/runtime/client.py

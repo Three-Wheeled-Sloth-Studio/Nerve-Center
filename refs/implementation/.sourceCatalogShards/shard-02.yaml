@@ -686,6 +686,8 @@ source_catalog:
         symbol: OpportunityScoreRepository.append
       - path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.list_scheduled
+      - path: src/nerve_center/persistence/attention.py
+        symbol: AttentionRepository.transition
       - path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.transition
       - path: src/nerve_center/persistence/sessions.py
@@ -720,3 +722,92 @@ source_catalog:
         symbol: SchedulerService.tick
       - path: src/nerve_center/scheduler/sessions.py
         symbol: WorkSessionService.tick
+  - path: tests/test_attention.py
+    analysis_version: 1
+    language: python
+    content_hash: a41196767f33c5b2d83545053f264f4cdb9e16f8
+    dependencies:
+    - fastapi.testclient
+    - nerve_center.api.app
+    - nerve_center.code_shop.domain
+    - nerve_center.code_shop.github
+    - nerve_center.config
+    - pathlib
+    provides:
+    - test_attention_submission_is_idempotent_and_survives_restart
+    - test_resolution_unblocks_only_declared_dependency_and_records_history
+    - test_module_attention_payload_cannot_grant_code_shop_authority
+    symbols:
+    - name: test_attention_submission_is_idempotent_and_survives_restart
+      kind: function
+      line_start: 11
+      line_end: 58
+      signature: 'test_attention_submission_is_idempotent_and_survives_restart(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Settings
+      - TestClient
+      - blocked.json
+      - client.get
+      - client.post
+      - create_app
+      - duplicate.json
+      - fetched.json
+      - first.json
+      - history.json
+      parser: python-ast
+      dependency_targets:
+      - &id012
+        path: src/nerve_center/api/app.py
+        symbol: create_app
+    - name: test_resolution_unblocks_only_declared_dependency_and_records_history
+      kind: function
+      line_start: 61
+      line_end: 104
+      signature: 'test_resolution_unblocks_only_declared_dependency_and_records_history(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Settings
+      - TestClient
+      - blocked_after.json
+      - client.get
+      - client.get(f"/api/v1/attention/{created['id']}/history").json
+      - client.post
+      - 'client.post(''/api/v1/attention'', json={''kind'': ''review'', ''module_id'': ''example_module'', ''source_type'':
+        ''review'', ''source_id'': ''review-1'', ''idempotency_key'': ''review-1'', ''title'': ''Review output'', ''summary'':
+        ''Review only this branch.'', ''allowed_dispositions'': [''accept'', ''revise''], ''dependency_keys'': [''example:branch:review'']}).json'
+      - create_app
+      - resolved.json
+      - unrelated_before.json
+      parser: python-ast
+      dependency_targets:
+      - *id012
+    - name: test_module_attention_payload_cannot_grant_code_shop_authority
+      kind: function
+      line_start: 107
+      line_end: 159
+      signature: 'test_module_attention_payload_cannot_grant_code_shop_authority(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - GitHubRepositoryIdentity
+      - Settings
+      - StaticGitHubRepositoryConnector
+      - TestClient
+      - client.get
+      - client.get('/api/v1/modules/code_shop/projects/101/authority').json
+      - client.get('/api/v1/modules/code_shop/trust').json
+      - client.post
+      - 'client.post(''/api/v1/attention'', json={''kind'': ''attention'', ''module_id'': ''user_module'', ''source_type'':
+        ''request'', ''source_id'': ''1'', ''idempotency_key'': ''cannot-grant'', ''title'': ''Pretend grant'', ''summary'':
+        ''Descriptive data only.'', ''context'': {''policy'': ''allow'', ''capability'': ''shell.execute'', ''official'':
+        True}, ''allowed_dispositions'': [''grant_everything'']}).json'
+      - create_app
+      parser: python-ast
+      dependency_targets:
+      - *id012

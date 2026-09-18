@@ -512,6 +512,9 @@ source_catalog:
         symbol: TaskRegistry.module_for_task
       - *id013
       - &id014
+        path: src/nerve_center/persistence/attention.py
+        symbol: AttentionRepository.transition
+      - &id015
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.transition
     - name: RunnerService._execute
@@ -554,6 +557,7 @@ source_catalog:
       - path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService._execute.save_checkpoint
       - *id014
+      - *id015
     - name: RunnerService._execute.cancellation_requested
       kind: method
       line_start: 147
@@ -593,6 +597,7 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id014
+      - *id015
   - path: tests/test_documents.py
     analysis_version: 1
     language: python
@@ -623,7 +628,7 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - &id015
+      - &id016
         path: src/nerve_center/profile/documents.py
         symbol: import_source_document
     - name: test_imports_docx
@@ -641,7 +646,7 @@ source_catalog:
       - import_source_document
       parser: python-ast
       dependency_targets:
-      - *id015
+      - *id016
     - name: test_imports_pdf
       kind: function
       line_start: 35
@@ -659,4 +664,4 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - *id015
+      - *id016

@@ -811,9 +811,12 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - &id019
+        path: src/nerve_center/attention/api.py
+        symbol: register_attention_routes.create
+      - &id020
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.create
-      - &id020
+      - &id021
         path: src/nerve_center/persistence/sessions.py
         symbol: SessionRepository.create
       - &id018
@@ -1090,6 +1093,7 @@ source_catalog:
       dependency_targets:
       - *id019
       - *id020
+      - *id021
       - *id009
       - *id018
       - path: src/nerve_center/persistence/providers.py
@@ -1137,6 +1141,7 @@ source_catalog:
       dependency_targets:
       - *id019
       - *id020
+      - *id021
       - *id009
       - *id018
       - *id010
