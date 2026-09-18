@@ -7,6 +7,28 @@ tags: [nerve-center, handoff]
 ---
 # Current Handoff
 
+## 2026-09-18 - Resource profiles #64 implemented; backups #65 next
+
+Issue #64 implements the manager-owned reusable resource-profile foundation in `0.12.31`; database schema advances from 14 to 15.
+
+Implementation checkpoint `7281c49799bac21a6dab6083c7b6d988b95e27ae`, lint correction `6735debe949dbb4db73b10114988a98ef4f2786a`, and generated-artifact checkpoint `41d09d070a7fabb0a3fda3e68d743a53452b28de` establish:
+
+- durable named manager-owned resource profiles plus one selected global profile and a stable `manager-default` fallback;
+- deterministic effective resolution: explicit manager session/run override > selected named profile > manager default > built-in safe fallback;
+- positive-only validation with no zero/negative value interpreted as unlimited;
+- real enforcement only for existing runtime seams: `max_requests`, `max_llm_calls`, and `max_parallel_work`;
+- persisted and inspectable but explicitly unenforced memory, VRAM, queue-depth, and exploration ceilings;
+- cloud-spend ceilings reported as `unenforced_no_authority`; a profile never grants cloud purchasing/spend authority;
+- sessions freeze profile ID, explicit overrides, effective limits, enforcement state, and the existing enforceable `resource_policy`;
+- session-created module runs receive the resolved enforceable budget;
+- direct runs default to the selected manager profile when no legacy budget is supplied;
+- task/module `configuration` cannot raise manager-owned run ceilings;
+- resource profiles remain independent of module permission approval and Code Shop project/action authority or manager risk evaluation.
+
+Bounded validation run `35370973810` passed on `6735debe949dbb4db73b10114988a98ef4f2786a`: source catalog 219 files / 1837 symbols, 11 OKF indexes, initialized refs validation, 7,055-character Agent Academy context check, Ruff, 33 focused tests, 301 total Python tests, desktop web, and desktop Rust/Tauri all green. The helper then refreshed deterministic discovery artifacts and self-removed at `41d09d070a7fabb0a3fda3e68d743a53452b28de`.
+
+Issue #65, `[Core] Add manager-owned backup and pre-migration snapshot foundation`, is the next bounded Increment 14 slice. Keep backup/snapshot responsibilities distinct from update download/staging/apply/rollback and from arbitrary filesystem authority.
+
 ## 2026-09-18 - Module permission review #63 implemented; resource profiles #64 next
 
 Issue #63 implements the first manager-owned install/update permission-review foundation in `0.12.30`; database schema advances from 13 to 14.
