@@ -7,6 +7,27 @@ tags: [nerve-center, handoff]
 ---
 # Current Handoff
 
+## 2026-09-18 - Module permission review #63 implemented; resource profiles #64 next
+
+Issue #63 implements the first manager-owned install/update permission-review foundation in `0.12.30`; database schema advances from 13 to 14.
+
+Implementation checkpoint `4a2ad34772668334cf0e0e74106d60ed71d4e392`, compatibility-test corrections through `ceb710fc35398718366a43ab6d4576a8c3117216`, and generated-artifact checkpoint `7345692fc40e385c57536fd7c44fd49ee6f9e12a` establish:
+
+- deterministic normalization of manifest permission requests and version-specific review rows keyed by module, version, and permission fingerprint;
+- durable pending / approved / denied decisions with actor and provenance;
+- no synthetic review for modules that declare no permissions;
+- fresh modules with unapproved required permissions remain paused and cannot be enabled until those exact declared permissions are approved;
+- optional permission denial may preserve operational admission when all required permissions are approved;
+- identical permission sets may carry forward prior decisions into a new version-specific review with explicit carry-forward provenance, while any changed permission fingerprint creates a new pending review;
+- schema-14 migration creates explicit `schema14_migration` provenance for compatible permissions already in use by an installed pre-schema-14 module rather than treating official-module trust as approval;
+- undeclared permissions cannot be approved, and requests classified as prohibited external action cannot be approved by the permission-review API;
+- minimal manager APIs expose review inspection and per-permission approve/deny operations;
+- permission approval remains separate from built-in trust and does not bypass Code Shop project/action authority or manager risk evaluation.
+
+Bounded validation run `35363736308` passed on `ceb710fc35398718366a43ab6d4576a8c3117216`: source catalog 212 files / 1792 symbols, 11 OKF indexes, initialized refs validation, 7,054-character Agent Academy context check, Ruff, 27 focused tests, 297 total Python tests, desktop web, and desktop Rust/Tauri all green. The validation helper then refreshed deterministic discovery artifacts and self-removed at `7345692fc40e385c57536fd7c44fd49ee6f9e12a`.
+
+Issue #64, `[Core] Add manager-owned reusable resource profile foundation`, is the next bounded Increment 14 slice. Keep resource ceilings manager-owned; profiles must not become a permission, authority, cloud-spend, or speculative hardware-autotuning mechanism.
+
 ## 2026-09-18 - Morning summary #62 implemented; permission review #63 next
 
 Issue #62 implements the first generic manager-owned morning-summary projection in `0.12.29`; database schema remains 13.
