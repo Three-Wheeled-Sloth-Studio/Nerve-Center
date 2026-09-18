@@ -49,10 +49,13 @@ from nerve_center.domain.work_queue import (
     WorkRequestStatus,
 )
 from nerve_center.model_lab.api import register_model_lab_routes
+from nerve_center.module_permissions.api import register_module_permission_routes
+from nerve_center.module_permissions.service import ModulePermissionReviewService
 from nerve_center.model_lab.service import ModelLabService
 from nerve_center.persistence.attention import AttentionRepository
 from nerve_center.persistence.database import Database
 from nerve_center.persistence.model_lab import ModelLabRepository
+from nerve_center.persistence.module_permissions import ModulePermissionReviewRepository
 from nerve_center.persistence.modules import ModuleNotFoundError, ModuleRepository
 from nerve_center.persistence.providers import ModelEvidenceRepository, ProviderCallRepository
 from nerve_center.persistence.runs import RunRepository
@@ -95,7 +98,9 @@ def create_app(
     runtime_settings = settings or Settings()
     database = Database(runtime_settings)
     repository = RunRepository(database)
-    module_repository = ModuleRepository(database)
+    permission_review_repository = ModulePermissionReviewRepository(database)
+    module_permissions = ModulePermissionReviewService(permission_review_repository)
+    module_repository = ModuleRepository(database, permission_review_repository)
     session_repository = SessionRepository(database)
     model_evidence = ModelEvidenceRepository(database)
     model_lab_repository = ModelLabRepository(database)
@@ -231,9 +236,11 @@ def create_app(
     application.state.model_lab = model_lab
     application.state.attention = attention
     application.state.summary = summary
+    application.state.module_permissions = module_permissions
     register_runtime_routes(application, module_supervisor)
     register_attention_routes(application, attention)
     register_summary_routes(application, summary)
+    register_module_permission_routes(application, module_permissions)
     register_model_lab_routes(application, model_lab)
 
     def queue_error(error: Exception) -> HTTPException:
