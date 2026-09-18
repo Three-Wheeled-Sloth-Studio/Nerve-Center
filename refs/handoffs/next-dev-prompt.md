@@ -41,6 +41,8 @@ Closeout catalog/handoff-index refresh: `7cd76e51ff43ebcd7188ee9c3cd0cd422b418f7
 
 Job Scout Issue #66 keeps gap reflection aligned with configured career intent. Capability phrases are no longer invented into `"... company"` archetypes, arbitrary legacy `local_employer` anchors are rejected before network spend, senior-target reflections reject internship/entry-level and non-role activity anchors, and stale malformed archetype labels no longer perpetuate coverage gaps. Reflection contract is v3. Provider policy, scheduler weights, request caps, ranking/scoring, application version `0.12.31`, and schema 15 are unchanged.
 
+The subsequent live acceptance follow-up is complete at `ab460a148586e20a053165c7a00673f346efdb41`. Evidence-aware pre-selection quarantine now keeps invalid durable public-search strategies auditable but unschedulable; archetype evidence validation applies across every reflection family; and one intent-aligned role-search lane remains reachable when excess company revisits would otherwise consume all unreserved capacity. Final run `2a34d026-5470-487c-b9f3-221d01a88137` executed four local-market and four adjacent-role searches with zero malformed query/reflection matches. The preceding productive run retained six openings and surfaced Brigit `Head of Product` as the strongest current remote target (fit `66.2`).
+
 Resource profiles are manager-owned. Only `max_requests`, `max_llm_calls`, and `max_parallel_work` are currently enforced. Memory, VRAM, queue depth, and exploration are inspectable but unenforced. Cloud spend is explicitly `unenforced_no_authority`. Profiles cannot grant module permission or Code Shop/action authority.
 
 ## Issue #65 bounded target
