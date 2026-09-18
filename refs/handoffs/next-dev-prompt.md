@@ -37,6 +37,8 @@ Application version: `0.12.29`. Database schema: 13.
 
 Bounded #62 validation passed source catalog 206 files / 1750 symbols, 11 OKF indexes, refs/context checks, Ruff, 20 focused tests, 290 total Python tests, desktop web, and desktop Rust/Tauri.
 
+Final #62 standard CI: `35360119430` on exact head `804e13d41d24e15d53da6f56e3d6229571a6d40c`, all Python / desktop-web / desktop-rust jobs green.
+
 The morning summary is SELECT-only durable projection state. Attention/Review remains the authoritative human queue. Volatile module-runtime health is not persisted merely to appear in the summary.
 
 ## Issue #63 bounded target

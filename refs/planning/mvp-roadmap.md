@@ -307,7 +307,7 @@ Accepted behavior:
 7. Summary generation performs SELECT-only reads and does not acknowledge, resolve, retry, reprioritize, mutate authority, update runtime health, or trigger external actions.
 8. Empty windows, mixed evidence, out-of-window exclusion, restart stability, and no-mutation behavior are deterministic.
 
-Implementation checkpoint `66bee379efc7ba41c5fe17a0a9a7c129522c5467` plus lint correction `8e1914fe2d88f47f47bf1ba3dc63801cb6de5b63` passed bounded validation; generated discovery artifacts were refreshed at `4841ea65b3b98a562bad73a5d2f0e73ef83b3ca8`. Validation: source catalog 206 files / 1750 symbols, 11 OKF indexes, initialized refs validation, 20 focused tests, 290 total Python tests, desktop web, and desktop Rust/Tauri all green.
+Implementation checkpoint `66bee379efc7ba41c5fe17a0a9a7c129522c5467` plus lint correction `8e1914fe2d88f47f47bf1ba3dc63801cb6de5b63` passed bounded validation; generated discovery artifacts were refreshed at `4841ea65b3b98a562bad73a5d2f0e73ef83b3ca8`. Validation: source catalog 206 files / 1750 symbols, 11 OKF indexes, initialized refs validation, 20 focused tests, 290 total Python tests, desktop web, and desktop Rust/Tauri all green. Final standard CI run `35360119430` is green on exact head `804e13d41d24e15d53da6f56e3d6229571a6d40c`.
 
 Issue **#63: Add install-time module permission review foundation** is the next bounded Increment 13 slice. Permission review must remain manager-owned and distinct from official-module trust, Code Shop project/action authority, and manager risk evaluation.
 

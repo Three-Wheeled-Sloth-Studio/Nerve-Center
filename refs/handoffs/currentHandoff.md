@@ -21,7 +21,7 @@ Implementation checkpoint `66bee379efc7ba41c5fe17a0a9a7c129522c5467`, lint corre
 - explicit exclusion of volatile module-supervisor degradation from the durable summary;
 - deterministic empty-window, mixed-evidence, out-of-window, restart, and no-mutation regressions.
 
-Bounded validation passed with source catalog 206 files / 1750 symbols, 11 OKF indexes, initialized refs validation, Agent Academy context checks, Ruff, 20 focused tests, 290 total Python tests, desktop web, and desktop Rust/Tauri all green.
+Bounded validation passed with source catalog 206 files / 1750 symbols, 11 OKF indexes, initialized refs validation, Agent Academy context checks, Ruff, 20 focused tests, 290 total Python tests, desktop web, and desktop Rust/Tauri all green. Final standard CI run `35360119430` is green on exact `dev` head `804e13d41d24e15d53da6f56e3d6229571a6d40c` across Python, desktop web, and desktop Rust.
 
 Issue #63, `[Core] Add install-time module permission review foundation`, is the next bounded slice. Keep permission approval distinct from module trust and from Code Shop/action authority; no authenticated connector, credential, external-write, marketplace, or polished permission-UI expansion belongs in that slice.
 
