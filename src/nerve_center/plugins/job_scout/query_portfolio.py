@@ -45,6 +45,52 @@ ATS_DOMAINS = (
     "lever.co",
     "ashbyhq.com",
 )
+LOCAL_EMPLOYER_REFERENCE_ANCHORS = {
+    "major employers",
+    "largest employers",
+    "top employers",
+    "employer directory",
+    "company headquarters",
+}
+EMPLOYER_ARCHETYPE_TERMS = {
+    "agency",
+    "agencies",
+    "company",
+    "companies",
+    "consultancy",
+    "consulting",
+    "employer",
+    "employers",
+    "firm",
+    "firms",
+    "manufacturer",
+    "manufacturing",
+    "nonprofit",
+    "organization",
+    "organizations",
+    "startup",
+    "startups",
+    "studio",
+    "studios",
+}
+ENTRY_LEVEL_TERMS = {
+    "apprentice",
+    "intern",
+    "internship",
+    "internships",
+    "junior",
+    "trainee",
+}
+NON_ROLE_ACTIVITY_TERMS = {
+    "conference",
+    "course",
+    "event",
+    "meetup",
+    "training",
+    "webinar",
+    "workshop",
+    "workshops",
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -133,10 +179,6 @@ def build_query_portfolio(
         ("seniority_variant", [(item, "") for item in seniority[:5]]),
         ("domain_capability", [(item, "") for item in capabilities[:6]]),
         ("employer_archetype", [(direct[0], item) for item in archetypes[:4]]),
-        # Find plausible local employers first, even when no matching opening is
-        # currently indexed. Their durable career surfaces can then be revisited
-        # independently of public-search wording.
-        ("local_employer", [(item, "") for item in archetypes[:4]]),
     ]
 
     buckets: list[list[dict[str, str]]] = []
@@ -346,14 +388,46 @@ def lint_query_dimensions(
     capabilities: SourceCapabilities | None = None,
 ) -> QueryLintResult:
     warnings: list[str] = []
+    evidence = [str(item) for item in evidence_terms]
+    family = dimensions.get("hypothesis_family", "").strip()
     anchor = " ".join(dimensions.get("anchor", "").split()).strip()
     if not anchor:
         return QueryLintResult(False, ("missing_anchor",))
     if _generic_anchor(anchor):
         return QueryLintResult(False, ("catch_all_anchor",))
 
-    exclusions = _split_terms(dimensions.get("exclude", ""))
+    normalized_anchor = _normalize_phrase(anchor)
     anchor_tokens = _tokens(anchor)
+    if (
+        family == "local_employer"
+        and normalized_anchor not in LOCAL_EMPLOYER_REFERENCE_ANCHORS
+    ):
+        return QueryLintResult(False, ("unsupported_local_employer_anchor",))
+    if family in {
+        "direct_role",
+        "adjacent_role",
+        "seniority_variant",
+        "gap_reflection",
+    }:
+        if anchor_tokens & NON_ROLE_ACTIVITY_TERMS:
+            return QueryLintResult(False, ("non_role_activity_anchor",))
+        requested_seniority = {
+            level for item in evidence for level in _seniority_levels(item)
+        }
+        if requested_seniority and (
+            anchor_tokens & ENTRY_LEVEL_TERMS or "entry level" in normalized_anchor
+        ):
+            return QueryLintResult(False, ("seniority_mismatch",))
+
+    archetype = " ".join(dimensions.get("employer_archetype", "").split()).strip()
+    if family == "employer_archetype" and archetype:
+        supported_archetypes = {
+            _normalize_phrase(item) for item in _archetype_terms(evidence)
+        }
+        if _normalize_phrase(archetype) not in supported_archetypes:
+            return QueryLintResult(False, ("unsupported_employer_archetype",))
+
+    exclusions = _split_terms(dimensions.get("exclude", ""))
     contradictory = sorted(anchor_tokens & {_normalize_term(item) for item in exclusions})
     if contradictory:
         return QueryLintResult(
@@ -375,7 +449,7 @@ def lint_query_dimensions(
     if duplicates:
         warnings.extend(f"duplicate_constraint:{item}" for item in sorted(duplicates))
 
-    supported = _tokens(" ".join(str(item) for item in evidence_terms))
+    supported = _tokens(" ".join(evidence))
     for key in ("technology", "requirement"):
         value = dimensions.get(key, "").strip()
         if value and (_tokens(value) - supported):
@@ -455,23 +529,28 @@ def build_coverage_gap_profile(
     ):
         gaps["work_arrangement"].append(preferred)
 
+    requested_archetypes = _archetype_terms(clean_list(keywords))
     archetype_strategies = [
         item
         for item in strategies
         if item.dimensions.get("hypothesis_family") == "employer_archetype"
     ]
-    gaps["employer_archetype"] = clean_list(
-        [
-            item.dimensions.get("employer_archetype", "")
+    for requested in requested_archetypes[:6]:
+        normalized = _normalize_phrase(requested)
+        matching = [
+            item
             for item in archetype_strategies
-            if (
-                item.opportunities_retained
-                + item.companies_discovered
-                + item.career_sources_resolved
-                == 0
-            )
+            if _normalize_phrase(item.dimensions.get("employer_archetype", ""))
+            == normalized
         ]
-    )[:6]
+        if not any(
+            item.opportunities_retained
+            + item.companies_discovered
+            + item.career_sources_resolved
+            > 0
+            for item in matching
+        ):
+            gaps["employer_archetype"].append(requested)
 
     configured_domains = clean_list(
         [
@@ -567,18 +646,18 @@ def _seniority_variants(target_titles: list[str]) -> list[str]:
 
 
 def _archetype_terms(capability_terms: list[str]) -> list[str]:
+    """Return only employer archetypes stated explicitly in source evidence.
+
+    Capability phrases remain useful domain search evidence, but adding a generic
+    "company" suffix invents a new employer class and can turn profile language
+    into low-intent local-employer searches.
+    """
+
     result: list[str] = []
     for term in capability_terms:
         tokens = _tokens(term)
-        if not tokens or tokens & {
-            "agile",
-            "roadmap",
-            "stakeholder",
-            "workflow",
-            "leadership",
-        }:
-            continue
-        result.append(f"{term} company")
+        if tokens & EMPLOYER_ARCHETYPE_TERMS:
+            result.append(term)
     return clean_list(result)
 
 
