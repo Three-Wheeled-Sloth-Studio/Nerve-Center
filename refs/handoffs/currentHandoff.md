@@ -7,6 +7,24 @@ tags: [nerve-center, handoff]
 ---
 # Current Handoff
 
+## 2026-09-18 - Job Scout reflection intent correction #66 implemented; backups #65 remain next
+
+Issue #66 is the bounded Job Scout follow-up justified by the final accepted provider-observability run. Run `5d3f2ad8-2c01-4dde-b640-0ae467585d35` still spent a real public-search request on `"Human-Centered Design company" High Point, NC jobs careers`, while durable reflection history contained off-target suggestions such as internships and design workshops. This was treated as a reflection/strategy-semantics defect, not a provider, scheduler, ranking, or request-budget problem.
+
+Implementation checkpoints `e66220efe2e46bd9da0dd0180d45993879af9900`, `98165cd09478038f70441312b27f5fef0cf1ebc5`, and `b142119747fde9bc050230cdfd8acdd47e8e8859` establish:
+
+- capability phrases remain valid `domain_capability` evidence but are no longer converted automatically into invented `"... company"` employer archetypes;
+- the general source-aware query portfolio no longer manufactures `local_employer` strategies from capability terms; local-employer acquisition remains owned by the accepted market-reference lane using explicit employer-list/headquarters anchors;
+- query linting rejects stale/malformed local-employer anchors, non-role activities such as workshops/courses/events, and clearly entry-level/internship anchors when configured evidence requests senior/director-level work;
+- reflected `employer_archetype` values must be grounded in explicit career evidence rather than synthesized by the LLM;
+- employer-archetype coverage gaps are now requested-vs-observed and no longer recycle every zero-yield historical label into fresh reflection pressure;
+- reflection contract v3 tells the manager-routed model to preserve career level, avoid non-role activity suggestions, and treat capability phrases as capabilities unless employer-archetype evidence is explicit;
+- legitimate adjacent-role and domain exploration remains admissible, and no provider policy, scheduler weight, cooldown, request cap, scoring rule, manager schema, or core authority boundary changed.
+
+Temporary bounded validation passed focused Ruff, `tests/test_job_scout_query_portfolio.py`, and initialized refs validation before generated source-catalog refresh `dff3084f8c1661a6dfdfb2e2c8c5a1b15cf0ea56`. Application version remains `0.12.31`; database schema remains 15.
+
+Issue #65, `[Core] Add manager-owned backup and pre-migration snapshot foundation`, remains the next overall bounded core slice after this Job Scout closeout.
+
 ## 2026-09-18 - Resource profiles #64 implemented; backups #65 next
 
 Issue #64 implements the manager-owned reusable resource-profile foundation in `0.12.31`; database schema advances from 14 to 15.
