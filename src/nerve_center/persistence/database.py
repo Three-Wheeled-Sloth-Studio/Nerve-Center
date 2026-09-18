@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from nerve_center.config import Settings
 from nerve_center.persistence.models import Base
 
-SCHEMA_VERSION = 11
+SCHEMA_VERSION = 12
 
 
 class Database:
@@ -24,6 +24,7 @@ class Database:
     def initialize(self) -> None:
         self.settings.ensure_runtime_directories()
         import_module("nerve_center.persistence.application_tables")
+        import_module("nerve_center.persistence.code_shop")
         import_module("nerve_center.persistence.model_lab")
         Base.metadata.create_all(self.engine)
         with self.engine.begin() as connection:

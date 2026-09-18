@@ -64,7 +64,8 @@ def test_module_inventory_and_pause_gate_run_admission(tmp_path: Path) -> None:
         )
 
     assert modules.status_code == 200
-    assert modules.json()[0]["manifest"]["module_id"] == "job_scout"
+    module_ids = {item["manifest"]["module_id"] for item in modules.json()}
+    assert {"code_shop", "job_scout"}.issubset(module_ids)
     assert paused.json()["lifecycle_state"] == "paused"
     assert rejected.status_code == 409
     assert resumed.json()["lifecycle_state"] == "enabled"

@@ -29,6 +29,10 @@ from nerve_center.api.schemas import (
     WorkRequestResponse,
     WorkResultResponse,
 )
+from nerve_center.code_shop.github import (
+    EmptyGitHubRepositoryConnector,
+    GitHubRepositoryConnector,
+)
 from nerve_center.config import Settings
 from nerve_center.domain.run import (
     InvalidRunTransitionError,
@@ -51,6 +55,7 @@ from nerve_center.persistence.providers import ModelEvidenceRepository, Provider
 from nerve_center.persistence.runs import RunRepository
 from nerve_center.persistence.sessions import SessionNotFoundError, SessionRepository
 from nerve_center.persistence.work_queue import WorkQueueRepository
+from nerve_center.plugins.code_shop.bootstrap import install_code_shop
 from nerve_center.plugins.job_scout.bootstrap import install_job_scout
 from nerve_center.plugins.synthetic import SyntheticTaskPlugin
 from nerve_center.providers.base import JsonProvider, StructuredProvider
@@ -79,6 +84,7 @@ LOCAL_DESKTOP_ORIGINS = [
 def create_app(
     settings: Settings | None = None,
     provider: StructuredProvider | None = None,
+    code_shop_connector: GitHubRepositoryConnector | None = None,
 ) -> FastAPI:
     runtime_settings = settings or Settings()
     database = Database(runtime_settings)
@@ -143,6 +149,12 @@ def create_app(
     )
     application.state.repository = repository
     application.state.module_repository = module_repository
+    code_shop = install_code_shop(
+        application,
+        database,
+        runtime_settings,
+        code_shop_connector or EmptyGitHubRepositoryConnector(),
+    )
     job_scout = install_job_scout(
         application,
         database,
@@ -150,7 +162,20 @@ def create_app(
         runtime_provider,
     )
     module_supervisor = ModuleSupervisor(runtime_settings)
+    module_supervisor.register(code_shop.manifest, code_shop.operation_bridge)
     module_supervisor.register(job_scout.manifest, job_scout.operation_bridge)
+    registry.register_module(
+        code_shop.manifest,
+        tuple(
+            ModuleProcessTaskPlugin(
+                module_supervisor,
+                code_shop.manifest,
+                declaration.task_id,
+                declaration.display_name,
+            )
+            for declaration in code_shop.manifest.task_types
+        ),
+    )
     registry.register_module(
         job_scout.manifest,
         tuple(
