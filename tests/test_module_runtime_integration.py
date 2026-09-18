@@ -21,6 +21,29 @@ def test_job_scout_run_crosses_supervised_process_boundary(tmp_path: Path) -> No
     client = httpx.Client(base_url=f"http://127.0.0.1:{port}", timeout=10)
     try:
         _wait_until(lambda: client.get("/health").status_code == 200)
+        reviews = client.get(
+            "/api/v1/module-permissions",
+            params={"module_id": "job_scout"},
+        ).json()
+        assert len(reviews) == 1
+        review = reviews[0]
+        for permission in review["permissions"]:
+            if not permission["required"]:
+                continue
+            approved = client.post(
+                f"/api/v1/module-permissions/{review['id']}/permissions/"
+                f"{permission['key']}/approve",
+                json={
+                    "actor": "runtime-integration-test",
+                    "provenance": {"source": "test"},
+                },
+            )
+            approved.raise_for_status()
+        enabled = client.patch(
+            "/api/v1/modules/job_scout",
+            json={"lifecycle_state": "enabled"},
+        )
+        enabled.raise_for_status()
         created = client.post("/api/v1/sessions", json={"duration_seconds": 30})
         created.raise_for_status()
         session = created.json()
