@@ -35,6 +35,8 @@ Application version: `0.12.28`. Database schema: 13.
 
 Bounded validation run `35356015569` passed 17 focused tests, 287 total Python tests, refs/source/OKF/context checks, Ruff, desktop web, and desktop Rust/Tauri.
 
+Final Issue #61 exact-head CI: `87c979f203a6bffd1a106157f07c826f6d55bd50`, run `35357211859`, all Python / desktop-web / desktop-rust jobs green.
+
 Attention/Review is manager-owned durable state. Open items block only declared dependency keys; module context/dispositions cannot grant authority. Code Shop escalations link to Attention without changing the whole project lifecycle.
 
 ## Issue #62 bounded target

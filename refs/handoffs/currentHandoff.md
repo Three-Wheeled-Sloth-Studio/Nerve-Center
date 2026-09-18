@@ -24,7 +24,7 @@ Implementation checkpoint `dd58e0c338afea5a066efcc8f663d47cd878f048` plus genera
 
 Code Shop bounded-failure escalation now leaves an enabled project enabled and marks the specific engineering task `escalation_recommended`; the linked Attention dependency `code_shop:task:<task_id>` carries the human-decision block.
 
-Bounded validation run `35356015569` was green: source catalog 200 files / 1729 symbols, 11 OKF indexes, initialized refs validation, Agent Academy context validation, Ruff, 17 focused tests, 287 total Python tests, desktop web build, and desktop Rust/Tauri check all passed.
+Bounded validation run `35356015569` was green: source catalog 200 files / 1729 symbols, 11 OKF indexes, initialized refs validation, Agent Academy context validation, Ruff, 17 focused tests, 287 total Python tests, desktop web build, and desktop Rust/Tauri check all passed. Final exact-head standard CI run `35357211859` is green on `87c979f203a6bffd1a106157f07c826f6d55bd50`: source catalog 200 files / 1729 symbols, 11 OKF indexes, initialized refs validation, 6,300-character agent-context check, 287 Python tests, desktop web, and desktop Rust/Tauri all passed.
 
 Issue #62, `[Core] Add manager morning summary foundation`, is the next bounded slice. It is read-only reporting over durable manager-owned evidence; scheduled delivery, external messaging/connectors, UI polish, and automatic remediation remain deferred.
 
