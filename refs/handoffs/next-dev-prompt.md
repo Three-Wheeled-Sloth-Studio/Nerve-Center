@@ -37,6 +37,8 @@ Application version: `0.12.31`. Database schema: 15.
 
 Bounded #64 validation run `35370973810` passed source catalog 219 files / 1837 symbols, 11 OKF indexes, initialized refs validation, 7,055-character agent-context validation, Ruff, 33 focused tests, 301 total Python tests, desktop web, and desktop Rust/Tauri.
 
+Closeout catalog/handoff-index refresh: `7cd76e51ff43ebcd7188ee9c3cd0cd422b418f70`. Final #64 standard CI: `35372662394` on exact code/version head `b309c52cfb2e5f5dae6629f1642b25edfa0349a3`, all Python / desktop-web / desktop-rust jobs green with 301 Python tests.
+
 Resource profiles are manager-owned. Only `max_requests`, `max_llm_calls`, and `max_parallel_work` are currently enforced. Memory, VRAM, queue depth, and exploration are inspectable but unenforced. Cloud spend is explicitly `unenforced_no_authority`. Profiles cannot grant module permission or Code Shop/action authority.
 
 ## Issue #65 bounded target
