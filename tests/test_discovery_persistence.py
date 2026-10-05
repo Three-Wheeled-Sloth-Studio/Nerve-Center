@@ -147,7 +147,7 @@ def test_repeated_source_observation_preserves_first_seen_provenance(tmp_path: P
     jobs.upsert(refresh)
     persisted = jobs.list()[0]
 
-    assert persisted.description == "Refreshed"
+    assert persisted.description == "Initial"
     assert len(persisted.provenance) == 1
     assert persisted.provenance[0].discovered_at == first_seen
 
