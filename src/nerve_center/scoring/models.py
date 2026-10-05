@@ -190,6 +190,8 @@ class JobFitAnalysis(BaseModel):
     profile_version: int
     contract_version: str
     model: str
+    resume_document_id: str | None = None
+    resume_label: str | None = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     qualifications: list[QualificationAssessment] = Field(default_factory=list)
     seniority_score: float = Field(default=50, ge=0, le=100)
@@ -318,6 +320,8 @@ class OpportunityScore(BaseModel):
     profile_version: int
     contract_version: str
     settings_version: int
+    resume_document_id: str | None = None
+    resume_label: str | None = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     fit: float = Field(ge=0, le=100)
     response_likelihood: float = Field(ge=0, le=100)
