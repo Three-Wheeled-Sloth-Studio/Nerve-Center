@@ -15,9 +15,18 @@ from nerve_center.applications.models import (
 )
 from nerve_center.persistence.applications import ApplicationRepository
 from nerve_center.persistence.database import Database
-from nerve_center.persistence.discovery import CompanyRepository, JobOpeningRepository
+from nerve_center.persistence.discovery import (
+    CompanyRepository,
+    DiscoverySourceRepository,
+    JobOpeningRepository,
+)
 from nerve_center.persistence.scoring import OpportunityScoreRepository
 from nerve_center.plugins.job_scout.settings import JobScoutConfigurationStore
+from nerve_center.plugins.job_scout.verification import (
+    VerificationStatus,
+    assess_opening_verification,
+    preferred_opportunity_link,
+)
 from nerve_center.scoring.engine import SCORING_ENGINE_VERSION
 from nerve_center.scoring.service import ScoringService
 
@@ -34,6 +43,7 @@ def register_application_routes(
     applications = ApplicationRepository(database)
     jobs = JobOpeningRepository(database)
     companies = CompanyRepository(database)
+    sources = DiscoverySourceRepository(database)
     scores = OpportunityScoreRepository(database)
     application.state.application_repository = applications
 
@@ -71,6 +81,14 @@ def register_application_routes(
             record = applications.get_or_default(opening.id)
             if not include_dismissed and record.status is ApplicationStatus.DISMISSED:
                 continue
+            verification = assess_opening_verification(opening, sources)
+            if (
+                verification.status is VerificationStatus.VERIFIED_ABSENT
+                and record.status is ApplicationStatus.DISCOVERED
+            ):
+                continue
+            company = companies.get(opening.company_id)
+            link = preferred_opportunity_link(opening, company, verification)
             history = scores.list(opening.id)
             latest_fit_contract = (
                 str(history[0].calculation.get("fit_contract_version") or "")
@@ -78,7 +96,8 @@ def register_application_routes(
                 else ""
             )
             if (
-                history
+                verification.actionable
+                and history
                 and scoring_service
                 and configuration
                 and history[0].calculation.get("scoring_engine_version")
@@ -88,7 +107,7 @@ def register_application_routes(
                 latest_fit_contract = str(
                     history[0].calculation.get("fit_contract_version") or ""
                 )
-            if scoring_service and configuration and (
+            if verification.actionable and scoring_service and configuration and (
                 not history or latest_fit_contract.startswith("job-fit-provisional-")
             ):
                 history = [
@@ -101,10 +120,20 @@ def register_application_routes(
             items.append(
                 ReviewOpportunity(
                     opening=opening,
-                    company=companies.get(opening.company_id),
+                    company=company,
                     score=history[0] if history else None,
                     application=record,
-                    next_action=_next_action(record.status),
+                    next_action=(
+                        "Employer-authoritative evidence no longer confirms this role; review before pursuing."
+                        if verification.status is VerificationStatus.VERIFIED_ABSENT
+                        else _next_action(record.status)
+                    ),
+                    verification_status=verification.status.value,
+                    verification_reason=verification.reason,
+                    actionable=verification.actionable,
+                    preferred_url=link.url,
+                    preferred_url_kind=link.kind,
+                    link_warning=link.warning,
                 )
             )
         items.sort(key=lambda item: _sort_value(item, sort), reverse=True)
