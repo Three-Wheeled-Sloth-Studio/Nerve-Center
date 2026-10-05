@@ -73,7 +73,7 @@ def test_fit_factor_exposes_weighted_inputs_and_central_match_ordering() -> None
         _analysis(inverse), inverse_factors
     )
 
-    assert SCORING_ENGINE_VERSION == "job-scout-ranking-v5"
+    assert SCORING_ENGINE_VERSION == "job-scout-ranking-v6"
     assert central_required > inverse_required
     assert central_fit > inverse_fit
     factor = next(item for item in central_factors if item.code == "fit_components")
