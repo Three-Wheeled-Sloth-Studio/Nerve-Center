@@ -214,9 +214,13 @@ def test_employer_findings_surface_local_presence_and_role_metrics(tmp_path: Pat
     assert item["relevant_roles_30d"] == 2
     assert item["relevant_roles_90d"] == 2
     assert item["direct_first_roles"] == 1
+    assert item["direct_only_roles"] == 1
+    assert item["secondary_first_verified_roles"] == 0
+    assert item["broadly_syndicated_roles"] == 0
     assert item["unverified_leads"] == 1
     assert item["best_role"]["title"] == "Director of Product Management"
     assert item["best_role"]["resume_label"] == "Director"
+    assert item["best_role"]["discovery_advantage"] == "direct_only"
 
 
 def test_employer_findings_do_not_invent_local_presence(tmp_path: Path) -> None:
