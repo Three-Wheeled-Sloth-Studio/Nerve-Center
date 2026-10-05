@@ -142,6 +142,21 @@ def test_employer_findings_surface_local_presence_and_role_metrics(tmp_path: Pat
     CompanyRepository(database).upsert(company)
     sources = DiscoverySourceRepository(database)
     sources.upsert(source)
+    sources.upsert(
+        DiscoverySource(
+            id="source-board",
+            company_id=company.id,
+            name="Local Product Co board lead",
+            kind=SourceKind.JSON_LD,
+            acquisition_class=AcquisitionClass.PUBLIC_STRUCTURED_FEED,
+            base_url="https://board.example/jobs",
+            configuration={
+                "direct_employer_source": False,
+                "source_role": "aggregator_listing",
+            },
+            parser_version="fixture-v1",
+        )
+    )
     jobs = JobOpeningRepository(database)
     jobs.upsert(direct)
     jobs.upsert(board)
