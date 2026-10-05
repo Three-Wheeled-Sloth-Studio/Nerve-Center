@@ -155,20 +155,26 @@ class FitAnalysisRepository:
                 raise KeyError(f"unknown fit analysis: {analysis_id}")
             return JobFitAnalysis.model_validate(model.payload)
 
-    def latest(self, job_id: str) -> JobFitAnalysis:
-        with self.database.session() as session:
-            model = session.scalar(
-                select(FitAnalysisModel)
-                .where(FitAnalysisModel.job_id == job_id)
-                .order_by(FitAnalysisModel.created_at.desc())
-            )
-            if model is None:
-                raise KeyError(f"no fit analysis for job: {job_id}")
-            return JobFitAnalysis.model_validate(model.payload)
+    def latest(
+        self,
+        job_id: str,
+        *,
+        resume_document_id: str | None = None,
+    ) -> JobFitAnalysis:
+        analyses = self.list(job_id, resume_document_id=resume_document_id)
+        if not analyses:
+            suffix = f" for resume {resume_document_id}" if resume_document_id else ""
+            raise KeyError(f"no fit analysis for job: {job_id}{suffix}")
+        return analyses[0]
 
-    def list(self, job_id: str) -> list[JobFitAnalysis]:
+    def list(
+        self,
+        job_id: str,
+        *,
+        resume_document_id: str | None = None,
+    ) -> list[JobFitAnalysis]:
         with self.database.session() as session:
-            return [
+            analyses = [
                 JobFitAnalysis.model_validate(item.payload)
                 for item in session.scalars(
                     select(FitAnalysisModel)
@@ -176,6 +182,12 @@ class FitAnalysisRepository:
                     .order_by(FitAnalysisModel.created_at.desc())
                 ).all()
             ]
+        if resume_document_id is None:
+            return analyses
+        return [
+            item for item in analyses
+            if item.resume_document_id == resume_document_id
+        ]
 
 
 class ScoringSettingsRepository:
@@ -283,16 +295,27 @@ class OpportunityScoreRepository:
             )
         return score
 
-    def list(self, job_id: str) -> list[OpportunityScore]:
+    def list(
+        self,
+        job_id: str,
+        *,
+        resume_document_id: str | None = None,
+    ) -> list[OpportunityScore]:
         with self.database.session() as session:
-            return [
+            scores = [
                 OpportunityScore.model_validate(item.payload)
                 for item in session.scalars(
                     select(OpportunityScoreModel)
                     .where(OpportunityScoreModel.job_id == job_id)
                     .order_by(
-              OpportunityScoreModel.created_at.desc(),
-              OpportunityScoreModel.id.desc(),
-          )
+                        OpportunityScoreModel.created_at.desc(),
+                        OpportunityScoreModel.id.desc(),
+                    )
                 ).all()
             ]
+        if resume_document_id is None:
+            return scores
+        return [
+            item for item in scores
+            if item.resume_document_id == resume_document_id
+        ]
