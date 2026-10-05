@@ -13,6 +13,7 @@ from nerve_center.discovery.models import (
     DiscoverySource,
     JobProvenance,
     NormalizedJobOpening,
+    ScanStatus,
     SourceKind,
     WorkArrangement,
 )
@@ -291,3 +292,200 @@ def test_review_keeps_distant_roles_for_explicit_scored_location_filtering(
 
     assert response.status_code == 200
     assert {item["opening"]["id"] for item in response.json()} == {"job-1", "job-2"}
+
+
+def test_review_exposes_verified_employer_link(tmp_path: Path) -> None:
+    database = _database(tmp_path)
+    _seed(database)
+    application = FastAPI()
+    register_application_routes(application, database)
+
+    with TestClient(application) as client:
+        response = client.get("/api/v1/review/opportunities")
+
+    assert response.status_code == 200
+    item = response.json()[0]
+    assert item["verification_status"] == "verified_present"
+    assert item["actionable"] is True
+    assert item["preferred_url"] == "https://example.com/jobs/1"
+    assert item["preferred_url_kind"] == "employer_opening"
+    assert item["link_warning"] is None
+
+
+def test_review_keeps_unverified_board_lead_with_warning(tmp_path: Path) -> None:
+    database = _database(tmp_path)
+    company = Company(
+        id="company-board",
+        canonical_name="Board Lead Co",
+        domain="board-lead.example",
+    )
+    opening = NormalizedJobOpening(
+        id="job-board",
+        company_id=company.id,
+        company_name=company.canonical_name,
+        company_domain=company.domain,
+        title="Director of Product",
+        description="Lead product strategy.",
+        source_url="https://board.example/jobs/42",
+        canonical_url="https://board.example/jobs/42",
+        discovered_at=datetime.now(UTC),
+        provenance=[
+            JobProvenance(
+                source_id="board-source",
+                connector="json_ld",
+                parser_version="fixture-v1",
+                source_url="https://board.example/jobs/42",
+                direct_employer_source=False,
+            )
+        ],
+    )
+    CompanyRepository(database).upsert(company)
+    JobOpeningRepository(database).upsert(opening)
+    application = FastAPI()
+    register_application_routes(application, database)
+
+    with TestClient(application) as client:
+        response = client.get("/api/v1/review/opportunities")
+
+    assert response.status_code == 200
+    item = response.json()[0]
+    assert item["verification_status"] == "unverified_source_unresolved"
+    assert item["actionable"] is True
+    assert item["preferred_url"] == "https://board.example/jobs/42"
+    assert item["preferred_url_kind"] == "discovery_source"
+    assert "verification is unavailable" in item["link_warning"]
+
+
+def test_review_withholds_discovered_lead_after_verified_absence(tmp_path: Path) -> None:
+    database = _database(tmp_path)
+    company = Company(
+        id="company-absent",
+        canonical_name="Absent Co",
+        domain="absent.example",
+        career_url="https://boards.greenhouse.io/absent",
+    )
+    source = DiscoverySource(
+        id="source-absent",
+        company_id=company.id,
+        name="Absent Co careers",
+        kind=SourceKind.GREENHOUSE,
+        acquisition_class=AcquisitionClass.PUBLIC_STRUCTURED_FEED,
+        base_url="https://boards.greenhouse.io/absent",
+        parser_version="fixture-v1",
+    )
+    discovered_at = datetime.now(UTC)
+    opening = NormalizedJobOpening(
+        id="job-absent",
+        company_id=company.id,
+        company_name=company.canonical_name,
+        company_domain=company.domain,
+        title="Senior Product Manager",
+        description="Own product strategy.",
+        source_url="https://board.example/jobs/99",
+        canonical_url="https://board.example/jobs/99",
+        discovered_at=discovered_at,
+        provenance=[
+            JobProvenance(
+                source_id="board-source",
+                connector="json_ld",
+                parser_version="fixture-v1",
+                source_url="https://board.example/jobs/99",
+                direct_employer_source=False,
+                discovered_at=discovered_at,
+            )
+        ],
+    )
+    CompanyRepository(database).upsert(company)
+    sources = DiscoverySourceRepository(database)
+    sources.upsert(source)
+    JobOpeningRepository(database).upsert(opening)
+    scan_time = datetime.now(UTC)
+    sources.record_scan(
+        source.id,
+        started_at=scan_time,
+        finished_at=scan_time,
+        status=ScanStatus.SUCCEEDED,
+        requests_made=1,
+        openings_found=0,
+    )
+    application = FastAPI()
+    register_application_routes(application, database)
+
+    with TestClient(application) as client:
+        response = client.get("/api/v1/review/opportunities")
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+def test_review_keeps_saved_role_visible_when_verification_turns_absent(
+    tmp_path: Path,
+) -> None:
+    database = _database(tmp_path)
+    company = Company(
+        id="company-saved-absent",
+        canonical_name="Saved Absent Co",
+        domain="saved-absent.example",
+        career_url="https://jobs.lever.co/saved-absent",
+    )
+    source = DiscoverySource(
+        id="source-saved-absent",
+        company_id=company.id,
+        name="Saved Absent Co careers",
+        kind=SourceKind.LEVER,
+        acquisition_class=AcquisitionClass.PUBLIC_STRUCTURED_FEED,
+        base_url="https://jobs.lever.co/saved-absent",
+        parser_version="fixture-v1",
+    )
+    discovered_at = datetime.now(UTC)
+    opening = NormalizedJobOpening(
+        id="job-saved-absent",
+        company_id=company.id,
+        company_name=company.canonical_name,
+        company_domain=company.domain,
+        title="Product Director",
+        description="Lead product strategy.",
+        source_url="https://board.example/jobs/100",
+        canonical_url="https://board.example/jobs/100",
+        discovered_at=discovered_at,
+        provenance=[
+            JobProvenance(
+                source_id="board-source",
+                connector="json_ld",
+                parser_version="fixture-v1",
+                source_url="https://board.example/jobs/100",
+                direct_employer_source=False,
+                discovered_at=discovered_at,
+            )
+        ],
+    )
+    CompanyRepository(database).upsert(company)
+    sources = DiscoverySourceRepository(database)
+    sources.upsert(source)
+    JobOpeningRepository(database).upsert(opening)
+    ApplicationRepository(database).save(
+        opening.id,
+        ApplicationUpdate(status=ApplicationStatus.SAVED),
+    )
+    scan_time = datetime.now(UTC)
+    sources.record_scan(
+        source.id,
+        started_at=scan_time,
+        finished_at=scan_time,
+        status=ScanStatus.SUCCEEDED,
+        requests_made=1,
+        openings_found=0,
+    )
+    application = FastAPI()
+    register_application_routes(application, database)
+
+    with TestClient(application) as client:
+        response = client.get("/api/v1/review/opportunities")
+
+    assert response.status_code == 200
+    item = response.json()[0]
+    assert item["verification_status"] == "verified_absent"
+    assert item["actionable"] is False
+    assert item["preferred_url"] == company.career_url
+    assert item["preferred_url_kind"] == "employer_careers"
+    assert item["next_action"].startswith("Employer-authoritative evidence no longer confirms")
