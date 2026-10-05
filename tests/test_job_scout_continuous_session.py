@@ -14,6 +14,7 @@ from test_job_scout_discovery_loop import (
 from nerve_center.config import Settings
 from nerve_center.plugins.job_scout import worker
 from nerve_center.plugins.job_scout.runtime import JobScoutOperationBridge
+from nerve_center.plugins.job_scout.settings import ResumeVariant
 from nerve_center.providers.base import ProviderCallMetadata, StructuredGenerationResult
 from nerve_center.scoring.api import register_scoring_routes
 
@@ -371,3 +372,56 @@ def test_different_strategies_cannot_rescan_a_source_before_due(tmp_path, monkey
         assert second is None and used == 0
 
     asyncio.run(scan_twice())
+
+
+def test_scoring_candidates_are_independent_by_resume_variant(tmp_path, monkeypatch):
+    bridge, scoring, jobs = setup_bridge(tmp_path, monkeypatch)
+    configuration = bridge.coordinator.store.load()
+    bridge.coordinator.store.save(
+        configuration.model_copy(
+            update={
+                "resume_document_id": "resume-director",
+                "resume_file_name": "Director Resume.txt",
+                "resume_variants": [
+                    ResumeVariant(
+                        document_id="resume-senior",
+                        file_name="Senior PM Resume.txt",
+                        label="Senior Product Manager",
+                        target_titles=["Senior Product Manager"],
+                    ),
+                    ResumeVariant(
+                        document_id="resume-director",
+                        file_name="Director Resume.txt",
+                        label="Director of Product Management",
+                        target_titles=["Director of Product Management"],
+                    ),
+                ],
+            }
+        )
+    )
+
+    asyncio.run(bridge.invoke("prepare_discovery", {"run_id": "variants"}))
+    asyncio.run(
+        bridge.invoke(
+            "discovery_cycle",
+            {"run_id": "variants", "cycle": 1, "request_limit": 20},
+        )
+    )
+    assert jobs.list()
+
+    result = asyncio.run(
+        bridge.invoke("scoring_candidates", {"attempted_ids": []})
+    )
+    opening = jobs.list()[0]
+    variant_scores = scoring.scores.list(opening.id)
+
+    assert {item.resume_document_id for item in variant_scores} == {
+        "resume-senior",
+        "resume-director",
+    }
+    assert result["provisional_scores_completed"] >= 2
+    assert result["candidates"][0]["resume_document_id"] in {
+        "resume-senior",
+        "resume-director",
+    }
+    assert "::resume::" in result["candidates"][0]["candidate_id"]
