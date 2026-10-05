@@ -76,6 +76,12 @@ class ReviewOpportunity(BaseModel):
     score: OpportunityScore | None = None
     application: ApplicationRecord
     next_action: str
+    verification_status: str = "unverified_source_unresolved"
+    verification_reason: str = "verification_not_assessed"
+    actionable: bool = True
+    preferred_url: str | None = None
+    preferred_url_kind: str = "discovery_source"
+    link_warning: str | None = None
 
 
 RESPONSE_STATUSES = {
