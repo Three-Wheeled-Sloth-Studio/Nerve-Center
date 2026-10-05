@@ -230,12 +230,29 @@ async def _execute_discovery_loop(
                 and full_scores < score_target
                 and score_failures < score_failure_limit
             ):
-                job_id = str(candidates[0])
-                attempted_ids.append(job_id)
+                candidate = candidates[0]
+                if isinstance(candidate, dict):
+                    job_id = str(candidate.get("job_id", ""))
+                    candidate_id = str(candidate.get("candidate_id", job_id))
+                    score_payload = {
+                        "job_id": job_id,
+                        "resume_document_id": candidate.get("resume_document_id"),
+                        "resume_label": candidate.get("resume_label"),
+                    }
+                else:
+                    job_id = str(candidate)
+                    candidate_id = job_id
+                    score_payload = {"job_id": job_id}
+                attempted_ids.append(candidate_id)
                 # Persist reservation before inference so restart cannot exceed the cap.
-                await checkpoint("fit_analysis", scoring_job_id=job_id)
+                await checkpoint(
+                    "fit_analysis",
+                    scoring_job_id=job_id,
+                    scoring_candidate_id=candidate_id,
+                    scoring_resume_document_id=score_payload.get("resume_document_id"),
+                )
                 await client.consume(run_id, "llm_calls")
-                scored = await client.invoke(run_id, "score_candidate", {"job_id": job_id})
+                scored = await client.invoke(run_id, "score_candidate", score_payload)
                 full_scores += bool(scored.get("completed"))
                 scored_this_cycle = True
                 await checkpoint("converge", scoring_outcome=scored)
