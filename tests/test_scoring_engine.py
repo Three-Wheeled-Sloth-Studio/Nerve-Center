@@ -307,7 +307,63 @@ def test_target_title_alignment_is_only_a_weak_visible_fit_clue() -> None:
     assert unrelated.priority < aligned.priority
     assert any(item.code == "target_title_alignment" for item in unrelated.factors)
     assert unrelated.calculation["target_title_alignment"] == 0.0
-    assert unrelated.calculation["scoring_engine_version"] == "job-scout-ranking-v6"
+    assert unrelated.calculation["scoring_engine_version"] == "job-scout-ranking-v7"
+
+
+def test_observed_discovery_advantage_changes_response_not_fit() -> None:
+    now = datetime.now(UTC)
+    direct_only = _opening(posted_at=now - timedelta(days=1)).model_copy(
+        update={
+            "provenance": [
+                JobProvenance(
+                    source_id="direct",
+                    connector="greenhouse",
+                    parser_version="v1",
+                    source_url="https://example.com/jobs/1",
+                    direct_employer_source=True,
+                    discovered_at=now - timedelta(days=2),
+                )
+            ]
+        }
+    )
+    broadly_syndicated = direct_only.model_copy(
+        update={
+            "provenance": [
+                *direct_only.provenance,
+                *[
+                    JobProvenance(
+                        source_id=f"board-{index}",
+                        connector="web_search",
+                        parser_version="v1",
+                        source_url=f"https://board-{index}.example/jobs/1",
+                        direct_employer_source=False,
+                        discovered_at=now - timedelta(days=1, hours=3 - index),
+                    )
+                    for index in range(3)
+                ],
+            ]
+        }
+    )
+
+    early = _score(opening=direct_only)
+    saturated = _score(opening=broadly_syndicated)
+
+    assert early.fit == saturated.fit
+    assert early.response_likelihood > saturated.response_likelihood
+    early_factor = next(
+        item for item in early.factors if item.code == "discovery_advantage"
+    )
+    saturated_factor = next(
+        item for item in saturated.factors if item.code == "discovery_advantage"
+    )
+    assert early_factor.detail["classification"] == "direct_only"
+    assert early_factor.points == 6.0
+    assert saturated_factor.detail["classification"] == "broadly_syndicated"
+    assert saturated_factor.points == -3.0
+    assert (
+        early.calculation["discovery_advantage"]["observation_scope"]
+        == "retained_provenance_only"
+    )
 
 
 def test_verified_source_confidence_outranks_stale_without_changing_fit() -> None:
