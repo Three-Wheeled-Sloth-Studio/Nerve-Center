@@ -213,3 +213,6 @@ def test_multiple_resume_uploads_remain_active_variants(tmp_path: Path) -> None:
     ]
     assert all(item["active"] for item in variants)
     assert second_workspace["configuration"]["resume_file_name"] == "Director Resume.txt"
+    assert {"Senior Product Manager", "Director of Product Management"}.issubset(
+        set(second_workspace["suggestions"]["target_titles"])
+    )
