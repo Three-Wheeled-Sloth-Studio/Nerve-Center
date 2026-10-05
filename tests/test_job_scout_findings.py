@@ -113,7 +113,7 @@ def test_employer_findings_surface_local_presence_and_role_metrics(tmp_path: Pat
                 parser_version="fixture-v1",
                 source_url="https://boards.greenhouse.io/local-product/jobs/1",
                 direct_employer_source=True,
-                discovered_at=now - timedelta(days=5),
+                discovered_at=now - timedelta(seconds=30),
             )
         ],
     )
