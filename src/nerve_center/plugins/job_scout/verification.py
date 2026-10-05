@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 
 from nerve_center.discovery.models import (
+    Company,
     DiscoverySource,
     NormalizedJobOpening,
     ScanStatus,
@@ -21,6 +22,13 @@ class VerificationStatus(StrEnum):
     UNVERIFIED_PARSE_FAILED = "unverified_parse_failed"
     VERIFIED_ABSENT = "verified_absent"
     STALE_VERIFICATION = "stale_verification"
+
+
+@dataclass(frozen=True, slots=True)
+class OpportunityLink:
+    url: str | None
+    kind: str
+    warning: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -126,6 +134,36 @@ def assess_opening_verification(
         reason="authoritative_source_scan_unavailable_or_incomplete",
         authoritative_source_ids=source_ids,
         evidence_urls=urls,
+    )
+
+
+def preferred_opportunity_link(
+    opening: NormalizedJobOpening,
+    company: Company,
+    assessment: VerificationAssessment,
+) -> OpportunityLink:
+    """Choose the most useful user-facing link without overstating verification."""
+
+    if assessment.status is VerificationStatus.VERIFIED_PRESENT:
+        return OpportunityLink(
+            url=opening.canonical_url or opening.apply_url or opening.source_url,
+            kind="employer_opening",
+        )
+    if company.career_url:
+        return OpportunityLink(
+            url=company.career_url,
+            kind="employer_careers",
+            warning=(
+                "This opening is not currently verified on an employer-authoritative source."
+            ),
+        )
+    fallback = opening.canonical_url or opening.source_url
+    return OpportunityLink(
+        url=fallback,
+        kind="discovery_source",
+        warning=(
+            "Employer-authoritative verification is unavailable; this link is a discovery source."
+        ),
     )
 
 
