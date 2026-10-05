@@ -85,10 +85,15 @@ class JobScoutOperationBridge:
             job_id = _required_string(payload, "job_id")
             try:
                 opening = next(
-                    item
-                    for item in self.scoring.jobs.list(active_only=False)
-                    if item.id == job_id
+                    (
+                        item
+                        for item in self.scoring.jobs.list(active_only=False)
+                        if item.id == job_id
+                    ),
+                    None,
                 )
+                if opening is None:
+                    raise KeyError(f"unknown job opening: {job_id}")
                 verification = assess_opening_verification(opening, self.sources)
                 if verification.status is VerificationStatus.VERIFIED_ABSENT:
                     return {
