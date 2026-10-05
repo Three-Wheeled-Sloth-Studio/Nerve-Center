@@ -7,6 +7,31 @@ tags: [nerve-center, handoff]
 ---
 # Current Handoff
 
+## 2026-10-05 - Job Scout verification contract and first verification-state slice
+
+The accepted Job Scout product contract is now recorded in `refs/planning/job-scout-verification-and-findings-contract.md`. It distinguishes discovery from employer-authoritative verification, treats unreachable/unreadable employer sources as non-blocking but lower-confidence, distinguishes those cases from a successful authoritative read that does not confirm the opening, pins independent multi-resume scoring, and defines the follow-on Employers / Opportunities findings views plus light evidence-constrained terminology alignment.
+
+Implementation checkpoints:
+
+- `35d270b061ce92e68006e322a535dc4b29a7baa0`: deterministic verification classifier;
+- `40c10d2aa9183c0000bd413ce92ebd9df55247fb`: scoring-candidate and full-score guard for `verified_absent`;
+- `beb8a93fa77e41d220805d41c8ee56c8d5de5825`: verification-state regression tests;
+- `0130b596e7c4fa1904e3b6abc2fb5ae28f2e2b7d`: generated source-catalog refresh.
+
+Current conservative behavior:
+
+- direct employer/authorized-ATS provenance => `verified_present`;
+- no resolved authoritative source => unverified and actionable;
+- access/challenge/fetch failure => unverified and actionable;
+- parser failure => separately flagged unverified and actionable;
+- a successful empty scan of an exhaustive employer-authoritative Greenhouse/Lever/Ashby inventory may establish `verified_absent`;
+- successful non-empty inventories without an opening match remain unverified for now rather than asserting absence;
+- non-exhaustive page scans cannot establish absence;
+- only `verified_absent` is withheld from scoring; unverified opportunities remain eligible and continue to receive the existing lower non-direct provenance reward.
+
+Next bounded work is canonical/discovery-vs-authoritative URL behavior, then stale/closure reconciliation, followed by multi-resume scoring and the employer/opportunity findings model.
+
+
 ## 2026-09-18 - Live reflection acceptance and role-discovery reachability follow-up
 
 Live run `79284b69-d231-485b-9b8e-3c45b1679eab` exposed a reflection-v3 validation bypass: the model could label a strategy `employer_archetype`, put a malformed class in `anchor`, omit the dedicated archetype field, and persist it without spending a request during that run. Checkpoint `cf2bbc92c77ddf5a2bb441cd7da6afa2a8b98ffd` requires evidence-backed archetype fields, applies seniority/activity lint across reflected families, and excludes every currently invalid durable public-search strategy before selection while preserving its audit history.
