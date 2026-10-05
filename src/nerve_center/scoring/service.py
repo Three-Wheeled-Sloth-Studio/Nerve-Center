@@ -9,6 +9,11 @@ from uuid import NAMESPACE_URL, uuid4, uuid5
 from nerve_center.discovery.models import NormalizedJobOpening
 from nerve_center.persistence.discovery import JobOpeningRepository
 from nerve_center.persistence.profile import CareerProfileRepository
+from nerve_center.profile.models import (
+    CanonicalCareerProfile,
+    ClaimDecision,
+    EvidenceOrigin,
+)
 from nerve_center.persistence.scoring import (
     CompanyEnrichmentRepository,
     FitAnalysisRepository,
