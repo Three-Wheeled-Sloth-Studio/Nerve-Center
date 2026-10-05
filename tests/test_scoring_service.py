@@ -1,8 +1,16 @@
 from nerve_center.discovery.models import JobProvenance, NormalizedJobOpening
+from nerve_center.profile.models import (
+    CanonicalCareerProfile,
+    CareerClaim,
+    ClaimCategory,
+    EvidenceOrigin,
+    EvidenceReference,
+)
 from nerve_center.scoring.models import CompanyEnrichment, LocationPreferences
 from nerve_center.scoring.service import (
     _effective_location_preferences,
     _merge_observed_company_presence,
+    _profile_for_resume,
     _title_role_alignment,
 )
 
@@ -82,3 +90,62 @@ def test_direct_employer_location_evidence_builds_company_presence() -> None:
     assert [item.label for item in enrichment.offices] == ["Greensboro, NC"]
     assert enrichment.offices[0].region == "NC"
     assert enrichment.offices[0].evidence_url == "https://example.com/jobs/local"
+
+
+def test_resume_specific_profile_keeps_only_variant_evidence_and_user_confirmed() -> None:
+    profile = CanonicalCareerProfile(
+        version=4,
+        claims=[
+            CareerClaim(
+                id="senior-pm",
+                category=ClaimCategory.ROLE,
+                label="Senior Product Manager",
+                statement="Led product delivery.",
+                confidence=0.9,
+                evidence=[
+                    EvidenceReference(
+                        origin=EvidenceOrigin.DOCUMENT,
+                        document_id="resume-senior",
+                        locator="p1",
+                        excerpt="Led product delivery.",
+                    )
+                ],
+            ),
+            CareerClaim(
+                id="director",
+                category=ClaimCategory.ROLE,
+                label="Director of Product Management",
+                statement="Led product teams.",
+                confidence=0.9,
+                evidence=[
+                    EvidenceReference(
+                        origin=EvidenceOrigin.DOCUMENT,
+                        document_id="resume-director",
+                        locator="p1",
+                        excerpt="Led product teams.",
+                    )
+                ],
+            ),
+            CareerClaim(
+                id="confirmed",
+                category=ClaimCategory.CAPABILITY,
+                label="Product analytics",
+                statement="Led product analytics programs.",
+                confidence=1.0,
+                evidence=[
+                    EvidenceReference(
+                        origin=EvidenceOrigin.USER_CONFIRMED,
+                        locator="user_override",
+                        excerpt="Led product analytics programs.",
+                    )
+                ],
+            ),
+        ],
+    )
+
+    senior = _profile_for_resume(profile, "resume-senior")
+    director = _profile_for_resume(profile, "resume-director")
+
+    assert {item.id for item in senior.claims} == {"senior-pm", "confirmed"}
+    assert {item.id for item in director.claims} == {"director", "confirmed"}
+    assert profile.version == senior.version == director.version
