@@ -1,6 +1,7 @@
 import type {
   ApplicationRecord,
   ApplicationStatus,
+  EmployerFinding,
   JobScoutConfiguration,
   JobScoutScanSummary,
   JobScoutWorkspace,
@@ -138,6 +139,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await response.json()) as T;
 }
 
+export function getEmployerFindings() {
+  return request<EmployerFinding[]>("/api/v1/modules/job_scout/findings/employers");
+}
 export function getOpportunities(sort: string, includeDismissed: boolean) {
   const query = new URLSearchParams({ sort, include_dismissed: String(includeDismissed) });
   return request<ReviewOpportunity[]>(`/api/v1/review/opportunities?${query}`);
