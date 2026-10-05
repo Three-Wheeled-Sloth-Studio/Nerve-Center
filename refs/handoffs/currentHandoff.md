@@ -7,6 +7,35 @@ tags: [nerve-center, handoff]
 ---
 # Current Handoff
 
+## 2026-10-05 - Job Scout verification, multi-resume findings, and terminology alignment accepted
+
+Accepted implementation now covers the full bounded Job Scout contract slice:
+
+- employer-authoritative verification states distinguish verified presence, unresolved/unavailable/parse-failed sources, stale verification, and verified absence;
+- failed, blocked, challenged, incomplete, or unparsable employer scans remain non-blocking and never imply absence;
+- later successful exhaustive Greenhouse/Lever/Ashby scans can establish disappearance only when observation evidence supports it;
+- review and scoring prefer employer-authoritative links, visibly flag secondary discovery links, and withhold newly discovered verified-absent roles;
+- verification confidence affects response/confidence scoring without rewriting factual resume fit;
+- multiple active resume variants are retained and scored independently per opening, with evidence constrained to claims supported by each resume plus user-confirmed canonical evidence;
+- autonomous scoring reservations are keyed by opening plus resume variant, so one resume does not suppress evaluation against another;
+- Opportunities findings use the best current active resume score and show the selected resume;
+- employer findings expose evidence-backed local/regional presence, career-source health, current/recent relevant-role counts, direct-first and unverified-lead counts, and best current role/resume;
+- evidence-constrained terminology alignment is registered as a review-only suggestion path and cannot invent skills, inflate scope, or silently rewrite resume facts.
+
+Validated final-tree checkpoint before this handoff update:
+
+- dev head: `321ea24c7db42019c981ece65f3977e0da5a49b8`
+- source catalog and OKF indexes: current
+- refs and agent-context validation: green
+- Ruff: green
+- backend packaging dry-run: green
+- Python suite: 328 passed
+- desktop React build: green
+- temporary validation workflow removed itself successfully
+
+The next useful Job Scout slice is observed syndication/discovery-advantage refinement: use actual first-seen provenance and later syndication evidence to improve priority/explanation without making major-board presence a prerequisite. Keep discovery provenance, verification confidence, resume fit, and opportunity priority separate.
+
+
 ## 2026-10-05 - Job Scout verification contract and first verification-state slice
 
 The accepted Job Scout product contract is now recorded in `refs/planning/job-scout-verification-and-findings-contract.md`. It distinguishes discovery from employer-authoritative verification, treats unreachable/unreadable employer sources as non-blocking but lower-confidence, distinguishes those cases from a successful authoritative read that does not confirm the opening, pins independent multi-resume scoring, and defines the follow-on Employers / Opportunities findings views plus light evidence-constrained terminology alignment.
