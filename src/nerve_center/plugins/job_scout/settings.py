@@ -161,6 +161,20 @@ def clean_list(values: list[str]) -> list[str]:
     return result
 
 
+
+class ResumeVariant(BaseModel):
+    document_id: str
+    file_name: str
+    label: str
+    target_titles: list[str] = Field(default_factory=list, max_length=20)
+    active: bool = True
+
+    @field_validator("target_titles", mode="after")
+    @classmethod
+    def normalize_target_titles(cls, values: list[str]) -> list[str]:
+        return clean_list(values)
+
+
 class JobScoutConfiguration(BaseModel):
     """Module-owned configuration used by setup and scheduled scans."""
 
@@ -168,6 +182,7 @@ class JobScoutConfiguration(BaseModel):
 
     resume_document_id: str | None = None
     resume_file_name: str | None = None
+    resume_variants: list[ResumeVariant] = Field(default_factory=list, max_length=12)
     target_titles: list[str] = Field(default_factory=list, max_length=40)
     locations: list[str] = Field(default_factory=list, max_length=40)
     remote_preference: str = Field(default="any", pattern="^(any|remote|hybrid|on_site)$")
@@ -207,6 +222,18 @@ class JobScoutConfiguration(BaseModel):
     @model_validator(mode="after")
     def align_public_discovery_state(self) -> JobScoutConfiguration:
         self.broad_search_enabled = bool(self.public_job_boards)
+        if (
+            not self.resume_variants
+            and self.resume_document_id
+            and self.resume_file_name
+        ):
+            self.resume_variants = [
+                ResumeVariant(
+                    document_id=self.resume_document_id,
+                    file_name=self.resume_file_name,
+                    label=self.resume_file_name,
+                )
+            ]
         return self
 
 
