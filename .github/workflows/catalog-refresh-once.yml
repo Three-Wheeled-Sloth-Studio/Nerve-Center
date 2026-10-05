@@ -1,0 +1,34 @@
+name: One-shot source catalog refresh
+
+on:
+  push:
+    branches: [dev]
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install pyyaml
+      - name: Refresh generated source catalog
+        run: |
+          python refs/tools/generate_source_catalog.py
+          rm .github/workflows/catalog-refresh-once.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add refs/implementation/sourceCatalog/index.yaml refs/implementation/.sourceCatalogShards .github/workflows/catalog-refresh-once.yml
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "chore: refresh source catalog"
+          git push origin HEAD:dev
