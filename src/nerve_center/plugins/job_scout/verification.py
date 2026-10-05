@@ -66,7 +66,7 @@ def assess_opening_verification(
     employer_sources = [
         source
         for source in sources.list()
-        if source.company_id == opening.company_id and _is_employer_authoritative(source)
+        if source.company_id == opening.company_id and is_employer_authoritative_source(source)
     ]
     if not employer_sources:
         return VerificationAssessment(
@@ -160,7 +160,7 @@ def _assess_direct_observations(
         except KeyError:
             current.append(source_id)
             continue
-        if not _is_employer_authoritative(source):
+        if not is_employer_authoritative_source(source):
             continue
         scans = sources.list_scans(source.id, limit=1)
         if not scans or observed_at is None:
@@ -254,7 +254,7 @@ def preferred_opportunity_link(
     )
 
 
-def _is_employer_authoritative(source: DiscoverySource) -> bool:
+def is_employer_authoritative_source(source: DiscoverySource) -> bool:
     return bool(source.configuration.get("direct_employer_source", True)) and (
         source.configuration.get("source_role") != "aggregator_listing"
     )
