@@ -116,6 +116,42 @@ def test_persists_registry_health_jobs_and_cache(tmp_path: Path) -> None:
     assert SCHEMA_VERSION == 15
 
 
+def test_repeated_source_observation_preserves_first_seen_provenance(tmp_path: Path) -> None:
+    database = _database(tmp_path)
+    CompanyRepository(database).upsert(_company())
+    DiscoverySourceRepository(database).upsert(_source())
+    jobs = JobOpeningRepository(database)
+    first_seen = datetime.now(UTC) - timedelta(days=4)
+    initial = _opening("source-1", direct=True, description="Initial").model_copy(
+        update={
+            "discovered_at": first_seen,
+            "provenance": [
+                _opening("source-1", direct=True, description="Initial").provenance[
+                    0
+                ].model_copy(update={"discovered_at": first_seen})
+            ],
+        }
+    )
+    later_seen = first_seen + timedelta(days=3)
+    refresh = initial.model_copy(
+        update={
+            "description": "Refreshed",
+            "discovered_at": later_seen,
+            "provenance": [
+                initial.provenance[0].model_copy(update={"discovered_at": later_seen})
+            ],
+        }
+    )
+
+    jobs.upsert(initial)
+    jobs.upsert(refresh)
+    persisted = jobs.list()[0]
+
+    assert persisted.description == "Refreshed"
+    assert len(persisted.provenance) == 1
+    assert persisted.provenance[0].discovered_at == first_seen
+
+
 def test_search_cache_expires(tmp_path: Path) -> None:
     database = _database(tmp_path)
     cache = SearchCacheRepository(database)
