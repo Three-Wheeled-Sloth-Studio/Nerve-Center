@@ -72,6 +72,7 @@ export interface OpportunityScore {
     kind: string;
     points: number;
     evidence: string[];
+    detail?: Record<string, unknown>;
   }>;
   location: {
     scope: string;
@@ -95,6 +96,9 @@ export interface EmployerFinding {
   relevant_roles_30d: number;
   relevant_roles_90d: number;
   direct_first_roles: number;
+  direct_only_roles: number;
+  secondary_first_verified_roles: number;
+  broadly_syndicated_roles: number;
   unverified_leads: number;
   verified_absent_roles: number;
   best_role: {
@@ -104,6 +108,7 @@ export interface EmployerFinding {
     fit: number;
     resume_document_id: string | null;
     resume_label: string | null;
+    discovery_advantage: string;
   } | null;
 }
 
