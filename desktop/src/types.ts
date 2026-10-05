@@ -55,6 +55,8 @@ export interface Company {
 }
 
 export interface OpportunityScore {
+  resume_document_id: string | null;
+  resume_label: string | null;
   fit: number;
   response_likelihood: number;
   opportunity_value: number;
@@ -242,6 +244,13 @@ export interface DiscoverySource {
 export interface JobScoutConfiguration {
   resume_document_id: string | null;
   resume_file_name: string | null;
+  resume_variants: Array<{
+    document_id: string;
+    file_name: string;
+    label: string;
+    target_titles: string[];
+    active: boolean;
+  }>;
   target_titles: string[];
   locations: string[];
   remote_preference: "any" | "remote" | "hybrid" | "on_site";
