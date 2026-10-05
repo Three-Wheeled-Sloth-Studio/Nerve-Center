@@ -30,6 +30,9 @@ from nerve_center.plugins.job_scout.discovery_quality import DiscoveryQualityRep
 from nerve_center.plugins.job_scout.findings import register_job_scout_findings_routes
 from nerve_center.plugins.job_scout.manifest import job_scout_manifest
 from nerve_center.plugins.job_scout.runtime import JobScoutOperationBridge
+from nerve_center.plugins.job_scout.terminology_alignment import (
+    register_terminology_alignment_routes,
+)
 from nerve_center.plugins.job_scout.verification import (
     assess_opening_verification,
     source_confidence_for_verification,
@@ -123,6 +126,11 @@ def install_job_scout(
         configuration_store=coordinator.store,
     )
     register_job_scout_findings_routes(application, database, coordinator.store)
+    register_terminology_alignment_routes(
+        application,
+        database,
+        application.state.provider,
+    )
     register_job_scout_upload_route(application, settings)
     return JobScoutModulePackage(
         manifest=job_scout_manifest(),
