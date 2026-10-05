@@ -43,6 +43,8 @@ from nerve_center.scoring.service import ScoringService
 
 class FitAnalyzeRequest(BaseModel):
     model: str | None = Field(default=None, min_length=1, max_length=200)
+    resume_document_id: str | None = Field(default=None, max_length=100)
+    resume_label: str | None = Field(default=None, max_length=255)
 
 
 class ScoreRequest(BaseModel):
@@ -165,7 +167,12 @@ def register_scoring_routes(
     @application.post("/api/v1/scoring/jobs/{job_id}/fit")
     async def analyze_fit(job_id: str, request: FitAnalyzeRequest) -> JobFitAnalysis:
         try:
-            return await service.analyze_fit(job_id, model=request.model)
+            return await service.analyze_fit(
+                job_id,
+                model=request.model,
+                resume_document_id=request.resume_document_id,
+                resume_label=request.resume_label,
+            )
         except KeyError as error:
             raise HTTPException(status_code=404, detail=str(error)) from error
         except ProviderError as error:
