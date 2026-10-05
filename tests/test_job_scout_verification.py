@@ -3,6 +3,7 @@ from datetime import UTC, datetime, timedelta
 from nerve_center.config import Settings
 from nerve_center.discovery.models import (
     AcquisitionClass,
+    Company,
     DiscoverySource,
     JobProvenance,
     NormalizedJobOpening,
@@ -10,7 +11,7 @@ from nerve_center.discovery.models import (
     SourceKind,
 )
 from nerve_center.persistence.database import Database
-from nerve_center.persistence.discovery import DiscoverySourceRepository
+from nerve_center.persistence.discovery import CompanyRepository, DiscoverySourceRepository
 from nerve_center.plugins.job_scout.verification import (
     VerificationStatus,
     assess_opening_verification,
@@ -20,6 +21,13 @@ from nerve_center.plugins.job_scout.verification import (
 def _repository(tmp_path):
     database = Database(Settings(data_dir=tmp_path / "runtime"))
     database.initialize()
+    CompanyRepository(database).upsert(
+        Company(
+            id="company-1",
+            canonical_name="Example",
+            domain="example.com",
+        )
+    )
     return DiscoverySourceRepository(database)
 
 
