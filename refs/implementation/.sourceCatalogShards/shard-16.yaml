@@ -274,7 +274,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/runtime.py
     analysis_version: 1
     language: python
-    content_hash: 5c9fef9ec7281b406c5a4318cf996c905a90ac9c
+    content_hash: 3d0069b16dc10d586c4347ffcafeb9dbfe610088
     dependencies:
     - __future__
     - collections.abc
@@ -285,6 +285,7 @@ source_catalog:
     - nerve_center.plugins.job_scout.configuration
     - nerve_center.plugins.job_scout.discovery_learning
     - nerve_center.plugins.job_scout.discovery_loop
+    - nerve_center.plugins.job_scout.verification
     - nerve_center.providers.errors
     - nerve_center.scoring.service
     - typing
@@ -295,8 +296,8 @@ source_catalog:
     symbols:
     - name: JobScoutOperationBridge.__init__
       kind: method
-      line_start: 23
-      line_end: 37
+      line_start: 27
+      line_end: 41
       signature: 'JobScoutOperationBridge.__init__(self, service: DiscoveryService, sources: DiscoverySourceRepository, coordinator:
         JobScoutCoordinator, learning: JobScoutDiscoveryRepository, discovery_loop: JobScoutDiscoveryLoop, scoring: ScoringService
         | None) -> None'
@@ -314,8 +315,8 @@ source_catalog:
       dependency_targets: []
     - name: JobScoutOperationBridge.invoke
       kind: method
-      line_start: 39
-      line_end: 159
+      line_start: 43
+      line_end: 189
       signature: 'JobScoutOperationBridge.invoke(self, operation: str, payload: Mapping[str, Any]) -> dict[str, Any]'
       inputs:
       - self
@@ -327,6 +328,7 @@ source_catalog:
       - ValueError
       - _required_string
       - asdict
+      - assess_opening_verification
       - bool
       - candidates.append
       - candidates.sort
@@ -334,6 +336,7 @@ source_catalog:
       - isinstance
       - len
       - list
+      - next
       - payload.get
       - score.calculation.get
       - self.coordinator._discover_keywords
@@ -345,12 +348,12 @@ source_catalog:
       - self.discovery_loop.prepare
       - self.discovery_loop.reflection_work_request
       - self.discovery_loop.summary
-      - self.learning.record_reflection_request
-      - self.learning.reflection_request
       parser: python-ast
       dependency_targets:
       - path: src/nerve_center/plugins/job_scout/runtime.py
         symbol: _required_string
+      - path: src/nerve_center/plugins/job_scout/verification.py
+        symbol: assess_opening_verification
       - *id012
       - path: src/nerve_center/plugins/job_scout/configuration.py
         symbol: JobScoutCoordinator._discover_keywords
@@ -388,14 +391,10 @@ source_catalog:
         symbol: JobScoutDiscoveryLoop.summary
       - path: src/nerve_center/summary/api.py
         symbol: register_summary_routes.summary
-      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
-        symbol: JobScoutDiscoveryRepository.record_reflection_request
-      - path: src/nerve_center/plugins/job_scout/discovery_learning.py
-        symbol: JobScoutDiscoveryRepository.reflection_request
     - name: _required_string
       kind: function
-      line_start: 162
-      line_end: 166
+      line_start: 192
+      line_end: 196
       signature: '_required_string(payload: Mapping[str, Any], field: str) -> str'
       inputs:
       - 'payload: Mapping[str, Any]'

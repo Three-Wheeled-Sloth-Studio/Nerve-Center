@@ -320,6 +320,70 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id012
+  - path: src/nerve_center/plugins/job_scout/verification.py
+    analysis_version: 1
+    language: python
+    content_hash: a488f9b0c0d6ba077483f3111ab29ea6f30e0118
+    dependencies:
+    - __future__
+    - dataclasses
+    - enum
+    - nerve_center.discovery.models
+    - nerve_center.persistence.discovery
+    provides:
+    - VerificationAssessment.actionable
+    - assess_opening_verification
+    - _is_employer_authoritative
+    symbols:
+    - name: VerificationAssessment.actionable
+      kind: method
+      line_start: 34
+      line_end: 35
+      signature: VerificationAssessment.actionable(self) -> bool
+      inputs:
+      - self
+      output: bool
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
+    - name: assess_opening_verification
+      kind: function
+      line_start: 45
+      line_end: 129
+      signature: 'assess_opening_verification(opening: NormalizedJobOpening, sources: DiscoverySourceRepository) -> VerificationAssessment'
+      inputs:
+      - 'opening: NormalizedJobOpening'
+      - 'sources: DiscoverySourceRepository'
+      output: VerificationAssessment
+      dependencies:
+      - VerificationAssessment
+      - _is_employer_authoritative
+      - any
+      - dict.fromkeys
+      - observed.append
+      - sources.list
+      - sources.list_scans
+      - tuple
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/plugins/job_scout/verification.py
+        symbol: _is_employer_authoritative
+      - *id001
+      - path: src/nerve_center/persistence/discovery.py
+        symbol: DiscoverySourceRepository.list_scans
+    - name: _is_employer_authoritative
+      kind: function
+      line_start: 132
+      line_end: 135
+      signature: '_is_employer_authoritative(source: DiscoverySource) -> bool'
+      inputs:
+      - 'source: DiscoverySource'
+      output: bool
+      dependencies:
+      - bool
+      - source.configuration.get
+      parser: python-ast
+      dependency_targets: []
   - path: src/nerve_center/providers/__init__.py
     analysis_version: 1
     language: python

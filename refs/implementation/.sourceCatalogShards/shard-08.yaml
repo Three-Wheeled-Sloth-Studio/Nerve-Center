@@ -209,6 +209,9 @@ source_catalog:
       - &id004
         path: tests/test_discovery_persistence.py
         symbol: _source
+      - &id005
+        path: tests/test_job_scout_verification.py
+        symbol: _source
     - name: test_greenhouse_normalizes_public_jobs.handler
       kind: function
       line_start: 43
@@ -247,6 +250,7 @@ source_catalog:
       - *id002
       - *id003
       - *id004
+      - *id005
     - name: test_lever_paginates_and_normalizes.handler
       kind: function
       line_start: 85
@@ -286,6 +290,7 @@ source_catalog:
       - *id002
       - *id003
       - *id004
+      - *id005
     - name: test_ashby_public_postings_normalize_listed_roles.handler
       kind: function
       line_start: 128
@@ -324,6 +329,7 @@ source_catalog:
       - *id002
       - *id003
       - *id004
+      - *id005
     - name: test_json_ld_extracts_nested_jobposting.handler
       kind: function
       line_start: 202
@@ -363,6 +369,7 @@ source_catalog:
       - *id002
       - *id003
       - *id004
+      - *id005
     - name: test_json_ld_resolves_aggregator_hiring_organization_domain.handler
       kind: function
       line_start: 241
@@ -404,6 +411,7 @@ source_catalog:
       - *id002
       - *id003
       - *id004
+      - *id005
     - name: test_json_ld_does_not_treat_social_same_as_as_employer_domain.handler
       kind: function
       line_start: 281
@@ -445,6 +453,7 @@ source_catalog:
       - *id002
       - *id003
       - *id004
+      - *id005
     - name: test_json_ld_disambiguates_same_name_unresolved_hiring_organizations.handler
       kind: function
       line_start: 332
@@ -482,6 +491,7 @@ source_catalog:
       - *id002
       - *id003
       - *id004
+      - *id005
     - name: test_sitemap_returns_only_likely_job_urls.handler
       kind: function
       line_start: 364
@@ -630,25 +640,25 @@ source_catalog:
       - restarted.get_strategy
       parser: python-ast
       dependency_targets:
-      - &id005
+      - &id006
         path: tests/test_applications.py
         symbol: _database
-      - &id006
+      - &id007
         path: tests/test_discovery_persistence.py
         symbol: _database
-      - &id007
+      - &id008
         path: tests/test_job_scout_discovery_learning.py
         symbol: _database
-      - &id008
+      - &id009
         path: tests/test_job_scout_query_portfolio.py
         symbol: _database
-      - &id009
-        path: src/nerve_center/plugins/job_scout/discovery_learning.py
-        symbol: JobScoutDiscoveryRepository.ensure_strategy
       - &id010
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
-        symbol: JobScoutDiscoveryRepository.select_strategies
+        symbol: JobScoutDiscoveryRepository.ensure_strategy
       - &id011
+        path: src/nerve_center/plugins/job_scout/discovery_learning.py
+        symbol: JobScoutDiscoveryRepository.select_strategies
+      - &id012
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.get_strategy
     - name: test_source_count_without_posting_yield_is_not_rewarded
@@ -667,11 +677,11 @@ source_catalog:
       - learning.record_attempt
       parser: python-ast
       dependency_targets:
-      - *id005
       - *id006
       - *id007
       - *id008
       - *id009
+      - *id010
     - name: test_strategy_selection_reserves_company_deepening_capacity
       kind: function
       line_start: 97
@@ -688,12 +698,12 @@ source_catalog:
       - range
       parser: python-ast
       dependency_targets:
-      - *id005
       - *id006
       - *id007
       - *id008
       - *id009
       - *id010
+      - *id011
     - name: test_strategy_selection_quarantines_malformed_historical_reflection
       kind: function
       line_start: 114
@@ -710,13 +720,13 @@ source_catalog:
       - learning.select_strategies
       parser: python-ast
       dependency_targets:
-      - *id005
       - *id006
       - *id007
       - *id008
       - *id009
-      - *id011
       - *id010
+      - *id012
+      - *id011
     - name: test_strategy_selection_reserves_local_employer_exploration_capacity
       kind: function
       line_start: 149
@@ -733,12 +743,12 @@ source_catalog:
       - range
       parser: python-ast
       dependency_targets:
-      - *id005
       - *id006
       - *id007
       - *id008
       - *id009
       - *id010
+      - *id011
     - name: test_strategy_selection_reserves_civic_attachment_employer_deepening
       kind: function
       line_start: 180
@@ -755,12 +765,12 @@ source_catalog:
       - range
       parser: python-ast
       dependency_targets:
-      - *id005
       - *id006
       - *id007
       - *id008
       - *id009
       - *id010
+      - *id011
     - name: test_strategy_selection_deduplicates_civic_employer_query_across_markets
       kind: function
       line_start: 222
@@ -779,12 +789,12 @@ source_catalog:
       - range
       parser: python-ast
       dependency_targets:
-      - *id005
       - *id006
       - *id007
       - *id008
       - *id009
       - *id010
+      - *id011
     - name: test_strategy_selection_deduplicates_compiled_market_reference_query
       kind: function
       line_start: 268
@@ -805,12 +815,12 @@ source_catalog:
       - range
       parser: python-ast
       dependency_targets:
-      - *id005
       - *id006
       - *id007
       - *id008
       - *id009
       - *id010
+      - *id011
     - name: test_strategy_selection_deduplicates_query_across_revision_provenance
       kind: function
       line_start: 314
@@ -828,12 +838,12 @@ source_catalog:
       - range
       parser: python-ast
       dependency_targets:
-      - *id005
       - *id006
       - *id007
       - *id008
       - *id009
       - *id010
+      - *id011
     - name: test_market_exploration_covers_distinct_locations_and_regional_probe
       kind: function
       line_start: 342
@@ -852,12 +862,12 @@ source_catalog:
       - range
       parser: python-ast
       dependency_targets:
-      - *id005
       - *id006
       - *id007
       - *id008
       - *id009
       - *id010
+      - *id011
     - name: test_market_exploration_prefers_current_query_revision
       kind: function
       line_start: 410
@@ -874,12 +884,12 @@ source_catalog:
       - range
       parser: python-ast
       dependency_targets:
-      - *id005
       - *id006
       - *id007
       - *id008
       - *id009
       - *id010
+      - *id011
     - name: test_current_market_attempt_moves_selection_to_next_market
       kind: function
       line_start: 449
@@ -897,12 +907,12 @@ source_catalog:
       - learning.select_strategies
       parser: python-ast
       dependency_targets:
-      - *id005
       - *id006
       - *id007
       - *id008
       - *id009
       - *id010
+      - *id011
     - name: test_location_strategy_family_accumulates_zero_yield_across_query_variants
       kind: function
       line_start: 496
@@ -923,14 +933,14 @@ source_catalog:
       - next
       parser: python-ast
       dependency_targets:
-      - *id005
       - *id006
       - *id007
       - *id008
       - *id009
+      - *id010
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.list_strategy_families
-      - *id010
+      - *id011
     - name: test_cooldown_survives_restart_and_run_changes
       kind: function
       line_start: 567
@@ -950,12 +960,12 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id005
       - *id006
       - *id007
       - *id008
       - *id009
       - *id010
+      - *id011
     - name: test_company_is_retained_as_strategy_evidence_with_zero_openings
       kind: function
       line_start: 585
@@ -978,23 +988,23 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.company_evidence_count
-      - *id005
       - *id006
       - *id007
       - *id008
-      - &id012
-        path: src/nerve_center/persistence/discovery.py
-        symbol: CompanyRepository.upsert
+      - *id009
       - &id013
         path: src/nerve_center/persistence/discovery.py
-        symbol: DiscoverySourceRepository.upsert
+        symbol: CompanyRepository.upsert
       - &id014
         path: src/nerve_center/persistence/discovery.py
-        symbol: JobOpeningRepository.upsert
+        symbol: DiscoverySourceRepository.upsert
       - &id015
+        path: src/nerve_center/persistence/discovery.py
+        symbol: JobOpeningRepository.upsert
+      - &id016
         path: src/nerve_center/persistence/scoring.py
         symbol: ScoringRuleRepository.upsert
-      - *id009
+      - *id010
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.record_company_evidence
       - path: src/nerve_center/plugins/job_scout/discovery_quality.py
@@ -1029,16 +1039,16 @@ source_catalog:
       - sources.upsert
       parser: python-ast
       dependency_targets:
-      - *id005
       - *id006
       - *id007
       - *id008
-      - *id012
+      - *id009
       - *id013
       - *id014
       - *id015
-      - *id009
-      - *id011
+      - *id016
+      - *id010
+      - *id012
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.sync_application_feedback
     - name: test_session_coverage_and_reflection_state_are_restart_safe
@@ -1062,11 +1072,11 @@ source_catalog:
       - restarted.session
       parser: python-ast
       dependency_targets:
-      - *id005
       - *id006
       - *id007
       - *id008
       - *id009
+      - *id010
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.record_reflection_hypothesis
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
@@ -1102,12 +1112,12 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id005
       - *id006
       - *id007
       - *id008
       - *id009
       - *id010
+      - *id011
     - name: test_stale_html_employer_evidence_is_not_scheduled_but_current_and_attachment_are
       kind: function
       line_start: 819
@@ -1123,12 +1133,12 @@ source_catalog:
       - learning.select_strategies
       parser: python-ast
       dependency_targets:
-      - *id005
       - *id006
       - *id007
       - *id008
       - *id009
       - *id010
+      - *id011
     - name: test_reserved_acquisition_lanes_can_displace_extra_company_revisits
       kind: function
       line_start: 886
@@ -1147,12 +1157,12 @@ source_catalog:
       - sum
       parser: python-ast
       dependency_targets:
-      - *id005
       - *id006
       - *id007
       - *id008
       - *id009
       - *id010
+      - *id011
     - name: test_role_discovery_lane_displaces_only_excess_company_revisit
       kind: function
       line_start: 954
@@ -1171,12 +1181,12 @@ source_catalog:
       - sum
       parser: python-ast
       dependency_targets:
-      - *id005
       - *id006
       - *id007
       - *id008
       - *id009
       - *id010
+      - *id011
     - name: test_normalized_attachment_evidence_bypasses_legacy_equivalent_cooldown
       kind: function
       line_start: 1007
@@ -1196,9 +1206,9 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id005
       - *id006
       - *id007
       - *id008
       - *id009
       - *id010
+      - *id011
