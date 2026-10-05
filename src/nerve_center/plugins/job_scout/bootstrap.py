@@ -33,11 +33,11 @@ from nerve_center.plugins.job_scout.runtime import JobScoutOperationBridge
 from nerve_center.plugins.job_scout.terminology_alignment import (
     register_terminology_alignment_routes,
 )
+from nerve_center.plugins.job_scout.uploads import register_job_scout_upload_route
 from nerve_center.plugins.job_scout.verification import (
     assess_opening_verification,
     source_confidence_for_verification,
 )
-from nerve_center.plugins.job_scout.uploads import register_job_scout_upload_route
 from nerve_center.profile.api import register_profile_routes
 from nerve_center.providers.base import StructuredProvider
 from nerve_center.scoring.api import register_scoring_routes
