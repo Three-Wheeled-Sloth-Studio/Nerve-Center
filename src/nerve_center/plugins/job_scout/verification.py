@@ -58,12 +58,9 @@ def assess_opening_verification(
 
     direct = [item for item in opening.provenance if item.direct_employer_source]
     if direct:
-        return VerificationAssessment(
-            status=VerificationStatus.VERIFIED_PRESENT,
-            reason="opening_observed_on_employer_authoritative_source",
-            authoritative_source_ids=tuple(dict.fromkeys(item.source_id for item in direct)),
-            evidence_urls=tuple(dict.fromkeys(item.source_url for item in direct)),
-        )
+        direct_assessment = _assess_direct_observations(direct, sources)
+        if direct_assessment is not None:
+            return direct_assessment
 
     employer_sources = [
         source
@@ -135,6 +132,79 @@ def assess_opening_verification(
         authoritative_source_ids=source_ids,
         evidence_urls=urls,
     )
+
+
+def _assess_direct_observations(
+    direct: list[object],
+    sources: DiscoverySourceRepository,
+) -> VerificationAssessment | None:
+    """Reconcile prior direct observations against later authoritative scans."""
+
+    source_ids: list[str] = []
+    evidence_urls: list[str] = []
+    current: list[str] = []
+    absent: list[str] = []
+    stale: list[str] = []
+
+    for provenance in direct:
+        source_id = str(getattr(provenance, "source_id", ""))
+        source_url = str(getattr(provenance, "source_url", ""))
+        observed_at = getattr(provenance, "discovered_at", None)
+        if source_id and source_id not in source_ids:
+            source_ids.append(source_id)
+        if source_url and source_url not in evidence_urls:
+            evidence_urls.append(source_url)
+        try:
+            source = sources.get(source_id)
+        except KeyError:
+            current.append(source_id)
+            continue
+        if not _is_employer_authoritative(source):
+            continue
+        scans = sources.list_scans(source.id, limit=1)
+        if not scans or observed_at is None:
+            current.append(source.id)
+            continue
+        latest = scans[0]
+        if latest.finished_at < observed_at:
+            current.append(source.id)
+            continue
+        if latest.started_at <= observed_at <= latest.finished_at:
+            current.append(source.id)
+            continue
+        if latest.started_at <= observed_at:
+            current.append(source.id)
+            continue
+        if (
+            latest.status is ScanStatus.SUCCEEDED
+            and source.kind in _EXHAUSTIVE_INVENTORY_KINDS
+        ):
+            absent.append(source.id)
+        else:
+            stale.append(source.id)
+
+    if current:
+        return VerificationAssessment(
+            status=VerificationStatus.VERIFIED_PRESENT,
+            reason="opening_observed_on_current_employer_authoritative_source",
+            authoritative_source_ids=tuple(source_ids),
+            evidence_urls=tuple(evidence_urls),
+        )
+    if absent and not stale:
+        return VerificationAssessment(
+            status=VerificationStatus.VERIFIED_ABSENT,
+            reason="later_successful_authoritative_inventory_no_longer_observes_opening",
+            authoritative_source_ids=tuple(source_ids),
+            evidence_urls=tuple(evidence_urls),
+        )
+    if stale:
+        return VerificationAssessment(
+            status=VerificationStatus.STALE_VERIFICATION,
+            reason="prior_authoritative_verification_followed_by_inconclusive_refresh",
+            authoritative_source_ids=tuple(source_ids),
+            evidence_urls=tuple(evidence_urls),
+        )
+    return None
 
 
 def preferred_opportunity_link(
