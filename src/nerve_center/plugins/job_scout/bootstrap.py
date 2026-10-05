@@ -27,6 +27,7 @@ from nerve_center.plugins.job_scout.discovery_learning import (
     StrategyAttemptModel,
 )
 from nerve_center.plugins.job_scout.discovery_quality import DiscoveryQualityRepository
+from nerve_center.plugins.job_scout.findings import register_job_scout_findings_routes
 from nerve_center.plugins.job_scout.manifest import job_scout_manifest
 from nerve_center.plugins.job_scout.runtime import JobScoutOperationBridge
 from nerve_center.plugins.job_scout.verification import (
@@ -121,6 +122,7 @@ def install_job_scout(
         scoring_service=scoring_service,
         configuration_store=coordinator.store,
     )
+    register_job_scout_findings_routes(application, database, coordinator.store)
     register_job_scout_upload_route(application, settings)
     return JobScoutModulePackage(
         manifest=job_scout_manifest(),
