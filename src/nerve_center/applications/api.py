@@ -90,33 +90,58 @@ def register_application_routes(
             company = companies.get(opening.company_id)
             link = preferred_opportunity_link(opening, company, verification)
             history = scores.list(opening.id)
-            latest_fit_contract = (
-                str(history[0].calculation.get("fit_contract_version") or "")
-                if history
-                else ""
-            )
-            if (
-                verification.actionable
-                and history
-                and scoring_service
-                and configuration
-                and history[0].calculation.get("scoring_engine_version")
-                != SCORING_ENGINE_VERSION
-            ):
-                history = [scoring_service.score(opening.id)]
-                latest_fit_contract = str(
-                    history[0].calculation.get("fit_contract_version") or ""
-                )
-            if verification.actionable and scoring_service and configuration and (
-                not history or latest_fit_contract.startswith("job-fit-provisional-")
-            ):
-                history = [
-                    scoring_service.ensure_provisional_score(
-                        opening.id,
-                        intent_terms=[*configuration.target_titles, *configuration.manual_keywords],
-                        target_titles=configuration.target_titles,
+            if verification.actionable and scoring_service and configuration:
+                variant_specs = [
+                    (item.document_id, item.label, item.target_titles or configuration.target_titles)
+                    for item in configuration.resume_variants
+                    if item.active
+                ] or [(None, None, configuration.target_titles)]
+                current_scores = []
+                for resume_document_id, resume_label, target_titles in variant_specs:
+                    variant_history = [
+                        item
+                        for item in history
+                        if item.resume_document_id == resume_document_id
+                    ]
+                    current = next(
+                        (
+                            item
+                            for item in variant_history
+                            if item.calculation.get("scoring_engine_version")
+                            == SCORING_ENGINE_VERSION
+                        ),
+                        None,
                     )
-                ]
+                    if current is None and variant_history:
+                        try:
+                            analysis = scoring_service.fit_analyses.latest(
+                                opening.id,
+                                resume_document_id=resume_document_id,
+                            )
+                        except KeyError:
+                            analysis = None
+                        if analysis is not None:
+                            current = scoring_service.score(
+                                opening.id,
+                                fit_analysis_id=analysis.id,
+                            )
+                    if current is None:
+                        current = scoring_service.ensure_provisional_score(
+                            opening.id,
+                            intent_terms=[
+                                *configuration.target_titles,
+                                *configuration.manual_keywords,
+                            ],
+                            target_titles=target_titles,
+                            resume_document_id=resume_document_id,
+                            resume_label=resume_label,
+                        )
+                    current_scores.append(current)
+                history = sorted(
+                    [*history, *current_scores],
+                    key=lambda item: (item.priority, item.created_at),
+                    reverse=True,
+                )
             items.append(
                 ReviewOpportunity(
                     opening=opening,
