@@ -272,6 +272,11 @@ class JobOpeningRepository:
                 session.add(model)
             else:
                 existing = NormalizedJobOpening.model_validate(model.payload)
+                persisted_provenance = _job_provenance(session, model.id)
+                if persisted_provenance:
+                    existing = existing.model_copy(
+                        update={"provenance": persisted_provenance}
+                    )
                 company_corrected = model.company_id != opening.company_id
                 merged = _merge_openings(existing, opening)
                 if company_corrected:
@@ -319,10 +324,16 @@ class JobOpeningRepository:
         if active_only:
             statement = statement.where(JobOpeningModel.active.is_(True))
         with self.database.session() as session:
-            return [
-                NormalizedJobOpening.model_validate(item.payload)
-                for item in session.scalars(statement).all()
-            ]
+            results: list[NormalizedJobOpening] = []
+            for item in session.scalars(statement).all():
+                opening = NormalizedJobOpening.model_validate(item.payload)
+                persisted_provenance = _job_provenance(session, item.id)
+                if persisted_provenance:
+                    opening = opening.model_copy(
+                        update={"provenance": persisted_provenance}
+                    )
+                results.append(opening)
+            return results
 
 
 class SearchCacheRepository:
@@ -372,6 +383,26 @@ class SearchCacheRepository:
                     setattr(model, field, value)
 
 
+def _job_provenance(session, job_id: str) -> list[JobProvenance]:
+    rows = session.scalars(
+        select(JobProvenanceModel)
+        .where(JobProvenanceModel.job_id == job_id)
+        .order_by(JobProvenanceModel.discovered_at, JobProvenanceModel.id)
+    ).all()
+    return [
+        JobProvenance(
+            source_id=item.source_id,
+            connector=item.connector,
+            parser_version=item.parser_version,
+            source_url=item.source_url,
+            external_id=item.external_id,
+            direct_employer_source=item.direct_employer_source,
+            discovered_at=_as_utc(item.discovered_at),
+        )
+        for item in rows
+    ]
+
+
 def _company_values(model: CompanyModel) -> dict[str, object]:
     values = {column.name: getattr(model, column.name) for column in CompanyModel.__table__.columns}
     values["created_at"] = _as_utc(values["created_at"])
@@ -404,10 +435,14 @@ def _merge_openings(
     incoming_direct = any(item.direct_employer_source for item in incoming.provenance)
     primary = incoming if incoming_direct and not existing_direct else existing
     secondary = existing if primary is incoming else incoming
-    provenance_by_key = {
-        (item.source_id, item.connector, item.source_url, item.external_id): item
-        for item in [*existing.provenance, *incoming.provenance]
-    }
+    provenance_by_key: dict[
+        tuple[str, str, str, str | None], JobProvenance
+    ] = {}
+    for item in [*existing.provenance, *incoming.provenance]:
+        key = (item.source_id, item.connector, item.source_url, item.external_id)
+        current = provenance_by_key.get(key)
+        if current is None or item.discovered_at < current.discovered_at:
+            provenance_by_key[key] = item
     return primary.model_copy(
         update={
             "id": existing.id,
