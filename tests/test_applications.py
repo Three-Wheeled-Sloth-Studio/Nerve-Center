@@ -86,6 +86,31 @@ def _seed(database: Database) -> NormalizedJobOpening:
     return opening
 
 
+
+
+def _upsert_board_source(
+    database: Database,
+    company: Company,
+    *,
+    source_id: str = "board-source",
+) -> DiscoverySource:
+    return DiscoverySourceRepository(database).upsert(
+        DiscoverySource(
+            id=source_id,
+            company_id=company.id,
+            name=f"{company.canonical_name} board lead",
+            kind=SourceKind.JSON_LD,
+            acquisition_class=AcquisitionClass.PUBLIC_STRUCTURED_FEED,
+            base_url="https://board.example/jobs",
+            configuration={
+                "direct_employer_source": False,
+                "source_role": "aggregator_listing",
+            },
+            parser_version="fixture-v1",
+        )
+    )
+
+
 def _opportunity_score(
     job_id: str,
     *,
@@ -340,6 +365,7 @@ def test_review_keeps_unverified_board_lead_with_warning(tmp_path: Path) -> None
         ],
     )
     CompanyRepository(database).upsert(company)
+    _upsert_board_source(database, company)
     JobOpeningRepository(database).upsert(opening)
     application = FastAPI()
     register_application_routes(application, database)
@@ -398,6 +424,7 @@ def test_review_withholds_discovered_lead_after_verified_absence(tmp_path: Path)
     CompanyRepository(database).upsert(company)
     sources = DiscoverySourceRepository(database)
     sources.upsert(source)
+    _upsert_board_source(database, company)
     JobOpeningRepository(database).upsert(opening)
     scan_time = datetime.now(UTC)
     sources.record_scan(
@@ -462,6 +489,7 @@ def test_review_keeps_saved_role_visible_when_verification_turns_absent(
     CompanyRepository(database).upsert(company)
     sources = DiscoverySourceRepository(database)
     sources.upsert(source)
+    _upsert_board_source(database, company)
     JobOpeningRepository(database).upsert(opening)
     ApplicationRepository(database).save(
         opening.id,
