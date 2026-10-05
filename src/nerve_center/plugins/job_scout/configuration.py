@@ -120,13 +120,17 @@ class JobScoutCoordinator:
 
     def workspace(self) -> JobScoutWorkspace:
         configuration = self.store.load()
-        document = self._resume_document(configuration)
+        documents = self._resume_documents(configuration)
         return JobScoutWorkspace(
             configuration=configuration,
             documents=self.documents.list(),
             profile=self.profiles.get_profile(),
-            keywords=self._discover_keywords(configuration, document=document),
-            suggestions=discover_suggestions(configuration, self.profiles.get_profile(), document),
+            keywords=self._discover_keywords(configuration, document=documents),
+            suggestions=discover_suggestions(
+                configuration,
+                self.profiles.get_profile(),
+                documents,
+            ),
             sources=self._configured_sources(configuration),
             opening_count=len(self.jobs.list()),
         )
@@ -176,7 +180,7 @@ class JobScoutCoordinator:
                 "resume_variants": variants,
             }
         )
-        summary = self._discover_keywords(configuration, document=document)
+        summary = self._discover_keywords(configuration)
         configuration = configuration.model_copy(
             update={"keywords": clean_list([*configuration.keywords, *summary.keywords])}
         )
@@ -290,15 +294,34 @@ class JobScoutCoordinator:
         self,
         configuration: JobScoutConfiguration,
         *,
-        document: SourceDocument | None = None,
+        document: SourceDocument | list[SourceDocument] | None = None,
     ) -> JobScoutKeywordSummary:
         if document is None:
-            document = self._resume_document(configuration)
+            document = self._resume_documents(configuration)
         return discover_keywords(
             configuration,
             self.profiles.get_profile(),
             document,
         )
+
+    def _resume_documents(
+        self,
+        configuration: JobScoutConfiguration,
+    ) -> list[SourceDocument]:
+        documents: list[SourceDocument] = []
+        seen: set[str] = set()
+        for variant in configuration.resume_variants:
+            if not variant.active or variant.document_id in seen:
+                continue
+            try:
+                documents.append(self.documents.get(variant.document_id))
+                seen.add(variant.document_id)
+            except KeyError:
+                continue
+        if documents:
+            return documents
+        fallback = self._resume_document(configuration)
+        return [fallback] if fallback is not None else []
 
     def _resume_document(self, configuration: JobScoutConfiguration) -> SourceDocument | None:
         if not configuration.resume_document_id:
