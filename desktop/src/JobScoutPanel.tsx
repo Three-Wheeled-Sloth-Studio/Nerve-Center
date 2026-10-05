@@ -321,14 +321,24 @@ function OpportunityCard({ item, busy, onChange, onError }: {
   onError: (message: string) => void;
 }) {
   const [copied, setCopied] = useState(false);
-  const listingUrl = item.opening.apply_url ?? item.opening.canonical_url;
+  const listingUrl = item.preferred_url ?? item.opening.apply_url ?? item.opening.canonical_url;
+  const verificationLabel = item.verification_status === "verified_present"
+    ? "Verified employer listing"
+    : item.verification_status === "verified_absent"
+      ? "No longer verified"
+      : "Employer verification pending";
+  const listingLabel = item.preferred_url_kind === "employer_opening"
+    ? "employer listing"
+    : item.preferred_url_kind === "employer_careers"
+      ? "employer careers page"
+      : "discovery source";
   async function openListing() {
     try {
       const parsed = new URL(listingUrl);
       if (!["http:", "https:"].includes(parsed.protocol)) throw new Error("Only HTTP job links can be opened.");
       await openUrl(parsed.toString());
     } catch (reason) {
-      onError(`Could not open the original listing: ${messageOf(reason)}`);
+      onError(`Could not open the ${listingLabel}: ${messageOf(reason)}`);
     }
   }
   async function copyListing() {
@@ -342,8 +352,8 @@ function OpportunityCard({ item, busy, onChange, onError }: {
   }
   const locationScope = item.score?.location.scope ?? "unknown";
   return <article className="opportunity-card">
-    <div className="opportunity-summary"><div className="priority-badge"><strong>{score(item.score?.priority)}</strong><span>priority</span></div><div className="opportunity-title"><h3>{item.opening.title}</h3><p><strong>{item.opening.company_name}</strong> | {item.opening.location_text ?? "Location unclear"}</p><div className="opportunity-meta"><span><BriefcaseBusiness aria-hidden="true" />{titleCase(item.opening.work_arrangement)}</span><span><MapPin aria-hidden="true" />{titleCase(locationScope)} scope</span><span><Clock3 aria-hidden="true" />{freshness(item.opening.posted_at ?? item.opening.discovered_at)}</span><span>{item.score ? `${Math.round(item.score.confidence)}% confidence` : "Unscored"}</span></div></div><div className="score-strip"><Metric label="Fit" value={item.score?.fit} /><Metric label="Response" value={item.score?.response_likelihood} /><Metric label="Value" value={item.score?.opportunity_value} /></div><div className="opportunity-actions"><button className="icon-button" disabled={busy} title="Save" aria-label="Save" onClick={() => void onChange(item, "saved")}><Bookmark aria-hidden="true" /></button><button className="icon-button primary" disabled={busy} title="Plan to apply" aria-label="Plan to apply" onClick={() => void onChange(item, "planned_to_apply")}><ClipboardCheck aria-hidden="true" /></button><button className="icon-button" disabled={busy} title="Dismiss" aria-label="Dismiss" onClick={() => void onChange(item, "dismissed")}><X aria-hidden="true" /></button><button className="icon-button" type="button" title="Open original listing" aria-label="Open original listing" onClick={() => void openListing()}><ExternalLink aria-hidden="true" /></button></div></div>
-    <details><summary>Listing details and description</summary><div className="listing-url"><code title={listingUrl}>{listingUrl}</code><button type="button" onClick={() => void copyListing()}><Copy aria-hidden="true" />{copied ? "Copied" : "Copy URL"}</button><button type="button" onClick={() => void openListing()}><ExternalLink aria-hidden="true" />Open listing</button></div>{item.score?.location.rationale?.length ? <div><strong>Location evidence</strong><ul>{item.score.location.rationale.map((reason) => <li key={reason}>{reason}</li>)}</ul></div> : null}<p>{item.opening.description}</p></details>
+    <div className="opportunity-summary"><div className="priority-badge"><strong>{score(item.score?.priority)}</strong><span>priority</span></div><div className="opportunity-title"><h3>{item.opening.title}</h3><p><strong>{item.opening.company_name}</strong> | {item.opening.location_text ?? "Location unclear"}</p><div className="opportunity-meta"><span><BriefcaseBusiness aria-hidden="true" />{titleCase(item.opening.work_arrangement)}</span><span><MapPin aria-hidden="true" />{titleCase(locationScope)} scope</span><span><Clock3 aria-hidden="true" />{freshness(item.opening.posted_at ?? item.opening.discovered_at)}</span><span>{item.score ? `${Math.round(item.score.confidence)}% confidence` : "Unscored"}</span><span title={item.verification_reason}>{verificationLabel}</span></div></div><div className="score-strip"><Metric label="Fit" value={item.score?.fit} /><Metric label="Response" value={item.score?.response_likelihood} /><Metric label="Value" value={item.score?.opportunity_value} /></div><div className="opportunity-actions"><button className="icon-button" disabled={busy} title="Save" aria-label="Save" onClick={() => void onChange(item, "saved")}><Bookmark aria-hidden="true" /></button><button className="icon-button primary" disabled={busy || !item.actionable} title={item.actionable ? "Plan to apply" : "This role is not currently actionable"} aria-label="Plan to apply" onClick={() => void onChange(item, "planned_to_apply")}><ClipboardCheck aria-hidden="true" /></button><button className="icon-button" disabled={busy} title="Dismiss" aria-label="Dismiss" onClick={() => void onChange(item, "dismissed")}><X aria-hidden="true" /></button><button className="icon-button" type="button" title={`Open ${listingLabel}`} aria-label={`Open ${listingLabel}`} onClick={() => void openListing()}><ExternalLink aria-hidden="true" /></button></div></div>
+    <details><summary>Listing details and description</summary>{item.link_warning ? <p className="muted"><strong>Source note:</strong> {item.link_warning}</p> : null}<div className="listing-url"><code title={listingUrl}>{listingUrl}</code><button type="button" onClick={() => void copyListing()}><Copy aria-hidden="true" />{copied ? "Copied" : "Copy URL"}</button><button type="button" onClick={() => void openListing()}><ExternalLink aria-hidden="true" />Open {listingLabel}</button></div>{item.score?.location.rationale?.length ? <div><strong>Location evidence</strong><ul>{item.score.location.rationale.map((reason) => <li key={reason}>{reason}</li>)}</ul></div> : null}<p>{item.opening.description}</p></details>
   </article>;
 }
 
