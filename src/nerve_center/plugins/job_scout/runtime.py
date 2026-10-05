@@ -15,6 +15,10 @@ from nerve_center.plugins.job_scout.configuration import (
 )
 from nerve_center.plugins.job_scout.discovery_learning import JobScoutDiscoveryRepository
 from nerve_center.plugins.job_scout.discovery_loop import JobScoutDiscoveryLoop
+from nerve_center.plugins.job_scout.verification import (
+    VerificationStatus,
+    assess_opening_verification,
+)
 from nerve_center.providers.errors import ProviderError
 from nerve_center.scoring.service import ScoringService
 
@@ -49,7 +53,14 @@ class JobScoutOperationBridge:
             attempted = set(payload.get("attempted_ids", []))
             candidates = []
             provisional = 0
+            verification_counts: dict[str, int] = {}
             for opening in self.scoring.jobs.list():
+                verification = assess_opening_verification(opening, self.sources)
+                verification_counts[verification.status.value] = (
+                    verification_counts.get(verification.status.value, 0) + 1
+                )
+                if verification.status is VerificationStatus.VERIFIED_ABSENT:
+                    continue
                 existing = self.scoring.scores.list(opening.id)
                 score = self.scoring.ensure_provisional_score(
                     opening.id, intent_terms=config.manual_keywords,
@@ -66,15 +77,34 @@ class JobScoutOperationBridge:
                 "provisional_scores_completed": provisional,
                 "target": config.full_score_limit,
                 "failure_limit": config.full_score_failure_limit,
+                "verification_counts": verification_counts,
             }
         if operation == "score_candidate":
             if self.scoring is None:
                 raise ValueError("scoring service unavailable")
             job_id = _required_string(payload, "job_id")
             try:
+                opening = next(
+                    item
+                    for item in self.scoring.jobs.list(active_only=False)
+                    if item.id == job_id
+                )
+                verification = assess_opening_verification(opening, self.sources)
+                if verification.status is VerificationStatus.VERIFIED_ABSENT:
+                    return {
+                        "completed": False,
+                        "job_id": job_id,
+                        "error": "VerifiedAbsent",
+                        "verification_status": verification.status.value,
+                    }
                 analysis = await self.scoring.analyze_fit(job_id)
                 score = self.scoring.score(job_id, fit_analysis_id=analysis.id)
-                return {"completed": True, "job_id": job_id, "priority": score.priority}
+                return {
+                    "completed": True,
+                    "job_id": job_id,
+                    "priority": score.priority,
+                    "verification_status": verification.status.value,
+                }
             except (ProviderError, ValueError, KeyError) as error:
                 return {"completed": False, "job_id": job_id, "error": type(error).__name__}
         if operation == "discovery_readiness":
