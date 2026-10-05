@@ -323,7 +323,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/verification.py
     analysis_version: 1
     language: python
-    content_hash: a488f9b0c0d6ba077483f3111ab29ea6f30e0118
+    content_hash: 826baca866da99310bb44996741e5e11e4792c07
     dependencies:
     - __future__
     - dataclasses
@@ -333,12 +333,13 @@ source_catalog:
     provides:
     - VerificationAssessment.actionable
     - assess_opening_verification
+    - preferred_opportunity_link
     - _is_employer_authoritative
     symbols:
     - name: VerificationAssessment.actionable
       kind: method
-      line_start: 34
-      line_end: 35
+      line_start: 42
+      line_end: 43
       signature: VerificationAssessment.actionable(self) -> bool
       inputs:
       - self
@@ -348,8 +349,8 @@ source_catalog:
       dependency_targets: []
     - name: assess_opening_verification
       kind: function
-      line_start: 45
-      line_end: 129
+      line_start: 53
+      line_end: 137
       signature: 'assess_opening_verification(opening: NormalizedJobOpening, sources: DiscoverySourceRepository) -> VerificationAssessment'
       inputs:
       - 'opening: NormalizedJobOpening'
@@ -371,10 +372,25 @@ source_catalog:
       - *id001
       - path: src/nerve_center/persistence/discovery.py
         symbol: DiscoverySourceRepository.list_scans
+    - name: preferred_opportunity_link
+      kind: function
+      line_start: 140
+      line_end: 167
+      signature: 'preferred_opportunity_link(opening: NormalizedJobOpening, company: Company, assessment: VerificationAssessment)
+        -> OpportunityLink'
+      inputs:
+      - 'opening: NormalizedJobOpening'
+      - 'company: Company'
+      - 'assessment: VerificationAssessment'
+      output: OpportunityLink
+      dependencies:
+      - OpportunityLink
+      parser: python-ast
+      dependency_targets: []
     - name: _is_employer_authoritative
       kind: function
-      line_start: 132
-      line_end: 135
+      line_start: 170
+      line_end: 173
       signature: '_is_employer_authoritative(source: DiscoverySource) -> bool'
       inputs:
       - 'source: DiscoverySource'

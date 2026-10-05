@@ -7,7 +7,7 @@ source_catalog:
   - path: src/nerve_center/applications/api.py
     analysis_version: 1
     language: python
-    content_hash: 0baab70d56c43f01758b80ba337567099e349372
+    content_hash: 24e466ec003c941368a495a538600b49cf713149
     dependencies:
     - __future__
     - fastapi
@@ -17,6 +17,7 @@ source_catalog:
     - nerve_center.persistence.discovery
     - nerve_center.persistence.scoring
     - nerve_center.plugins.job_scout.settings
+    - nerve_center.plugins.job_scout.verification
     - nerve_center.scoring.engine
     - nerve_center.scoring.service
     - typing
@@ -33,8 +34,8 @@ source_catalog:
     symbols:
     - name: register_application_routes
       kind: function
-      line_start: 27
-      line_end: 113
+      line_start: 36
+      line_end: 142
       signature: 'register_application_routes(application: FastAPI, database: Database, scoring_service: ScoringService |
         None, configuration_store: JobScoutConfigurationStore | None) -> ApplicationRepository'
       inputs:
@@ -46,6 +47,7 @@ source_catalog:
       dependencies:
       - ApplicationRepository
       - CompanyRepository
+      - DiscoverySourceRepository
       - JobOpeningRepository
       - OpportunityScoreRepository
       - Query
@@ -59,6 +61,7 @@ source_catalog:
       - applications.history
       - applications.list
       - applications.save
+      - assess_opening_verification
       - companies.get
       - configuration_store.load
       - history[0].calculation.get
@@ -66,8 +69,6 @@ source_catalog:
       - items.sort
       - jobs.list
       - latest_fit_contract.startswith
-      - scores.list
-      - scoring_service.ensure_provisional_score
       parser: python-ast
       dependency_targets:
       - &id008
@@ -98,24 +99,21 @@ source_catalog:
         path: src/nerve_center/persistence/attention.py
         symbol: AttentionRepository.history
       - &id010
+        path: src/nerve_center/plugins/job_scout/verification.py
+        symbol: assess_opening_verification
+      - &id011
         path: src/nerve_center/plugins/job_scout/settings.py
         symbol: JobScoutConfigurationStore.load
-      - &id011
+      - &id012
         path: tests/test_job_scout_query_portfolio.py
         symbol: _ConfigStore.load
-      - &id012
+      - &id013
         path: src/nerve_center/persistence/scoring.py
         symbol: OpportunityScoreRepository.append
-      - &id013
-        path: src/nerve_center/scoring/service.py
-        symbol: ScoringService.ensure_provisional_score
-      - &id014
-        path: tests/test_applications.py
-        symbol: _RescoreStub.ensure_provisional_score
     - name: register_application_routes.list_applications
       kind: function
-      line_start: 41
-      line_end: 42
+      line_start: 51
+      line_end: 52
       signature: register_application_routes.list_applications() -> list[ApplicationRecord]
       inputs: []
       output: list[ApplicationRecord]
@@ -126,8 +124,8 @@ source_catalog:
       dependency_targets: []
     - name: register_application_routes.get_application
       kind: function
-      line_start: 45
-      line_end: 47
+      line_start: 55
+      line_end: 57
       signature: 'register_application_routes.get_application(job_id: str) -> ApplicationRecord'
       inputs:
       - 'job_id: str'
@@ -143,8 +141,8 @@ source_catalog:
       - *id003
     - name: register_application_routes.update_application
       kind: function
-      line_start: 50
-      line_end: 55
+      line_start: 60
+      line_end: 65
       signature: 'register_application_routes.update_application(job_id: str, request: ApplicationUpdate) -> ApplicationRecord'
       inputs:
       - 'job_id: str'
@@ -160,8 +158,8 @@ source_catalog:
       - *id002
     - name: register_application_routes.application_history
       kind: function
-      line_start: 58
-      line_end: 60
+      line_start: 68
+      line_end: 70
       signature: 'register_application_routes.application_history(job_id: str) -> list[ApplicationEvent]'
       inputs:
       - 'job_id: str'
@@ -180,8 +178,8 @@ source_catalog:
       - *id007
     - name: register_application_routes.review_opportunities
       kind: function
-      line_start: 63
-      line_end: 111
+      line_start: 73
+      line_end: 140
       signature: 'register_application_routes.review_opportunities(include_dismissed: bool, sort: SortKey, limit: Annotated[int,
         Query(ge) -> list[ReviewOpportunity]'
       inputs:
@@ -196,6 +194,7 @@ source_catalog:
       - _sort_value
       - application.get
       - applications.get_or_default
+      - assess_opening_verification
       - companies.get
       - configuration_store.load
       - history[0].calculation.get
@@ -203,6 +202,7 @@ source_catalog:
       - items.sort
       - jobs.list
       - latest_fit_contract.startswith
+      - preferred_opportunity_link
       - scores.list
       - scoring_service.ensure_provisional_score
       - scoring_service.score
@@ -216,7 +216,12 @@ source_catalog:
       - *id011
       - *id012
       - *id013
-      - *id014
+      - path: src/nerve_center/plugins/job_scout/verification.py
+        symbol: preferred_opportunity_link
+      - path: src/nerve_center/scoring/service.py
+        symbol: ScoringService.ensure_provisional_score
+      - path: tests/test_applications.py
+        symbol: _RescoreStub.ensure_provisional_score
       - path: desktop/src/display.tsx
         symbol: score
       - path: src/nerve_center/scoring/engine.py
@@ -227,8 +232,8 @@ source_catalog:
         symbol: _RescoreStub.score
     - name: _require_job
       kind: function
-      line_start: 116
-      line_end: 118
+      line_start: 145
+      line_end: 147
       signature: '_require_job(repository: JobOpeningRepository, job_id: str) -> None'
       inputs:
       - 'repository: JobOpeningRepository'
@@ -242,8 +247,8 @@ source_catalog:
       dependency_targets: []
     - name: _sort_value
       kind: function
-      line_start: 121
-      line_end: 130
+      line_start: 150
+      line_end: 159
       signature: '_sort_value(item: ReviewOpportunity, sort: SortKey) -> float'
       inputs:
       - 'item: ReviewOpportunity'
@@ -255,8 +260,8 @@ source_catalog:
       dependency_targets: []
     - name: _next_action
       kind: function
-      line_start: 133
-      line_end: 151
+      line_start: 162
+      line_end: 180
       signature: '_next_action(status: ApplicationStatus) -> str'
       inputs:
       - 'status: ApplicationStatus'
@@ -274,7 +279,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/runtime.py
     analysis_version: 1
     language: python
-    content_hash: 3d0069b16dc10d586c4347ffcafeb9dbfe610088
+    content_hash: 025983e013f6bc297c416906024d5cb7dbb65b6c
     dependencies:
     - __future__
     - collections.abc
@@ -316,7 +321,7 @@ source_catalog:
     - name: JobScoutOperationBridge.invoke
       kind: method
       line_start: 43
-      line_end: 189
+      line_end: 194
       signature: 'JobScoutOperationBridge.invoke(self, operation: str, payload: Mapping[str, Any]) -> dict[str, Any]'
       inputs:
       - self
@@ -325,6 +330,7 @@ source_catalog:
       output: dict[str, Any]
       dependencies:
       - JobScoutScanRequest
+      - KeyError
       - ValueError
       - _required_string
       - asdict
@@ -347,20 +353,18 @@ source_catalog:
       - self.discovery_loop.deterministic_reflection
       - self.discovery_loop.prepare
       - self.discovery_loop.reflection_work_request
-      - self.discovery_loop.summary
       parser: python-ast
       dependency_targets:
       - path: src/nerve_center/plugins/job_scout/runtime.py
         symbol: _required_string
-      - path: src/nerve_center/plugins/job_scout/verification.py
-        symbol: assess_opening_verification
-      - *id012
+      - *id010
+      - *id013
       - path: src/nerve_center/plugins/job_scout/configuration.py
         symbol: JobScoutCoordinator._discover_keywords
       - path: tests/test_job_scout_query_portfolio.py
         symbol: _Coordinator._discover_keywords
-      - *id010
       - *id011
+      - *id012
       - path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: JobScoutDiscoveryLoop.apply_reflection_result
       - path: src/nerve_center/plugins/job_scout/discovery_quality.py
@@ -387,14 +391,10 @@ source_catalog:
         symbol: JobScoutDiscoveryLoop.reflection_work_request
       - path: src/nerve_center/plugins/job_scout/discovery_quality.py
         symbol: SourceAwareJobScoutDiscoveryLoop.reflection_work_request
-      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
-        symbol: JobScoutDiscoveryLoop.summary
-      - path: src/nerve_center/summary/api.py
-        symbol: register_summary_routes.summary
     - name: _required_string
       kind: function
-      line_start: 192
-      line_end: 196
+      line_start: 197
+      line_end: 201
       signature: '_required_string(payload: Mapping[str, Any], field: str) -> str'
       inputs:
       - 'payload: Mapping[str, Any]'
@@ -631,7 +631,7 @@ source_catalog:
       - path.startswith
       parser: python-ast
       dependency_targets:
-      - *id012
+      - *id013
     - name: test_monitor_returns_scored_terminal_run_without_waiting_for_open_manager.request
       kind: function
       line_start: 124
@@ -650,7 +650,7 @@ source_catalog:
       - path.startswith
       parser: python-ast
       dependency_targets:
-      - *id012
+      - *id013
     - name: test_monitor_submits_explicit_resource_policy
       kind: function
       line_start: 142
@@ -668,7 +668,7 @@ source_catalog:
       - submitted.append
       parser: python-ast
       dependency_targets:
-      - *id012
+      - *id013
     - name: test_monitor_submits_explicit_resource_policy.request
       kind: function
       line_start: 146
@@ -686,7 +686,7 @@ source_catalog:
       - submitted.append
       parser: python-ast
       dependency_targets:
-      - *id012
+      - *id013
     - name: test_monitor_tolerates_bounded_transient_status_timeout
       kind: function
       line_start: 187
@@ -774,7 +774,7 @@ source_catalog:
       dependency_targets:
       - path: scripts/run_job_scout_live.py
         symbol: configure_workspace
-      - *id012
+      - *id013
     - name: test_workspace_configuration_preserves_effective_market_and_failure_limit.request
       kind: function
       line_start: 257
@@ -792,7 +792,7 @@ source_catalog:
       - written.append
       parser: python-ast
       dependency_targets:
-      - *id012
+      - *id013
     - name: test_efficiency_summary_exposes_scoring_independent_marginal_pacing
       kind: function
       line_start: 286
@@ -915,7 +915,7 @@ source_catalog:
       - self.selected_models.append
       parser: python-ast
       dependency_targets:
-      - *id012
+      - *id013
     - name: _context
       kind: function
       line_start: 76
@@ -943,13 +943,13 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - &id020
+      - &id019
         path: src/nerve_center/persistence/database.py
         symbol: Database.initialize
-      - &id021
+      - &id020
         path: src/nerve_center/persistence/resource_profiles.py
         symbol: ResourceProfileRepository.initialize
-      - &id022
+      - &id021
         path: src/nerve_center/resource_profiles/service.py
         symbol: ResourceProfileService.initialize
     - name: _completed_request
@@ -993,16 +993,16 @@ source_catalog:
       - service.harvest
       parser: python-ast
       dependency_targets:
-      - &id015
+      - &id014
         path: tests/test_model_lab.py
         symbol: _completed_request
-      - &id016
+      - &id015
         path: tests/test_model_lab.py
         symbol: _context
-      - &id018
+      - &id017
         path: src/nerve_center/persistence/model_lab.py
         symbol: ModelLabRepository.list_corpus
-      - &id017
+      - &id016
         path: src/nerve_center/model_lab/service.py
         symbol: ModelLabService.harvest
     - name: test_request_and_module_capture_opt_outs_are_respected
@@ -1021,19 +1021,19 @@ source_catalog:
       - service.update_settings
       parser: python-ast
       dependency_targets:
+      - *id014
       - *id015
-      - *id016
-      - &id019
+      - &id018
         path: src/nerve_center/persistence/model_lab.py
         symbol: ModelLabRepository.corpus_count
-      - *id017
-      - &id026
+      - *id016
+      - &id025
         path: src/nerve_center/model_lab/api.py
         symbol: register_model_lab_routes.update_settings
-      - &id027
+      - &id026
         path: src/nerve_center/model_lab/service.py
         symbol: ModelLabService.update_settings
-      - &id028
+      - &id027
         path: src/nerve_center/persistence/model_lab.py
         symbol: ModelLabRepository.update_settings
     - name: test_benchmark_replay_is_persistent_and_does_not_change_production_evidence
@@ -1064,8 +1064,8 @@ source_catalog:
       - service.start_exploration
       parser: python-ast
       dependency_targets:
+      - *id014
       - *id015
-      - *id016
       - path: src/nerve_center/code_shop/api.py
         symbol: register_code_shop_routes.record_outcome
       - path: src/nerve_center/code_shop/service.py
@@ -1076,21 +1076,21 @@ source_catalog:
         symbol: ModelEvidenceRepository.record_outcome
       - path: src/nerve_center/persistence/providers.py
         symbol: ModelEvidenceRepository.task_evidence
-      - *id018
+      - *id017
       - path: src/nerve_center/persistence/model_lab.py
         symbol: ModelLabRepository.list_results
+      - *id018
       - *id019
       - *id020
       - *id021
-      - *id022
-      - *id017
-      - &id023
+      - *id016
+      - &id022
         path: src/nerve_center/model_lab/api.py
         symbol: register_model_lab_routes.replay
-      - &id024
+      - &id023
         path: src/nerve_center/model_lab/service.py
         symbol: ModelLabService.replay
-      - &id025
+      - &id024
         path: src/nerve_center/model_lab/service.py
         symbol: ModelLabService.start_exploration
     - name: test_exploration_budget_and_production_queue_block_replay
@@ -1117,8 +1117,8 @@ source_catalog:
       - service.start_exploration
       parser: python-ast
       dependency_targets:
+      - *id014
       - *id015
-      - *id016
       - path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository.cancel
       - path: src/nerve_center/scheduler/runner.py
@@ -1129,11 +1129,11 @@ source_catalog:
         symbol: WorkQueueRepository.list_requests
       - path: src/nerve_center/scheduler/work_queue.py
         symbol: WorkQueueService.list_requests
-      - *id018
       - *id017
+      - *id016
+      - *id022
       - *id023
       - *id024
-      - *id025
     - name: test_disabled_model_lab_does_not_change_normal_provider_routing
       kind: function
       line_start: 260
@@ -1152,11 +1152,11 @@ source_catalog:
       - service.update_settings
       parser: python-ast
       dependency_targets:
-      - *id016
+      - *id015
+      - *id024
       - *id025
       - *id026
       - *id027
-      - *id028
     - name: test_model_lab_api_exposes_catalog_and_disabled_state
       kind: function
       line_start: 281

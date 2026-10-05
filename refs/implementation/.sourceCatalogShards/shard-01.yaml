@@ -117,7 +117,7 @@ source_catalog:
   - path: src/nerve_center/applications/models.py
     analysis_version: 1
     language: python
-    content_hash: fabcbed59be0b30ab956802a47f5ee1c8d911123
+    content_hash: 2fdb3cc5cb9632dfdf9ed93f10b7e375c1b20878
     dependencies:
     - __future__
     - datetime

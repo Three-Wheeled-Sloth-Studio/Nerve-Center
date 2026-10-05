@@ -7,7 +7,7 @@ source_catalog:
   - path: desktop/src/JobScoutPanel.tsx
     analysis_version: 1
     language: typescript
-    content_hash: eacf7f2a66b540f519aa099cdaf9cb2c15642dcf
+    content_hash: e035a7d82f72e6b7933c70f61cc434a2f1ed63ec
     dependencies:
     - ./api
     - ./display
@@ -168,8 +168,8 @@ source_catalog:
         symbol: updateApplication
     - name: openListing
       kind: function
-      line_start: 325
-      line_end: 333
+      line_start: 335
+      line_end: 343
       signature: openListing()
       inputs: []
       output: unspecified
@@ -186,8 +186,8 @@ source_catalog:
       - *id003
     - name: copyListing
       kind: function
-      line_start: 334
-      line_end: 342
+      line_start: 344
+      line_end: 352
       signature: copyListing()
       inputs: []
       output: unspecified
@@ -202,8 +202,8 @@ source_catalog:
       - *id003
     - name: freshness
       kind: function
-      line_start: 349
-      line_end: 355
+      line_start: 359
+      line_end: 365
       signature: 'freshness(value: string) -> string'
       inputs:
       - 'value: string'
@@ -218,8 +218,8 @@ source_catalog:
       dependency_targets: []
     - name: submit
       kind: function
-      line_start: 359
-      line_end: 359
+      line_start: 369
+      line_end: 369
       signature: 'submit(event: FormEvent)'
       inputs:
       - 'event: FormEvent'
@@ -238,8 +238,8 @@ source_catalog:
       - *id003
     - name: saveLocation
       kind: function
-      line_start: 369
-      line_end: 369
+      line_start: 379
+      line_end: 379
       signature: 'saveLocation(event: FormEvent<HTMLFormElement>)'
       inputs:
       - 'event: FormEvent<HTMLFormElement>'
@@ -261,8 +261,8 @@ source_catalog:
         symbol: saveLocationPreferences
     - name: saveWeights
       kind: function
-      line_start: 370
-      line_end: 370
+      line_start: 380
+      line_end: 380
       signature: 'saveWeights(event: FormEvent<HTMLFormElement>)'
       inputs:
       - 'event: FormEvent<HTMLFormElement>'

@@ -833,7 +833,7 @@ source_catalog:
   - path: tests/test_applications.py
     analysis_version: 1
     language: python
-    content_hash: 37a8c6c67aa1cff493887cf324863d26871126f2
+    content_hash: a9bc8b4580081bb87522a2afacfec8740c1d456b
     dependencies:
     - datetime
     - fastapi
@@ -861,11 +861,15 @@ source_catalog:
     - test_review_api_tracks_reversible_pursuit_state
     - test_review_backfills_stale_score_without_provisional_or_llm_path
     - test_review_keeps_distant_roles_for_explicit_scored_location_filtering
+    - test_review_exposes_verified_employer_link
+    - test_review_keeps_unverified_board_lead_with_warning
+    - test_review_withholds_discovered_lead_after_verified_absence
+    - test_review_keeps_saved_role_visible_when_verification_turns_absent
     symbols:
     - name: _database
       kind: function
-      line_start: 39
-      line_end: 42
+      line_start: 40
+      line_end: 43
       signature: '_database(tmp_path: Path) -> Database'
       inputs:
       - 'tmp_path: Path'
@@ -887,8 +891,8 @@ source_catalog:
         symbol: ResourceProfileService.initialize
     - name: _seed
       kind: function
-      line_start: 45
-      line_end: 85
+      line_start: 46
+      line_end: 86
       signature: '_seed(database: Database) -> NormalizedJobOpening'
       inputs:
       - 'database: Database'
@@ -921,8 +925,8 @@ source_catalog:
         symbol: ScoringRuleRepository.upsert
     - name: _opportunity_score
       kind: function
-      line_start: 88
-      line_end: 123
+      line_start: 89
+      line_end: 124
       signature: '_opportunity_score(job_id: str, engine_version: str, scope: LocationScope, created_at: datetime) -> OpportunityScore'
       inputs:
       - 'job_id: str'
@@ -937,8 +941,8 @@ source_catalog:
       dependency_targets: []
     - name: _RescoreStub.__init__
       kind: method
-      line_start: 127
-      line_end: 130
+      line_start: 128
+      line_end: 131
       signature: '_RescoreStub.__init__(self, scores: OpportunityScoreRepository, job_id: str) -> None'
       inputs:
       - self
@@ -950,8 +954,8 @@ source_catalog:
       dependency_targets: []
     - name: _RescoreStub.score
       kind: method
-      line_start: 132
-      line_end: 141
+      line_start: 133
+      line_end: 142
       signature: '_RescoreStub.score(self, job_id: str) -> OpportunityScore'
       inputs:
       - self
@@ -971,8 +975,8 @@ source_catalog:
         symbol: OpportunityScoreRepository.append
     - name: _RescoreStub.ensure_provisional_score
       kind: method
-      line_start: 143
-      line_end: 144
+      line_start: 144
+      line_end: 145
       signature: '_RescoreStub.ensure_provisional_score(self, *_args: object, **_kwargs: object) -> OpportunityScore'
       inputs:
       - self
@@ -985,8 +989,8 @@ source_catalog:
       dependency_targets: []
     - name: test_application_status_history_and_dates
       kind: function
-      line_start: 147
-      line_end: 175
+      line_start: 148
+      line_end: 176
       signature: 'test_application_status_history_and_dates(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1027,8 +1031,8 @@ source_catalog:
         symbol: AttentionRepository.history
     - name: test_review_api_tracks_reversible_pursuit_state
       kind: function
-      line_start: 178
-      line_end: 207
+      line_start: 179
+      line_end: 208
       signature: 'test_review_api_tracks_reversible_pursuit_state(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1060,8 +1064,8 @@ source_catalog:
         symbol: register_application_routes
     - name: test_review_backfills_stale_score_without_provisional_or_llm_path
       kind: function
-      line_start: 210
-      line_end: 249
+      line_start: 211
+      line_end: 250
       signature: 'test_review_backfills_stale_score_without_provisional_or_llm_path(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1097,8 +1101,8 @@ source_catalog:
       - *id033
     - name: test_review_keeps_distant_roles_for_explicit_scored_location_filtering
       kind: function
-      line_start: 252
-      line_end: 293
+      line_start: 253
+      line_end: 294
       signature: 'test_review_keeps_distant_roles_for_explicit_scored_location_filtering(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1131,3 +1135,145 @@ source_catalog:
       - *id030
       - *id031
       - *id032
+    - name: test_review_exposes_verified_employer_link
+      kind: function
+      line_start: 297
+      line_end: 312
+      signature: 'test_review_exposes_verified_employer_link(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - FastAPI
+      - TestClient
+      - _database
+      - _seed
+      - client.get
+      - register_application_routes
+      - response.json
+      parser: python-ast
+      dependency_targets:
+      - *id023
+      - *id024
+      - *id025
+      - *id026
+      - *id027
+      - *id032
+    - name: test_review_keeps_unverified_board_lead_with_warning
+      kind: function
+      line_start: 315
+      line_end: 356
+      signature: 'test_review_keeps_unverified_board_lead_with_warning(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Company
+      - CompanyRepository
+      - CompanyRepository(database).upsert
+      - FastAPI
+      - JobOpeningRepository
+      - JobOpeningRepository(database).upsert
+      - JobProvenance
+      - NormalizedJobOpening
+      - TestClient
+      - _database
+      - client.get
+      - datetime.now
+      - register_application_routes
+      - response.json
+      parser: python-ast
+      dependency_targets:
+      - *id034
+      - *id035
+      - *id036
+      - *id037
+      - *id023
+      - *id024
+      - *id025
+      - *id026
+      - *id032
+    - name: test_review_withholds_discovered_lead_after_verified_absence
+      kind: function
+      line_start: 359
+      line_end: 418
+      signature: 'test_review_withholds_discovered_lead_after_verified_absence(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - Company
+      - CompanyRepository
+      - CompanyRepository(database).upsert
+      - DiscoverySource
+      - DiscoverySourceRepository
+      - FastAPI
+      - JobOpeningRepository
+      - JobOpeningRepository(database).upsert
+      - JobProvenance
+      - NormalizedJobOpening
+      - TestClient
+      - _database
+      - client.get
+      - datetime.now
+      - register_application_routes
+      - response.json
+      - sources.record_scan
+      - sources.upsert
+      parser: python-ast
+      dependency_targets:
+      - *id034
+      - *id035
+      - *id036
+      - *id037
+      - *id023
+      - *id024
+      - *id025
+      - *id026
+      - *id032
+      - &id038
+        path: src/nerve_center/persistence/discovery.py
+        symbol: DiscoverySourceRepository.record_scan
+    - name: test_review_keeps_saved_role_visible_when_verification_turns_absent
+      kind: function
+      line_start: 421
+      line_end: 491
+      signature: 'test_review_keeps_saved_role_visible_when_verification_turns_absent(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - ApplicationRepository
+      - ApplicationRepository(database).save
+      - ApplicationUpdate
+      - Company
+      - CompanyRepository
+      - CompanyRepository(database).upsert
+      - DiscoverySource
+      - DiscoverySourceRepository
+      - FastAPI
+      - JobOpeningRepository
+      - JobOpeningRepository(database).upsert
+      - JobProvenance
+      - NormalizedJobOpening
+      - TestClient
+      - _database
+      - client.get
+      - datetime.now
+      - item['next_action'].startswith
+      - register_application_routes
+      - response.json
+      - sources.record_scan
+      - sources.upsert
+      parser: python-ast
+      dependency_targets:
+      - *id034
+      - *id035
+      - *id036
+      - *id037
+      - *id023
+      - *id024
+      - *id025
+      - *id026
+      - *id032
+      - *id038
