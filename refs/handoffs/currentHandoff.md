@@ -35,7 +35,7 @@ Current conservative behavior:
 - non-exhaustive page scans cannot establish absence;
 - only `verified_absent` is withheld from scoring; unverified opportunities remain eligible and continue to receive the existing lower non-direct provenance reward.
 
-Canonical/discovery-vs-authoritative link behavior is now wired into the existing review API and Opportunities UI. The next bounded work is stale/closure reconciliation with per-source observation evidence, followed by multi-resume scoring and the employer/opportunity findings model.
+Canonical/discovery-vs-authoritative link behavior is now wired into the existing review API and Opportunities UI. Stale/closure reconciliation now compares direct opening observation timestamps with later source scan windows: a later successful exhaustive ATS scan can establish verified absence, while a later failed/incomplete refresh produces stale verification. Verification state also now feeds source confidence into response/confidence scoring without changing resume fit. Generated catalog refresh: `d5c6438872720700abd8450b7007ec8a917fcc25`. The next bounded work is multi-resume scoring, then the employer/opportunity findings model.
 
 
 ## 2026-09-18 - Live reflection acceptance and role-discovery reachability follow-up
