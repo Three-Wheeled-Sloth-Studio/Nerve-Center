@@ -272,42 +272,45 @@ source_catalog:
       - wait_for_health
       parser: rust-pattern
       dependency_targets:
-      - &id012
+      - &id013
         path: tests/test_module_runtime.py
         symbol: StubProcess.kill
-      - &id013
+      - &id014
         path: src/nerve_center/discovery/fetching.py
         symbol: DomainRequestGate.wait
-      - &id014
+      - &id015
         path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService.wait
-      - &id015
+      - &id016
         path: tests/test_module_runtime.py
         symbol: StubProcess.wait
       - &id003
         path: desktop/src-tauri/src/lib.rs
         symbol: detail
       - &id004
+        path: src/nerve_center/scoring/discovery_advantage.py
+        symbol: DiscoveryAdvantage.detail
+      - &id005
         path: desktop/src-tauri/src/lib.rs
         symbol: log_path
-      - &id005
+      - &id006
         path: desktop/src-tauri/src/lib.rs
         symbol: monitor_api
       - *id001
-      - &id006
-        path: desktop/src-tauri/src/lib.rs
-        symbol: pid
       - &id007
         path: desktop/src-tauri/src/lib.rs
+        symbol: pid
+      - &id008
+        path: desktop/src-tauri/src/lib.rs
         symbol: probe_health
-      - &id016
+      - &id017
         path: src/nerve_center/plugins/job_scout/settings.py
         symbol: JobScoutConfigurationStore.load
-      - &id017
+      - &id018
         path: tests/test_job_scout_query_portfolio.py
         symbol: _ConfigStore.load
       - *id002
-      - &id008
+      - &id009
         path: desktop/src-tauri/src/lib.rs
         symbol: source
       - path: desktop/src-tauri/src/lib.rs
@@ -351,20 +354,21 @@ source_catalog:
       parser: rust-pattern
       dependency_targets:
       - *id003
-      - &id009
-        path: desktop/src-tauri/src/lib.rs
-        symbol: is_current_generation
       - *id004
       - &id010
         path: desktop/src-tauri/src/lib.rs
-        symbol: managed_process_exit
+        symbol: is_current_generation
       - *id005
-      - *id001
-      - *id006
-      - *id007
-      - *id002
-      - *id008
       - &id011
+        path: desktop/src-tauri/src/lib.rs
+        symbol: managed_process_exit
+      - *id006
+      - *id001
+      - *id007
+      - *id008
+      - *id002
+      - *id009
+      - &id012
         path: desktop/src-tauri/src/lib.rs
         symbol: terminate_managed_process
     - name: monitor_api
@@ -402,14 +406,15 @@ source_catalog:
       parser: rust-pattern
       dependency_targets:
       - *id003
-      - *id009
       - *id004
       - *id010
-      - *id001
-      - *id007
-      - *id002
-      - *id008
+      - *id005
       - *id011
+      - *id001
+      - *id008
+      - *id002
+      - *id009
+      - *id012
     - name: spawn_backend
       kind: function
       line_start: 471
@@ -439,7 +444,7 @@ source_catalog:
       - try_clone
       parser: rust-pattern
       dependency_targets:
-      - &id019
+      - &id020
         path: src/nerve_center/persistence/scoring.py
         symbol: OpportunityScoreRepository.append
       - path: desktop/src-tauri/src/lib.rs
@@ -533,10 +538,10 @@ source_catalog:
       - runtime.process.lock
       parser: rust-pattern
       dependency_targets:
-      - *id012
       - *id013
       - *id014
       - *id015
+      - *id016
     - name: stop_api
       kind: function
       line_start: 564
@@ -554,7 +559,7 @@ source_catalog:
       parser: rust-pattern
       dependency_targets:
       - *id001
-      - *id011
+      - *id012
     - name: show_main_window
       kind: function
       line_start: 572
@@ -597,7 +602,7 @@ source_catalog:
       - to_string
       parser: rust-pattern
       dependency_targets:
-      - &id018
+      - &id019
         path: desktop/src-tauri/src/lib.rs
         symbol: classify_health_response
       - *id001
@@ -640,8 +645,8 @@ source_catalog:
       - runtime.status.lock
       parser: rust-pattern
       dependency_targets:
-      - *id016
       - *id017
+      - *id018
     - name: is_current_generation
       kind: function
       line_start: 627
@@ -655,8 +660,8 @@ source_catalog:
       - load
       parser: rust-pattern
       dependency_targets:
-      - *id016
       - *id017
+      - *id018
     - name: now_ms
       kind: function
       line_start: 634
@@ -684,7 +689,7 @@ source_catalog:
       - classify_health_response
       parser: rust-pattern
       dependency_targets:
-      - *id018
+      - *id019
     - name: rejects_non_nerve_center_service
       kind: function
       line_start: 655
@@ -697,7 +702,7 @@ source_catalog:
       - classify_health_response
       parser: rust-pattern
       dependency_targets:
-      - *id018
+      - *id019
   - path: src/nerve_center/discovery/connectors/json_ld.py
     analysis_version: 1
     language: python
@@ -773,7 +778,7 @@ source_catalog:
       - self._parts.append
       parser: python-ast
       dependency_targets:
-      - *id019
+      - *id020
     - name: _JsonLdParser.handle_endtag
       kind: method
       line_start: 52
@@ -789,7 +794,7 @@ source_catalog:
       - self.blocks.append
       parser: python-ast
       dependency_targets:
-      - *id019
+      - *id020
     - name: JsonLdJobConnector.__init__
       kind: method
       line_start: 63
@@ -828,8 +833,8 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/discovery/connectors/json_ld.py
         symbol: _find_job_postings
-      - *id019
-      - &id026
+      - *id020
+      - &id027
         path: src/nerve_center/runtime/client.py
         symbol: ModuleRuntimeClient.close
       - path: src/nerve_center/discovery/connectors/json_ld.py
@@ -879,19 +884,19 @@ source_catalog:
         symbol: _applicant_locations
       - path: src/nerve_center/discovery/connectors/json_ld.py
         symbol: _employment_type
-      - &id022
+      - &id023
         path: src/nerve_center/discovery/connectors/json_ld.py
         symbol: _identifier
       - path: src/nerve_center/discovery/connectors/json_ld.py
         symbol: _locations
       - path: src/nerve_center/discovery/connectors/json_ld.py
         symbol: _organization_identity_hint
-      - &id020
+      - &id021
         path: src/nerve_center/discovery/normalization.py
         symbol: canonicalize_url
       - path: src/nerve_center/discovery/normalization.py
         symbol: clean_html_text
-      - &id021
+      - &id022
         path: src/nerve_center/discovery/normalization.py
         symbol: clean_text
       - path: src/nerve_center/discovery/normalization.py
@@ -926,13 +931,13 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/discovery/connectors/json_ld.py
         symbol: _organization_domain_from_page
-      - &id023
+      - &id024
         path: src/nerve_center/discovery/connectors/json_ld.py
         symbol: _organization_reference
-      - &id024
+      - &id025
         path: src/nerve_center/discovery/normalization.py
         symbol: canonical_domain
-      - &id025
+      - &id026
         path: src/nerve_center/discovery/normalization.py
         symbol: is_third_party_identity_domain
     - name: _find_job_postings
@@ -954,7 +959,7 @@ source_catalog:
       - value.get
       parser: python-ast
       dependency_targets:
-      - *id019
+      - *id020
     - name: _organization_reference
       kind: function
       line_start: 248
@@ -971,8 +976,8 @@ source_catalog:
       - value.get
       parser: python-ast
       dependency_targets:
-      - *id020
       - *id021
+      - *id022
     - name: _organization_identity_hint
       kind: function
       line_start: 261
@@ -988,8 +993,8 @@ source_catalog:
       - value.get
       parser: python-ast
       dependency_targets:
-      - *id022
       - *id023
+      - *id024
     - name: _organization_domain_from_page
       kind: function
       line_start: 271
@@ -1014,10 +1019,10 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/discovery/connectors/json_ld.py
         symbol: _find_typed_objects
-      - *id024
-      - *id021
       - *id025
+      - *id022
       - *id026
+      - *id027
     - name: _find_typed_objects
       kind: function
       line_start: 294
@@ -1038,7 +1043,7 @@ source_catalog:
       - value.get
       parser: python-ast
       dependency_targets:
-      - *id019
+      - *id020
     - name: _locations
       kind: function
       line_start: 310
@@ -1056,8 +1061,8 @@ source_catalog:
       - result.append
       parser: python-ast
       dependency_targets:
-      - *id021
-      - *id019
+      - *id022
+      - *id020
     - name: _applicant_locations
       kind: function
       line_start: 333
@@ -1073,8 +1078,8 @@ source_catalog:
       - result.append
       parser: python-ast
       dependency_targets:
-      - *id021
-      - *id019
+      - *id022
+      - *id020
     - name: _identifier
       kind: function
       line_start: 344
@@ -1089,7 +1094,7 @@ source_catalog:
       - value.get
       parser: python-ast
       dependency_targets:
-      - *id021
+      - *id022
     - name: _employment_type
       kind: function
       line_start: 350
@@ -1104,7 +1109,7 @@ source_catalog:
       - isinstance
       parser: python-ast
       dependency_targets:
-      - *id021
+      - *id022
   - path: src/nerve_center/discovery/public_search_fallback.py
     analysis_version: 1
     language: python
@@ -1160,7 +1165,7 @@ source_catalog:
       - self._parts.append
       parser: python-ast
       dependency_targets:
-      - *id019
+      - *id020
     - name: BingSearchResultParser.handle_endtag
       kind: method
       line_start: 43
@@ -1177,7 +1182,7 @@ source_catalog:
       - self.anchors.append
       parser: python-ast
       dependency_targets:
-      - *id019
+      - *id020
   - path: src/nerve_center/persistence/code_shop.py
     analysis_version: 1
     language: python
@@ -1257,19 +1262,19 @@ source_catalog:
       - session.get
       parser: python-ast
       dependency_targets:
-      - &id027
+      - &id028
         path: src/nerve_center/persistence/code_shop.py
         symbol: _project
-      - &id028
+      - &id029
         path: src/nerve_center/persistence/database.py
         symbol: Database.session
-      - &id029
+      - &id030
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.session
-      - &id031
+      - &id032
         path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: _extract_structured_employer_names.add
-      - &id030
+      - &id031
         path: scripts/agent_context.py
         symbol: _markdown_blocks.flush
     - name: CodeShopRepository.list_projects
@@ -1290,18 +1295,18 @@ source_catalog:
       - session.scalars(select(CodeShopProjectModel).order_by(CodeShopProjectModel.priority.desc())).all
       parser: python-ast
       dependency_targets:
-      - *id027
-      - &id036
+      - *id028
+      - &id037
         path: src/nerve_center/persistence/resource_profiles.py
         symbol: ResourceProfileRepository.select
-      - &id037
+      - &id038
         path: src/nerve_center/providers/manager.py
         symbol: ProviderManager.select
-      - &id038
+      - &id039
         path: src/nerve_center/resource_profiles/service.py
         symbol: ResourceProfileService.select
-      - *id028
       - *id029
+      - *id030
     - name: CodeShopRepository.get_project
       kind: method
       line_start: 215
@@ -1318,9 +1323,9 @@ source_catalog:
       - session.get
       parser: python-ast
       dependency_targets:
-      - *id027
       - *id028
       - *id029
+      - *id030
     - name: CodeShopRepository.update_project
       kind: method
       line_start: 222
@@ -1345,10 +1350,10 @@ source_catalog:
       - session.get
       parser: python-ast
       dependency_targets:
-      - *id027
       - *id028
       - *id029
       - *id030
+      - *id031
     - name: CodeShopRepository.set_checkout
       kind: method
       line_start: 247
@@ -1376,25 +1381,25 @@ source_catalog:
       - session.get
       parser: python-ast
       dependency_targets:
-      - &id032
-        path: src/nerve_center/persistence/code_shop.py
-        symbol: _checkout
       - &id033
-        path: tests/test_code_shop.py
+        path: src/nerve_center/persistence/code_shop.py
         symbol: _checkout
       - &id034
-        path: tests/test_module_permissions.py
+        path: tests/test_code_shop.py
         symbol: _checkout
       - &id035
+        path: tests/test_module_permissions.py
+        symbol: _checkout
+      - &id036
         path: tests/test_resource_profiles.py
         symbol: _checkout
-      - *id028
       - *id029
-      - &id039
+      - *id030
+      - &id040
         path: src/nerve_center/persistence/code_shop.py
         symbol: CodeShopRepository.get_project
+      - *id032
       - *id031
-      - *id030
     - name: CodeShopRepository.get_checkout
       kind: method
       line_start: 272
@@ -1410,12 +1415,12 @@ source_catalog:
       - session.get
       parser: python-ast
       dependency_targets:
-      - *id032
       - *id033
       - *id034
       - *id035
-      - *id028
+      - *id036
       - *id029
+      - *id030
     - name: CodeShopRepository.remove_checkout
       kind: method
       line_start: 277
@@ -1431,8 +1436,8 @@ source_catalog:
       - session.get
       parser: python-ast
       dependency_targets:
-      - *id028
       - *id029
+      - *id030
       - path: src/nerve_center/persistence/scoring.py
         symbol: ScoringRuleRepository.delete
     - name: CodeShopRepository.set_policy
@@ -1465,17 +1470,17 @@ source_catalog:
       - uuid4
       parser: python-ast
       dependency_targets:
-      - &id040
+      - &id041
         path: src/nerve_center/persistence/code_shop.py
         symbol: _policy
-      - *id036
       - *id037
       - *id038
-      - *id028
-      - *id029
       - *id039
-      - *id031
+      - *id029
       - *id030
+      - *id040
+      - *id032
+      - *id031
     - name: CodeShopRepository.get_policy
       kind: method
       line_start: 318
@@ -1495,12 +1500,12 @@ source_catalog:
       - session.scalar
       parser: python-ast
       dependency_targets:
-      - *id040
-      - *id036
+      - *id041
       - *id037
       - *id038
-      - *id028
+      - *id039
       - *id029
+      - *id030
     - name: CodeShopRepository.list_policies
       kind: method
       line_start: 330
@@ -1520,12 +1525,12 @@ source_catalog:
       - session.scalars(select(CodeShopAuthorityPolicyModel).where(CodeShopAuthorityPolicyModel.repository_id == repository_id).order_by(CodeShopAuthorityPolicyModel.action)).all
       parser: python-ast
       dependency_targets:
-      - *id040
-      - *id036
+      - *id041
       - *id037
       - *id038
-      - *id028
+      - *id039
       - *id029
+      - *id030
     - name: CodeShopRepository.create_task
       kind: method
       line_start: 339
@@ -1552,14 +1557,14 @@ source_catalog:
       - uuid4
       parser: python-ast
       dependency_targets:
-      - &id041
+      - &id042
         path: src/nerve_center/persistence/code_shop.py
         symbol: _task
-      - *id028
       - *id029
-      - *id039
-      - *id031
       - *id030
+      - *id040
+      - *id032
+      - *id031
     - name: CodeShopRepository.get_task
       kind: method
       line_start: 365
@@ -1576,9 +1581,9 @@ source_catalog:
       - session.get
       parser: python-ast
       dependency_targets:
-      - *id041
-      - *id028
+      - *id042
       - *id029
+      - *id030
     - name: CodeShopRepository.list_tasks
       kind: method
       line_start: 372
@@ -1601,12 +1606,12 @@ source_catalog:
       - statement.where
       parser: python-ast
       dependency_targets:
-      - *id041
-      - *id036
+      - *id042
       - *id037
       - *id038
-      - *id028
+      - *id039
       - *id029
+      - *id030
     - name: CodeShopRepository.set_task_state
       kind: method
       line_start: 382
@@ -1628,10 +1633,10 @@ source_catalog:
       - session.get
       parser: python-ast
       dependency_targets:
-      - *id041
-      - *id028
+      - *id042
       - *id029
       - *id030
+      - *id031
     - name: CodeShopRepository.record_attempt
       kind: method
       line_start: 399
@@ -1674,16 +1679,16 @@ source_catalog:
         symbol: _attempt
       - path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository._attempt
-      - *id036
       - *id037
       - *id038
-      - *id028
+      - *id039
       - *id029
-      - &id042
+      - *id030
+      - &id043
         path: src/nerve_center/persistence/code_shop.py
         symbol: CodeShopRepository.get_task
+      - *id032
       - *id031
-      - *id030
     - name: CodeShopRepository.failed_attempt_count
       kind: method
       line_start: 439
@@ -1702,11 +1707,11 @@ source_catalog:
       - session.scalar
       parser: python-ast
       dependency_targets:
-      - *id036
       - *id037
       - *id038
-      - *id028
+      - *id039
       - *id029
+      - *id030
     - name: CodeShopRepository.record_decision
       kind: method
       line_start: 449
@@ -1739,10 +1744,10 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/persistence/code_shop.py
         symbol: _decision
-      - *id028
       - *id029
-      - *id031
       - *id030
+      - *id032
+      - *id031
     - name: CodeShopRepository.create_escalation
       kind: method
       line_start: 478
@@ -1773,14 +1778,14 @@ source_catalog:
       - uuid4
       parser: python-ast
       dependency_targets:
-      - &id043
+      - &id044
         path: src/nerve_center/persistence/code_shop.py
         symbol: _escalation
-      - *id028
       - *id029
-      - *id042
-      - *id031
       - *id030
+      - *id043
+      - *id032
+      - *id031
     - name: CodeShopRepository.has_open_escalation
       kind: method
       line_start: 508
@@ -1799,11 +1804,11 @@ source_catalog:
       - session.scalar
       parser: python-ast
       dependency_targets:
-      - *id036
       - *id037
       - *id038
-      - *id028
+      - *id039
       - *id029
+      - *id030
     - name: CodeShopRepository.list_escalations
       kind: method
       line_start: 518
@@ -1826,12 +1831,12 @@ source_catalog:
       - statement.where
       parser: python-ast
       dependency_targets:
-      - *id043
-      - *id036
+      - *id044
       - *id037
       - *id038
-      - *id028
+      - *id039
       - *id029
+      - *id030
     - name: CodeShopRepository.record_outcome
       kind: method
       line_start: 528
@@ -1860,11 +1865,11 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/persistence/code_shop.py
         symbol: _outcome
-      - *id028
       - *id029
-      - *id042
-      - *id031
       - *id030
+      - *id043
+      - *id032
+      - *id031
     - name: _project
       kind: function
       line_start: 551
@@ -2046,7 +2051,7 @@ source_catalog:
         symbol: _normalize_weight
       - path: src/nerve_center/scoring/qualification_importance.py
         symbol: _representative_rank
-      - *id019
+      - *id020
     - name: weighted_coverage
       kind: function
       line_start: 125
@@ -2065,7 +2070,7 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/scoring/qualification_importance.py
         symbol: normalize_qualifications
-      - *id019
+      - *id020
     - name: coverage_breakdown
       kind: function
       line_start: 168
@@ -2101,7 +2106,7 @@ source_catalog:
       - round
       parser: python-ast
       dependency_targets:
-      - *id019
+      - *id020
     - name: _representative_rank
       kind: function
       line_start: 233
@@ -2147,7 +2152,7 @@ source_catalog:
       - value.casefold
       parser: python-ast
       dependency_targets:
-      - *id031
+      - *id032
   - path: src/nerve_center/summary/api.py
     analysis_version: 1
     language: python
@@ -2181,7 +2186,7 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - &id044
+      - &id045
         path: src/nerve_center/summary/service.py
         symbol: SummaryService.snapshot
     - name: register_summary_routes.summary
@@ -2203,4 +2208,4 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - *id044
+      - *id045

@@ -543,6 +543,49 @@ source_catalog:
       - *id005
       - *id006
       - *id007
+  - path: src/nerve_center/scoring/discovery_advantage.py
+    analysis_version: 1
+    language: python
+    content_hash: 4b98fabef39b73b0252d57a50b45e64725af55ac
+    dependencies:
+    - __future__
+    - dataclasses
+    - datetime
+    - enum
+    - nerve_center.discovery.models
+    provides:
+    - DiscoveryAdvantage.detail
+    - assess_discovery_advantage
+    symbols:
+    - name: DiscoveryAdvantage.detail
+      kind: method
+      line_start: 32
+      line_end: 48
+      signature: DiscoveryAdvantage.detail(self) -> dict[str, object]
+      inputs:
+      - self
+      output: dict[str, object]
+      dependencies:
+      - self.direct_first_seen_at.isoformat
+      - self.secondary_first_seen_at.isoformat
+      parser: python-ast
+      dependency_targets: []
+    - name: assess_discovery_advantage
+      kind: function
+      line_start: 51
+      line_end: 92
+      signature: 'assess_discovery_advantage(provenance: list[JobProvenance]) -> DiscoveryAdvantage'
+      inputs:
+      - 'provenance: list[JobProvenance]'
+      output: DiscoveryAdvantage
+      dependencies:
+      - DiscoveryAdvantage
+      - dict.fromkeys
+      - len
+      - min
+      - tuple
+      parser: python-ast
+      dependency_targets: []
   - path: tests/test_fit_analysis.py
     analysis_version: 1
     language: python

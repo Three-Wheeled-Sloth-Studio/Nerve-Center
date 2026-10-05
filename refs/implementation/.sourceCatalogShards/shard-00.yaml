@@ -1791,7 +1791,7 @@ source_catalog:
   - path: tests/test_job_scout_findings.py
     analysis_version: 1
     language: python
-    content_hash: 7e46895d4b3b2ec3aa5359947fa1235d7cddf06f
+    content_hash: a4b4284f391f33ca28861d223329eb2a02ced29d
     dependencies:
     - datetime
     - fastapi
@@ -1848,7 +1848,7 @@ source_catalog:
     - name: test_employer_findings_surface_local_presence_and_role_metrics
       kind: function
       line_start: 80
-      line_end: 219
+      line_end: 223
       signature: 'test_employer_findings_surface_local_presence_and_role_metrics(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1894,8 +1894,8 @@ source_catalog:
         symbol: register_job_scout_findings_routes
     - name: test_employer_findings_do_not_invent_local_presence
       kind: function
-      line_start: 222
-      line_end: 247
+      line_start: 226
+      line_end: 251
       signature: 'test_employer_findings_do_not_invent_local_presence(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'

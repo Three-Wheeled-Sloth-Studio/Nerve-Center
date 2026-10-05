@@ -738,7 +738,7 @@ source_catalog:
   - path: tests/test_discovery_persistence.py
     analysis_version: 1
     language: python
-    content_hash: e6a9b451d1950aa0180ce1d88d84bc898e970c6e
+    content_hash: c75145cbca9fc53ffd8d1078e75591907ad7c186
     dependencies:
     - datetime
     - nerve_center.config
@@ -752,6 +752,7 @@ source_catalog:
     - _source
     - _opening
     - test_persists_registry_health_jobs_and_cache
+    - test_repeated_source_observation_preserves_first_seen_provenance
     - test_search_cache_expires
     - test_company_lookup_by_domain_preserves_resolved_identity
     - test_existing_aggregator_opening_is_reassigned_to_resolved_company
@@ -848,45 +849,83 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - &id010
+      - &id012
         path: tests/test_discovery_connectors.py
         symbol: _company
-      - &id011
+      - &id013
         path: tests/test_discovery_persistence.py
         symbol: _company
+      - &id014
+        path: tests/test_discovery_connectors.py
+        symbol: _source
+      - &id015
+        path: tests/test_discovery_persistence.py
+        symbol: _source
       - &id016
-        path: tests/test_discovery_connectors.py
-        symbol: _source
-      - &id017
-        path: tests/test_discovery_persistence.py
-        symbol: _source
-      - &id018
         path: tests/test_job_scout_verification.py
         symbol: _source
-      - &id008
+      - &id017
         path: src/nerve_center/persistence/discovery.py
         symbol: SearchCacheRepository.put
-      - &id009
+      - &id018
         path: tests/test_public_search_fallback.py
         symbol: MemorySearchCache.put
-      - &id012
+      - &id008
         path: src/nerve_center/persistence/discovery.py
         symbol: CompanyRepository.upsert
-      - &id013
+      - &id009
         path: src/nerve_center/persistence/discovery.py
         symbol: DiscoverySourceRepository.upsert
-      - &id014
+      - &id010
         path: src/nerve_center/persistence/discovery.py
         symbol: JobOpeningRepository.upsert
-      - &id015
+      - &id011
         path: src/nerve_center/persistence/scoring.py
         symbol: ScoringRuleRepository.upsert
       - path: src/nerve_center/persistence/discovery.py
         symbol: DiscoverySourceRepository.record_scan
-    - name: test_search_cache_expires
+    - name: test_repeated_source_observation_preserves_first_seen_provenance
       kind: function
       line_start: 119
-      line_end: 126
+      line_end: 152
+      signature: 'test_repeated_source_observation_preserves_first_seen_provenance(tmp_path: Path) -> None'
+      inputs:
+      - 'tmp_path: Path'
+      output: None
+      dependencies:
+      - CompanyRepository
+      - CompanyRepository(database).upsert
+      - DiscoverySourceRepository
+      - DiscoverySourceRepository(database).upsert
+      - JobOpeningRepository
+      - _company
+      - _database
+      - _opening
+      - _opening('source-1', direct=True, description='Initial').model_copy
+      - _opening('source-1', direct=True, description='Initial').provenance[0].model_copy
+      - _source
+      - datetime.now
+      - initial.model_copy
+      - initial.provenance[0].model_copy
+      - jobs.list
+      - jobs.upsert
+      - len
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - *id008
+      - *id009
+      - *id010
+      - *id011
+      - *id012
+      - *id013
+      - *id014
+      - *id015
+      - *id016
+    - name: test_search_cache_expires
+      kind: function
+      line_start: 155
+      line_end: 162
       signature: 'test_search_cache_expires(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -900,12 +939,12 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id008
-      - *id009
+      - *id017
+      - *id018
     - name: test_company_lookup_by_domain_preserves_resolved_identity
       kind: function
-      line_start: 129
-      line_end: 136
+      line_start: 165
+      line_end: 172
       signature: 'test_company_lookup_by_domain_preserves_resolved_identity(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -918,18 +957,18 @@ source_catalog:
       - companies.upsert
       parser: python-ast
       dependency_targets:
-      - *id010
-      - *id011
-      - path: src/nerve_center/persistence/discovery.py
-        symbol: CompanyRepository.find_by_domain
       - *id012
       - *id013
-      - *id014
-      - *id015
+      - path: src/nerve_center/persistence/discovery.py
+        symbol: CompanyRepository.find_by_domain
+      - *id008
+      - *id009
+      - *id010
+      - *id011
     - name: test_existing_aggregator_opening_is_reassigned_to_resolved_company
       kind: function
-      line_start: 139
-      line_end: 170
+      line_start: 175
+      line_end: 206
       signature: 'test_existing_aggregator_opening_is_reassigned_to_resolved_company(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -950,15 +989,15 @@ source_catalog:
       - sources.upsert
       parser: python-ast
       dependency_targets:
-      - *id010
-      - *id011
-      - *id016
-      - *id017
-      - *id018
       - *id012
       - *id013
       - *id014
       - *id015
+      - *id016
+      - *id008
+      - *id009
+      - *id010
+      - *id011
   - path: tests/test_work_queue.py
     analysis_version: 1
     language: python

@@ -7,7 +7,7 @@ source_catalog:
   - path: desktop/src/types.ts
     analysis_version: 1
     language: typescript
-    content_hash: 7c3808632ad64d6dbb8cf35fe22e22587db529eb
+    content_hash: 25330493786ca8b8380f6af98ae08f0ca8d7b94f
     dependencies: []
     provides: []
     symbols: []

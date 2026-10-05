@@ -552,7 +552,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/findings.py
     analysis_version: 1
     language: python
-    content_hash: 17a5ee9250526579bf2fbaf60edc144d4576ca22
+    content_hash: 97f51a97d7ccb8ccf29422e42ba6ed9ae7483d36
     dependencies:
     - __future__
     - datetime
@@ -563,6 +563,7 @@ source_catalog:
     - nerve_center.persistence.scoring
     - nerve_center.plugins.job_scout.settings
     - nerve_center.plugins.job_scout.verification
+    - nerve_center.scoring.discovery_advantage
     - nerve_center.scoring.engine
     - nerve_center.scoring.location
     - nerve_center.scoring.models
@@ -578,8 +579,8 @@ source_catalog:
     symbols:
     - name: register_job_scout_findings_routes
       kind: function
-      line_start: 68
-      line_end: 201
+      line_start: 76
+      line_end: 231
       signature: 'register_job_scout_findings_routes(application: FastAPI, database: Database, configuration_store: JobScoutConfigurationStore)
         -> None'
       inputs:
@@ -602,6 +603,7 @@ source_catalog:
       - _source_health
       - actionable.append
       - application.get
+      - assess_discovery_advantage
       - assess_location
       - assess_opening_verification
       - companies.list
@@ -611,7 +613,6 @@ source_catalog:
       - dict.fromkeys
       - is_employer_authoritative_source
       - jobs.list
-      - len
       parser: python-ast
       dependency_targets:
       - &id021
@@ -627,24 +628,27 @@ source_catalog:
         path: src/nerve_center/persistence/scoring.py
         symbol: OpportunityScoreRepository.append
       - &id025
+        path: src/nerve_center/scoring/discovery_advantage.py
+        symbol: assess_discovery_advantage
+      - &id026
         path: src/nerve_center/scoring/location.py
         symbol: assess_location
-      - &id026
+      - &id027
         path: src/nerve_center/plugins/job_scout/verification.py
         symbol: assess_opening_verification
-      - &id027
+      - &id028
         path: src/nerve_center/plugins/job_scout/settings.py
         symbol: JobScoutConfigurationStore.load
-      - &id028
+      - &id029
         path: tests/test_job_scout_query_portfolio.py
         symbol: _ConfigStore.load
-      - &id029
+      - &id030
         path: src/nerve_center/plugins/job_scout/verification.py
         symbol: is_employer_authoritative_source
     - name: register_job_scout_findings_routes.employer_findings
       kind: function
-      line_start: 84
-      line_end: 201
+      line_start: 92
+      line_end: 231
       signature: register_job_scout_findings_routes.employer_findings() -> list[EmployerFinding]
       inputs: []
       output: list[EmployerFinding]
@@ -657,6 +661,7 @@ source_catalog:
       - _source_health
       - actionable.append
       - application.get
+      - assess_discovery_advantage
       - assess_location
       - assess_opening_verification
       - companies.list
@@ -672,7 +677,6 @@ source_catalog:
       - max
       - next
       - relevant.append
-      - rows.append
       parser: python-ast
       dependency_targets:
       - *id021
@@ -684,10 +688,11 @@ source_catalog:
       - *id027
       - *id028
       - *id029
+      - *id030
     - name: _source_health
       kind: function
-      line_start: 204
-      line_end: 211
+      line_start: 234
+      line_end: 241
       signature: '_source_health(sources: list[DiscoverySource]) -> str'
       inputs:
       - 'sources: list[DiscoverySource]'
@@ -697,8 +702,8 @@ source_catalog:
       dependency_targets: []
     - name: _direct_first
       kind: function
-      line_start: 214
-      line_end: 221
+      line_start: 244
+      line_end: 251
       signature: '_direct_first(provenance: list[JobProvenance]) -> bool'
       inputs:
       - 'provenance: list[JobProvenance]'
@@ -710,8 +715,8 @@ source_catalog:
       dependency_targets: []
     - name: _employer_sort_key
       kind: function
-      line_start: 224
-      line_end: 236
+      line_start: 254
+      line_end: 266
       signature: '_employer_sort_key(item: EmployerFinding) -> tuple[int, float, int, str]'
       inputs:
       - 'item: EmployerFinding'
@@ -791,10 +796,10 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - &id030
+      - &id031
         path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository._request
-      - &id031
+      - &id032
         path: src/nerve_center/runtime/client.py
         symbol: ModuleRuntimeClient._request
     - name: ModuleRuntimeClient.next_work
@@ -811,8 +816,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id030
       - *id031
+      - *id032
     - name: ModuleRuntimeClient.module_control
       kind: method
       line_start: 35
@@ -827,8 +832,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id030
       - *id031
+      - *id032
     - name: ModuleRuntimeClient.control
       kind: method
       line_start: 38
@@ -844,8 +849,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id030
       - *id031
+      - *id032
     - name: ModuleRuntimeClient.checkpoint
       kind: method
       line_start: 44
@@ -861,8 +866,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id030
       - *id031
+      - *id032
     - name: ModuleRuntimeClient.consume
       kind: method
       line_start: 49
@@ -878,8 +883,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id030
       - *id031
+      - *id032
     - name: ModuleRuntimeClient.invoke
       kind: method
       line_start: 56
@@ -900,8 +905,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id030
       - *id031
+      - *id032
     - name: ModuleRuntimeClient.submit_work
       kind: method
       line_start: 70
@@ -919,8 +924,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id030
       - *id031
+      - *id032
     - name: ModuleRuntimeClient.results
       kind: method
       line_start: 82
@@ -935,8 +940,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id030
       - *id031
+      - *id032
     - name: ModuleRuntimeClient.acknowledge_result
       kind: method
       line_start: 88
@@ -953,8 +958,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id030
       - *id031
+      - *id032
     - name: ModuleRuntimeClient.complete
       kind: method
       line_start: 101
@@ -973,8 +978,8 @@ source_catalog:
       - self._request
       parser: python-ast
       dependency_targets:
-      - *id030
       - *id031
+      - *id032
     - name: ModuleRuntimeClient._request
       kind: method
       line_start: 114
@@ -1053,13 +1058,13 @@ source_catalog:
       - database.initialize
       parser: python-ast
       dependency_targets:
-      - &id038
+      - &id039
         path: src/nerve_center/persistence/database.py
         symbol: Database.initialize
-      - &id039
+      - &id040
         path: src/nerve_center/persistence/resource_profiles.py
         symbol: ResourceProfileRepository.initialize
-      - &id040
+      - &id041
         path: src/nerve_center/resource_profiles/service.py
         symbol: ResourceProfileService.initialize
     - name: _seed
@@ -1084,16 +1089,16 @@ source_catalog:
       - datetime.now
       parser: python-ast
       dependency_targets:
-      - &id032
-        path: src/nerve_center/persistence/discovery.py
-        symbol: CompanyRepository.upsert
       - &id033
         path: src/nerve_center/persistence/discovery.py
-        symbol: DiscoverySourceRepository.upsert
+        symbol: CompanyRepository.upsert
       - &id034
         path: src/nerve_center/persistence/discovery.py
-        symbol: JobOpeningRepository.upsert
+        symbol: DiscoverySourceRepository.upsert
       - &id035
+        path: src/nerve_center/persistence/discovery.py
+        symbol: JobOpeningRepository.upsert
+      - &id036
         path: src/nerve_center/persistence/scoring.py
         symbol: ScoringRuleRepository.upsert
     - name: _upsert_board_source
@@ -1112,10 +1117,10 @@ source_catalog:
       - DiscoverySourceRepository(database).upsert
       parser: python-ast
       dependency_targets:
-      - *id032
       - *id033
       - *id034
       - *id035
+      - *id036
     - name: _opportunity_score
       kind: function
       line_start: 114
@@ -1160,7 +1165,7 @@ source_catalog:
       - self.scores.append
       parser: python-ast
       dependency_targets:
-      - &id037
+      - &id038
         path: tests/test_applications.py
         symbol: _opportunity_score
       - *id024
@@ -1197,7 +1202,7 @@ source_catalog:
       - repository.save
       parser: python-ast
       dependency_targets:
-      - &id036
+      - &id037
         path: tests/test_applications.py
         symbol: _seed
       - path: src/nerve_center/attention/api.py
@@ -1233,8 +1238,8 @@ source_catalog:
       - visible.json()[0]['next_action'].startswith
       parser: python-ast
       dependency_targets:
-      - *id036
-      - &id041
+      - *id037
+      - &id042
         path: src/nerve_center/applications/api.py
         symbol: register_application_routes
     - name: test_review_backfills_stale_score_without_provisional_or_llm_path
@@ -1267,12 +1272,12 @@ source_catalog:
       - scores.list
       parser: python-ast
       dependency_targets:
-      - *id037
-      - *id036
       - *id038
+      - *id037
       - *id039
       - *id040
       - *id041
+      - *id042
       - *id024
     - name: test_review_keeps_distant_roles_for_explicit_scored_location_filtering
       kind: function
@@ -1301,15 +1306,15 @@ source_catalog:
       - response.json
       parser: python-ast
       dependency_targets:
-      - *id032
       - *id033
       - *id034
       - *id035
       - *id036
-      - *id038
+      - *id037
       - *id039
       - *id040
       - *id041
+      - *id042
     - name: test_review_exposes_verified_employer_link
       kind: function
       line_start: 322
@@ -1328,8 +1333,8 @@ source_catalog:
       - response.json
       parser: python-ast
       dependency_targets:
-      - *id036
-      - *id041
+      - *id037
+      - *id042
     - name: test_review_keeps_unverified_board_lead_with_warning
       kind: function
       line_start: 340
@@ -1356,14 +1361,14 @@ source_catalog:
       - response.json
       parser: python-ast
       dependency_targets:
-      - *id032
       - *id033
       - *id034
       - *id035
-      - &id042
+      - *id036
+      - &id043
         path: tests/test_applications.py
         symbol: _upsert_board_source
-      - *id041
+      - *id042
     - name: test_review_withholds_discovered_lead_after_verified_absence
       kind: function
       line_start: 385
@@ -1394,13 +1399,13 @@ source_catalog:
       - sources.upsert
       parser: python-ast
       dependency_targets:
-      - *id032
       - *id033
       - *id034
       - *id035
+      - *id036
+      - *id043
       - *id042
-      - *id041
-      - &id043
+      - &id044
         path: src/nerve_center/persistence/discovery.py
         symbol: DiscoverySourceRepository.record_scan
     - name: test_review_keeps_saved_role_visible_when_verification_turns_absent
@@ -1437,10 +1442,10 @@ source_catalog:
       - sources.upsert
       parser: python-ast
       dependency_targets:
-      - *id032
       - *id033
       - *id034
       - *id035
-      - *id042
-      - *id041
+      - *id036
       - *id043
+      - *id042
+      - *id044
