@@ -9,6 +9,7 @@ from fastapi import FastAPI, HTTPException, Response, status
 from pydantic import BaseModel, Field
 
 from nerve_center.config import Settings
+from nerve_center.discovery.models import NormalizedJobOpening
 from nerve_center.persistence.database import Database
 from nerve_center.persistence.discovery import CompanyRepository, JobOpeningRepository
 from nerve_center.persistence.profile import CareerProfileRepository
@@ -65,6 +66,9 @@ def register_scoring_routes(
     provider: StructuredProvider | None = None,
     target_titles_provider: Callable[[], list[str]] | None = None,
     location_markets_provider: Callable[[], list[str]] | None = None,
+    source_confidence_provider: (
+        Callable[[NormalizedJobOpening], tuple[float, str]] | None
+    ) = None,
 ) -> ScoringService:
     runtime_provider = provider or OllamaProvider(
         base_url=settings.ollama_base_url,
@@ -93,6 +97,7 @@ def register_scoring_routes(
         provider=runtime_provider,
         target_titles_provider=target_titles_provider,
         location_markets_provider=location_markets_provider,
+        source_confidence_provider=source_confidence_provider,
     )
     application.state.scoring_service = service
 
