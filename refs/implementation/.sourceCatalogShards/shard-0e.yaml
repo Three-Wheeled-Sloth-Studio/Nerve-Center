@@ -1150,7 +1150,7 @@ source_catalog:
   - path: src/nerve_center/scoring/service.py
     analysis_version: 1
     language: python
-    content_hash: c38643c8e4e19bc0504b2921162869aa165a6335
+    content_hash: 5812b623a1a071a1af610425ecf1bdfcf0358a32
     dependencies:
     - __future__
     - collections.abc

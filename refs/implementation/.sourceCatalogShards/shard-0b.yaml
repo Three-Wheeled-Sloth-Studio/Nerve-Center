@@ -34,7 +34,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/bootstrap.py
     analysis_version: 1
     language: python
-    content_hash: adc82c36f4ffa780c5c89957fd131afee847b371
+    content_hash: f4aa4c975a3cabe6c152c473fbc8bfb96d9e094a
     dependencies:
     - dataclasses
     - fastapi

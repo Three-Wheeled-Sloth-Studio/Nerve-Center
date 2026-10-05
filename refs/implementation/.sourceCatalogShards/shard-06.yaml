@@ -1841,7 +1841,7 @@ source_catalog:
   - path: tests/test_job_scout_verification.py
     analysis_version: 1
     language: python
-    content_hash: 216ea32b6251682c2c2656e158edf2278c621eff
+    content_hash: 12577fede8b9011697e1b6af25d9e6d7d2910890
     dependencies:
     - datetime
     - nerve_center.config
@@ -1867,26 +1867,41 @@ source_catalog:
     symbols:
     - name: _repository
       kind: function
-      line_start: 20
-      line_end: 23
+      line_start: 21
+      line_end: 31
       signature: _repository(tmp_path)
       inputs:
       - tmp_path
       output: unspecified
       dependencies:
+      - Company
+      - CompanyRepository
+      - CompanyRepository(database).upsert
       - Database
       - DiscoverySourceRepository
       - Settings
       - database.initialize
       parser: python-ast
       dependency_targets:
+      - &id031
+        path: src/nerve_center/persistence/discovery.py
+        symbol: CompanyRepository.upsert
+      - &id032
+        path: src/nerve_center/persistence/discovery.py
+        symbol: DiscoverySourceRepository.upsert
+      - &id033
+        path: src/nerve_center/persistence/discovery.py
+        symbol: JobOpeningRepository.upsert
+      - &id034
+        path: src/nerve_center/persistence/scoring.py
+        symbol: ScoringRuleRepository.upsert
       - *id017
       - *id018
       - *id019
     - name: _opening
       kind: function
-      line_start: 26
-      line_end: 52
+      line_start: 34
+      line_end: 60
       signature: '_opening(direct: bool) -> NormalizedJobOpening'
       inputs:
       - 'direct: bool'
@@ -1900,8 +1915,8 @@ source_catalog:
       dependency_targets: []
     - name: _source
       kind: function
-      line_start: 55
-      line_end: 65
+      line_start: 63
+      line_end: 73
       signature: _source(repository, kind) -> DiscoverySource
       inputs:
       - repository
@@ -1912,22 +1927,14 @@ source_catalog:
       - repository.upsert
       parser: python-ast
       dependency_targets:
-      - &id037
-        path: src/nerve_center/persistence/discovery.py
-        symbol: CompanyRepository.upsert
-      - &id038
-        path: src/nerve_center/persistence/discovery.py
-        symbol: DiscoverySourceRepository.upsert
-      - &id039
-        path: src/nerve_center/persistence/discovery.py
-        symbol: JobOpeningRepository.upsert
-      - &id040
-        path: src/nerve_center/persistence/scoring.py
-        symbol: ScoringRuleRepository.upsert
+      - *id031
+      - *id032
+      - *id033
+      - *id034
     - name: _scan
       kind: function
-      line_start: 68
-      line_end: 85
+      line_start: 76
+      line_end: 93
       signature: '_scan(repository, status: ScanStatus, openings_found: int, started_at: datetime | None, finished_at: datetime
         | None) -> None'
       inputs:
@@ -1947,8 +1954,8 @@ source_catalog:
         symbol: DiscoverySourceRepository.record_scan
     - name: test_direct_employer_provenance_is_verified_present
       kind: function
-      line_start: 88
-      line_end: 94
+      line_start: 96
+      line_end: 102
       signature: test_direct_employer_provenance_is_verified_present(tmp_path) -> None
       inputs:
       - tmp_path
@@ -1959,16 +1966,16 @@ source_catalog:
       - assess_opening_verification
       parser: python-ast
       dependency_targets:
-      - &id031
+      - &id035
         path: tests/test_job_scout_verification.py
         symbol: _repository
-      - &id032
+      - &id036
         path: src/nerve_center/plugins/job_scout/verification.py
         symbol: assess_opening_verification
     - name: test_missing_authoritative_source_is_unverified_but_actionable
       kind: function
-      line_start: 97
-      line_end: 103
+      line_start: 105
+      line_end: 111
       signature: test_missing_authoritative_source_is_unverified_but_actionable(tmp_path) -> None
       inputs:
       - tmp_path
@@ -1979,12 +1986,12 @@ source_catalog:
       - assess_opening_verification
       parser: python-ast
       dependency_targets:
-      - *id031
-      - *id032
+      - *id035
+      - *id036
     - name: test_failed_authoritative_scan_does_not_become_verified_absent
       kind: function
-      line_start: 106
-      line_end: 114
+      line_start: 114
+      line_end: 122
       signature: test_failed_authoritative_scan_does_not_become_verified_absent(tmp_path) -> None
       inputs:
       - tmp_path
@@ -1997,24 +2004,24 @@ source_catalog:
       - assess_opening_verification
       parser: python-ast
       dependency_targets:
-      - *id031
-      - &id033
+      - *id035
+      - &id037
         path: tests/test_job_scout_verification.py
         symbol: _scan
-      - &id034
+      - &id038
         path: tests/test_discovery_connectors.py
         symbol: _source
-      - &id035
+      - &id039
         path: tests/test_discovery_persistence.py
         symbol: _source
-      - &id036
+      - &id040
         path: tests/test_job_scout_verification.py
         symbol: _source
-      - *id032
+      - *id036
     - name: test_parser_failure_is_distinct_from_listing_absence
       kind: function
-      line_start: 117
-      line_end: 125
+      line_start: 125
+      line_end: 133
       signature: test_parser_failure_is_distinct_from_listing_absence(tmp_path) -> None
       inputs:
       - tmp_path
@@ -2027,16 +2034,16 @@ source_catalog:
       - assess_opening_verification
       parser: python-ast
       dependency_targets:
-      - *id031
-      - *id033
-      - *id034
       - *id035
+      - *id037
+      - *id038
+      - *id039
+      - *id040
       - *id036
-      - *id032
     - name: test_successful_empty_authoritative_inventory_can_verify_absence
       kind: function
-      line_start: 128
-      line_end: 136
+      line_start: 136
+      line_end: 144
       signature: test_successful_empty_authoritative_inventory_can_verify_absence(tmp_path) -> None
       inputs:
       - tmp_path
@@ -2049,16 +2056,16 @@ source_catalog:
       - assess_opening_verification
       parser: python-ast
       dependency_targets:
-      - *id031
-      - *id033
-      - *id034
       - *id035
+      - *id037
+      - *id038
+      - *id039
+      - *id040
       - *id036
-      - *id032
     - name: test_successful_nonempty_inventory_without_match_stays_unverified
       kind: function
-      line_start: 139
-      line_end: 147
+      line_start: 147
+      line_end: 155
       signature: test_successful_nonempty_inventory_without_match_stays_unverified(tmp_path) -> None
       inputs:
       - tmp_path
@@ -2071,16 +2078,16 @@ source_catalog:
       - assess_opening_verification
       parser: python-ast
       dependency_targets:
-      - *id031
-      - *id033
-      - *id034
       - *id035
+      - *id037
+      - *id038
+      - *id039
+      - *id040
       - *id036
-      - *id032
     - name: test_non_exhaustive_empty_page_does_not_verify_absence
       kind: function
-      line_start: 150
-      line_end: 158
+      line_start: 158
+      line_end: 166
       signature: test_non_exhaustive_empty_page_does_not_verify_absence(tmp_path) -> None
       inputs:
       - tmp_path
@@ -2093,16 +2100,16 @@ source_catalog:
       - assess_opening_verification
       parser: python-ast
       dependency_targets:
-      - *id031
-      - *id033
-      - *id034
       - *id035
+      - *id037
+      - *id038
+      - *id039
+      - *id040
       - *id036
-      - *id032
     - name: test_direct_observation_during_latest_scan_remains_verified
       kind: function
-      line_start: 161
-      line_end: 190
+      line_start: 169
+      line_end: 198
       signature: test_direct_observation_during_latest_scan_remains_verified(tmp_path) -> None
       inputs:
       - tmp_path
@@ -2119,16 +2126,16 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id031
-      - *id033
-      - *id034
       - *id035
+      - *id037
+      - *id038
+      - *id039
+      - *id040
       - *id036
-      - *id032
     - name: test_later_successful_exhaustive_scan_can_verify_prior_direct_opening_absent
       kind: function
-      line_start: 193
-      line_end: 222
+      line_start: 201
+      line_end: 230
       signature: test_later_successful_exhaustive_scan_can_verify_prior_direct_opening_absent(tmp_path) -> None
       inputs:
       - tmp_path
@@ -2145,16 +2152,16 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id031
-      - *id033
-      - *id034
       - *id035
+      - *id037
+      - *id038
+      - *id039
+      - *id040
       - *id036
-      - *id032
     - name: test_later_failed_refresh_makes_prior_direct_verification_stale
       kind: function
-      line_start: 225
-      line_end: 248
+      line_start: 233
+      line_end: 256
       signature: test_later_failed_refresh_makes_prior_direct_verification_stale(tmp_path) -> None
       inputs:
       - tmp_path
@@ -2171,12 +2178,12 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id031
-      - *id033
-      - *id034
       - *id035
+      - *id037
+      - *id038
+      - *id039
+      - *id040
       - *id036
-      - *id032
   - path: tests/test_scoring_api.py
     analysis_version: 1
     language: python
@@ -2271,7 +2278,7 @@ source_catalog:
         symbol: CareerProfileStore.save_profile
       - path: tests/test_profile_service.py
         symbol: MemoryStore.save_profile
-      - *id037
-      - *id038
-      - *id039
-      - *id040
+      - *id031
+      - *id032
+      - *id033
+      - *id034

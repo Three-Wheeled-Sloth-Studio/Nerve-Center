@@ -1005,7 +1005,7 @@ source_catalog:
   - path: tests/test_applications.py
     analysis_version: 1
     language: python
-    content_hash: a9bc8b4580081bb87522a2afacfec8740c1d456b
+    content_hash: 1933c431d0099204bd150f554e8a4b4e02bdf511
     dependencies:
     - datetime
     - fastapi
@@ -1025,6 +1025,7 @@ source_catalog:
     provides:
     - _database
     - _seed
+    - _upsert_board_source
     - _opportunity_score
     - _RescoreStub.__init__
     - _RescoreStub.score
@@ -1052,13 +1053,13 @@ source_catalog:
       - database.initialize
       parser: python-ast
       dependency_targets:
-      - &id034
+      - &id038
         path: src/nerve_center/persistence/database.py
         symbol: Database.initialize
-      - &id035
+      - &id039
         path: src/nerve_center/persistence/resource_profiles.py
         symbol: ResourceProfileRepository.initialize
-      - &id036
+      - &id040
         path: src/nerve_center/resource_profiles/service.py
         symbol: ResourceProfileService.initialize
     - name: _seed
@@ -1083,22 +1084,42 @@ source_catalog:
       - datetime.now
       parser: python-ast
       dependency_targets:
-      - &id038
+      - &id032
         path: src/nerve_center/persistence/discovery.py
         symbol: CompanyRepository.upsert
-      - &id039
+      - &id033
         path: src/nerve_center/persistence/discovery.py
         symbol: DiscoverySourceRepository.upsert
-      - &id040
+      - &id034
         path: src/nerve_center/persistence/discovery.py
         symbol: JobOpeningRepository.upsert
-      - &id041
+      - &id035
         path: src/nerve_center/persistence/scoring.py
         symbol: ScoringRuleRepository.upsert
+    - name: _upsert_board_source
+      kind: function
+      line_start: 91
+      line_end: 111
+      signature: '_upsert_board_source(database: Database, company: Company, source_id: str) -> DiscoverySource'
+      inputs:
+      - 'database: Database'
+      - 'company: Company'
+      - 'source_id: str'
+      output: DiscoverySource
+      dependencies:
+      - DiscoverySource
+      - DiscoverySourceRepository
+      - DiscoverySourceRepository(database).upsert
+      parser: python-ast
+      dependency_targets:
+      - *id032
+      - *id033
+      - *id034
+      - *id035
     - name: _opportunity_score
       kind: function
-      line_start: 89
-      line_end: 124
+      line_start: 114
+      line_end: 149
       signature: '_opportunity_score(job_id: str, engine_version: str, scope: LocationScope, created_at: datetime) -> OpportunityScore'
       inputs:
       - 'job_id: str'
@@ -1113,8 +1134,8 @@ source_catalog:
       dependency_targets: []
     - name: _RescoreStub.__init__
       kind: method
-      line_start: 128
-      line_end: 131
+      line_start: 153
+      line_end: 156
       signature: '_RescoreStub.__init__(self, scores: OpportunityScoreRepository, job_id: str) -> None'
       inputs:
       - self
@@ -1126,8 +1147,8 @@ source_catalog:
       dependency_targets: []
     - name: _RescoreStub.score
       kind: method
-      line_start: 133
-      line_end: 142
+      line_start: 158
+      line_end: 167
       signature: '_RescoreStub.score(self, job_id: str) -> OpportunityScore'
       inputs:
       - self
@@ -1139,14 +1160,14 @@ source_catalog:
       - self.scores.append
       parser: python-ast
       dependency_targets:
-      - &id033
+      - &id037
         path: tests/test_applications.py
         symbol: _opportunity_score
       - *id024
     - name: _RescoreStub.ensure_provisional_score
       kind: method
-      line_start: 144
-      line_end: 145
+      line_start: 169
+      line_end: 170
       signature: '_RescoreStub.ensure_provisional_score(self, *_args: object, **_kwargs: object) -> OpportunityScore'
       inputs:
       - self
@@ -1159,8 +1180,8 @@ source_catalog:
       dependency_targets: []
     - name: test_application_status_history_and_dates
       kind: function
-      line_start: 148
-      line_end: 176
+      line_start: 173
+      line_end: 201
       signature: 'test_application_status_history_and_dates(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1176,7 +1197,7 @@ source_catalog:
       - repository.save
       parser: python-ast
       dependency_targets:
-      - &id032
+      - &id036
         path: tests/test_applications.py
         symbol: _seed
       - path: src/nerve_center/attention/api.py
@@ -1189,8 +1210,8 @@ source_catalog:
         symbol: AttentionRepository.history
     - name: test_review_api_tracks_reversible_pursuit_state
       kind: function
-      line_start: 179
-      line_end: 208
+      line_start: 204
+      line_end: 233
       signature: 'test_review_api_tracks_reversible_pursuit_state(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1212,14 +1233,14 @@ source_catalog:
       - visible.json()[0]['next_action'].startswith
       parser: python-ast
       dependency_targets:
-      - *id032
-      - &id037
+      - *id036
+      - &id041
         path: src/nerve_center/applications/api.py
         symbol: register_application_routes
     - name: test_review_backfills_stale_score_without_provisional_or_llm_path
       kind: function
-      line_start: 211
-      line_end: 250
+      line_start: 236
+      line_end: 275
       signature: 'test_review_backfills_stale_score_without_provisional_or_llm_path(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1246,17 +1267,17 @@ source_catalog:
       - scores.list
       parser: python-ast
       dependency_targets:
-      - *id033
-      - *id032
-      - *id034
-      - *id035
-      - *id036
       - *id037
+      - *id036
+      - *id038
+      - *id039
+      - *id040
+      - *id041
       - *id024
     - name: test_review_keeps_distant_roles_for_explicit_scored_location_filtering
       kind: function
-      line_start: 253
-      line_end: 294
+      line_start: 278
+      line_end: 319
       signature: 'test_review_keeps_distant_roles_for_explicit_scored_location_filtering(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1280,19 +1301,19 @@ source_catalog:
       - response.json
       parser: python-ast
       dependency_targets:
+      - *id032
+      - *id033
+      - *id034
+      - *id035
+      - *id036
       - *id038
       - *id039
       - *id040
       - *id041
-      - *id032
-      - *id034
-      - *id035
-      - *id036
-      - *id037
     - name: test_review_exposes_verified_employer_link
       kind: function
-      line_start: 297
-      line_end: 312
+      line_start: 322
+      line_end: 337
       signature: 'test_review_exposes_verified_employer_link(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1307,12 +1328,12 @@ source_catalog:
       - response.json
       parser: python-ast
       dependency_targets:
-      - *id032
-      - *id037
+      - *id036
+      - *id041
     - name: test_review_keeps_unverified_board_lead_with_warning
       kind: function
-      line_start: 315
-      line_end: 356
+      line_start: 340
+      line_end: 382
       signature: 'test_review_keeps_unverified_board_lead_with_warning(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1328,21 +1349,25 @@ source_catalog:
       - NormalizedJobOpening
       - TestClient
       - _database
+      - _upsert_board_source
       - client.get
       - datetime.now
       - register_application_routes
       - response.json
       parser: python-ast
       dependency_targets:
-      - *id038
-      - *id039
-      - *id040
+      - *id032
+      - *id033
+      - *id034
+      - *id035
+      - &id042
+        path: tests/test_applications.py
+        symbol: _upsert_board_source
       - *id041
-      - *id037
     - name: test_review_withholds_discovered_lead_after_verified_absence
       kind: function
-      line_start: 359
-      line_end: 418
+      line_start: 385
+      line_end: 445
       signature: 'test_review_withholds_discovered_lead_after_verified_absence(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1360,6 +1385,7 @@ source_catalog:
       - NormalizedJobOpening
       - TestClient
       - _database
+      - _upsert_board_source
       - client.get
       - datetime.now
       - register_application_routes
@@ -1368,18 +1394,19 @@ source_catalog:
       - sources.upsert
       parser: python-ast
       dependency_targets:
-      - *id038
-      - *id039
-      - *id040
+      - *id032
+      - *id033
+      - *id034
+      - *id035
+      - *id042
       - *id041
-      - *id037
-      - &id042
+      - &id043
         path: src/nerve_center/persistence/discovery.py
         symbol: DiscoverySourceRepository.record_scan
     - name: test_review_keeps_saved_role_visible_when_verification_turns_absent
       kind: function
-      line_start: 421
-      line_end: 491
+      line_start: 448
+      line_end: 519
       signature: 'test_review_keeps_saved_role_visible_when_verification_turns_absent(tmp_path: Path) -> None'
       inputs:
       - 'tmp_path: Path'
@@ -1400,6 +1427,7 @@ source_catalog:
       - NormalizedJobOpening
       - TestClient
       - _database
+      - _upsert_board_source
       - client.get
       - datetime.now
       - item['next_action'].startswith
@@ -1409,9 +1437,10 @@ source_catalog:
       - sources.upsert
       parser: python-ast
       dependency_targets:
-      - *id038
-      - *id039
-      - *id040
-      - *id041
-      - *id037
+      - *id032
+      - *id033
+      - *id034
+      - *id035
       - *id042
+      - *id041
+      - *id043

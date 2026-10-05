@@ -1532,7 +1532,7 @@ source_catalog:
   - path: tests/test_qualification_scoring.py
     analysis_version: 1
     language: python
-    content_hash: 0cdbda4dfd351c7493d3d21c1d94b2980b49d3da
+    content_hash: 4886e662d928fcdc8252441031d9cd94329c2b01
     dependencies:
     - nerve_center.scoring.engine
     - nerve_center.scoring.models
