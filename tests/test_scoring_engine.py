@@ -307,4 +307,37 @@ def test_target_title_alignment_is_only_a_weak_visible_fit_clue() -> None:
     assert unrelated.priority < aligned.priority
     assert any(item.code == "target_title_alignment" for item in unrelated.factors)
     assert unrelated.calculation["target_title_alignment"] == 0.0
-    assert unrelated.calculation["scoring_engine_version"] == "job-scout-ranking-v5"
+    assert unrelated.calculation["scoring_engine_version"] == "job-scout-ranking-v6"
+
+
+def test_verified_source_confidence_outranks_stale_without_changing_fit() -> None:
+    verified = _score_with_source_confidence(100.0, "verified_present")
+    stale = _score_with_source_confidence(70.0, "stale_verification")
+
+    assert verified.fit == stale.fit
+    assert verified.response_likelihood > stale.response_likelihood
+    assert verified.confidence > stale.confidence
+    verified_factor = next(
+        item for item in verified.factors if item.code == "response_components"
+    )
+    stale_factor = next(
+        item for item in stale.factors if item.code == "response_components"
+    )
+    assert verified_factor.detail["source_verification"] == "verified_present"
+    assert stale_factor.detail["source_verification"] == "stale_verification"
+
+
+def _score_with_source_confidence(value: float, label: str):
+    return OpportunityScorer().score(
+        opening=_opening(posted_at=datetime.now(UTC) - timedelta(days=1)),
+        profile=CanonicalCareerProfile(version=1),
+        fit_analysis=_analysis(),
+        company_enrichment=CompanyEnrichment(company_id="company-1"),
+        job_enrichment=JobEnrichment(job_id="job-1", commute_minutes=20),
+        location_preferences=LocationPreferences(home_region="NC"),
+        settings=ScoringSettings(),
+        rules=[],
+        source_confidence_score=value,
+        source_confidence_label=label,
+        now=datetime.now(UTC),
+    )
