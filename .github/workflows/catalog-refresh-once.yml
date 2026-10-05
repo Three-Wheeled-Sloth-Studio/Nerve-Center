@@ -29,6 +29,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
           python refs/tools/generate_source_catalog.py
+          python refs/tools/generate_okf_indexes.py
       - name: Validate refs and Python
         run: |
           python refs/tools/check_case_collisions.py
@@ -48,7 +49,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add refs/implementation/sourceCatalog/index.yaml refs/implementation/.sourceCatalogShards .github/workflows/catalog-refresh-once.yml
+          git add refs/implementation/sourceCatalog/index.yaml refs/implementation/.sourceCatalogShards refs/planning/index.md .github/workflows/catalog-refresh-once.yml
           if git diff --cached --quiet; then
             exit 0
           fi
