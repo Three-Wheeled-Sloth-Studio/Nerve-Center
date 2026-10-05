@@ -138,7 +138,7 @@ def register_application_routes(
                         )
                     current_scores.append(current)
                 history = sorted(
-                    [*history, *current_scores],
+                    current_scores,
                     key=lambda item: (item.priority, item.created_at),
                     reverse=True,
                 )
