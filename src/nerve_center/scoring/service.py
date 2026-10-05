@@ -46,6 +46,9 @@ class ScoringService:
         provider: StructuredProvider,
         target_titles_provider: Callable[[], list[str]] | None = None,
         location_markets_provider: Callable[[], list[str]] | None = None,
+        source_confidence_provider: (
+            Callable[[NormalizedJobOpening], tuple[float, str]] | None
+        ) = None,
     ) -> None:
         self.jobs = jobs
         self.profiles = profiles
@@ -58,6 +61,7 @@ class ScoringService:
         self.scores = scores
         self.target_titles_provider = target_titles_provider
         self.location_markets_provider = location_markets_provider
+        self.source_confidence_provider = source_confidence_provider
         self.fit_analyzer = JobFitAnalyzer(provider)
         self.scorer = OpportunityScorer()
 
@@ -93,6 +97,11 @@ class ScoringService:
             self.location_preferences.get(),
             self.location_markets_provider() if self.location_markets_provider else [],
         )
+        source_confidence = (
+            self.source_confidence_provider(opening)
+            if self.source_confidence_provider
+            else (None, None)
+        )
         result = self.scorer.score(
             opening=opening,
             profile=profile,
@@ -106,6 +115,8 @@ class ScoringService:
                 opening.title,
                 self.target_titles_provider() if self.target_titles_provider else [],
             ),
+            source_confidence_score=source_confidence[0],
+            source_confidence_label=source_confidence[1],
         )
         return self.scores.append(result)
 
