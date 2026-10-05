@@ -8,7 +8,13 @@ from typing import Literal
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
-from nerve_center.discovery.models import Company, WorkArrangement
+from nerve_center.discovery.models import (
+    Company,
+    DiscoverySource,
+    JobProvenance,
+    NormalizedJobOpening,
+    WorkArrangement,
+)
 from nerve_center.persistence.database import Database
 from nerve_center.persistence.discovery import (
     CompanyRepository,
@@ -17,7 +23,6 @@ from nerve_center.persistence.discovery import (
 )
 from nerve_center.persistence.scoring import (
     CompanyEnrichmentRepository,
-    JobEnrichmentRepository,
     LocationPreferencesRepository,
     OpportunityScoreRepository,
 )
@@ -69,7 +74,6 @@ def register_job_scout_findings_routes(
     sources = DiscoverySourceRepository(database)
     jobs = JobOpeningRepository(database)
     company_enrichment = CompanyEnrichmentRepository(database)
-    job_enrichment = JobEnrichmentRepository(database)
     location_preferences = LocationPreferencesRepository(database)
     scores = OpportunityScoreRepository(database)
 
@@ -112,7 +116,7 @@ def register_job_scout_findings_routes(
                 if office.relevant_to_function and office.evidence_url
             ]
             actionable = []
-            relevant: list[tuple[object, OpportunityScore]] = []
+            relevant: list[tuple[NormalizedJobOpening, OpportunityScore]] = []
             unverified = 0
             verified_absent = 0
             direct_first = 0
@@ -197,23 +201,22 @@ def register_job_scout_findings_routes(
         return rows
 
 
-def _source_health(sources: list[object]) -> str:
+def _source_health(sources: list[DiscoverySource]) -> str:
     if not sources:
         return "unresolved"
-    values = {str(getattr(source, "health", "unknown")) for source in sources}
+    values = {source.health.value for source in sources}
     for value in ("healthy", "challenged", "blocked", "degraded", "unknown"):
         if value in values:
             return value
     return "unknown"
 
 
-def _direct_first(provenance: list[object]) -> bool:
+def _direct_first(provenance: list[JobProvenance]) -> bool:
     if not provenance:
         return False
-    first = min(getattr(item, "discovered_at") for item in provenance)
+    first = min(item.discovered_at for item in provenance)
     return any(
-        getattr(item, "discovered_at") == first
-        and bool(getattr(item, "direct_employer_source", False))
+        item.discovered_at == first and item.direct_employer_source
         for item in provenance
     )
 
