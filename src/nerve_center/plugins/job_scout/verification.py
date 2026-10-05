@@ -207,6 +207,22 @@ def _assess_direct_observations(
     return None
 
 
+def source_confidence_for_verification(
+    assessment: VerificationAssessment,
+) -> tuple[float, str]:
+    """Map verification truth to a bounded scoring signal, not a fit signal."""
+
+    scores = {
+        VerificationStatus.VERIFIED_PRESENT: 100.0,
+        VerificationStatus.STALE_VERIFICATION: 70.0,
+        VerificationStatus.UNVERIFIED_SOURCE_UNRESOLVED: 60.0,
+        VerificationStatus.UNVERIFIED_SOURCE_UNAVAILABLE: 55.0,
+        VerificationStatus.UNVERIFIED_PARSE_FAILED: 50.0,
+        VerificationStatus.VERIFIED_ABSENT: 0.0,
+    }
+    return scores[assessment.status], assessment.status.value
+
+
 def preferred_opportunity_link(
     opening: NormalizedJobOpening,
     company: Company,
