@@ -32,6 +32,10 @@ from nerve_center.plugins.job_scout.verification import (
     assess_opening_verification,
     is_employer_authoritative_source,
 )
+from nerve_center.scoring.discovery_advantage import (
+    DiscoveryAdvantageClass,
+    assess_discovery_advantage,
+)
 from nerve_center.scoring.engine import SCORING_ENGINE_VERSION
 from nerve_center.scoring.location import assess_location
 from nerve_center.scoring.models import JobEnrichment, LocationScope, OpportunityScore
@@ -45,6 +49,7 @@ class EmployerBestRole(BaseModel):
     fit: float
     resume_document_id: str | None = None
     resume_label: str | None = None
+    discovery_advantage: str
 
 
 class EmployerFinding(BaseModel):
@@ -60,6 +65,9 @@ class EmployerFinding(BaseModel):
     relevant_roles_30d: int = 0
     relevant_roles_90d: int = 0
     direct_first_roles: int = 0
+    direct_only_roles: int = 0
+    secondary_first_verified_roles: int = 0
+    broadly_syndicated_roles: int = 0
     unverified_leads: int = 0
     verified_absent_roles: int = 0
     best_role: EmployerBestRole | None = None
@@ -120,6 +128,9 @@ def register_job_scout_findings_routes(
             unverified = 0
             verified_absent = 0
             direct_first = 0
+            direct_only = 0
+            secondary_first_verified = 0
+            broadly_syndicated = 0
             for opening in company_openings:
                 verification = assess_opening_verification(opening, sources)
                 if verification.status is VerificationStatus.VERIFIED_ABSENT:
@@ -128,8 +139,21 @@ def register_job_scout_findings_routes(
                 actionable.append(opening)
                 if verification.status is not VerificationStatus.VERIFIED_PRESENT:
                     unverified += 1
+                advantage = assess_discovery_advantage(opening.provenance)
                 if _direct_first(opening.provenance):
                     direct_first += 1
+                if advantage.classification is DiscoveryAdvantageClass.DIRECT_ONLY:
+                    direct_only += 1
+                elif (
+                    advantage.classification
+                    is DiscoveryAdvantageClass.SECONDARY_FIRST_LATER_VERIFIED
+                ):
+                    secondary_first_verified += 1
+                elif (
+                    advantage.classification
+                    is DiscoveryAdvantageClass.BROADLY_SYNDICATED
+                ):
+                    broadly_syndicated += 1
                 current_scores = [
                     score
                     for score in scores.list(opening.id)
@@ -181,6 +205,9 @@ def register_job_scout_findings_routes(
                     relevant_roles_30d=relevant_30,
                     relevant_roles_90d=relevant_90,
                     direct_first_roles=direct_first,
+                    direct_only_roles=direct_only,
+                    secondary_first_verified_roles=secondary_first_verified,
+                    broadly_syndicated_roles=broadly_syndicated,
                     unverified_leads=unverified,
                     verified_absent_roles=verified_absent,
                     best_role=(
@@ -191,6 +218,9 @@ def register_job_scout_findings_routes(
                             fit=best[1].fit,
                             resume_document_id=best[1].resume_document_id,
                             resume_label=best[1].resume_label,
+                            discovery_advantage=assess_discovery_advantage(
+                                best[0].provenance
+                            ).classification.value,
                         )
                         if best is not None
                         else None
