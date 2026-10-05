@@ -16,7 +16,13 @@ Implementation checkpoints:
 - `35d270b061ce92e68006e322a535dc4b29a7baa0`: deterministic verification classifier;
 - `40c10d2aa9183c0000bd413ce92ebd9df55247fb`: scoring-candidate and full-score guard for `verified_absent`;
 - `beb8a93fa77e41d220805d41c8ee56c8d5de5825`: verification-state regression tests;
-- `0130b596e7c4fa1904e3b6abc2fb5ae28f2e2b7d`: generated source-catalog refresh.
+- `0130b596e7c4fa1904e3b6abc2fb5ae28f2e2b7d`: initial generated source-catalog refresh.
+- `c56894ecc99e7e263e02d1fbc022dafb365f8b58`: verification-aware preferred employer/discovery link selection.
+- `275342dd4a7919ec611ef55cb2383fe78ac1099a`: review endpoint applies verification semantics and withholds newly discovered verified-absent leads.
+- `aed5fcc4528d44f61b12dabee7eaf52bfb722bde`: opportunity-review verification/link regressions.
+- `bf794f152dfbf7063a26a6ed41091b1cd7a009ea`: Opportunities UI shows verification status, warnings, and preferred links.
+- `5fee879d14f21c06309a5373264dfe2bd3dd1dab`: safe missing-candidate handling at the scoring boundary.
+- `f05fee8228daee1adf51b013cf372c7b4ee9dc5d`: final generated source-catalog refresh for the verification/review slice.
 
 Current conservative behavior:
 
@@ -29,7 +35,7 @@ Current conservative behavior:
 - non-exhaustive page scans cannot establish absence;
 - only `verified_absent` is withheld from scoring; unverified opportunities remain eligible and continue to receive the existing lower non-direct provenance reward.
 
-Next bounded work is canonical/discovery-vs-authoritative URL behavior, then stale/closure reconciliation, followed by multi-resume scoring and the employer/opportunity findings model.
+Canonical/discovery-vs-authoritative link behavior is now wired into the existing review API and Opportunities UI. The next bounded work is stale/closure reconciliation with per-source observation evidence, followed by multi-resume scoring and the employer/opportunity findings model.
 
 
 ## 2026-09-18 - Live reflection acceptance and role-discovery reachability follow-up
