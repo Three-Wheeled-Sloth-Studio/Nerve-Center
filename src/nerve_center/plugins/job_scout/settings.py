@@ -279,7 +279,7 @@ class JobScoutConfigurationStore:
 def discover_keywords(
     configuration: JobScoutConfiguration,
     profile: CanonicalCareerProfile,
-    document: SourceDocument | None,
+    document: SourceDocument | list[SourceDocument] | None,
 ) -> JobScoutKeywordSummary:
     explicit_phrases: list[str] = []
     evidence_text: list[str] = []
@@ -294,8 +294,13 @@ def discover_keywords(
                 (hypothesis.label.strip(), hypothesis.suggested_headline.strip())
             )
             evidence_text.append(hypothesis.summary)
-    if document is not None:
-        evidence_text.extend(segment.text for segment in document.segments)
+    documents = (
+        document
+        if isinstance(document, list)
+        else [document] if document is not None else []
+    )
+    for item in documents:
+        evidence_text.extend(segment.text for segment in item.segments)
 
     ranked_terms, evidence_terms = _rank_evidence_terms(evidence_text)
     keywords = clean_list(
@@ -316,7 +321,7 @@ def discover_keywords(
 def discover_suggestions(
     configuration: JobScoutConfiguration,
     profile: CanonicalCareerProfile,
-    document: SourceDocument | None,
+    document: SourceDocument | list[SourceDocument] | None,
 ) -> JobScoutSuggestionSummary:
     title_candidates: list[str] = []
     location_candidates: list[str] = []
@@ -332,8 +337,13 @@ def discover_suggestions(
         if _looks_like_title(hypothesis.suggested_headline):
             title_candidates.append(hypothesis.suggested_headline)
 
-    if document is not None:
-        for segment in document.segments:
+    documents = (
+        document
+        if isinstance(document, list)
+        else [document] if document is not None else []
+    )
+    for item in documents:
+        for segment in item.segments:
             for part in _RESUME_FIELD_SPLIT.split(segment.text):
                 candidate = " ".join(part.split()).strip(" ,;:")
                 if _looks_like_title(candidate):
