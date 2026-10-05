@@ -32,6 +32,7 @@ import {
 } from "./api";
 import type {
   ApplicationStatus,
+  EmployerFinding,
   JobScoutConfiguration,
   JobScoutScanSummary,
   JobScoutWorkspace,
@@ -79,8 +80,9 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
-export function JobScoutPanel({ workspace, opportunities, rules, scoringSettings, location, sort, includeDismissed, scanSummary, busy, onBusy, onSort, onIncludeDismissed, onScanSummary, onRefresh, onError }: {
+export function JobScoutPanel({ workspace, employers, opportunities, rules, scoringSettings, location, sort, includeDismissed, scanSummary, busy, onBusy, onSort, onIncludeDismissed, onScanSummary, onRefresh, onError }: {
   workspace: JobScoutWorkspace | null;
+  employers: EmployerFinding[];
   opportunities: ReviewOpportunity[];
   rules: ScoringRule[];
   scoringSettings: Record<string, unknown> | null;
@@ -106,6 +108,10 @@ export function JobScoutPanel({ workspace, opportunities, rules, scoringSettings
         </div>
       </div>
       <JobScoutSetup workspace={workspace} scanSummary={scanSummary} busy={busy} onBusy={onBusy} onScanSummary={onScanSummary} onRefresh={onRefresh} onError={onError} />
+      <details className="panel workspace-section" open>
+        <summary><strong>Tracked employers</strong><span>{employers.length} tracked</span></summary>
+        <EmployerFindingsPanel employers={employers} onError={onError} />
+      </details>
       <details className="panel workspace-section" open>
         <summary><strong>Opportunities</strong><span>{opportunities.length} retained</span></summary>
         <ReviewPanel items={opportunities} sort={sort} includeDismissed={includeDismissed} busy={busy} onBusy={onBusy} onSort={onSort} onIncludeDismissed={onIncludeDismissed} onRefresh={onRefresh} onError={onError} />
@@ -284,6 +290,71 @@ function SetupDialog({ open, title, icon, size, onClose, children }: { open: boo
 function SuggestionList({ icon, label, values, onAdd }: { icon: ReactNode; label: string; values: string[]; onAdd: (value: string) => void }) {
   if (!values.length) return null;
   return <div className="suggestion-list"><small>{label}</small><div>{values.map((value) => <button type="button" key={value} title={`Add ${value}`} onClick={() => onAdd(value)}>{icon}<span>{value}</span></button>)}</div></div>;
+}
+
+function EmployerFindingsPanel({ employers, onError }: {
+  employers: EmployerFinding[];
+  onError: (message: string) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const filtered = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    return employers.filter((item) =>
+      !needle || item.company.canonical_name.toLowerCase().includes(needle)
+    );
+  }, [employers, query]);
+  async function openCareer(url: string | null) {
+    if (!url) return;
+    try {
+      const parsed = new URL(url);
+      if (!["http:", "https:"].includes(parsed.protocol)) {
+        throw new Error("Only HTTP career links can be opened.");
+      }
+      await openUrl(parsed.toString());
+    } catch (reason) {
+      onError(`Could not open the employer careers page: ${messageOf(reason)}`);
+    }
+  }
+  return <div className="embedded-panel">
+    <div className="review-controls">
+      <label>Search employers<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Employer name" /></label>
+    </div>
+    <p className="muted">{filtered.filter((item) => item.presence_scope === "local").length} local | {filtered.filter((item) => item.presence_scope === "regional").length} regional | {filtered.filter((item) => item.presence_scope === "unknown").length} presence unknown | {filtered.length} shown</p>
+    <div className="opportunity-list">
+      {filtered.length === 0 ? <div className="empty-state">No tracked employers match this view.</div> : filtered.map((item) => <article className="opportunity-card" key={item.company.id}>
+        <div className="opportunity-summary">
+          <div className="priority-badge"><strong>{item.best_role ? Math.round(item.best_role.priority) : "..."}</strong><span>best priority</span></div>
+          <div className="opportunity-title">
+            <h3>{item.company.canonical_name}</h3>
+            <p><strong>{titleCase(item.presence_scope)} presence</strong> | {titleCase(item.career_source_health)} career source</p>
+            <div className="opportunity-meta">
+              <span>{item.current_relevant_roles} relevant now</span>
+              <span>{item.current_actionable_roles} actionable</span>
+              <span>{item.relevant_roles_30d} new relevant / 30d</span>
+              <span>{item.direct_first_roles} direct-first</span>
+              {item.unverified_leads ? <span>{item.unverified_leads} unverified lead{item.unverified_leads === 1 ? "" : "s"}</span> : null}
+            </div>
+          </div>
+          <div className="score-strip">
+            <Metric label="Relevant 90d" value={item.relevant_roles_90d} />
+            <Metric label="Best fit" value={item.best_role?.fit} />
+            <Metric label="Presence" value={item.presence_confidence * 100} />
+          </div>
+          <div className="opportunity-actions">
+            <button className="icon-button" type="button" disabled={!item.career_url} title="Open employer careers page" aria-label="Open employer careers page" onClick={() => void openCareer(item.career_url)}><ExternalLink aria-hidden="true" /></button>
+          </div>
+        </div>
+        <details>
+          <summary>Employer details</summary>
+          {item.best_role ? <p><strong>Best current role:</strong> {item.best_role.title} | priority {Math.round(item.best_role.priority)} | fit {Math.round(item.best_role.fit)}{item.best_role.resume_label ? ` | ${item.best_role.resume_label}` : ""}</p> : <p className="muted">No currently relevant scored role.</p>}
+          <p><strong>Verification:</strong> {item.verified_absent_roles} previously observed role{item.verified_absent_roles === 1 ? "" : "s"} no longer verified.</p>
+          {item.last_career_scan_at ? <p><strong>Last career scan:</strong> {new Date(item.last_career_scan_at).toLocaleString()}</p> : <p className="muted">No authoritative career scan recorded yet.</p>}
+          {item.presence_evidence.length ? <div><strong>Presence evidence</strong><ul>{item.presence_evidence.map((url) => <li key={url}><code>{url}</code></li>)}</ul></div> : <p className="muted">No verified local/regional office evidence recorded yet.</p>}
+          {item.career_url ? <button type="button" onClick={() => void openCareer(item.career_url)}><ExternalLink aria-hidden="true" />Open employer careers page</button> : null}
+        </details>
+      </article>)}
+    </div>
+  </div>;
 }
 
 function ReviewPanel({ items, sort, includeDismissed, busy, onBusy, onSort, onIncludeDismissed, onRefresh, onError }: {
