@@ -29,6 +29,10 @@ from nerve_center.plugins.job_scout.discovery_learning import (
 from nerve_center.plugins.job_scout.discovery_quality import DiscoveryQualityRepository
 from nerve_center.plugins.job_scout.manifest import job_scout_manifest
 from nerve_center.plugins.job_scout.runtime import JobScoutOperationBridge
+from nerve_center.plugins.job_scout.verification import (
+    assess_opening_verification,
+    source_confidence_for_verification,
+)
 from nerve_center.plugins.job_scout.uploads import register_job_scout_upload_route
 from nerve_center.profile.api import register_profile_routes
 from nerve_center.providers.base import StructuredProvider
@@ -97,6 +101,9 @@ def install_job_scout(
         provider,
         target_titles_provider=lambda: coordinator.store.load().target_titles,
         location_markets_provider=lambda: coordinator.store.load().locations,
+        source_confidence_provider=lambda opening: source_confidence_for_verification(
+            assess_opening_verification(opening, source_repository)
+        ),
     )
     discovery_loop = AttachmentAwareJobScoutDiscoveryLoop(
         settings,
