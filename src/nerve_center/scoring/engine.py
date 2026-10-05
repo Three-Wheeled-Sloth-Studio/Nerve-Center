@@ -31,7 +31,7 @@ from nerve_center.scoring.models import (
 )
 from nerve_center.scoring.qualification_importance import coverage_breakdown
 
-SCORING_ENGINE_VERSION = "job-scout-ranking-v5"
+SCORING_ENGINE_VERSION = "job-scout-ranking-v6"
 
 
 class OpportunityScorer:
@@ -47,6 +47,8 @@ class OpportunityScorer:
         settings: ScoringSettings,
         rules: list[ScoringRule],
         target_title_alignment: float | None = None,
+        source_confidence_score: float | None = None,
+        source_confidence_label: str | None = None,
         now: datetime | None = None,
     ) -> OpportunityScore:
         current = now or datetime.now(UTC)
@@ -85,6 +87,8 @@ class OpportunityScorer:
             settings,
             current,
             factors,
+            source_confidence_score=source_confidence_score,
+            source_confidence_label=source_confidence_label,
         )
         value = _value_score(
             opening,
@@ -166,6 +170,8 @@ class OpportunityScorer:
             job_enrichment,
             location,
             factors,
+            source_confidence_score=source_confidence_score,
+            source_confidence_label=source_confidence_label,
         )
         multiplier = _confidence_multiplier(confidence, settings)
         total_weight = (
@@ -337,10 +343,17 @@ def _response_score(
     settings: ScoringSettings,
     now: datetime,
     factors: list[ScoreFactor],
+    *,
+    source_confidence_score: float | None = None,
+    source_confidence_label: str | None = None,
 ) -> float:
     freshness = _freshness_score(opening, job, now, factors)
     direct = any(item.direct_employer_source for item in opening.provenance)
-    provenance_score = 100.0 if direct else 60.0
+    provenance_score = (
+        source_confidence_score
+        if source_confidence_score is not None
+        else 100.0 if direct else 60.0
+    )
     hiring_score = company.hiring_activity_score or 50.0
     if (
         opening.work_arrangement is WorkArrangement.REMOTE
@@ -365,6 +378,7 @@ def _response_score(
                 "location": location.location_score,
                 "freshness": freshness,
                 "provenance": provenance_score,
+                "source_verification": source_confidence_label,
                 "required_coverage": required * 100,
                 "hiring_activity": hiring_score,
             },
@@ -664,11 +678,19 @@ def _confidence_score(
     job: JobEnrichment,
     location: LocationAssessment,
     factors: list[ScoreFactor],
+    *,
+    source_confidence_score: float | None = None,
+    source_confidence_label: str | None = None,
 ) -> float:
     direct = any(item.direct_employer_source for item in opening.provenance)
+    provenance_confidence = (
+        source_confidence_score
+        if source_confidence_score is not None
+        else 95.0 if direct else 70.0
+    )
     components = {
         "parser": opening.parser_confidence * 100,
-        "provenance": 95.0 if direct else 70.0,
+        "provenance": provenance_confidence,
         "date": 100.0 if (opening.posted_at or opening.updated_at) else 40.0,
         "location": location.confidence * 100,
         "fit_analysis": analysis.confidence * 100,
@@ -688,7 +710,10 @@ def _confidence_score(
             label="Source completeness and evidence quality determine confidence.",
             kind=FactorKind.NEUTRAL,
             points=score,
-            detail={"components": components},
+            detail={
+                "components": components,
+                "source_verification": source_confidence_label,
+            },
         )
     )
     return _clamp(score)
