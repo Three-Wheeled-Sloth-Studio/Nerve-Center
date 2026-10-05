@@ -47,6 +47,7 @@ from nerve_center.plugins.job_scout.settings import (
     JobScoutKeywordSummary,
     JobScoutSuggestionSummary,
     ResumeLoadRequest,
+    ResumeVariant,
     clean_list,
     discover_keywords,
     discover_suggestions,
@@ -157,10 +158,22 @@ class JobScoutCoordinator:
                     retryable=True,
                 )
             await CareerProfileService(self.profiles, self.provider).extract_document(document)
-        configuration = self.store.load().model_copy(
+        current = self.store.load()
+        variants = [
+            item for item in current.resume_variants if item.document_id != document.id
+        ]
+        variants.append(
+            ResumeVariant(
+                document_id=document.id,
+                file_name=document.file_name,
+                label=document.file_name,
+            )
+        )
+        configuration = current.model_copy(
             update={
                 "resume_document_id": document.id,
                 "resume_file_name": document.file_name,
+                "resume_variants": variants,
             }
         )
         summary = self._discover_keywords(configuration, document=document)
