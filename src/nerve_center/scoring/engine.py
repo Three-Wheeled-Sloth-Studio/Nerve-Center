@@ -9,6 +9,11 @@ from uuid import uuid4
 
 from nerve_center.discovery.models import NormalizedJobOpening, WorkArrangement
 from nerve_center.profile.models import CanonicalCareerProfile
+from nerve_center.scoring.discovery_advantage import (
+    DiscoveryAdvantage,
+    DiscoveryAdvantageClass,
+    assess_discovery_advantage,
+)
 from nerve_center.scoring.location import assess_location
 from nerve_center.scoring.models import (
     CompanyEnrichment,
@@ -31,7 +36,7 @@ from nerve_center.scoring.models import (
 )
 from nerve_center.scoring.qualification_importance import coverage_breakdown
 
-SCORING_ENGINE_VERSION = "job-scout-ranking-v6"
+SCORING_ENGINE_VERSION = "job-scout-ranking-v7"
 
 
 class OpportunityScorer:
@@ -77,6 +82,7 @@ class OpportunityScorer:
                     detail={"alignment": target_title_alignment},
                 )
             )
+        discovery_advantage = assess_discovery_advantage(opening.provenance)
         response = _response_score(
             opening,
             company_enrichment,
@@ -89,6 +95,7 @@ class OpportunityScorer:
             factors,
             source_confidence_score=source_confidence_score,
             source_confidence_label=source_confidence_label,
+            discovery_advantage=discovery_advantage,
         )
         value = _value_score(
             opening,
@@ -256,6 +263,7 @@ class OpportunityScorer:
                 "weights": weights,
                 "calculated_priority_before_gates": round(calculated, 2),
                 "hard_include": hard_include,
+                "discovery_advantage": discovery_advantage.detail,
             },
             job_snapshot_hash=_snapshot_hash(opening.model_dump(mode="json")),
             profile_snapshot_hash=_snapshot_hash(profile.model_dump(mode="json")),
@@ -346,6 +354,7 @@ def _response_score(
     *,
     source_confidence_score: float | None = None,
     source_confidence_label: str | None = None,
+    discovery_advantage: DiscoveryAdvantage,
 ) -> float:
     freshness = _freshness_score(opening, job, now, factors)
     direct = any(item.direct_employer_source for item in opening.provenance)
@@ -382,6 +391,24 @@ def _response_score(
                 "required_coverage": required * 100,
                 "hiring_activity": hiring_score,
             },
+        )
+    )
+    score += discovery_advantage.response_adjustment
+    factors.append(
+        ScoreFactor(
+            dimension=ScoreDimension.RESPONSE,
+            code="discovery_advantage",
+            label=_discovery_advantage_label(discovery_advantage.classification),
+            kind=(
+                FactorKind.POSITIVE
+                if discovery_advantage.response_adjustment > 0
+                else FactorKind.NEGATIVE
+                if discovery_advantage.response_adjustment < 0
+                else FactorKind.NEUTRAL
+            ),
+            points=discovery_advantage.response_adjustment,
+            evidence=list(discovery_advantage.evidence_urls),
+            detail=discovery_advantage.detail,
         )
     )
     if (
@@ -455,6 +482,32 @@ def _response_score(
             )
         )
     return score
+
+
+
+
+def _discovery_advantage_label(classification: DiscoveryAdvantageClass) -> str:
+    labels = {
+        DiscoveryAdvantageClass.DIRECT_ONLY: (
+            "Observed only through employer-authoritative provenance so far."
+        ),
+        DiscoveryAdvantageClass.DIRECT_FIRST_LATER_SYNDICATED: (
+            "Observed employer-direct before later secondary syndication."
+        ),
+        DiscoveryAdvantageClass.SECONDARY_FIRST_LATER_VERIFIED: (
+            "Observed through a secondary source before employer verification."
+        ),
+        DiscoveryAdvantageClass.BROADLY_SYNDICATED: (
+            "Observed across multiple secondary sources, indicating wider syndication."
+        ),
+        DiscoveryAdvantageClass.SECONDARY_ONLY: (
+            "Observed only through secondary provenance so far."
+        ),
+        DiscoveryAdvantageClass.MIXED_SAME_TIME: (
+            "Employer-direct and secondary provenance were first observed together."
+        ),
+    }
+    return labels[classification]
 
 
 def _location_base_for_remote(scope: LocationScope) -> float:
