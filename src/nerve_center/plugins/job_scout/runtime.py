@@ -51,9 +51,14 @@ class JobScoutOperationBridge:
                 }
             config = self.coordinator.store.load()
             attempted = set(payload.get("attempted_ids", []))
-            candidates = []
+            candidates: list[tuple[float, dict[str, str | None]]] = []
             provisional = 0
             verification_counts: dict[str, int] = {}
+            variants = [item for item in config.resume_variants if item.active]
+            variant_specs: list[tuple[str | None, str | None, list[str]]] = [
+                (item.document_id, item.label, item.target_titles or config.target_titles)
+                for item in variants
+            ] or [(None, None, config.target_titles)]
             for opening in self.scoring.jobs.list():
                 verification = assess_opening_verification(opening, self.sources)
                 verification_counts[verification.status.value] = (
@@ -61,19 +66,44 @@ class JobScoutOperationBridge:
                 )
                 if verification.status is VerificationStatus.VERIFIED_ABSENT:
                     continue
-                existing = self.scoring.scores.list(opening.id)
-                score = self.scoring.ensure_provisional_score(
-                    opening.id, intent_terms=config.manual_keywords,
-                    target_titles=config.target_titles,
-                )
-                provisional += not existing
-                if opening.id not in attempted and str(
-                    score.calculation.get("fit_contract_version", "")
-                ).startswith("job-fit-provisional-"):
-                    candidates.append((score.priority, opening.id))
-            candidates.sort(reverse=True)
+                for resume_document_id, resume_label, target_titles in variant_specs:
+                    candidate_id = _scoring_candidate_id(
+                        opening.id,
+                        resume_document_id,
+                    )
+                    existing = (
+                        self.scoring.scores.list(
+                            opening.id,
+                            resume_document_id=resume_document_id,
+                        )
+                        if resume_document_id
+                        else self.scoring.scores.list(opening.id)
+                    )
+                    score = self.scoring.ensure_provisional_score(
+                        opening.id,
+                        intent_terms=config.manual_keywords,
+                        target_titles=target_titles,
+                        resume_document_id=resume_document_id,
+                        resume_label=resume_label,
+                    )
+                    provisional += not existing
+                    if candidate_id not in attempted and str(
+                        score.calculation.get("fit_contract_version", "")
+                    ).startswith("job-fit-provisional-"):
+                        candidates.append(
+                            (
+                                score.priority,
+                                {
+                                    "candidate_id": candidate_id,
+                                    "job_id": opening.id,
+                                    "resume_document_id": resume_document_id,
+                                    "resume_label": resume_label,
+                                },
+                            )
+                        )
+            candidates.sort(key=lambda item: item[0], reverse=True)
             return {
-                "candidates": [job_id for _, job_id in candidates[:1]],
+                "candidates": [candidate for _, candidate in candidates[:1]],
                 "provisional_scores_completed": provisional,
                 "target": config.full_score_limit,
                 "failure_limit": config.full_score_failure_limit,
@@ -83,6 +113,8 @@ class JobScoutOperationBridge:
             if self.scoring is None:
                 raise ValueError("scoring service unavailable")
             job_id = _required_string(payload, "job_id")
+            resume_document_id = str(payload.get("resume_document_id") or "").strip() or None
+            resume_label = str(payload.get("resume_label") or "").strip() or None
             try:
                 opening = next(
                     (
@@ -102,12 +134,18 @@ class JobScoutOperationBridge:
                         "error": "VerifiedAbsent",
                         "verification_status": verification.status.value,
                     }
-                analysis = await self.scoring.analyze_fit(job_id)
+                analysis = await self.scoring.analyze_fit(
+                    job_id,
+                    resume_document_id=resume_document_id,
+                    resume_label=resume_label,
+                )
                 score = self.scoring.score(job_id, fit_analysis_id=analysis.id)
                 return {
                     "completed": True,
                     "job_id": job_id,
                     "priority": score.priority,
+                    "resume_document_id": resume_document_id,
+                    "resume_label": resume_label,
                     "verification_status": verification.status.value,
                 }
             except (ProviderError, ValueError, KeyError) as error:
@@ -192,6 +230,11 @@ class JobScoutOperationBridge:
                 "requests_made": scan_result.requests_made,
             }
         raise ValueError(f"unsupported Job Scout operation {operation!r}")
+
+
+
+def _scoring_candidate_id(job_id: str, resume_document_id: str | None) -> str:
+    return f"{job_id}::resume::{resume_document_id or 'canonical'}"
 
 
 def _required_string(payload: Mapping[str, Any], field: str) -> str:
