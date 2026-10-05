@@ -81,6 +81,32 @@ export interface OpportunityScore {
   };
 }
 
+
+export interface EmployerFinding {
+  company: Company;
+  presence_scope: "local" | "regional" | "distant" | "unknown";
+  presence_confidence: number;
+  presence_evidence: string[];
+  career_source_health: string;
+  last_career_scan_at: string | null;
+  career_url: string | null;
+  current_actionable_roles: number;
+  current_relevant_roles: number;
+  relevant_roles_30d: number;
+  relevant_roles_90d: number;
+  direct_first_roles: number;
+  unverified_leads: number;
+  verified_absent_roles: number;
+  best_role: {
+    job_id: string;
+    title: string;
+    priority: number;
+    fit: number;
+    resume_document_id: string | null;
+    resume_label: string | null;
+  } | null;
+}
+
 export interface ReviewOpportunity {
   opening: JobOpening;
   company: Company;
