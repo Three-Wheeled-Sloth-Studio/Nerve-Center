@@ -310,7 +310,16 @@ function ReviewPanel({ items, sort, includeDismissed, busy, onBusy, onSort, onIn
   }, [items, query, locationFilter]);
   async function change(item: ReviewOpportunity, status: ApplicationStatus) {
     onBusy(true);
-    try { await updateApplication(item.opening.id, status); await onRefresh(); } catch (reason) { onError(messageOf(reason)); } finally { onBusy(false); }
+    const resumeReference =
+      status === "planned_to_apply" ? item.score?.resume_document_id ?? null : null;
+    try {
+      await updateApplication(item.opening.id, status, resumeReference);
+      await onRefresh();
+    } catch (reason) {
+      onError(messageOf(reason));
+    } finally {
+      onBusy(false);
+    }
   }
   return <div className="embedded-panel">
     <div className="review-controls">
