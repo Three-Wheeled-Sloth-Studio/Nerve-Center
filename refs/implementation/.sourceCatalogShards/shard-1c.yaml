@@ -1923,7 +1923,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/worker.py
     analysis_version: 1
     language: python
-    content_hash: 7f5cb9b34728917904ca4c381cac0a1f00b3d0ed
+    content_hash: e54f2e4e7ada4eae4e136cee0d1395310d5550e1
     dependencies:
     - __future__
     - asyncio
@@ -2028,7 +2028,7 @@ source_catalog:
     - name: _execute_discovery_loop
       kind: function
       line_start: 44
-      line_end: 368
+      line_end: 385
       signature: '_execute_discovery_loop(client: ModuleRuntimeClient, assignment: dict[str, Any]) -> None'
       inputs:
       - 'client: ModuleRuntimeClient'
@@ -2050,6 +2050,7 @@ source_catalog:
       - asyncio.sleep
       - attempted_ids.append
       - bool
+      - candidate.get
       - checkpoint
       - client.checkpoint
       - client.complete
@@ -2058,7 +2059,6 @@ source_catalog:
       - client.invoke
       - client.submit_work
       - control.get
-      - control_reason
       parser: python-ast
       dependency_targets:
       - path: src/nerve_center/plugins/job_scout/worker.py
@@ -2102,8 +2102,6 @@ source_catalog:
         symbol: ModuleSupervisor.submit_work
       - path: tests/test_job_scout_continuous_session.py
         symbol: Client.submit_work
-      - path: src/nerve_center/plugins/job_scout/worker.py
-        symbol: _execute_discovery_loop.control_reason
     - name: _execute_discovery_loop.checkpoint
       kind: function
       line_start: 66
@@ -2166,8 +2164,8 @@ source_catalog:
       dependency_targets: []
     - name: _harvest_reflection_results
       kind: function
-      line_start: 371
-      line_end: 396
+      line_start: 388
+      line_end: 413
       signature: '_harvest_reflection_results(client: ModuleRuntimeClient, run_id: str) -> dict[str, int]'
       inputs:
       - 'client: ModuleRuntimeClient'
@@ -2201,8 +2199,8 @@ source_catalog:
         symbol: Client.results
     - name: _complete_from_summary
       kind: function
-      line_start: 399
-      line_end: 420
+      line_start: 416
+      line_end: 437
       signature: '_complete_from_summary(client: ModuleRuntimeClient, run_id: str, status: str, reflection_queued: bool) ->
         None'
       inputs:
@@ -2220,8 +2218,8 @@ source_catalog:
       - *id042
     - name: _stop_status
       kind: function
-      line_start: 423
-      line_end: 431
+      line_start: 440
+      line_end: 448
       signature: '_stop_status(control: dict[str, Any], assignment: dict[str, Any]) -> str | None'
       inputs:
       - 'control: dict[str, Any]'
@@ -2235,8 +2233,8 @@ source_catalog:
       dependency_targets: []
     - name: _terminal_status
       kind: function
-      line_start: 434
-      line_end: 439
+      line_start: 451
+      line_end: 456
       signature: '_terminal_status(reason: str) -> str'
       inputs:
       - 'reason: str'
@@ -2246,8 +2244,8 @@ source_catalog:
       dependency_targets: []
     - name: _optional_utc_datetime
       kind: function
-      line_start: 442
-      line_end: 451
+      line_start: 459
+      line_end: 468
       signature: '_optional_utc_datetime(value: object) -> datetime | None'
       inputs:
       - 'value: object'
@@ -2261,8 +2259,8 @@ source_catalog:
       dependency_targets: []
     - name: _marginal_window
       kind: function
-      line_start: 465
-      line_end: 467
+      line_start: 482
+      line_end: 484
       signature: '_marginal_window(value: object) -> dict[str, int]'
       inputs:
       - 'value: object'
@@ -2276,8 +2274,8 @@ source_catalog:
       dependency_targets: []
     - name: _accumulate_marginal_yield
       kind: function
-      line_start: 470
-      line_end: 495
+      line_start: 487
+      line_end: 512
       signature: '_accumulate_marginal_yield(window: dict[str, int], metrics: object, requests: int, strategies: int, openings:
         int) -> dict[str, int]'
       inputs:
@@ -2298,8 +2296,8 @@ source_catalog:
       - *id043
     - name: _checkpoint_coverage
       kind: function
-      line_start: 498
-      line_end: 503
+      line_start: 515
+      line_end: 520
       signature: '_checkpoint_coverage(value: dict[str, Any]) -> dict[str, Any]'
       inputs:
       - 'value: dict[str, Any]'
@@ -2311,8 +2309,8 @@ source_catalog:
       dependency_targets: []
     - name: _completion_metrics
       kind: function
-      line_start: 506
-      line_end: 513
+      line_start: 523
+      line_end: 530
       signature: '_completion_metrics(summary: dict[str, Any]) -> dict[str, int | float | str | bool]'
       inputs:
       - 'summary: dict[str, Any]'
@@ -2326,8 +2324,8 @@ source_catalog:
       dependency_targets: []
     - name: _execute_configured_sources
       kind: function
-      line_start: 516
-      line_end: 595
+      line_start: 533
+      line_end: 612
       signature: '_execute_configured_sources(client: ModuleRuntimeClient, assignment: dict[str, Any], source_ids: list[str])
         -> None'
       inputs:
@@ -2371,8 +2369,8 @@ source_catalog:
         symbol: WorkQueueService.cancel
     - name: _heartbeat_while_working
       kind: function
-      line_start: 598
-      line_end: 606
+      line_start: 615
+      line_end: 623
       signature: '_heartbeat_while_working(client: ModuleRuntimeClient, state: dict[str, Any]) -> None'
       inputs:
       - 'client: ModuleRuntimeClient'
@@ -2392,8 +2390,8 @@ source_catalog:
       - *id053
     - name: _required_environment
       kind: function
-      line_start: 609
-      line_end: 613
+      line_start: 626
+      line_end: 630
       signature: '_required_environment(name: str) -> str'
       inputs:
       - 'name: str'
@@ -2405,8 +2403,8 @@ source_catalog:
       dependency_targets: []
     - name: main
       kind: function
-      line_start: 616
-      line_end: 617
+      line_start: 633
+      line_end: 634
       signature: main() -> None
       inputs: []
       output: None

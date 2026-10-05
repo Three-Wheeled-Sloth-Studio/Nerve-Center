@@ -4,22 +4,22 @@ source_catalog:
   format_version: 1
   generated_by: refs/tools/generate_source_catalog.py
   derived: true
-  tracked_source_files: 221
-  symbols: 1872
+  tracked_source_files: 224
+  symbols: 1895
   languages:
     javascript: 3
-    python: 201
+    python: 204
     rust: 3
     typescript: 14
   parsers:
     javascript-pattern: 3
-    python-ast: 1768
+    python-ast: 1789
     rust-pattern: 30
-    typescript-pattern: 71
+    typescript-pattern: 73
   shards:
   - path: refs/implementation/.sourceCatalogShards/shard-00.yaml
-    files: 8
-    symbols: 99
+    files: 10
+    symbols: 109
   - path: refs/implementation/.sourceCatalogShards/shard-01.yaml
     files: 7
     symbols: 56
@@ -58,13 +58,13 @@ source_catalog:
     symbols: 50
   - path: refs/implementation/.sourceCatalogShards/shard-0d.yaml
     files: 8
-    symbols: 80
+    symbols: 81
   - path: refs/implementation/.sourceCatalogShards/shard-0e.yaml
     files: 6
-    symbols: 73
+    symbols: 74
   - path: refs/implementation/.sourceCatalogShards/shard-0f.yaml
-    files: 6
-    symbols: 46
+    files: 7
+    symbols: 51
   - path: refs/implementation/.sourceCatalogShards/shard-10.yaml
     files: 8
     symbols: 66
@@ -85,7 +85,7 @@ source_catalog:
     symbols: 64
   - path: refs/implementation/.sourceCatalogShards/shard-16.yaml
     files: 7
-    symbols: 45
+    symbols: 46
   - path: refs/implementation/.sourceCatalogShards/shard-17.yaml
     files: 7
     symbols: 47
@@ -100,7 +100,7 @@ source_catalog:
     symbols: 39
   - path: refs/implementation/.sourceCatalogShards/shard-1b.yaml
     files: 7
-    symbols: 48
+    symbols: 50
   - path: refs/implementation/.sourceCatalogShards/shard-1c.yaml
     files: 8
     symbols: 105
@@ -109,10 +109,10 @@ source_catalog:
     symbols: 60
   - path: refs/implementation/.sourceCatalogShards/shard-1e.yaml
     files: 8
-    symbols: 80
+    symbols: 81
   - path: refs/implementation/.sourceCatalogShards/shard-1f.yaml
     files: 13
-    symbols: 155
+    symbols: 157
   query_command: python refs/tools/generate_source_catalog.py --query "<task or symbol>"
   notes:
   - Generated from source; never hand-edit this catalog or its shards.

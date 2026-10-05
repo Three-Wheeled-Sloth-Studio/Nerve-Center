@@ -89,10 +89,10 @@ source_catalog:
         symbol: SummaryRepository._failed_work_items
       - path: src/nerve_center/persistence/summary.py
         symbol: SummaryRepository._run_items
-      - &id019
+      - &id015
         path: src/nerve_center/persistence/database.py
         symbol: Database.session
-      - &id020
+      - &id016
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.session
     - name: SummaryRepository._run_items
@@ -501,20 +501,8 @@ source_catalog:
       - '{''Greensboro, NC'', ''Durham, NC''}.issubset'
       parser: python-ast
       dependency_targets:
-      - &id009
-        path: tests/test_applications.py
-        symbol: _database
-      - &id010
-        path: tests/test_discovery_persistence.py
-        symbol: _database
-      - &id011
-        path: tests/test_job_scout_discovery_learning.py
-        symbol: _database
-      - &id012
-        path: tests/test_job_scout_query_portfolio.py
-        symbol: _database
       - *id008
-      - &id015
+      - &id011
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.list_strategies
       - path: src/nerve_center/plugins/job_scout/discovery_loop.py
@@ -713,14 +701,10 @@ source_catalog:
         symbol: JobOpeningRepository.upsert
       - path: src/nerve_center/persistence/scoring.py
         symbol: ScoringRuleRepository.upsert
-      - *id009
-      - *id010
-      - *id011
-      - *id012
-      - &id013
+      - &id009
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.ensure_strategy
-      - &id014
+      - &id010
         path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.get_strategy
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
@@ -746,13 +730,9 @@ source_catalog:
       - round
       parser: python-ast
       dependency_targets:
-      - *id009
-      - *id010
-      - *id011
-      - *id012
       - path: src/nerve_center/plugins/job_scout/discovery_quality.py
         symbol: DiscoveryQualityRepository.discovery_audit
-      - *id013
+      - *id009
     - name: test_structured_refresh_gets_one_time_initial_preference
       kind: function
       line_start: 551
@@ -773,10 +753,6 @@ source_catalog:
       dependency_targets:
       - *id009
       - *id010
-      - *id011
-      - *id012
-      - *id013
-      - *id014
       - path: src/nerve_center/plugins/job_scout/discovery_quality.py
         symbol: DiscoveryQualityRepository.promote_initial_structured_refresh
     - name: test_due_structured_source_is_preferred_through_real_seeding_path
@@ -799,15 +775,11 @@ source_catalog:
       - object.__new__
       parser: python-ast
       dependency_targets:
-      - *id009
-      - *id010
       - *id011
-      - *id012
-      - *id015
-      - &id016
+      - &id012
         path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: JobScoutDiscoveryLoop._seed_due_source_strategies
-      - &id017
+      - &id013
         path: src/nerve_center/plugins/job_scout/discovery_quality.py
         symbol: SourceAwareJobScoutDiscoveryLoop._seed_due_source_strategies
     - name: test_unhealthy_structured_source_gets_no_initial_priority_bonus
@@ -830,13 +802,9 @@ source_catalog:
       - object.__new__
       parser: python-ast
       dependency_targets:
-      - *id009
-      - *id010
       - *id011
       - *id012
-      - *id015
-      - *id016
-      - *id017
+      - *id013
     - name: test_stale_invented_archetype_does_not_perpetuate_coverage_gap
       kind: function
       line_start: 619
@@ -853,15 +821,11 @@ source_catalog:
       - learning.list_strategies
       parser: python-ast
       dependency_targets:
-      - *id009
-      - *id010
-      - *id011
-      - *id012
-      - &id018
+      - &id014
         path: src/nerve_center/plugins/job_scout/query_portfolio.py
         symbol: build_coverage_gap_profile
-      - *id013
-      - *id015
+      - *id009
+      - *id011
     - name: test_reflection_result_rejects_low_intent_strategies_before_persistence
       kind: function
       line_start: 647
@@ -882,11 +846,7 @@ source_catalog:
       - object.__new__
       parser: python-ast
       dependency_targets:
-      - *id009
-      - *id010
       - *id011
-      - *id012
-      - *id015
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.record_reflection_request
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
@@ -916,10 +876,6 @@ source_catalog:
       dependency_targets:
       - *id009
       - *id010
-      - *id011
-      - *id012
-      - *id013
-      - *id014
       - path: src/nerve_center/plugins/job_scout/discovery_loop.py
         symbol: JobScoutDiscoveryLoop._ineligible_strategy_ids
       - path: src/nerve_center/plugins/job_scout/discovery_quality.py
@@ -945,13 +901,9 @@ source_catalog:
       - learning.record_attempt
       parser: python-ast
       dependency_targets:
+      - *id014
       - *id009
-      - *id010
       - *id011
-      - *id012
-      - *id018
-      - *id013
-      - *id015
     - name: test_reflection_work_is_explicitly_gap_driven
       kind: function
       line_start: 839
@@ -971,12 +923,8 @@ source_catalog:
       - object.__new__
       parser: python-ast
       dependency_targets:
-      - *id009
-      - *id010
-      - *id011
-      - *id012
-      - *id019
-      - *id020
+      - *id015
+      - *id016
       - path: src/nerve_center/plugins/job_scout/discovery_learning.py
         symbol: JobScoutDiscoveryRepository.update_session
       - path: src/nerve_center/plugins/job_scout/discovery_loop.py

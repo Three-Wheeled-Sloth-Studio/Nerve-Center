@@ -7,7 +7,7 @@ source_catalog:
   - path: src/nerve_center/applications/api.py
     analysis_version: 1
     language: python
-    content_hash: 24e466ec003c941368a495a538600b49cf713149
+    content_hash: 6fc70049edee32d8a0a17b8ca3ca48b631a97517
     dependencies:
     - __future__
     - fastapi
@@ -35,7 +35,7 @@ source_catalog:
     - name: register_application_routes
       kind: function
       line_start: 36
-      line_end: 142
+      line_end: 167
       signature: 'register_application_routes(application: FastAPI, database: Database, scoring_service: ScoringService |
         None, configuration_store: JobScoutConfigurationStore | None) -> ApplicationRepository'
       inputs:
@@ -64,11 +64,11 @@ source_catalog:
       - assess_opening_verification
       - companies.get
       - configuration_store.load
-      - history[0].calculation.get
+      - current_scores.append
+      - item.calculation.get
       - items.append
       - items.sort
       - jobs.list
-      - latest_fit_contract.startswith
       parser: python-ast
       dependency_targets:
       - &id008
@@ -179,7 +179,7 @@ source_catalog:
     - name: register_application_routes.review_opportunities
       kind: function
       line_start: 73
-      line_end: 140
+      line_end: 165
       signature: 'register_application_routes.review_opportunities(include_dismissed: bool, sort: SortKey, limit: Annotated[int,
         Query(ge) -> list[ReviewOpportunity]'
       inputs:
@@ -197,16 +197,18 @@ source_catalog:
       - assess_opening_verification
       - companies.get
       - configuration_store.load
-      - history[0].calculation.get
+      - current_scores.append
+      - item.calculation.get
       - items.append
       - items.sort
       - jobs.list
-      - latest_fit_contract.startswith
+      - next
       - preferred_opportunity_link
       - scores.list
       - scoring_service.ensure_provisional_score
+      - scoring_service.fit_analyses.latest
       - scoring_service.score
-      - str
+      - sorted
       parser: python-ast
       dependency_targets:
       - *id008
@@ -222,6 +224,8 @@ source_catalog:
         symbol: ScoringService.ensure_provisional_score
       - path: tests/test_applications.py
         symbol: _RescoreStub.ensure_provisional_score
+      - path: src/nerve_center/persistence/scoring.py
+        symbol: FitAnalysisRepository.latest
       - path: desktop/src/display.tsx
         symbol: score
       - path: src/nerve_center/scoring/engine.py
@@ -232,8 +236,8 @@ source_catalog:
         symbol: _RescoreStub.score
     - name: _require_job
       kind: function
-      line_start: 145
-      line_end: 147
+      line_start: 170
+      line_end: 172
       signature: '_require_job(repository: JobOpeningRepository, job_id: str) -> None'
       inputs:
       - 'repository: JobOpeningRepository'
@@ -247,8 +251,8 @@ source_catalog:
       dependency_targets: []
     - name: _sort_value
       kind: function
-      line_start: 150
-      line_end: 159
+      line_start: 175
+      line_end: 184
       signature: '_sort_value(item: ReviewOpportunity, sort: SortKey) -> float'
       inputs:
       - 'item: ReviewOpportunity'
@@ -260,8 +264,8 @@ source_catalog:
       dependency_targets: []
     - name: _next_action
       kind: function
-      line_start: 162
-      line_end: 180
+      line_start: 187
+      line_end: 205
       signature: '_next_action(status: ApplicationStatus) -> str'
       inputs:
       - 'status: ApplicationStatus'
@@ -279,7 +283,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/runtime.py
     analysis_version: 1
     language: python
-    content_hash: 025983e013f6bc297c416906024d5cb7dbb65b6c
+    content_hash: 5c9f0526dc7c4419b99848181000808e7d71a0b3
     dependencies:
     - __future__
     - collections.abc
@@ -297,6 +301,7 @@ source_catalog:
     provides:
     - JobScoutOperationBridge.__init__
     - JobScoutOperationBridge.invoke
+    - _scoring_candidate_id
     - _required_string
     symbols:
     - name: JobScoutOperationBridge.__init__
@@ -321,7 +326,7 @@ source_catalog:
     - name: JobScoutOperationBridge.invoke
       kind: method
       line_start: 43
-      line_end: 194
+      line_end: 232
       signature: 'JobScoutOperationBridge.invoke(self, operation: str, payload: Mapping[str, Any]) -> dict[str, Any]'
       inputs:
       - self
@@ -333,6 +338,7 @@ source_catalog:
       - KeyError
       - ValueError
       - _required_string
+      - _scoring_candidate_id
       - asdict
       - assess_opening_verification
       - bool
@@ -352,11 +358,12 @@ source_catalog:
       - self.discovery_loop.cycle
       - self.discovery_loop.deterministic_reflection
       - self.discovery_loop.prepare
-      - self.discovery_loop.reflection_work_request
       parser: python-ast
       dependency_targets:
       - path: src/nerve_center/plugins/job_scout/runtime.py
         symbol: _required_string
+      - path: src/nerve_center/plugins/job_scout/runtime.py
+        symbol: _scoring_candidate_id
       - *id010
       - *id013
       - path: src/nerve_center/plugins/job_scout/configuration.py
@@ -387,14 +394,22 @@ source_catalog:
         symbol: SourceAwareJobScoutDiscoveryLoop.prepare
       - path: src/nerve_center/plugins/job_scout/location_discovery.py
         symbol: LocationAwareJobScoutDiscoveryLoop.prepare
-      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
-        symbol: JobScoutDiscoveryLoop.reflection_work_request
-      - path: src/nerve_center/plugins/job_scout/discovery_quality.py
-        symbol: SourceAwareJobScoutDiscoveryLoop.reflection_work_request
+    - name: _scoring_candidate_id
+      kind: function
+      line_start: 236
+      line_end: 237
+      signature: '_scoring_candidate_id(job_id: str, resume_document_id: str | None) -> str'
+      inputs:
+      - 'job_id: str'
+      - 'resume_document_id: str | None'
+      output: str
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
     - name: _required_string
       kind: function
-      line_start: 197
-      line_end: 201
+      line_start: 240
+      line_end: 244
       signature: '_required_string(payload: Mapping[str, Any], field: str) -> str'
       inputs:
       - 'payload: Mapping[str, Any]'

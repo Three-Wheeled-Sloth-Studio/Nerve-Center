@@ -336,7 +336,7 @@ source_catalog:
   - path: tests/test_job_scout_continuous_session.py
     analysis_version: 1
     language: python
-    content_hash: df2032990ae556806bdd486d300c619b0c60f265
+    content_hash: 401b6c859484cca3bfd78a33d2f587083a324b2b
     dependencies:
     - asyncio
     - copy
@@ -346,6 +346,7 @@ source_catalog:
     - nerve_center.config
     - nerve_center.plugins.job_scout
     - nerve_center.plugins.job_scout.runtime
+    - nerve_center.plugins.job_scout.settings
     - nerve_center.providers.base
     - nerve_center.scoring.api
     - test_job_scout_discovery_loop
@@ -382,11 +383,12 @@ source_catalog:
     - test_request_budget_is_admitted_before_fetch_without_overrun
     - test_different_strategies_cannot_rescan_a_source_before_due
     - test_different_strategies_cannot_rescan_a_source_before_due.scan_twice
+    - test_scoring_candidates_are_independent_by_resume_variant
     symbols:
     - name: FitProvider.generate_structured
       kind: method
-      line_start: 24
-      line_end: 37
+      line_start: 25
+      line_end: 38
       signature: FitProvider.generate_structured(self, **kwargs)
       inputs:
       - self
@@ -400,8 +402,8 @@ source_catalog:
       dependency_targets: []
     - name: Client.__init__
       kind: method
-      line_start: 41
-      line_end: 49
+      line_start: 42
+      line_end: 50
       signature: Client.__init__(self, bridge, drain_after)
       inputs:
       - self
@@ -413,8 +415,8 @@ source_catalog:
       dependency_targets: []
     - name: Client.invoke
       kind: method
-      line_start: 51
-      line_end: 56
+      line_start: 52
+      line_end: 57
       signature: Client.invoke(self, run_id, operation, payload)
       inputs:
       - self
@@ -427,8 +429,8 @@ source_catalog:
       dependency_targets: []
     - name: Client.control
       kind: method
-      line_start: 58
-      line_end: 63
+      line_start: 59
+      line_end: 64
       signature: Client.control(self, run_id)
       inputs:
       - self
@@ -440,8 +442,8 @@ source_catalog:
       dependency_targets: []
     - name: Client.checkpoint
       kind: method
-      line_start: 65
-      line_end: 66
+      line_start: 66
+      line_end: 67
       signature: Client.checkpoint(self, run_id, checkpoint)
       inputs:
       - self
@@ -458,8 +460,8 @@ source_catalog:
         symbol: OpportunityScoreRepository.append
     - name: Client.consume
       kind: method
-      line_start: 68
-      line_end: 69
+      line_start: 69
+      line_end: 70
       signature: Client.consume(self, run_id, resource, count)
       inputs:
       - self
@@ -472,8 +474,8 @@ source_catalog:
       dependency_targets: []
     - name: Client.submit_work
       kind: method
-      line_start: 71
-      line_end: 78
+      line_start: 72
+      line_end: 79
       signature: Client.submit_work(self, run_id, request)
       inputs:
       - self
@@ -485,8 +487,8 @@ source_catalog:
       dependency_targets: []
     - name: Client.results
       kind: method
-      line_start: 80
-      line_end: 81
+      line_start: 81
+      line_end: 82
       signature: Client.results(self)
       inputs:
       - self
@@ -496,8 +498,8 @@ source_catalog:
       dependency_targets: []
     - name: Client.acknowledge_result
       kind: method
-      line_start: 83
-      line_end: 84
+      line_start: 84
+      line_end: 85
       signature: Client.acknowledge_result(self, *args, **kwargs)
       inputs:
       - self
@@ -509,8 +511,8 @@ source_catalog:
       dependency_targets: []
     - name: Client.complete
       kind: method
-      line_start: 86
-      line_end: 87
+      line_start: 87
+      line_end: 88
       signature: Client.complete(self, run_id, status, summary, metrics)
       inputs:
       - self
@@ -524,8 +526,8 @@ source_catalog:
       dependency_targets: []
     - name: Client.heartbeat
       kind: method
-      line_start: 89
-      line_end: 90
+      line_start: 90
+      line_end: 91
       signature: Client.heartbeat(self, *args, **kwargs)
       inputs:
       - self
@@ -537,8 +539,8 @@ source_catalog:
       dependency_targets: []
     - name: setup_bridge
       kind: function
-      line_start: 93
-      line_end: 118
+      line_start: 94
+      line_end: 119
       signature: setup_bridge(tmp_path, monkeypatch, empty)
       inputs:
       - tmp_path
@@ -567,8 +569,8 @@ source_catalog:
         symbol: register_scoring_routes
     - name: setup_bridge.empty_cycle
       kind: function
-      line_start: 110
-      line_end: 114
+      line_start: 111
+      line_end: 115
       signature: setup_bridge.empty_cycle(run_id, cycle, request_limit)
       inputs:
       - run_id
@@ -584,8 +586,8 @@ source_catalog:
       dependency_targets: []
     - name: assignment
       kind: function
-      line_start: 121
-      line_end: 125
+      line_start: 122
+      line_end: 126
       signature: assignment()
       inputs: []
       output: unspecified
@@ -597,8 +599,8 @@ source_catalog:
       dependency_targets: []
     - name: test_two_waves_score_before_drain_despite_empty_reflection
       kind: function
-      line_start: 128
-      line_end: 161
+      line_start: 129
+      line_end: 162
       signature: test_two_waves_score_before_drain_despite_empty_reflection(tmp_path, monkeypatch)
       inputs:
       - tmp_path
@@ -637,8 +639,8 @@ source_catalog:
         symbol: _execute_discovery_loop
     - name: test_two_waves_score_before_drain_despite_empty_reflection.newly_available_surface
       kind: function
-      line_start: 132
-      line_end: 134
+      line_start: 133
+      line_end: 135
       signature: test_two_waves_score_before_drain_despite_empty_reflection.newly_available_surface(company)
       inputs:
       - company
@@ -651,8 +653,8 @@ source_catalog:
       - *id010
     - name: test_no_work_has_paced_refresh_and_no_repeated_unchanged_reflection
       kind: function
-      line_start: 164
-      line_end: 182
+      line_start: 165
+      line_end: 183
       signature: test_no_work_has_paced_refresh_and_no_repeated_unchanged_reflection(tmp_path, monkeypatch)
       inputs:
       - tmp_path
@@ -676,8 +678,8 @@ source_catalog:
       - *id013
     - name: test_no_work_has_paced_refresh_and_no_repeated_unchanged_reflection.fake_sleep
       kind: function
-      line_start: 170
-      line_end: 173
+      line_start: 171
+      line_end: 174
       signature: test_no_work_has_paced_refresh_and_no_repeated_unchanged_reflection.fake_sleep(seconds)
       inputs:
       - seconds
@@ -690,8 +692,8 @@ source_catalog:
       - *id010
     - name: test_last_llm_allowance_is_harvested_before_budget_stop
       kind: function
-      line_start: 185
-      line_end: 195
+      line_start: 186
+      line_end: 196
       signature: test_last_llm_allowance_is_harvested_before_budget_stop(tmp_path, monkeypatch)
       inputs:
       - tmp_path
@@ -712,8 +714,8 @@ source_catalog:
       - *id013
     - name: test_scoring_reservation_survives_restart_and_enforces_cap
       kind: function
-      line_start: 198
-      line_end: 212
+      line_start: 199
+      line_end: 213
       signature: test_scoring_reservation_survives_restart_and_enforces_cap(tmp_path, monkeypatch)
       inputs:
       - tmp_path
@@ -738,16 +740,18 @@ source_catalog:
         symbol: JobScoutCoordinator.save_configuration
       - path: src/nerve_center/plugins/job_scout/configuration.py
         symbol: register_job_scout_configuration_routes.save_configuration
-      - path: src/nerve_center/plugins/job_scout/settings.py
+      - &id017
+        path: src/nerve_center/plugins/job_scout/settings.py
         symbol: JobScoutConfigurationStore.load
-      - path: tests/test_job_scout_query_portfolio.py
+      - &id018
+        path: tests/test_job_scout_query_portfolio.py
         symbol: _ConfigStore.load
       - *id012
       - *id013
     - name: test_scoring_targets_successes_with_a_separate_failure_ceiling
       kind: function
-      line_start: 215
-      line_end: 240
+      line_start: 216
+      line_end: 241
       signature: test_scoring_targets_successes_with_a_separate_failure_ceiling(tmp_path, monkeypatch)
       inputs:
       - tmp_path
@@ -771,8 +775,8 @@ source_catalog:
       - *id013
     - name: test_scoring_targets_successes_with_a_separate_failure_ceiling.FlakyScoringClient.invoke
       kind: method
-      line_start: 219
-      line_end: 233
+      line_start: 220
+      line_end: 234
       signature: test_scoring_targets_successes_with_a_separate_failure_ceiling.FlakyScoringClient.invoke(self, run_id, operation,
         payload)
       inputs:
@@ -790,8 +794,8 @@ source_catalog:
       dependency_targets: []
     - name: test_repeated_zero_marginal_yield_adds_bounded_backoff
       kind: function
-      line_start: 243
-      line_end: 291
+      line_start: 244
+      line_end: 292
       signature: test_repeated_zero_marginal_yield_adds_bounded_backoff(tmp_path, monkeypatch)
       inputs:
       - tmp_path
@@ -826,8 +830,8 @@ source_catalog:
       - *id013
     - name: test_repeated_zero_marginal_yield_adds_bounded_backoff.ZeroYieldClient.invoke
       kind: method
-      line_start: 247
-      line_end: 264
+      line_start: 248
+      line_end: 265
       signature: test_repeated_zero_marginal_yield_adds_bounded_backoff.ZeroYieldClient.invoke(self, run_id, operation, payload)
       inputs:
       - self
@@ -844,8 +848,8 @@ source_catalog:
       - *id015
     - name: test_repeated_zero_marginal_yield_adds_bounded_backoff.ZeroYieldClient.control
       kind: method
-      line_start: 266
-      line_end: 270
+      line_start: 267
+      line_end: 271
       signature: test_repeated_zero_marginal_yield_adds_bounded_backoff.ZeroYieldClient.control(self, run_id)
       inputs:
       - self
@@ -858,8 +862,8 @@ source_catalog:
       dependency_targets: []
     - name: test_repeated_zero_marginal_yield_adds_bounded_backoff.fake_sleep
       kind: function
-      line_start: 275
-      line_end: 278
+      line_start: 276
+      line_end: 279
       signature: test_repeated_zero_marginal_yield_adds_bounded_backoff.fake_sleep(seconds)
       inputs:
       - seconds
@@ -872,8 +876,8 @@ source_catalog:
       - *id010
     - name: test_discovery_backoff_does_not_pause_eligible_scoring
       kind: function
-      line_start: 294
-      line_end: 345
+      line_start: 295
+      line_end: 346
       signature: test_discovery_backoff_does_not_pause_eligible_scoring(tmp_path, monkeypatch)
       inputs:
       - tmp_path
@@ -901,8 +905,8 @@ source_catalog:
       - *id013
     - name: test_discovery_backoff_does_not_pause_eligible_scoring.BackoffScoringClient.invoke
       kind: method
-      line_start: 298
-      line_end: 327
+      line_start: 299
+      line_end: 328
       signature: test_discovery_backoff_does_not_pause_eligible_scoring.BackoffScoringClient.invoke(self, run_id, operation,
         payload)
       inputs:
@@ -923,8 +927,8 @@ source_catalog:
       - *id015
     - name: test_discovery_backoff_does_not_pause_eligible_scoring.BackoffScoringClient.control
       kind: method
-      line_start: 329
-      line_end: 333
+      line_start: 330
+      line_end: 334
       signature: test_discovery_backoff_does_not_pause_eligible_scoring.BackoffScoringClient.control(self, run_id)
       inputs:
       - self
@@ -938,8 +942,8 @@ source_catalog:
       dependency_targets: []
     - name: test_request_budget_is_admitted_before_fetch_without_overrun
       kind: function
-      line_start: 348
-      line_end: 358
+      line_start: 349
+      line_end: 359
       signature: test_request_budget_is_admitted_before_fetch_without_overrun(tmp_path, monkeypatch)
       inputs:
       - tmp_path
@@ -958,8 +962,8 @@ source_catalog:
       - *id013
     - name: test_different_strategies_cannot_rescan_a_source_before_due
       kind: function
-      line_start: 361
-      line_end: 373
+      line_start: 362
+      line_end: 374
       signature: test_different_strategies_cannot_rescan_a_source_before_due(tmp_path, monkeypatch)
       inputs:
       - tmp_path
@@ -983,8 +987,8 @@ source_catalog:
       - *id012
     - name: test_different_strategies_cannot_rescan_a_source_before_due.scan_twice
       kind: function
-      line_start: 366
-      line_end: 371
+      line_start: 367
+      line_end: 372
       signature: test_different_strategies_cannot_rescan_a_source_before_due.scan_twice()
       inputs: []
       output: unspecified
@@ -993,12 +997,37 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id016
+    - name: test_scoring_candidates_are_independent_by_resume_variant
+      kind: function
+      line_start: 377
+      line_end: 427
+      signature: test_scoring_candidates_are_independent_by_resume_variant(tmp_path, monkeypatch)
+      inputs:
+      - tmp_path
+      - monkeypatch
+      output: unspecified
+      dependencies:
+      - ResumeVariant
+      - asyncio.run
+      - bridge.coordinator.store.load
+      - bridge.coordinator.store.save
+      - bridge.invoke
+      - configuration.model_copy
+      - jobs.list
+      - scoring.scores.list
+      - setup_bridge
+      parser: python-ast
+      dependency_targets:
+      - *id017
+      - *id018
+      - *id012
   - path: tests/test_scoring_service.py
     analysis_version: 1
     language: python
-    content_hash: b6745b2aeead5835b356fb486597997b9ca1d0fd
+    content_hash: 36f2112daac9fc0d98335fa764d02478108df3b0
     dependencies:
     - nerve_center.discovery.models
+    - nerve_center.profile.models
     - nerve_center.scoring.models
     - nerve_center.scoring.service
     provides:
@@ -1006,11 +1035,12 @@ source_catalog:
     - test_title_role_alignment_separates_target_and_unrelated_roles
     - test_configured_job_scout_markets_feed_location_preferences
     - test_direct_employer_location_evidence_builds_company_presence
+    - test_resume_specific_profile_keeps_only_variant_evidence_and_user_confirmed
     symbols:
     - name: _opening
       kind: function
-      line_start: 10
-      line_end: 37
+      line_start: 18
+      line_end: 45
       signature: '_opening(job_id: str, location: str, direct_employer_source: bool) -> NormalizedJobOpening'
       inputs:
       - 'job_id: str'
@@ -1024,8 +1054,8 @@ source_catalog:
       dependency_targets: []
     - name: test_title_role_alignment_separates_target_and_unrelated_roles
       kind: function
-      line_start: 40
-      line_end: 47
+      line_start: 48
+      line_end: 55
       signature: test_title_role_alignment_separates_target_and_unrelated_roles() -> None
       inputs: []
       output: None
@@ -1037,8 +1067,8 @@ source_catalog:
         symbol: _title_role_alignment
     - name: test_configured_job_scout_markets_feed_location_preferences
       kind: function
-      line_start: 50
-      line_end: 57
+      line_start: 58
+      line_end: 65
       signature: test_configured_job_scout_markets_feed_location_preferences() -> None
       inputs: []
       output: None
@@ -1051,8 +1081,8 @@ source_catalog:
         symbol: _effective_location_preferences
     - name: test_direct_employer_location_evidence_builds_company_presence
       kind: function
-      line_start: 60
-      line_end: 84
+      line_start: 68
+      line_end: 92
       signature: test_direct_employer_location_evidence_builds_company_presence() -> None
       inputs: []
       output: None
@@ -1064,3 +1094,19 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/scoring/service.py
         symbol: _merge_observed_company_presence
+    - name: test_resume_specific_profile_keeps_only_variant_evidence_and_user_confirmed
+      kind: function
+      line_start: 95
+      line_end: 151
+      signature: test_resume_specific_profile_keeps_only_variant_evidence_and_user_confirmed() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - CanonicalCareerProfile
+      - CareerClaim
+      - EvidenceReference
+      - _profile_for_resume
+      parser: python-ast
+      dependency_targets:
+      - path: src/nerve_center/scoring/service.py
+        symbol: _profile_for_resume

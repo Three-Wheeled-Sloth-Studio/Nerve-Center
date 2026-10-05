@@ -501,7 +501,7 @@ source_catalog:
   - path: src/nerve_center/scoring/fit.py
     analysis_version: 1
     language: python
-    content_hash: 5d4e475e7a33d725e8afbd41d4c637437753860b
+    content_hash: 0e0758b565e7046dd7fa461bd0d02014248f2a9f
     dependencies:
     - __future__
     - json
@@ -537,14 +537,16 @@ source_catalog:
     - name: JobFitAnalyzer.analyze
       kind: method
       line_start: 51
-      line_end: 68
+      line_end: 77
       signature: 'JobFitAnalyzer.analyze(self, opening: NormalizedJobOpening, profile: CanonicalCareerProfile, model: str
-        | None) -> JobFitAnalysis'
+        | None, resume_document_id: str | None, resume_label: str | None) -> JobFitAnalysis'
       inputs:
       - self
       - 'opening: NormalizedJobOpening'
       - 'profile: CanonicalCareerProfile'
       - 'model: str | None'
+      - 'resume_document_id: str | None'
+      - 'resume_label: str | None'
       output: JobFitAnalysis
       dependencies:
       - _build_prompt
@@ -558,8 +560,8 @@ source_catalog:
         symbol: _validate_analysis
     - name: required_coverage
       kind: function
-      line_start: 71
-      line_end: 74
+      line_start: 80
+      line_end: 83
       signature: 'required_coverage(analysis: JobFitAnalysis) -> float'
       inputs:
       - 'analysis: JobFitAnalysis'
@@ -573,8 +575,8 @@ source_catalog:
         symbol: weighted_coverage
     - name: preferred_coverage
       kind: function
-      line_start: 77
-      line_end: 80
+      line_start: 86
+      line_end: 89
       signature: 'preferred_coverage(analysis: JobFitAnalysis) -> float'
       inputs:
       - 'analysis: JobFitAnalysis'
@@ -586,8 +588,8 @@ source_catalog:
       - *id006
     - name: responsibility_coverage
       kind: function
-      line_start: 83
-      line_end: 86
+      line_start: 92
+      line_end: 95
       signature: 'responsibility_coverage(analysis: JobFitAnalysis) -> float'
       inputs:
       - 'analysis: JobFitAnalysis'
@@ -599,8 +601,8 @@ source_catalog:
       - *id006
     - name: _build_prompt
       kind: function
-      line_start: 89
-      line_end: 103
+      line_start: 98
+      line_end: 112
       signature: '_build_prompt(opening: NormalizedJobOpening, claims: list[CareerClaim]) -> str'
       inputs:
       - 'opening: NormalizedJobOpening'
@@ -614,15 +616,17 @@ source_catalog:
       dependency_targets: []
     - name: _validate_analysis
       kind: function
-      line_start: 106
-      line_end: 210
+      line_start: 115
+      line_end: 224
       signature: '_validate_analysis(opening: NormalizedJobOpening, profile: CanonicalCareerProfile, model: str, response:
-        FitAnalysisResponse) -> JobFitAnalysis'
+        FitAnalysisResponse, resume_document_id: str | None, resume_label: str | None) -> JobFitAnalysis'
       inputs:
       - 'opening: NormalizedJobOpening'
       - 'profile: CanonicalCareerProfile'
       - 'model: str'
       - 'response: FitAnalysisResponse'
+      - 'resume_document_id: str | None'
+      - 'resume_label: str | None'
       output: JobFitAnalysis
       dependencies:
       - ''' ''.join'
@@ -658,8 +662,8 @@ source_catalog:
       - *id002
     - name: _validated_qualification
       kind: function
-      line_start: 213
-      line_end: 274
+      line_start: 227
+      line_end: 288
       signature: '_validated_qualification(job_id: str, index: int, extracted: ExtractedQualificationAssessment, valid_claims:
         dict[str, CareerClaim], normalized_description: str, review_notes: list[str], evidence_matches: list[RequirementEvidenceMatch])
         -> QualificationAssessment'

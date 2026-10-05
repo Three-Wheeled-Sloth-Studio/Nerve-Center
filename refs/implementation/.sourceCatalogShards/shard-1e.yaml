@@ -502,7 +502,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/configuration.py
     analysis_version: 1
     language: python
-    content_hash: e931dab0a57d144241fd0130fe88c1d3908aa77f
+    content_hash: 398cbb7381279a01e016331b6470d14553d604f1
     dependencies:
     - __future__
     - fastapi
@@ -536,6 +536,7 @@ source_catalog:
     - JobScoutCoordinator.refresh_keywords
     - JobScoutCoordinator.scan
     - JobScoutCoordinator._discover_keywords
+    - JobScoutCoordinator._resume_documents
     - JobScoutCoordinator._resume_document
     - JobScoutCoordinator._configured_sources
     - JobScoutCoordinator._validate_source_policy
@@ -553,8 +554,8 @@ source_catalog:
     symbols:
     - name: JobScoutCoordinator.__init__
       kind: method
-      line_start: 99
-      line_end: 118
+      line_start: 100
+      line_end: 119
       signature: 'JobScoutCoordinator.__init__(self, settings: Settings, database: Database, provider: StructuredProvider
         | None, discovery: DiscoveryService, companies: CompanyRepository, sources: DiscoverySourceRepository, jobs: JobOpeningRepository)
         -> None'
@@ -577,8 +578,8 @@ source_catalog:
       dependency_targets: []
     - name: JobScoutCoordinator.workspace
       kind: method
-      line_start: 120
-      line_end: 131
+      line_start: 121
+      line_end: 136
       signature: JobScoutCoordinator.workspace(self) -> JobScoutWorkspace
       inputs:
       - self
@@ -589,7 +590,7 @@ source_catalog:
       - len
       - self._configured_sources
       - self._discover_keywords
-      - self._resume_document
+      - self._resume_documents
       - self.documents.list
       - self.jobs.list
       - self.profiles.get_profile
@@ -609,7 +610,7 @@ source_catalog:
         symbol: _Coordinator._discover_keywords
       - &id013
         path: src/nerve_center/plugins/job_scout/configuration.py
-        symbol: JobScoutCoordinator._resume_document
+        symbol: JobScoutCoordinator._resume_documents
       - &id006
         path: src/nerve_center/plugins/job_scout/settings.py
         symbol: JobScoutConfigurationStore.load
@@ -618,8 +619,8 @@ source_catalog:
         symbol: _ConfigStore.load
     - name: JobScoutCoordinator.save_configuration
       kind: method
-      line_start: 133
-      line_end: 146
+      line_start: 138
+      line_end: 151
       signature: 'JobScoutCoordinator.save_configuration(self, configuration: JobScoutConfiguration) -> JobScoutConfiguration'
       inputs:
       - self
@@ -637,7 +638,7 @@ source_catalog:
       - &id003
         path: src/nerve_center/plugins/job_scout/settings.py
         symbol: clean_list
-      - &id009
+      - &id008
         path: src/nerve_center/persistence/scoring.py
         symbol: OpportunityScoreRepository.append
       - &id011
@@ -648,8 +649,8 @@ source_catalog:
         symbol: JobScoutCoordinator._validate_source_policy
     - name: JobScoutCoordinator.load_resume
       kind: method
-      line_start: 148
-      line_end: 171
+      line_start: 153
+      line_end: 188
       signature: 'JobScoutCoordinator.load_resume(self, request: ResumeLoadRequest) -> JobScoutWorkspace'
       inputs:
       - self
@@ -660,15 +661,17 @@ source_catalog:
       - CareerProfileService(self.profiles, self.provider).extract_document
       - Path
       - ProviderError
+      - ResumeVariant
       - clean_list
       - configuration.model_copy
+      - current.model_copy
       - import_source_document
       - self._discover_keywords
       - self.documents.save
       - self.store.load
-      - self.store.load().model_copy
       - self.store.save
       - self.workspace
+      - variants.append
       parser: python-ast
       dependency_targets:
       - &id024
@@ -682,13 +685,14 @@ source_catalog:
       - *id005
       - *id006
       - *id007
-      - &id008
+      - &id009
         path: src/nerve_center/plugins/job_scout/configuration.py
         symbol: JobScoutCoordinator.workspace
+      - *id008
     - name: JobScoutCoordinator.refresh_keywords
       kind: method
-      line_start: 173
-      line_end: 181
+      line_start: 190
+      line_end: 198
       signature: JobScoutCoordinator.refresh_keywords(self) -> JobScoutWorkspace
       inputs:
       - self
@@ -707,11 +711,11 @@ source_catalog:
       - *id005
       - *id006
       - *id007
-      - *id008
+      - *id009
     - name: JobScoutCoordinator.scan
       kind: method
-      line_start: 183
-      line_end: 274
+      line_start: 200
+      line_end: 291
       signature: 'JobScoutCoordinator.scan(self, request: JobScoutScanRequest) -> JobScoutScanSummary'
       inputs:
       - self
@@ -744,7 +748,7 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id003
-      - *id009
+      - *id008
       - *id010
       - *id004
       - *id005
@@ -766,28 +770,50 @@ source_catalog:
       - *id007
     - name: JobScoutCoordinator._discover_keywords
       kind: method
-      line_start: 276
-      line_end: 288
+      line_start: 293
+      line_end: 305
       signature: 'JobScoutCoordinator._discover_keywords(self, configuration: JobScoutConfiguration, document: SourceDocument
-        | None) -> JobScoutKeywordSummary'
+        | list[SourceDocument] | None) -> JobScoutKeywordSummary'
       inputs:
       - self
       - 'configuration: JobScoutConfiguration'
-      - 'document: SourceDocument | None'
+      - 'document: SourceDocument | list[SourceDocument] | None'
       output: JobScoutKeywordSummary
       dependencies:
       - discover_keywords
-      - self._resume_document
+      - self._resume_documents
       - self.profiles.get_profile
       parser: python-ast
       dependency_targets:
       - path: src/nerve_center/plugins/job_scout/settings.py
         symbol: discover_keywords
       - *id013
+    - name: JobScoutCoordinator._resume_documents
+      kind: method
+      line_start: 307
+      line_end: 324
+      signature: 'JobScoutCoordinator._resume_documents(self, configuration: JobScoutConfiguration) -> list[SourceDocument]'
+      inputs:
+      - self
+      - 'configuration: JobScoutConfiguration'
+      output: list[SourceDocument]
+      dependencies:
+      - documents.append
+      - seen.add
+      - self._resume_document
+      - self.documents.get
+      - set
+      parser: python-ast
+      dependency_targets:
+      - *id008
+      - path: src/nerve_center/plugins/job_scout/discovery_loop.py
+        symbol: _extract_structured_employer_names.add
+      - path: src/nerve_center/plugins/job_scout/configuration.py
+        symbol: JobScoutCoordinator._resume_document
     - name: JobScoutCoordinator._resume_document
       kind: method
-      line_start: 290
-      line_end: 296
+      line_start: 326
+      line_end: 332
       signature: 'JobScoutCoordinator._resume_document(self, configuration: JobScoutConfiguration) -> SourceDocument | None'
       inputs:
       - self
@@ -799,8 +825,8 @@ source_catalog:
       dependency_targets: []
     - name: JobScoutCoordinator._configured_sources
       kind: method
-      line_start: 298
-      line_end: 308
+      line_start: 334
+      line_end: 344
       signature: 'JobScoutCoordinator._configured_sources(self, configuration: JobScoutConfiguration) -> list[DiscoverySource]'
       inputs:
       - self
@@ -811,11 +837,11 @@ source_catalog:
       - self.sources.get
       parser: python-ast
       dependency_targets:
-      - *id009
+      - *id008
     - name: JobScoutCoordinator._validate_source_policy
       kind: method
-      line_start: 310
-      line_end: 327
+      line_start: 346
+      line_end: 363
       signature: 'JobScoutCoordinator._validate_source_policy(self, source_url: str, configuration: JobScoutConfiguration)
         -> None'
       inputs:
@@ -837,8 +863,8 @@ source_catalog:
         symbol: canonical_domain
     - name: JobScoutCoordinator._register_source_url
       kind: method
-      line_start: 329
-      line_end: 374
+      line_start: 365
+      line_end: 410
       signature: 'JobScoutCoordinator._register_source_url(self, source_url: str, interval: int) -> DiscoverySource'
       inputs:
       - self
@@ -885,8 +911,8 @@ source_catalog:
         symbol: ScoringRuleRepository.upsert
     - name: JobScoutCoordinator._register_ats_source
       kind: method
-      line_start: 376
-      line_end: 409
+      line_start: 412
+      line_end: 445
       signature: 'JobScoutCoordinator._register_ats_source(self, key: str, url: str, kind: SourceKind, acquisition: AcquisitionClass,
         source_configuration: dict[str, Any], parser_version: str, interval: int) -> DiscoverySource'
       inputs:
@@ -923,8 +949,8 @@ source_catalog:
         symbol: stable_source_id
     - name: _greenhouse_token
       kind: function
-      line_start: 412
-      line_end: 421
+      line_start: 448
+      line_end: 457
       signature: '_greenhouse_token(segments: list[str]) -> str | None'
       inputs:
       - 'segments: list[str]'
@@ -936,8 +962,8 @@ source_catalog:
       dependency_targets: []
     - name: _ashby_board_name
       kind: function
-      line_start: 424
-      line_end: 433
+      line_start: 460
+      line_end: 469
       signature: '_ashby_board_name(segments: list[str]) -> str | None'
       inputs:
       - 'segments: list[str]'
@@ -949,8 +975,8 @@ source_catalog:
       dependency_targets: []
     - name: _display_name
       kind: function
-      line_start: 436
-      line_end: 437
+      line_start: 472
+      line_end: 473
       signature: '_display_name(value: str) -> str'
       inputs:
       - 'value: str'
@@ -963,8 +989,8 @@ source_catalog:
       dependency_targets: []
     - name: register_job_scout_configuration_routes
       kind: function
-      line_start: 440
-      line_end: 503
+      line_start: 476
+      line_end: 539
       signature: 'register_job_scout_configuration_routes(application: FastAPI, database: Database, settings: Settings, provider:
         StructuredProvider | None, discovery: DiscoveryService, companies: CompanyRepository, sources: DiscoverySourceRepository,
         jobs: JobOpeningRepository) -> JobScoutCoordinator'
@@ -1010,14 +1036,14 @@ source_catalog:
         symbol: register_job_scout_configuration_routes.refresh_keywords
       - *id018
       - *id019
-      - *id008
+      - *id009
       - &id022
         path: src/nerve_center/providers/errors.py
         symbol: ProviderError.as_dict
     - name: register_job_scout_configuration_routes.get_workspace
       kind: function
-      line_start: 462
-      line_end: 463
+      line_start: 498
+      line_end: 499
       signature: register_job_scout_configuration_routes.get_workspace() -> JobScoutWorkspace
       inputs: []
       output: JobScoutWorkspace
@@ -1026,11 +1052,11 @@ source_catalog:
       - coordinator.workspace
       parser: python-ast
       dependency_targets:
-      - *id008
+      - *id009
     - name: register_job_scout_configuration_routes.save_configuration
       kind: function
-      line_start: 466
-      line_end: 473
+      line_start: 502
+      line_end: 509
       signature: 'register_job_scout_configuration_routes.save_configuration(configuration: JobScoutConfiguration) -> JobScoutWorkspace'
       inputs:
       - 'configuration: JobScoutConfiguration'
@@ -1044,11 +1070,11 @@ source_catalog:
       dependency_targets:
       - *id020
       - *id021
-      - *id008
+      - *id009
     - name: register_job_scout_configuration_routes.load_resume
       kind: function
-      line_start: 479
-      line_end: 493
+      line_start: 515
+      line_end: 529
       signature: 'register_job_scout_configuration_routes.load_resume(request: ResumeLoadRequest) -> JobScoutWorkspace'
       inputs:
       - 'request: ResumeLoadRequest'
@@ -1064,8 +1090,8 @@ source_catalog:
       - *id022
     - name: register_job_scout_configuration_routes.refresh_keywords
       kind: function
-      line_start: 496
-      line_end: 497
+      line_start: 532
+      line_end: 533
       signature: register_job_scout_configuration_routes.refresh_keywords() -> JobScoutWorkspace
       inputs: []
       output: JobScoutWorkspace
@@ -1075,8 +1101,8 @@ source_catalog:
       dependency_targets: []
     - name: register_job_scout_configuration_routes.scan
       kind: function
-      line_start: 500
-      line_end: 501
+      line_start: 536
+      line_end: 537
       signature: 'register_job_scout_configuration_routes.scan(request: JobScoutScanRequest) -> JobScoutScanSummary'
       inputs:
       - 'request: JobScoutScanRequest'
@@ -1430,7 +1456,7 @@ source_catalog:
       - self.store.save_profile
       parser: python-ast
       dependency_targets:
-      - *id009
+      - *id008
       - *id026
       - *id027
       - *id028
@@ -1456,7 +1482,7 @@ source_catalog:
       - self.store.save_profile
       parser: python-ast
       dependency_targets:
-      - *id009
+      - *id008
       - *id026
       - *id027
       - *id028
@@ -1486,7 +1512,7 @@ source_catalog:
       - statement.strip
       parser: python-ast
       dependency_targets:
-      - *id009
+      - *id008
       - *id026
       - *id027
       - *id028
@@ -1541,7 +1567,7 @@ source_catalog:
         symbol: _stable_id
       - path: src/nerve_center/profile/service.py
         symbol: _validated_claim
-      - *id009
+      - *id008
     - name: _validated_claim
       kind: function
       line_start: 230
@@ -1571,7 +1597,7 @@ source_catalog:
         path: src/nerve_center/profile/service.py
         symbol: _review_item
       - *id029
-      - *id009
+      - *id008
     - name: _merge_claim
       kind: function
       line_start: 301
@@ -1610,7 +1636,7 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id030
-      - *id009
+      - *id008
     - name: _review_item
       kind: function
       line_start: 341

@@ -7,7 +7,7 @@ source_catalog:
   - path: desktop/src/App.tsx
     analysis_version: 1
     language: typescript
-    content_hash: d15e900221817d8d0f72065dfcfb79c8ac78da7b
+    content_hash: 8d9e04713d46921650c8747c20acd1adcb41711d
     dependencies:
     - ./CorePanels
     - ./DiscoveryAuditPanel
@@ -24,8 +24,8 @@ source_catalog:
     symbols:
     - name: App
       kind: function
-      line_start: 58
-      line_end: 234
+      line_start: 60
+      line_end: 247
       signature: App()
       inputs: []
       output: unspecified
@@ -34,6 +34,7 @@ source_catalog:
       - Promise.all
       - async
       - closeModule
+      - getEmployerFindings
       - getJobScoutWorkspace
       - getLocationPreferences
       - getModules
@@ -53,11 +54,12 @@ source_catalog:
       - refresh
       - remaining
       - runs.find
-      - sessions.find
       parser: typescript-pattern
       dependency_targets:
       - path: desktop/src/App.tsx
         symbol: closeModule
+      - path: desktop/src/api.ts
+        symbol: getEmployerFindings
       - path: desktop/src/api.ts
         symbol: getJobScoutWorkspace
       - path: desktop/src/api.ts
@@ -92,8 +94,8 @@ source_catalog:
         symbol: ResolvedRunWindow.remaining
     - name: openModule
       kind: function
-      line_start: 129
-      line_end: 133
+      line_start: 141
+      line_end: 145
       signature: 'openModule(moduleId: string)'
       inputs:
       - 'moduleId: string'
@@ -105,8 +107,8 @@ source_catalog:
       dependency_targets: []
     - name: closeModule
       kind: function
-      line_start: 134
-      line_end: 138
+      line_start: 146
+      line_end: 150
       signature: closeModule()
       inputs: []
       output: unspecified
@@ -1148,7 +1150,7 @@ source_catalog:
   - path: src/nerve_center/scoring/service.py
     analysis_version: 1
     language: python
-    content_hash: 26540df89e39c922e624af9d90694a80e9dafa89
+    content_hash: c38643c8e4e19bc0504b2921162869aa165a6335
     dependencies:
     - __future__
     - collections.abc
@@ -1156,6 +1158,7 @@ source_catalog:
     - nerve_center.persistence.discovery
     - nerve_center.persistence.profile
     - nerve_center.persistence.scoring
+    - nerve_center.profile.models
     - nerve_center.providers.base
     - nerve_center.scoring.engine
     - nerve_center.scoring.fit
@@ -1167,6 +1170,7 @@ source_catalog:
     - ScoringService.analyze_fit
     - ScoringService.score
     - ScoringService.ensure_provisional_score
+    - _profile_for_resume
     - _effective_location_preferences
     - _merge_observed_company_presence
     - _specific_presence_locations
@@ -1180,8 +1184,8 @@ source_catalog:
     symbols:
     - name: ScoringService.__init__
       kind: method
-      line_start: 34
-      line_end: 66
+      line_start: 39
+      line_end: 71
       signature: 'ScoringService.__init__(self, jobs: JobOpeningRepository, profiles: CareerProfileRepository, company_enrichment:
         CompanyEnrichmentRepository, job_enrichment: JobEnrichmentRepository, location_preferences: LocationPreferencesRepository,
         fit_analyses: FitAnalysisRepository, settings: ScoringSettingsRepository, rules: ScoringRuleRepository, scores: OpportunityScoreRepository,
@@ -1210,16 +1214,20 @@ source_catalog:
       dependency_targets: []
     - name: ScoringService.analyze_fit
       kind: method
-      line_start: 68
-      line_end: 72
-      signature: 'ScoringService.analyze_fit(self, job_id: str, model: str | None) -> JobFitAnalysis'
+      line_start: 73
+      line_end: 93
+      signature: 'ScoringService.analyze_fit(self, job_id: str, model: str | None, resume_document_id: str | None, resume_label:
+        str | None) -> JobFitAnalysis'
       inputs:
       - self
       - 'job_id: str'
       - 'model: str | None'
+      - 'resume_document_id: str | None'
+      - 'resume_label: str | None'
       output: JobFitAnalysis
       dependencies:
       - _get_job
+      - _profile_for_resume
       - self.fit_analyses.save
       - self.fit_analyzer.analyze
       - self.profiles.get_profile
@@ -1228,12 +1236,15 @@ source_catalog:
       - &id019
         path: src/nerve_center/scoring/service.py
         symbol: _get_job
+      - &id020
+        path: src/nerve_center/scoring/service.py
+        symbol: _profile_for_resume
       - path: src/nerve_center/scoring/fit.py
         symbol: JobFitAnalyzer.analyze
     - name: ScoringService.score
       kind: method
-      line_start: 74
-      line_end: 121
+      line_start: 95
+      line_end: 151
       signature: 'ScoringService.score(self, job_id: str, fit_analysis_id: str | None) -> OpportunityScore'
       inputs:
       - self
@@ -1245,7 +1256,9 @@ source_catalog:
       - _effective_location_preferences
       - _get_job
       - _merge_observed_company_presence
+      - _profile_for_resume
       - _title_role_alignment
+      - result.model_copy
       - self.company_enrichment.get
       - self.company_enrichment.save
       - self.fit_analyses.get
@@ -1267,29 +1280,33 @@ source_catalog:
       - *id019
       - path: src/nerve_center/scoring/service.py
         symbol: _merge_observed_company_presence
-      - &id020
+      - *id020
+      - &id021
         path: src/nerve_center/scoring/service.py
         symbol: _title_role_alignment
-      - &id021
+      - &id022
         path: src/nerve_center/persistence/scoring.py
         symbol: FitAnalysisRepository.latest
       - *id007
     - name: ScoringService.ensure_provisional_score
       kind: method
-      line_start: 124
-      line_end: 188
+      line_start: 153
+      line_end: 224
       signature: 'ScoringService.ensure_provisional_score(self, job_id: str, intent_terms: list[str], target_titles: list[str]
-        | None) -> OpportunityScore'
+        | None, resume_document_id: str | None, resume_label: str | None) -> OpportunityScore'
       inputs:
       - self
       - 'job_id: str'
       - 'intent_terms: list[str]'
       - 'target_titles: list[str] | None'
+      - 'resume_document_id: str | None'
+      - 'resume_label: str | None'
       output: OpportunityScore
       dependencies:
       - ''' ''.join'
       - JobFitAnalysis
       - _get_job
+      - _profile_for_resume
       - _title_role_alignment
       - _tokens
       - existing[0].calculation.get
@@ -1310,6 +1327,7 @@ source_catalog:
       - *id019
       - *id020
       - *id021
+      - *id022
       - path: desktop/src/display.tsx
         symbol: score
       - path: src/nerve_center/scoring/engine.py
@@ -1318,10 +1336,25 @@ source_catalog:
         symbol: ScoringService.score
       - path: tests/test_applications.py
         symbol: _RescoreStub.score
+    - name: _profile_for_resume
+      kind: function
+      line_start: 228
+      line_end: 268
+      signature: '_profile_for_resume(profile: CanonicalCareerProfile, resume_document_id: str | None) -> CanonicalCareerProfile'
+      inputs:
+      - 'profile: CanonicalCareerProfile'
+      - 'resume_document_id: str | None'
+      output: CanonicalCareerProfile
+      dependencies:
+      - any
+      - hypothesis.model_copy
+      - profile.model_copy
+      parser: python-ast
+      dependency_targets: []
     - name: _effective_location_preferences
       kind: function
-      line_start: 191
-      line_end: 201
+      line_start: 271
+      line_end: 281
       signature: '_effective_location_preferences(preferences: LocationPreferences, configured_markets: list[str]) -> LocationPreferences'
       inputs:
       - 'preferences: LocationPreferences'
@@ -1335,8 +1368,8 @@ source_catalog:
       dependency_targets: []
     - name: _merge_observed_company_presence
       kind: function
-      line_start: 204
-      line_end: 229
+      line_start: 284
+      line_end: 309
       signature: '_merge_observed_company_presence(enrichment: CompanyEnrichment, openings: list[NormalizedJobOpening]) ->
         CompanyEnrichment'
       inputs:
@@ -1360,7 +1393,7 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/scoring/service.py
         symbol: _location_region
-      - &id022
+      - &id023
         path: src/nerve_center/scoring/service.py
         symbol: _normalize_location_label
       - path: src/nerve_center/scoring/service.py
@@ -1369,8 +1402,8 @@ source_catalog:
       - *id007
     - name: _specific_presence_locations
       kind: function
-      line_start: 232
-      line_end: 244
+      line_start: 312
+      line_end: 324
       signature: '_specific_presence_locations(opening: NormalizedJobOpening) -> list[str]'
       inputs:
       - 'opening: NormalizedJobOpening'
@@ -1386,12 +1419,12 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/scoring/service.py
         symbol: _is_generic_location
-      - *id022
+      - *id023
       - *id007
     - name: _normalize_location_label
       kind: function
-      line_start: 247
-      line_end: 248
+      line_start: 327
+      line_end: 328
       signature: '_normalize_location_label(value: str) -> str'
       inputs:
       - 'value: str'
@@ -1404,8 +1437,8 @@ source_catalog:
       dependency_targets: []
     - name: _is_generic_location
       kind: function
-      line_start: 251
-      line_end: 265
+      line_start: 331
+      line_end: 345
       signature: '_is_generic_location(normalized: str) -> bool'
       inputs:
       - 'normalized: str'
@@ -1415,8 +1448,8 @@ source_catalog:
       dependency_targets: []
     - name: _location_region
       kind: function
-      line_start: 268
-      line_end: 273
+      line_start: 348
+      line_end: 353
       signature: '_location_region(label: str) -> str | None'
       inputs:
       - 'label: str'
@@ -1431,8 +1464,8 @@ source_catalog:
       dependency_targets: []
     - name: _get_job
       kind: function
-      line_start: 276
-      line_end: 280
+      line_start: 356
+      line_end: 360
       signature: '_get_job(repository: JobOpeningRepository, job_id: str) -> NormalizedJobOpening'
       inputs:
       - 'repository: JobOpeningRepository'
@@ -1445,8 +1478,8 @@ source_catalog:
       dependency_targets: []
     - name: _tokens
       kind: function
-      line_start: 302
-      line_end: 307
+      line_start: 382
+      line_end: 387
       signature: '_tokens(value: str) -> set[str]'
       inputs:
       - 'value: str'
@@ -1462,8 +1495,8 @@ source_catalog:
         symbol: _normalize_token
     - name: _normalize_token
       kind: function
-      line_start: 310
-      line_end: 315
+      line_start: 390
+      line_end: 395
       signature: '_normalize_token(token: str) -> str'
       inputs:
       - 'token: str'
@@ -1474,8 +1507,8 @@ source_catalog:
       dependency_targets: []
     - name: _title_role_alignment
       kind: function
-      line_start: 318
-      line_end: 328
+      line_start: 398
+      line_end: 408
       signature: '_title_role_alignment(title: str, target_titles: list[str]) -> float'
       inputs:
       - 'title: str'
@@ -1602,16 +1635,16 @@ source_catalog:
       - '{''code_shop'', ''job_scout''}.issubset'
       parser: python-ast
       dependency_targets:
-      - &id023
+      - &id024
         path: tests/test_code_shop.py
         symbol: _connector
-      - &id024
+      - &id025
         path: tests/test_module_permissions.py
         symbol: _connector
-      - &id025
+      - &id026
         path: tests/test_resource_profiles.py
         symbol: _connector
-      - &id026
+      - &id027
         path: src/nerve_center/api/app.py
         symbol: create_app
     - name: test_project_checkout_and_explicit_allow_admit_only_bounded_execution
@@ -1640,33 +1673,33 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - &id032
-        path: tests/test_code_shop.py
-        symbol: _allow
-      - &id027
-        path: src/nerve_center/persistence/code_shop.py
-        symbol: _checkout
-      - &id028
-        path: tests/test_code_shop.py
-        symbol: _checkout
-      - &id029
-        path: tests/test_module_permissions.py
-        symbol: _checkout
-      - &id030
-        path: tests/test_resource_profiles.py
-        symbol: _checkout
-      - *id023
-      - *id024
-      - *id025
       - &id033
         path: tests/test_code_shop.py
-        symbol: _create_task
+        symbol: _allow
+      - &id028
+        path: src/nerve_center/persistence/code_shop.py
+        symbol: _checkout
+      - &id029
+        path: tests/test_code_shop.py
+        symbol: _checkout
+      - &id030
+        path: tests/test_module_permissions.py
+        symbol: _checkout
       - &id031
+        path: tests/test_resource_profiles.py
+        symbol: _checkout
+      - *id024
+      - *id025
+      - *id026
+      - &id034
+        path: tests/test_code_shop.py
+        symbol: _create_task
+      - &id032
         path: tests/test_code_shop.py
         symbol: _select_and_enable
       - *id010
       - *id011
-      - *id026
+      - *id027
     - name: test_checkout_escape_and_remote_mismatch_are_rejected
       kind: function
       line_start: 159
@@ -1689,17 +1722,17 @@ source_catalog:
       - wrong_remote.json
       parser: python-ast
       dependency_targets:
-      - *id027
       - *id028
       - *id029
       - *id030
-      - *id023
+      - *id031
       - *id024
       - *id025
-      - *id031
+      - *id026
+      - *id032
       - *id010
       - *id011
-      - *id026
+      - *id027
     - name: test_unlinked_and_observe_only_projects_cannot_mutate
       kind: function
       line_start: 186
@@ -1727,19 +1760,19 @@ source_catalog:
       - unlinked.json
       parser: python-ast
       dependency_targets:
-      - *id032
-      - *id027
+      - *id033
       - *id028
       - *id029
       - *id030
-      - *id023
+      - *id031
       - *id024
       - *id025
-      - *id033
-      - *id031
+      - *id026
+      - *id034
+      - *id032
       - *id010
       - *id011
-      - *id026
+      - *id027
     - name: test_ask_and_high_risk_actions_enter_attention_and_untrusted_module_is_denied
       kind: function
       line_start: 238
@@ -1768,18 +1801,18 @@ source_catalog:
       - untrusted.json
       parser: python-ast
       dependency_targets:
-      - *id027
       - *id028
       - *id029
       - *id030
-      - *id023
+      - *id031
       - *id024
       - *id025
-      - *id033
-      - *id031
+      - *id026
+      - *id034
+      - *id032
       - *id010
       - *id011
-      - *id026
+      - *id027
     - name: test_model_blind_task_contract_and_failed_attempt_escalation_survive_restart
       kind: function
       line_start: 319
@@ -1808,12 +1841,12 @@ source_catalog:
       - range
       parser: python-ast
       dependency_targets:
-      - *id023
       - *id024
       - *id025
-      - *id033
-      - *id031
       - *id026
+      - *id034
+      - *id032
+      - *id027
     - name: test_explicit_authority_scope_restricts_paths
       kind: function
       line_start: 377
@@ -1838,18 +1871,18 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - *id027
       - *id028
       - *id029
       - *id030
-      - *id023
+      - *id031
       - *id024
       - *id025
-      - *id033
-      - *id031
+      - *id026
+      - *id034
+      - *id032
       - *id010
       - *id011
-      - *id026
+      - *id027
   - path: tests/test_run_repository.py
     analysis_version: 1
     language: python
@@ -1907,10 +1940,10 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - &id034
+      - &id035
         path: tests/test_run_repository.py
         symbol: make_repository
-      - &id035
+      - &id036
         path: tests/test_sessions.py
         symbol: make_repository
     - name: test_expired_fixed_run_is_missed
@@ -1929,8 +1962,8 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id034
       - *id035
+      - *id036
     - name: test_invalid_transition_is_rejected
       kind: function
       line_start: 43
@@ -1949,9 +1982,9 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id034
       - *id035
-      - &id036
+      - *id036
+      - &id037
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.request_cancel
       - path: src/nerve_center/persistence/attention.py
@@ -1974,6 +2007,6 @@ source_catalog:
       - timedelta
       parser: python-ast
       dependency_targets:
-      - *id034
       - *id035
       - *id036
+      - *id037

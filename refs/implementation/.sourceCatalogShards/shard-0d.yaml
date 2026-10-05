@@ -7,10 +7,11 @@ source_catalog:
   - path: desktop/src/api.ts
     analysis_version: 1
     language: typescript
-    content_hash: 37c9839a1cfdbd017c2798bcc23927d7bca9cc6a
+    content_hash: 00939a7b054a9713335cf316a9ccee073ff7eff8
     dependencies:
     - ./types
     provides:
+    - getEmployerFindings
     - getOpportunities
     - updateApplication
     - getRuns
@@ -43,10 +44,20 @@ source_catalog:
     - discoverJobScoutKeywords
     - scanJobScout
     symbols:
+    - name: getEmployerFindings
+      kind: function
+      line_start: 141
+      line_end: 144
+      signature: getEmployerFindings()
+      inputs: []
+      output: unspecified
+      dependencies: []
+      parser: typescript-pattern
+      dependency_targets: []
     - name: getOpportunities
       kind: function
-      line_start: 140
-      line_end: 144
+      line_start: 145
+      line_end: 148
       signature: 'getOpportunities(sort: string, includeDismissed: boolean)'
       inputs:
       - 'sort: string'
@@ -59,12 +70,13 @@ source_catalog:
       dependency_targets: []
     - name: updateApplication
       kind: function
-      line_start: 145
-      line_end: 149
-      signature: 'updateApplication(jobId: string, status: ApplicationStatus)'
+      line_start: 149
+      line_end: 161
+      signature: 'updateApplication(jobId: string, status: ApplicationStatus, resumeVariantReference?: string | null)'
       inputs:
       - 'jobId: string'
       - 'status: ApplicationStatus'
+      - 'resumeVariantReference?: string | null'
       output: unspecified
       dependencies:
       - JSON.stringify
@@ -72,8 +84,8 @@ source_catalog:
       dependency_targets: []
     - name: getRuns
       kind: function
-      line_start: 150
-      line_end: 150
+      line_start: 162
+      line_end: 162
       signature: getRuns()
       inputs: []
       output: unspecified
@@ -82,8 +94,8 @@ source_catalog:
       dependency_targets: []
     - name: getSessions
       kind: function
-      line_start: 151
-      line_end: 151
+      line_start: 163
+      line_end: 163
       signature: getSessions()
       inputs: []
       output: unspecified
@@ -92,8 +104,8 @@ source_catalog:
       dependency_targets: []
     - name: createDurationSession
       kind: function
-      line_start: 152
-      line_end: 156
+      line_start: 164
+      line_end: 168
       signature: 'createDurationSession(minutes: number)'
       inputs:
       - 'minutes: number'
@@ -104,8 +116,8 @@ source_catalog:
       dependency_targets: []
     - name: createFixedSession
       kind: function
-      line_start: 157
-      line_end: 162
+      line_start: 169
+      line_end: 174
       signature: 'createFixedSession(startsAt: string, endsAt: string)'
       inputs:
       - 'startsAt: string'
@@ -119,8 +131,8 @@ source_catalog:
       dependency_targets: []
     - name: createRecurringSession
       kind: function
-      line_start: 163
-      line_end: 163
+      line_start: 175
+      line_end: 175
       signature: 'createRecurringSession(input: { timezone: string; localStartTime: string; durationMinutes: number })'
       inputs:
       - 'input: { timezone: string; localStartTime: string; durationMinutes: number }'
@@ -130,8 +142,8 @@ source_catalog:
       dependency_targets: []
     - name: emergencyStopSession
       kind: function
-      line_start: 174
-      line_end: 176
+      line_start: 186
+      line_end: 188
       signature: 'emergencyStopSession(sessionId: string)'
       inputs:
       - 'sessionId: string'
@@ -141,8 +153,8 @@ source_catalog:
       dependency_targets: []
     - name: getWorkRequests
       kind: function
-      line_start: 177
-      line_end: 177
+      line_start: 189
+      line_end: 189
       signature: getWorkRequests()
       inputs: []
       output: unspecified
@@ -151,8 +163,8 @@ source_catalog:
       dependency_targets: []
     - name: getQueueStatus
       kind: function
-      line_start: 178
-      line_end: 178
+      line_start: 190
+      line_end: 190
       signature: getQueueStatus()
       inputs: []
       output: unspecified
@@ -161,8 +173,8 @@ source_catalog:
       dependency_targets: []
     - name: cancelWorkRequest
       kind: function
-      line_start: 179
-      line_end: 179
+      line_start: 191
+      line_end: 191
       signature: 'cancelWorkRequest(id: string)'
       inputs:
       - 'id: string'
@@ -172,8 +184,8 @@ source_catalog:
       dependency_targets: []
     - name: retryWorkRequest
       kind: function
-      line_start: 180
-      line_end: 180
+      line_start: 192
+      line_end: 192
       signature: 'retryWorkRequest(id: string)'
       inputs:
       - 'id: string'
@@ -183,8 +195,8 @@ source_catalog:
       dependency_targets: []
     - name: reprioritizeWorkRequest
       kind: function
-      line_start: 181
-      line_end: 185
+      line_start: 193
+      line_end: 197
       signature: 'reprioritizeWorkRequest(id: string, taskPriority: number)'
       inputs:
       - 'id: string'
@@ -196,8 +208,8 @@ source_catalog:
       dependency_targets: []
     - name: getModules
       kind: function
-      line_start: 186
-      line_end: 186
+      line_start: 198
+      line_end: 198
       signature: getModules()
       inputs: []
       output: unspecified
@@ -206,8 +218,8 @@ source_catalog:
       dependency_targets: []
     - name: setModuleLifecycle
       kind: function
-      line_start: 187
-      line_end: 191
+      line_start: 199
+      line_end: 203
       signature: 'setModuleLifecycle(moduleId: string, lifecycleState: ModuleLifecycleState)'
       inputs:
       - 'moduleId: string'
@@ -219,8 +231,8 @@ source_catalog:
       dependency_targets: []
     - name: getRules
       kind: function
-      line_start: 192
-      line_end: 192
+      line_start: 204
+      line_end: 204
       signature: getRules()
       inputs: []
       output: unspecified
@@ -229,8 +241,8 @@ source_catalog:
       dependency_targets: []
     - name: createRule
       kind: function
-      line_start: 193
-      line_end: 193
+      line_start: 205
+      line_end: 205
       signature: 'createRule(input: { target: string; action: string; pattern: string; note?: string })'
       inputs:
       - 'input: { target: string; action: string; pattern: string; note?: string }'
@@ -240,8 +252,8 @@ source_catalog:
       dependency_targets: []
     - name: deleteRule
       kind: function
-      line_start: 196
-      line_end: 196
+      line_start: 208
+      line_end: 208
       signature: 'deleteRule(id: string)'
       inputs:
       - 'id: string'
@@ -251,8 +263,8 @@ source_catalog:
       dependency_targets: []
     - name: decideHypothesis
       kind: function
-      line_start: 197
-      line_end: 201
+      line_start: 209
+      line_end: 213
       signature: 'decideHypothesis(id: string, decision: <literal omitted>)'
       inputs:
       - 'id: string'
@@ -264,8 +276,8 @@ source_catalog:
       dependency_targets: []
     - name: getScoringSettings
       kind: function
-      line_start: 202
-      line_end: 202
+      line_start: 214
+      line_end: 214
       signature: getScoringSettings()
       inputs: []
       output: unspecified
@@ -274,8 +286,8 @@ source_catalog:
       dependency_targets: []
     - name: saveScoringSettings
       kind: function
-      line_start: 203
-      line_end: 205
+      line_start: 215
+      line_end: 217
       signature: 'saveScoringSettings(settings: Record<string, unknown>)'
       inputs:
       - 'settings: Record<string, unknown>'
@@ -286,8 +298,8 @@ source_catalog:
       dependency_targets: []
     - name: getLocationPreferences
       kind: function
-      line_start: 206
-      line_end: 206
+      line_start: 218
+      line_end: 218
       signature: getLocationPreferences()
       inputs: []
       output: unspecified
@@ -296,8 +308,8 @@ source_catalog:
       dependency_targets: []
     - name: saveLocationPreferences
       kind: function
-      line_start: 207
-      line_end: 209
+      line_start: 219
+      line_end: 221
       signature: 'saveLocationPreferences(preferences: Record<string, unknown>)'
       inputs:
       - 'preferences: Record<string, unknown>'
@@ -308,8 +320,8 @@ source_catalog:
       dependency_targets: []
     - name: getJobScoutWorkspace
       kind: function
-      line_start: 210
-      line_end: 212
+      line_start: 222
+      line_end: 224
       signature: getJobScoutWorkspace()
       inputs: []
       output: unspecified
@@ -318,8 +330,8 @@ source_catalog:
       dependency_targets: []
     - name: getJobScoutDiscoveryAudit
       kind: function
-      line_start: 213
-      line_end: 215
+      line_start: 225
+      line_end: 227
       signature: getJobScoutDiscoveryAudit()
       inputs: []
       output: unspecified
@@ -328,8 +340,8 @@ source_catalog:
       dependency_targets: []
     - name: getModelLab
       kind: function
-      line_start: 216
-      line_end: 218
+      line_start: 228
+      line_end: 230
       signature: getModelLab()
       inputs: []
       output: unspecified
@@ -338,8 +350,8 @@ source_catalog:
       dependency_targets: []
     - name: saveJobScoutConfiguration
       kind: function
-      line_start: 219
-      line_end: 223
+      line_start: 231
+      line_end: 235
       signature: 'saveJobScoutConfiguration(configuration: JobScoutConfiguration)'
       inputs:
       - 'configuration: JobScoutConfiguration'
@@ -350,8 +362,8 @@ source_catalog:
       dependency_targets: []
     - name: loadJobScoutResume
       kind: function
-      line_start: 224
-      line_end: 228
+      line_start: 236
+      line_end: 240
       signature: 'loadJobScoutResume(path: string, analyzeResume: boolean)'
       inputs:
       - 'path: string'
@@ -363,8 +375,8 @@ source_catalog:
       dependency_targets: []
     - name: uploadJobScoutResume
       kind: function
-      line_start: 229
-      line_end: 238
+      line_start: 241
+      line_end: 250
       signature: 'uploadJobScoutResume(fileName: string, contentBase64: string, analyzeResume: boolean)'
       inputs:
       - 'fileName: string'
@@ -377,8 +389,8 @@ source_catalog:
       dependency_targets: []
     - name: discoverJobScoutKeywords
       kind: function
-      line_start: 239
-      line_end: 241
+      line_start: 251
+      line_end: 253
       signature: discoverJobScoutKeywords()
       inputs: []
       output: unspecified
@@ -387,8 +399,8 @@ source_catalog:
       dependency_targets: []
     - name: scanJobScout
       kind: function
-      line_start: 242
-      line_end: 246
+      line_start: 254
+      line_end: 258
       signature: 'scanJobScout(discoverSources: boolean)'
       inputs:
       - 'discoverSources: boolean'

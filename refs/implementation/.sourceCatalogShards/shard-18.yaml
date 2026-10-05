@@ -96,7 +96,7 @@ source_catalog:
   - path: src/nerve_center/scoring/models.py
     analysis_version: 1
     language: python
-    content_hash: e117dc6c9bdd7e2ad04dffdd779a61d937d34193
+    content_hash: 3d108a8167d5ca53f4019bf47a070baa2b6352b4
     dependencies:
     - __future__
     - datetime
@@ -108,8 +108,8 @@ source_catalog:
     symbols:
     - name: ScoringWeights.validate_total
       kind: method
-      line_start: 233
-      line_end: 236
+      line_start: 235
+      line_end: 238
       signature: ScoringWeights.validate_total(self) -> Self
       inputs:
       - self
