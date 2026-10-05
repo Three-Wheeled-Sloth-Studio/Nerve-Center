@@ -65,10 +65,26 @@ class ScoringService:
         self.fit_analyzer = JobFitAnalyzer(provider)
         self.scorer = OpportunityScorer()
 
-    async def analyze_fit(self, job_id: str, *, model: str | None = None) -> JobFitAnalysis:
+    async def analyze_fit(
+        self,
+        job_id: str,
+        *,
+        model: str | None = None,
+        resume_document_id: str | None = None,
+        resume_label: str | None = None,
+    ) -> JobFitAnalysis:
         opening = _get_job(self.jobs, job_id)
-        profile = self.profiles.get_profile()
-        analysis = await self.fit_analyzer.analyze(opening, profile, model=model)
+        profile = _profile_for_resume(
+            self.profiles.get_profile(),
+            resume_document_id,
+        )
+        analysis = await self.fit_analyzer.analyze(
+            opening,
+            profile,
+            model=model,
+            resume_document_id=resume_document_id,
+            resume_label=resume_label,
+        )
         return self.fit_analyses.save(analysis)
 
     def score(
@@ -78,11 +94,14 @@ class ScoringService:
         fit_analysis_id: str | None = None,
     ) -> OpportunityScore:
         opening = _get_job(self.jobs, job_id)
-        profile = self.profiles.get_profile()
         analysis = (
             self.fit_analyses.get(fit_analysis_id)
             if fit_analysis_id
             else self.fit_analyses.latest(job_id)
+        )
+        profile = _profile_for_resume(
+            self.profiles.get_profile(),
+            analysis.resume_document_id,
         )
         if analysis.job_id != job_id:
             raise ValueError("fit analysis belongs to a different job")
@@ -118,8 +137,13 @@ class ScoringService:
             source_confidence_score=source_confidence[0],
             source_confidence_label=source_confidence[1],
         )
+        result = result.model_copy(
+            update={
+                "resume_document_id": analysis.resume_document_id,
+                "resume_label": analysis.resume_label,
+            }
+        )
         return self.scores.append(result)
-
 
     def ensure_provisional_score(
         self,
@@ -127,9 +151,11 @@ class ScoringService:
         *,
         intent_terms: list[str],
         target_titles: list[str] | None = None,
+        resume_document_id: str | None = None,
+        resume_label: str | None = None,
     ) -> OpportunityScore:
         provisional_contract = "job-fit-provisional-v3"
-        existing = self.scores.list(job_id)
+        existing = self.scores.list(job_id, resume_document_id=resume_document_id)
         if existing:
             recorded_contract = existing[0].calculation.get("fit_contract_version")
             if recorded_contract and not str(recorded_contract).startswith(
@@ -139,7 +165,10 @@ class ScoringService:
             if recorded_contract == provisional_contract:
                 return existing[0]
             try:
-                latest_analysis = self.fit_analyses.latest(job_id)
+                latest_analysis = self.fit_analyses.latest(
+                    job_id,
+                    resume_document_id=resume_document_id,
+                )
             except KeyError:
                 latest_analysis = None
             if latest_analysis and not latest_analysis.contract_version.startswith(
@@ -147,7 +176,7 @@ class ScoringService:
             ):
                 return existing[0]
         opening = _get_job(self.jobs, job_id)
-        profile = self.profiles.get_profile()
+        profile = _profile_for_resume(self.profiles.get_profile(), resume_document_id)
         haystack = _tokens(f"{opening.title} {opening.description}")
         intent = _tokens(" ".join(intent_terms))
         profile_terms = _tokens(
@@ -172,6 +201,8 @@ class ScoringService:
             profile_version=profile.version,
             contract_version=provisional_contract,
             model="deterministic-provisional",
+            resume_document_id=resume_document_id,
+            resume_label=resume_label,
             seniority_score=min(90.0, 25.0 + role_alignment * 65.0),
             domain_score=baseline,
             leadership_score=baseline,
@@ -186,6 +217,50 @@ class ScoringService:
         )
         self.fit_analyses.save(analysis)
         return self.score(job_id, fit_analysis_id=analysis.id)
+
+
+
+def _profile_for_resume(
+    profile: CanonicalCareerProfile,
+    resume_document_id: str | None,
+) -> CanonicalCareerProfile:
+    if resume_document_id is None:
+        return profile
+    claims = [
+        claim
+        for claim in profile.claims
+        if claim.decision is not ClaimDecision.REJECTED
+        and (
+            any(
+                evidence.document_id == resume_document_id
+                for evidence in claim.evidence
+            )
+            or any(
+                evidence.origin is EvidenceOrigin.USER_CONFIRMED
+                for evidence in claim.evidence
+            )
+        )
+    ]
+    claim_ids = {claim.id for claim in claims}
+    hypotheses = [
+        hypothesis.model_copy(
+            update={
+                "supporting_claim_ids": [
+                    claim_id
+                    for claim_id in hypothesis.supporting_claim_ids
+                    if claim_id in claim_ids
+                ]
+            }
+        )
+        for hypothesis in profile.hypotheses
+        if any(claim_id in claim_ids for claim_id in hypothesis.supporting_claim_ids)
+    ]
+    return profile.model_copy(
+        update={
+            "claims": claims,
+            "hypotheses": hypotheses,
+        }
+    )
 
 
 def _effective_location_preferences(
