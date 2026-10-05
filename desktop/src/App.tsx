@@ -10,6 +10,7 @@ import {
   deleteRule,
   discoverJobScoutKeywords,
   emergencyStopSession,
+  getEmployerFindings,
   getJobScoutWorkspace,
   getLocationPreferences,
   getModules,
@@ -32,6 +33,7 @@ import {
 } from "./api";
 import type {
   ApplicationStatus,
+  EmployerFinding,
   JobScoutConfiguration,
   JobScoutScanSummary,
   JobScoutWorkspace,
@@ -65,6 +67,7 @@ export default function App() {
   const [requests, setRequests] = useState<WorkRequestRecord[]>([]);
   const [queueStatus, setQueueStatus] = useState<QueueStatusRecord | null>(null);
   const [jobScout, setJobScout] = useState<JobScoutWorkspace | null>(null);
+  const [employerFindings, setEmployerFindings] = useState<EmployerFinding[]>([]);
   const [opportunities, setOpportunities] = useState<ReviewOpportunity[]>([]);
   const [rules, setRules] = useState<ScoringRule[]>([]);
   const [scoringSettings, setScoringSettings] = useState<Record<string, unknown> | null>(null);
@@ -87,14 +90,23 @@ export default function App() {
       setRequests(nextRequests);
       setQueueStatus(nextQueue);
       if (nextModules.some((item) => item.manifest.module_id === "job_scout")) {
-        const [workspace, nextOpportunities, nextRules, nextSettings, nextLocation] = await Promise.all([
+        const [
+          workspace,
+          nextEmployers,
+          nextOpportunities,
+          nextRules,
+          nextSettings,
+          nextLocation,
+        ] = await Promise.all([
           getJobScoutWorkspace(),
+          getEmployerFindings(),
           getOpportunities(sort, includeDismissed),
           getRules(),
           getScoringSettings(),
           getLocationPreferences(),
         ]);
         setJobScout(workspace);
+        setEmployerFindings(nextEmployers);
         setOpportunities(nextOpportunities);
         setRules(nextRules);
         setScoringSettings(nextSettings);
@@ -206,6 +218,7 @@ export default function App() {
           <>
             <JobScoutPanel
               workspace={jobScout}
+              employers={employerFindings}
               opportunities={opportunities}
               rules={rules}
               scoringSettings={scoringSettings}
