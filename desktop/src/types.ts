@@ -85,6 +85,12 @@ export interface ReviewOpportunity {
   score: OpportunityScore | null;
   application: ApplicationRecord;
   next_action: string;
+  verification_status: string;
+  verification_reason: string;
+  actionable: boolean;
+  preferred_url: string | null;
+  preferred_url_kind: string;
+  link_warning: string | null;
 }
 
 export interface RunRecord {
