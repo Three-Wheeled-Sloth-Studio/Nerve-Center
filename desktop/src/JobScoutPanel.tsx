@@ -332,6 +332,8 @@ function EmployerFindingsPanel({ employers, onError }: {
               <span>{item.current_actionable_roles} actionable</span>
               <span>{item.relevant_roles_30d} new relevant / 30d</span>
               <span>{item.direct_first_roles} direct-first</span>
+              {item.direct_only_roles ? <span>{item.direct_only_roles} direct-only</span> : null}
+              {item.broadly_syndicated_roles ? <span>{item.broadly_syndicated_roles} broadly syndicated</span> : null}
               {item.unverified_leads ? <span>{item.unverified_leads} unverified lead{item.unverified_leads === 1 ? "" : "s"}</span> : null}
             </div>
           </div>
@@ -346,7 +348,7 @@ function EmployerFindingsPanel({ employers, onError }: {
         </div>
         <details>
           <summary>Employer details</summary>
-          {item.best_role ? <p><strong>Best current role:</strong> {item.best_role.title} | priority {Math.round(item.best_role.priority)} | fit {Math.round(item.best_role.fit)}{item.best_role.resume_label ? ` | ${item.best_role.resume_label}` : ""}</p> : <p className="muted">No currently relevant scored role.</p>}
+          {item.best_role ? <p><strong>Best current role:</strong> {item.best_role.title} | priority {Math.round(item.best_role.priority)} | fit {Math.round(item.best_role.fit)}{item.best_role.resume_label ? ` | ${item.best_role.resume_label}` : ""} | {discoveryAdvantageLabel(item.best_role.discovery_advantage)}</p> : <p className="muted">No currently relevant scored role.</p>}
           <p><strong>Verification:</strong> {item.verified_absent_roles} previously observed role{item.verified_absent_roles === 1 ? "" : "s"} no longer verified.</p>
           {item.last_career_scan_at ? <p><strong>Last career scan:</strong> {new Date(item.last_career_scan_at).toLocaleString()}</p> : <p className="muted">No authoritative career scan recorded yet.</p>}
           {item.presence_evidence.length ? <div><strong>Presence evidence</strong><ul>{item.presence_evidence.map((url) => <li key={url}><code>{url}</code></li>)}</ul></div> : <p className="muted">No verified local/regional office evidence recorded yet.</p>}
@@ -441,10 +443,24 @@ function OpportunityCard({ item, busy, onChange, onError }: {
     }
   }
   const locationScope = item.score?.location.scope ?? "unknown";
+  const discoveryFactor = item.score?.factors.find((factor) => factor.code === "discovery_advantage");
+  const discoveryClassification = discoveryFactor?.detail?.classification;
   return <article className="opportunity-card">
-    <div className="opportunity-summary"><div className="priority-badge"><strong>{score(item.score?.priority)}</strong><span>priority</span></div><div className="opportunity-title"><h3>{item.opening.title}</h3><p><strong>{item.opening.company_name}</strong> | {item.opening.location_text ?? "Location unclear"}</p><div className="opportunity-meta"><span><BriefcaseBusiness aria-hidden="true" />{titleCase(item.opening.work_arrangement)}</span><span><MapPin aria-hidden="true" />{titleCase(locationScope)} scope</span><span><Clock3 aria-hidden="true" />{freshness(item.opening.posted_at ?? item.opening.discovered_at)}</span><span>{item.score ? `${Math.round(item.score.confidence)}% confidence` : "Unscored"}</span>{item.score?.resume_label ? <span title="Best scoring resume">Resume: {item.score.resume_label}</span> : null}<span title={item.verification_reason}>{verificationLabel}</span></div></div><div className="score-strip"><Metric label="Fit" value={item.score?.fit} /><Metric label="Response" value={item.score?.response_likelihood} /><Metric label="Value" value={item.score?.opportunity_value} /></div><div className="opportunity-actions"><button className="icon-button" disabled={busy} title="Save" aria-label="Save" onClick={() => void onChange(item, "saved")}><Bookmark aria-hidden="true" /></button><button className="icon-button primary" disabled={busy || !item.actionable} title={item.actionable ? "Plan to apply" : "This role is not currently actionable"} aria-label="Plan to apply" onClick={() => void onChange(item, "planned_to_apply")}><ClipboardCheck aria-hidden="true" /></button><button className="icon-button" disabled={busy} title="Dismiss" aria-label="Dismiss" onClick={() => void onChange(item, "dismissed")}><X aria-hidden="true" /></button><button className="icon-button" type="button" title={`Open ${listingLabel}`} aria-label={`Open ${listingLabel}`} onClick={() => void openListing()}><ExternalLink aria-hidden="true" /></button></div></div>
+    <div className="opportunity-summary"><div className="priority-badge"><strong>{score(item.score?.priority)}</strong><span>priority</span></div><div className="opportunity-title"><h3>{item.opening.title}</h3><p><strong>{item.opening.company_name}</strong> | {item.opening.location_text ?? "Location unclear"}</p><div className="opportunity-meta"><span><BriefcaseBusiness aria-hidden="true" />{titleCase(item.opening.work_arrangement)}</span><span><MapPin aria-hidden="true" />{titleCase(locationScope)} scope</span><span><Clock3 aria-hidden="true" />{freshness(item.opening.posted_at ?? item.opening.discovered_at)}</span><span>{item.score ? `${Math.round(item.score.confidence)}% confidence` : "Unscored"}</span>{item.score?.resume_label ? <span title="Best scoring resume">Resume: {item.score.resume_label}</span> : null}<span title={item.verification_reason}>{verificationLabel}</span>{discoveryClassification ? <span title={discoveryFactor?.label}>{discoveryAdvantageLabel(discoveryClassification)}</span> : null}</div></div><div className="score-strip"><Metric label="Fit" value={item.score?.fit} /><Metric label="Response" value={item.score?.response_likelihood} /><Metric label="Value" value={item.score?.opportunity_value} /></div><div className="opportunity-actions"><button className="icon-button" disabled={busy} title="Save" aria-label="Save" onClick={() => void onChange(item, "saved")}><Bookmark aria-hidden="true" /></button><button className="icon-button primary" disabled={busy || !item.actionable} title={item.actionable ? "Plan to apply" : "This role is not currently actionable"} aria-label="Plan to apply" onClick={() => void onChange(item, "planned_to_apply")}><ClipboardCheck aria-hidden="true" /></button><button className="icon-button" disabled={busy} title="Dismiss" aria-label="Dismiss" onClick={() => void onChange(item, "dismissed")}><X aria-hidden="true" /></button><button className="icon-button" type="button" title={`Open ${listingLabel}`} aria-label={`Open ${listingLabel}`} onClick={() => void openListing()}><ExternalLink aria-hidden="true" /></button></div></div>
     <details><summary>Listing details and description</summary>{item.link_warning ? <p className="muted"><strong>Source note:</strong> {item.link_warning}</p> : null}<div className="listing-url"><code title={listingUrl}>{listingUrl}</code><button type="button" onClick={() => void copyListing()}><Copy aria-hidden="true" />{copied ? "Copied" : "Copy URL"}</button><button type="button" onClick={() => void openListing()}><ExternalLink aria-hidden="true" />Open {listingLabel}</button></div>{item.score?.location.rationale?.length ? <div><strong>Location evidence</strong><ul>{item.score.location.rationale.map((reason) => <li key={reason}>{reason}</li>)}</ul></div> : null}<p>{item.opening.description}</p></details>
   </article>;
+}
+
+function discoveryAdvantageLabel(value: unknown): string {
+  const labels: Record<string, string> = {
+    direct_only: "Direct-only observed",
+    direct_first_later_syndicated: "Direct-first observed",
+    secondary_first_later_verified: "Secondary-first, later verified",
+    broadly_syndicated: "Broadly syndicated",
+    secondary_only: "Secondary-only observed",
+    mixed_same_time: "Direct + secondary observed together",
+  };
+  return labels[String(value)] ?? titleCase(String(value));
 }
 
 function freshness(value: string): string {
