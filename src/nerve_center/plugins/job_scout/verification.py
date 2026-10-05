@@ -8,6 +8,7 @@ from enum import StrEnum
 from nerve_center.discovery.models import (
     Company,
     DiscoverySource,
+    JobProvenance,
     NormalizedJobOpening,
     ScanStatus,
     SourceKind,
@@ -135,7 +136,7 @@ def assess_opening_verification(
 
 
 def _assess_direct_observations(
-    direct: list[object],
+    direct: list[JobProvenance],
     sources: DiscoverySourceRepository,
 ) -> VerificationAssessment | None:
     """Reconcile prior direct observations against later authoritative scans."""
@@ -147,9 +148,9 @@ def _assess_direct_observations(
     stale: list[str] = []
 
     for provenance in direct:
-        source_id = str(getattr(provenance, "source_id", ""))
-        source_url = str(getattr(provenance, "source_url", ""))
-        observed_at = getattr(provenance, "discovered_at", None)
+        source_id = provenance.source_id
+        source_url = provenance.source_url
+        observed_at = provenance.discovered_at
         if source_id and source_id not in source_ids:
             source_ids.append(source_id)
         if source_url and source_url not in evidence_urls:
