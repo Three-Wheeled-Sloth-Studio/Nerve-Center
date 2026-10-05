@@ -179,3 +179,37 @@ def test_discovery_learning_is_inspectable_through_module_routes(tmp_path: Path)
     assert strategies[0]["influence"] == "neutral"
     assert session["coverage"]["reflection_hypotheses"] == 1
     assert reflections[0]["strategy_id"] == strategy.id
+
+
+def test_multiple_resume_uploads_remain_active_variants(tmp_path: Path) -> None:
+    application = _application(tmp_path)
+    first = b"Senior Product Manager | Greensboro, NC\nLed analytics products.\n"
+    second = b"Director of Product Management | Greensboro, NC\nLed product teams.\n"
+
+    with TestClient(application) as client:
+        first_workspace = client.post(
+            "/api/v1/modules/job_scout/resume/upload",
+            json={
+                "file_name": "Senior PM Resume.txt",
+                "content_base64": base64.b64encode(first).decode("ascii"),
+                "analyze_resume": False,
+            },
+        ).json()
+        second_workspace = client.post(
+            "/api/v1/modules/job_scout/resume/upload",
+            json={
+                "file_name": "Director Resume.txt",
+                "content_base64": base64.b64encode(second).decode("ascii"),
+                "analyze_resume": False,
+            },
+        ).json()
+
+    assert len(first_workspace["configuration"]["resume_variants"]) == 1
+    variants = second_workspace["configuration"]["resume_variants"]
+    assert len(variants) == 2
+    assert [item["file_name"] for item in variants] == [
+        "Senior PM Resume.txt",
+        "Director Resume.txt",
+    ]
+    assert all(item["active"] for item in variants)
+    assert second_workspace["configuration"]["resume_file_name"] == "Director Resume.txt"
