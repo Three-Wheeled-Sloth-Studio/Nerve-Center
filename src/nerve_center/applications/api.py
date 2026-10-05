@@ -113,18 +113,22 @@ def register_application_routes(
                         None,
                     )
                     if current is None and variant_history:
-                        try:
-                            analysis = scoring_service.fit_analyses.latest(
-                                opening.id,
-                                resume_document_id=resume_document_id,
-                            )
-                        except KeyError:
-                            analysis = None
-                        if analysis is not None:
-                            current = scoring_service.score(
-                                opening.id,
-                                fit_analysis_id=analysis.id,
-                            )
+                        fit_repository = getattr(scoring_service, "fit_analyses", None)
+                        if fit_repository is None:
+                            current = scoring_service.score(opening.id)
+                        else:
+                            try:
+                                analysis = fit_repository.latest(
+                                    opening.id,
+                                    resume_document_id=resume_document_id,
+                                )
+                            except KeyError:
+                                analysis = None
+                            if analysis is not None:
+                                current = scoring_service.score(
+                                    opening.id,
+                                    fit_analysis_id=analysis.id,
+                                )
                     if current is None:
                         current = scoring_service.ensure_provisional_score(
                             opening.id,
