@@ -65,12 +65,20 @@ def _source(repository, *, kind=SourceKind.GREENHOUSE) -> DiscoverySource:
     return repository.upsert(source)
 
 
-def _scan(repository, status: ScanStatus, *, openings_found: int = 0) -> None:
-    now = datetime.now(UTC)
+def _scan(
+    repository,
+    status: ScanStatus,
+    *,
+    openings_found: int = 0,
+    started_at: datetime | None = None,
+    finished_at: datetime | None = None,
+) -> None:
+    finished = finished_at or datetime.now(UTC)
+    started = started_at or finished - timedelta(seconds=1)
     repository.record_scan(
         "source-employer",
-        started_at=now - timedelta(seconds=1),
-        finished_at=now,
+        started_at=started,
+        finished_at=finished,
         status=status,
         requests_made=1,
         openings_found=openings_found,
@@ -147,4 +155,94 @@ def test_non_exhaustive_empty_page_does_not_verify_absence(tmp_path) -> None:
     result = assess_opening_verification(_opening(), repository)
 
     assert result.status is VerificationStatus.UNVERIFIED_SOURCE_UNRESOLVED
+    assert result.actionable is True
+
+
+def test_direct_observation_during_latest_scan_remains_verified(tmp_path) -> None:
+    repository = _repository(tmp_path)
+    _source(repository)
+    scan_start = datetime.now(UTC) - timedelta(seconds=2)
+    observed = scan_start + timedelta(seconds=1)
+    opening = _opening(direct=True).model_copy(
+        update={
+            "discovered_at": observed,
+            "provenance": [
+                _opening(direct=True).provenance[0].model_copy(
+                    update={
+                        "source_id": "source-employer",
+                        "discovered_at": observed,
+                    }
+                )
+            ],
+        }
+    )
+    _scan(
+        repository,
+        ScanStatus.SUCCEEDED,
+        openings_found=4,
+        started_at=scan_start,
+        finished_at=scan_start + timedelta(seconds=2),
+    )
+
+    result = assess_opening_verification(opening, repository)
+
+    assert result.status is VerificationStatus.VERIFIED_PRESENT
+    assert result.actionable is True
+
+
+def test_later_successful_exhaustive_scan_can_verify_prior_direct_opening_absent(
+    tmp_path,
+) -> None:
+    repository = _repository(tmp_path)
+    _source(repository)
+    opening = _opening(direct=True).model_copy(
+        update={
+            "provenance": [
+                _opening(direct=True).provenance[0].model_copy(
+                    update={"source_id": "source-employer"}
+                )
+            ]
+        }
+    )
+    scan_start = datetime.now(UTC)
+    _scan(
+        repository,
+        ScanStatus.SUCCEEDED,
+        openings_found=7,
+        started_at=scan_start,
+        finished_at=scan_start + timedelta(seconds=1),
+    )
+
+    result = assess_opening_verification(opening, repository)
+
+    assert result.status is VerificationStatus.VERIFIED_ABSENT
+    assert result.actionable is False
+    assert result.reason == (
+        "later_successful_authoritative_inventory_no_longer_observes_opening"
+    )
+
+
+def test_later_failed_refresh_makes_prior_direct_verification_stale(tmp_path) -> None:
+    repository = _repository(tmp_path)
+    _source(repository)
+    opening = _opening(direct=True).model_copy(
+        update={
+            "provenance": [
+                _opening(direct=True).provenance[0].model_copy(
+                    update={"source_id": "source-employer"}
+                )
+            ]
+        }
+    )
+    scan_start = datetime.now(UTC)
+    _scan(
+        repository,
+        ScanStatus.ACCESS_FAILED,
+        started_at=scan_start,
+        finished_at=scan_start + timedelta(seconds=1),
+    )
+
+    result = assess_opening_verification(opening, repository)
+
+    assert result.status is VerificationStatus.STALE_VERIFICATION
     assert result.actionable is True
