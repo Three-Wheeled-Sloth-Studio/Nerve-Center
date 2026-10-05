@@ -1148,7 +1148,7 @@ source_catalog:
   - path: src/nerve_center/scoring/service.py
     analysis_version: 1
     language: python
-    content_hash: 4fd3fd5f12f8d0962e1ed19b3509e565a7e31c9f
+    content_hash: 26540df89e39c922e624af9d90694a80e9dafa89
     dependencies:
     - __future__
     - collections.abc
@@ -1181,12 +1181,12 @@ source_catalog:
     - name: ScoringService.__init__
       kind: method
       line_start: 34
-      line_end: 62
+      line_end: 66
       signature: 'ScoringService.__init__(self, jobs: JobOpeningRepository, profiles: CareerProfileRepository, company_enrichment:
         CompanyEnrichmentRepository, job_enrichment: JobEnrichmentRepository, location_preferences: LocationPreferencesRepository,
         fit_analyses: FitAnalysisRepository, settings: ScoringSettingsRepository, rules: ScoringRuleRepository, scores: OpportunityScoreRepository,
         provider: StructuredProvider, target_titles_provider: Callable[[], list[str]] | None, location_markets_provider: Callable[[],
-        list[str]] | None) -> None'
+        list[str]] | None, source_confidence_provider: Callable[[NormalizedJobOpening], tuple[float, str]] | None) -> None'
       inputs:
       - self
       - 'jobs: JobOpeningRepository'
@@ -1201,6 +1201,7 @@ source_catalog:
       - 'provider: StructuredProvider'
       - 'target_titles_provider: Callable[[], list[str]] | None'
       - 'location_markets_provider: Callable[[], list[str]] | None'
+      - 'source_confidence_provider: Callable[[NormalizedJobOpening], tuple[float, str]] | None'
       output: None
       dependencies:
       - JobFitAnalyzer
@@ -1209,8 +1210,8 @@ source_catalog:
       dependency_targets: []
     - name: ScoringService.analyze_fit
       kind: method
-      line_start: 64
-      line_end: 68
+      line_start: 68
+      line_end: 72
       signature: 'ScoringService.analyze_fit(self, job_id: str, model: str | None) -> JobFitAnalysis'
       inputs:
       - self
@@ -1231,8 +1232,8 @@ source_catalog:
         symbol: JobFitAnalyzer.analyze
     - name: ScoringService.score
       kind: method
-      line_start: 70
-      line_end: 110
+      line_start: 74
+      line_end: 121
       signature: 'ScoringService.score(self, job_id: str, fit_analysis_id: str | None) -> OpportunityScore'
       inputs:
       - self
@@ -1257,6 +1258,7 @@ source_catalog:
       - self.rules.list
       - self.scores.append
       - self.settings.get
+      - self.source_confidence_provider
       - self.target_titles_provider
       parser: python-ast
       dependency_targets:
@@ -1274,8 +1276,8 @@ source_catalog:
       - *id007
     - name: ScoringService.ensure_provisional_score
       kind: method
-      line_start: 113
-      line_end: 177
+      line_start: 124
+      line_end: 188
       signature: 'ScoringService.ensure_provisional_score(self, job_id: str, intent_terms: list[str], target_titles: list[str]
         | None) -> OpportunityScore'
       inputs:
@@ -1318,8 +1320,8 @@ source_catalog:
         symbol: _RescoreStub.score
     - name: _effective_location_preferences
       kind: function
-      line_start: 180
-      line_end: 190
+      line_start: 191
+      line_end: 201
       signature: '_effective_location_preferences(preferences: LocationPreferences, configured_markets: list[str]) -> LocationPreferences'
       inputs:
       - 'preferences: LocationPreferences'
@@ -1333,8 +1335,8 @@ source_catalog:
       dependency_targets: []
     - name: _merge_observed_company_presence
       kind: function
-      line_start: 193
-      line_end: 218
+      line_start: 204
+      line_end: 229
       signature: '_merge_observed_company_presence(enrichment: CompanyEnrichment, openings: list[NormalizedJobOpening]) ->
         CompanyEnrichment'
       inputs:
@@ -1367,8 +1369,8 @@ source_catalog:
       - *id007
     - name: _specific_presence_locations
       kind: function
-      line_start: 221
-      line_end: 233
+      line_start: 232
+      line_end: 244
       signature: '_specific_presence_locations(opening: NormalizedJobOpening) -> list[str]'
       inputs:
       - 'opening: NormalizedJobOpening'
@@ -1388,8 +1390,8 @@ source_catalog:
       - *id007
     - name: _normalize_location_label
       kind: function
-      line_start: 236
-      line_end: 237
+      line_start: 247
+      line_end: 248
       signature: '_normalize_location_label(value: str) -> str'
       inputs:
       - 'value: str'
@@ -1402,8 +1404,8 @@ source_catalog:
       dependency_targets: []
     - name: _is_generic_location
       kind: function
-      line_start: 240
-      line_end: 254
+      line_start: 251
+      line_end: 265
       signature: '_is_generic_location(normalized: str) -> bool'
       inputs:
       - 'normalized: str'
@@ -1413,8 +1415,8 @@ source_catalog:
       dependency_targets: []
     - name: _location_region
       kind: function
-      line_start: 257
-      line_end: 262
+      line_start: 268
+      line_end: 273
       signature: '_location_region(label: str) -> str | None'
       inputs:
       - 'label: str'
@@ -1429,8 +1431,8 @@ source_catalog:
       dependency_targets: []
     - name: _get_job
       kind: function
-      line_start: 265
-      line_end: 269
+      line_start: 276
+      line_end: 280
       signature: '_get_job(repository: JobOpeningRepository, job_id: str) -> NormalizedJobOpening'
       inputs:
       - 'repository: JobOpeningRepository'
@@ -1443,8 +1445,8 @@ source_catalog:
       dependency_targets: []
     - name: _tokens
       kind: function
-      line_start: 291
-      line_end: 296
+      line_start: 302
+      line_end: 307
       signature: '_tokens(value: str) -> set[str]'
       inputs:
       - 'value: str'
@@ -1460,8 +1462,8 @@ source_catalog:
         symbol: _normalize_token
     - name: _normalize_token
       kind: function
-      line_start: 299
-      line_end: 304
+      line_start: 310
+      line_end: 315
       signature: '_normalize_token(token: str) -> str'
       inputs:
       - 'token: str'
@@ -1472,8 +1474,8 @@ source_catalog:
       dependency_targets: []
     - name: _title_role_alignment
       kind: function
-      line_start: 307
-      line_end: 317
+      line_start: 318
+      line_end: 328
       signature: '_title_role_alignment(title: str, target_titles: list[str]) -> float'
       inputs:
       - 'title: str'

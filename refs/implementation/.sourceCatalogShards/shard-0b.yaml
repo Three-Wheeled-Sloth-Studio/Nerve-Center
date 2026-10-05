@@ -34,7 +34,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/bootstrap.py
     analysis_version: 1
     language: python
-    content_hash: 3c09fd49258ecbd3ee110d059446c36cae036ac4
+    content_hash: e0eb42349d9d11ded42f57d03373e1298b0f26b2
     dependencies:
     - dataclasses
     - fastapi
@@ -52,6 +52,7 @@ source_catalog:
     - nerve_center.plugins.job_scout.manifest
     - nerve_center.plugins.job_scout.runtime
     - nerve_center.plugins.job_scout.uploads
+    - nerve_center.plugins.job_scout.verification
     - nerve_center.profile.api
     - nerve_center.providers.base
     - nerve_center.scoring.api
@@ -68,8 +69,8 @@ source_catalog:
     symbols:
     - name: install_job_scout
       kind: function
-      line_start: 65
-      line_end: 128
+      line_start: 69
+      line_end: 135
       signature: 'install_job_scout(application: FastAPI, database: Database, settings: Settings, provider: StructuredProvider
         | None) -> JobScoutModulePackage'
       inputs:
@@ -88,6 +89,7 @@ source_catalog:
       - JobScoutModulePackage
       - JobScoutOperationBridge
       - _register_discovery_learning_routes
+      - assess_opening_verification
       - coordinator.store.load
       - job_scout_manifest
       - register_application_routes
@@ -96,10 +98,13 @@ source_catalog:
       - register_job_scout_upload_route
       - register_profile_routes
       - register_scoring_routes
+      - source_confidence_for_verification
       parser: python-ast
       dependency_targets:
       - path: src/nerve_center/plugins/job_scout/bootstrap.py
         symbol: _register_discovery_learning_routes
+      - path: src/nerve_center/plugins/job_scout/verification.py
+        symbol: assess_opening_verification
       - path: src/nerve_center/plugins/job_scout/settings.py
         symbol: JobScoutConfigurationStore.load
       - path: tests/test_job_scout_query_portfolio.py
@@ -118,10 +123,12 @@ source_catalog:
         symbol: register_profile_routes
       - path: src/nerve_center/scoring/api.py
         symbol: register_scoring_routes
+      - path: src/nerve_center/plugins/job_scout/verification.py
+        symbol: source_confidence_for_verification
     - name: _recent_reference_attempt_evidence
       kind: function
-      line_start: 131
-      line_end: 186
+      line_start: 138
+      line_end: 193
       signature: '_recent_reference_attempt_evidence(learning: DiscoveryQualityRepository, run_id: str | None, limit: int)
         -> list[dict[str, object]]'
       inputs:
@@ -169,8 +176,8 @@ source_catalog:
         symbol: ResourceProfileService.select
     - name: _recent_public_search_attempt_evidence
       kind: function
-      line_start: 189
-      line_end: 250
+      line_start: 196
+      line_end: 257
       signature: '_recent_public_search_attempt_evidence(learning: DiscoveryQualityRepository, run_id: str | None, limit:
         int) -> list[dict[str, object]]'
       inputs:
@@ -208,8 +215,8 @@ source_catalog:
       - *id006
     - name: _register_discovery_learning_routes
       kind: function
-      line_start: 253
-      line_end: 323
+      line_start: 260
+      line_end: 330
       signature: '_register_discovery_learning_routes(application: FastAPI, learning: DiscoveryQualityRepository) -> None'
       inputs:
       - 'application: FastAPI'
@@ -254,8 +261,8 @@ source_catalog:
       - *id001
     - name: _register_discovery_learning_routes.list_discovery_strategies
       kind: function
-      line_start: 258
-      line_end: 297
+      line_start: 265
+      line_end: 304
       signature: _register_discovery_learning_routes.list_discovery_strategies() -> list[dict[str, object]]
       inputs: []
       output: list[dict[str, object]]
@@ -272,8 +279,8 @@ source_catalog:
       - *id001
     - name: _register_discovery_learning_routes.get_discovery_audit
       kind: function
-      line_start: 300
-      line_end: 312
+      line_start: 307
+      line_end: 319
       signature: '_register_discovery_learning_routes.get_discovery_audit(run_id: str | None) -> dict[str, object]'
       inputs:
       - 'run_id: str | None'
@@ -291,8 +298,8 @@ source_catalog:
       - *id011
     - name: _register_discovery_learning_routes.get_discovery_session
       kind: function
-      line_start: 315
-      line_end: 319
+      line_start: 322
+      line_end: 326
       signature: '_register_discovery_learning_routes.get_discovery_session(run_id: str) -> object'
       inputs:
       - 'run_id: str'
@@ -308,8 +315,8 @@ source_catalog:
       - *id003
     - name: _register_discovery_learning_routes.list_reflection_hypotheses
       kind: function
-      line_start: 322
-      line_end: 323
+      line_start: 329
+      line_end: 330
       signature: '_register_discovery_learning_routes.list_reflection_hypotheses(run_id: str) -> list[dict[str, object]]'
       inputs:
       - 'run_id: str'
@@ -323,7 +330,7 @@ source_catalog:
   - path: src/nerve_center/plugins/job_scout/verification.py
     analysis_version: 1
     language: python
-    content_hash: 826baca866da99310bb44996741e5e11e4792c07
+    content_hash: a4da27ddc0b8775034ffc274e73f10d99a0a9067
     dependencies:
     - __future__
     - dataclasses
@@ -333,13 +340,15 @@ source_catalog:
     provides:
     - VerificationAssessment.actionable
     - assess_opening_verification
+    - _assess_direct_observations
+    - source_confidence_for_verification
     - preferred_opportunity_link
     - _is_employer_authoritative
     symbols:
     - name: VerificationAssessment.actionable
       kind: method
-      line_start: 42
-      line_end: 43
+      line_start: 43
+      line_end: 44
       signature: VerificationAssessment.actionable(self) -> bool
       inputs:
       - self
@@ -349,8 +358,8 @@ source_catalog:
       dependency_targets: []
     - name: assess_opening_verification
       kind: function
-      line_start: 53
-      line_end: 137
+      line_start: 54
+      line_end: 135
       signature: 'assess_opening_verification(opening: NormalizedJobOpening, sources: DiscoverySourceRepository) -> VerificationAssessment'
       inputs:
       - 'opening: NormalizedJobOpening'
@@ -358,9 +367,9 @@ source_catalog:
       output: VerificationAssessment
       dependencies:
       - VerificationAssessment
+      - _assess_direct_observations
       - _is_employer_authoritative
       - any
-      - dict.fromkeys
       - observed.append
       - sources.list
       - sources.list_scans
@@ -368,14 +377,55 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - path: src/nerve_center/plugins/job_scout/verification.py
+        symbol: _assess_direct_observations
+      - &id013
+        path: src/nerve_center/plugins/job_scout/verification.py
         symbol: _is_employer_authoritative
       - *id001
-      - path: src/nerve_center/persistence/discovery.py
+      - &id014
+        path: src/nerve_center/persistence/discovery.py
         symbol: DiscoverySourceRepository.list_scans
+    - name: _assess_direct_observations
+      kind: function
+      line_start: 138
+      line_end: 208
+      signature: '_assess_direct_observations(direct: list[JobProvenance], sources: DiscoverySourceRepository) -> VerificationAssessment
+        | None'
+      inputs:
+      - 'direct: list[JobProvenance]'
+      - 'sources: DiscoverySourceRepository'
+      output: VerificationAssessment | None
+      dependencies:
+      - VerificationAssessment
+      - _is_employer_authoritative
+      - absent.append
+      - current.append
+      - evidence_urls.append
+      - source_ids.append
+      - sources.get
+      - sources.list_scans
+      - stale.append
+      - tuple
+      parser: python-ast
+      dependency_targets:
+      - *id013
+      - *id001
+      - *id014
+    - name: source_confidence_for_verification
+      kind: function
+      line_start: 211
+      line_end: 224
+      signature: 'source_confidence_for_verification(assessment: VerificationAssessment) -> tuple[float, str]'
+      inputs:
+      - 'assessment: VerificationAssessment'
+      output: tuple[float, str]
+      dependencies: []
+      parser: python-ast
+      dependency_targets: []
     - name: preferred_opportunity_link
       kind: function
-      line_start: 140
-      line_end: 167
+      line_start: 227
+      line_end: 254
       signature: 'preferred_opportunity_link(opening: NormalizedJobOpening, company: Company, assessment: VerificationAssessment)
         -> OpportunityLink'
       inputs:
@@ -389,8 +439,8 @@ source_catalog:
       dependency_targets: []
     - name: _is_employer_authoritative
       kind: function
-      line_start: 170
-      line_end: 173
+      line_start: 257
+      line_end: 260
       signature: '_is_employer_authoritative(source: DiscoverySource) -> bool'
       inputs:
       - 'source: DiscoverySource'
@@ -488,10 +538,10 @@ source_catalog:
         symbol: CodeShopService.create_task
       - path: src/nerve_center/persistence/code_shop.py
         symbol: CodeShopRepository.create_task
-      - &id013
+      - &id015
         path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService._execute
-      - &id014
+      - &id016
         path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService._prepare_start
     - name: RunnerService.execute_now
@@ -509,8 +559,8 @@ source_catalog:
       - self._prepare_start
       parser: python-ast
       dependency_targets:
-      - *id013
-      - *id014
+      - *id015
+      - *id016
     - name: RunnerService.cancel
       kind: method
       line_start: 56
@@ -524,7 +574,7 @@ source_catalog:
       - self.repository.request_cancel
       parser: python-ast
       dependency_targets:
-      - &id015
+      - &id017
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.request_cancel
     - name: RunnerService.wait
@@ -565,7 +615,7 @@ source_catalog:
         symbol: RunnerService.wait
       - path: tests/test_module_runtime.py
         symbol: StubProcess.wait
-      - *id015
+      - *id017
       - path: src/nerve_center/persistence/work_queue.py
         symbol: WorkQueueRepository.cancel
       - path: src/nerve_center/scheduler/runner.py
@@ -598,11 +648,11 @@ source_catalog:
       dependency_targets:
       - path: src/nerve_center/scheduler/registry.py
         symbol: TaskRegistry.module_for_task
-      - *id015
-      - &id016
+      - *id017
+      - &id018
         path: src/nerve_center/persistence/attention.py
         symbol: AttentionRepository.transition
-      - &id017
+      - &id019
         path: src/nerve_center/persistence/runs.py
         symbol: RunRepository.transition
     - name: RunnerService._execute
@@ -644,8 +694,8 @@ source_catalog:
         symbol: RunRepository.save_checkpoint
       - path: src/nerve_center/scheduler/runner.py
         symbol: RunnerService._execute.save_checkpoint
-      - *id016
-      - *id017
+      - *id018
+      - *id019
     - name: RunnerService._execute.cancellation_requested
       kind: method
       line_start: 147
@@ -684,8 +734,8 @@ source_catalog:
       - self.repository.transition
       parser: python-ast
       dependency_targets:
-      - *id016
-      - *id017
+      - *id018
+      - *id019
   - path: tests/test_documents.py
     analysis_version: 1
     language: python
@@ -716,7 +766,7 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - &id018
+      - &id020
         path: src/nerve_center/profile/documents.py
         symbol: import_source_document
     - name: test_imports_docx
@@ -734,7 +784,7 @@ source_catalog:
       - import_source_document
       parser: python-ast
       dependency_targets:
-      - *id018
+      - *id020
     - name: test_imports_pdf
       kind: function
       line_start: 35
@@ -752,4 +802,4 @@ source_catalog:
       - str
       parser: python-ast
       dependency_targets:
-      - *id018
+      - *id020

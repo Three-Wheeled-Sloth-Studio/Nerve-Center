@@ -157,7 +157,7 @@ source_catalog:
   - path: src/nerve_center/scoring/engine.py
     analysis_version: 1
     language: python
-    content_hash: a307e281440ae43f5b893a7d56960b32cb46f59a
+    content_hash: c49ac41fa1c0247d776fe85ec3ae95e71fa25ee5
     dependencies:
     - __future__
     - datetime
@@ -186,11 +186,11 @@ source_catalog:
     - name: OpportunityScorer.score
       kind: method
       line_start: 38
-      line_end: 257
+      line_end: 263
       signature: 'OpportunityScorer.score(self, opening: NormalizedJobOpening, profile: CanonicalCareerProfile, fit_analysis:
         JobFitAnalysis, company_enrichment: CompanyEnrichment, job_enrichment: JobEnrichment, location_preferences: LocationPreferences,
-        settings: ScoringSettings, rules: list[ScoringRule], target_title_alignment: float | None, now: datetime | None) ->
-        OpportunityScore'
+        settings: ScoringSettings, rules: list[ScoringRule], target_title_alignment: float | None, source_confidence_score:
+        float | None, source_confidence_label: str | None, now: datetime | None) -> OpportunityScore'
       inputs:
       - self
       - 'opening: NormalizedJobOpening'
@@ -202,6 +202,8 @@ source_catalog:
       - 'settings: ScoringSettings'
       - 'rules: list[ScoringRule]'
       - 'target_title_alignment: float | None'
+      - 'source_confidence_score: float | None'
+      - 'source_confidence_label: str | None'
       - 'now: datetime | None'
       output: OpportunityScore
       dependencies:
@@ -263,8 +265,8 @@ source_catalog:
         symbol: OpportunityScoreRepository.append
     - name: _fit_score
       kind: function
-      line_start: 260
-      line_end: 327
+      line_start: 266
+      line_end: 333
       signature: '_fit_score(analysis: JobFitAnalysis, factors: list[ScoreFactor]) -> tuple[float, float, float, float]'
       inputs:
       - 'analysis: JobFitAnalysis'
@@ -283,11 +285,11 @@ source_catalog:
       - *id002
     - name: _response_score
       kind: function
-      line_start: 330
-      line_end: 443
+      line_start: 336
+      line_end: 457
       signature: '_response_score(opening: NormalizedJobOpening, company: CompanyEnrichment, job: JobEnrichment, location:
-        LocationAssessment, fit: float, required: float, settings: ScoringSettings, now: datetime, factors: list[ScoreFactor])
-        -> float'
+        LocationAssessment, fit: float, required: float, settings: ScoringSettings, now: datetime, factors: list[ScoreFactor],
+        source_confidence_score: float | None, source_confidence_label: str | None) -> float'
       inputs:
       - 'opening: NormalizedJobOpening'
       - 'company: CompanyEnrichment'
@@ -298,6 +300,8 @@ source_catalog:
       - 'settings: ScoringSettings'
       - 'now: datetime'
       - 'factors: list[ScoreFactor]'
+      - 'source_confidence_score: float | None'
+      - 'source_confidence_label: str | None'
       output: float
       dependencies:
       - ScoreFactor
@@ -317,8 +321,8 @@ source_catalog:
       - *id002
     - name: _location_base_for_remote
       kind: function
-      line_start: 446
-      line_end: 453
+      line_start: 460
+      line_end: 467
       signature: '_location_base_for_remote(scope: LocationScope) -> float'
       inputs:
       - 'scope: LocationScope'
@@ -328,8 +332,8 @@ source_catalog:
       dependency_targets: []
     - name: _freshness_score
       kind: function
-      line_start: 456
-      line_end: 520
+      line_start: 470
+      line_end: 534
       signature: '_freshness_score(opening: NormalizedJobOpening, job: JobEnrichment, now: datetime, factors: list[ScoreFactor])
         -> float'
       inputs:
@@ -353,8 +357,8 @@ source_catalog:
       - *id002
     - name: _value_score
       kind: function
-      line_start: 523
-      line_end: 576
+      line_start: 537
+      line_end: 590
       signature: '_value_score(opening: NormalizedJobOpening, analysis: JobFitAnalysis, job: JobEnrichment, location: LocationAssessment,
         settings: ScoringSettings, factors: list[ScoreFactor]) -> float'
       inputs:
@@ -380,8 +384,8 @@ source_catalog:
       - *id002
     - name: _apply_gates
       kind: function
-      line_start: 579
-      line_end: 658
+      line_start: 593
+      line_end: 672
       signature: '_apply_gates(opening: NormalizedJobOpening, analysis: JobFitAnalysis, job: JobEnrichment, location: LocationAssessment,
         settings: ScoringSettings, fit: float, response: float, value: float, gates: list[HardGate]) -> None'
       inputs:
@@ -407,16 +411,19 @@ source_catalog:
       - *id002
     - name: _confidence_score
       kind: function
-      line_start: 661
-      line_end: 694
+      line_start: 675
+      line_end: 719
       signature: '_confidence_score(opening: NormalizedJobOpening, analysis: JobFitAnalysis, job: JobEnrichment, location:
-        LocationAssessment, factors: list[ScoreFactor]) -> float'
+        LocationAssessment, factors: list[ScoreFactor], source_confidence_score: float | None, source_confidence_label: str
+        | None) -> float'
       inputs:
       - 'opening: NormalizedJobOpening'
       - 'analysis: JobFitAnalysis'
       - 'job: JobEnrichment'
       - 'location: LocationAssessment'
       - 'factors: list[ScoreFactor]'
+      - 'source_confidence_score: float | None'
+      - 'source_confidence_label: str | None'
       output: float
       dependencies:
       - ScoreFactor
@@ -434,8 +441,8 @@ source_catalog:
       - *id002
     - name: _confidence_multiplier
       kind: function
-      line_start: 697
-      line_end: 701
+      line_start: 722
+      line_end: 726
       signature: '_confidence_multiplier(confidence: float, settings: ScoringSettings) -> float'
       inputs:
       - 'confidence: float'
@@ -447,8 +454,8 @@ source_catalog:
       dependency_targets: []
     - name: _rule_matches
       kind: function
-      line_start: 704
-      line_end: 727
+      line_start: 729
+      line_end: 752
       signature: '_rule_matches(rule: ScoringRule, opening: NormalizedJobOpening, company: CompanyEnrichment) -> bool'
       inputs:
       - 'rule: ScoringRule'
@@ -464,8 +471,8 @@ source_catalog:
       dependency_targets: []
     - name: _snapshot_hash
       kind: function
-      line_start: 730
-      line_end: 732
+      line_start: 755
+      line_end: 757
       signature: '_snapshot_hash(payload: dict[str, object]) -> str'
       inputs:
       - 'payload: dict[str, object]'
@@ -479,8 +486,8 @@ source_catalog:
       dependency_targets: []
     - name: _clamp
       kind: function
-      line_start: 735
-      line_end: 736
+      line_start: 760
+      line_end: 761
       signature: '_clamp(value: float) -> float'
       inputs:
       - 'value: float'

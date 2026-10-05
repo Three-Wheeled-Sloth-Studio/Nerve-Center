@@ -2582,12 +2582,13 @@ source_catalog:
   - path: src/nerve_center/scoring/api.py
     analysis_version: 1
     language: python
-    content_hash: f0aeeba77884e818afbb0a0f0ec9da87b9f7b674
+    content_hash: 5b519ea76e0a456890e94c6dcbeef9644903d3c6
     dependencies:
     - __future__
     - collections.abc
     - fastapi
     - nerve_center.config
+    - nerve_center.discovery.models
     - nerve_center.persistence.database
     - nerve_center.persistence.discovery
     - nerve_center.persistence.profile
@@ -2621,11 +2622,11 @@ source_catalog:
     symbols:
     - name: register_scoring_routes
       kind: function
-      line_start: 61
-      line_end: 186
+      line_start: 62
+      line_end: 191
       signature: 'register_scoring_routes(application: FastAPI, database: Database, settings: Settings, provider: StructuredProvider
         | None, target_titles_provider: Callable[[], list[str]] | None, location_markets_provider: Callable[[], list[str]]
-        | None) -> ScoringService'
+        | None, source_confidence_provider: Callable[[NormalizedJobOpening], tuple[float, str]] | None) -> ScoringService'
       inputs:
       - 'application: FastAPI'
       - 'database: Database'
@@ -2633,6 +2634,7 @@ source_catalog:
       - 'provider: StructuredProvider | None'
       - 'target_titles_provider: Callable[[], list[str]] | None'
       - 'location_markets_provider: Callable[[], list[str]] | None'
+      - 'source_confidence_provider: Callable[[NormalizedJobOpening], tuple[float, str]] | None'
       output: ScoringService
       dependencies:
       - CareerProfileRepository
@@ -2674,8 +2676,8 @@ source_catalog:
       - *id012
     - name: register_scoring_routes.get_scoring_settings
       kind: function
-      line_start: 100
-      line_end: 101
+      line_start: 105
+      line_end: 106
       signature: register_scoring_routes.get_scoring_settings() -> ScoringSettings
       inputs: []
       output: ScoringSettings
@@ -2686,8 +2688,8 @@ source_catalog:
       dependency_targets: []
     - name: register_scoring_routes.save_scoring_settings
       kind: function
-      line_start: 104
-      line_end: 105
+      line_start: 109
+      line_end: 110
       signature: 'register_scoring_routes.save_scoring_settings(request: ScoringSettings) -> ScoringSettings'
       inputs:
       - 'request: ScoringSettings'
@@ -2701,8 +2703,8 @@ source_catalog:
       - *id012
     - name: register_scoring_routes.get_location_preferences
       kind: function
-      line_start: 108
-      line_end: 109
+      line_start: 113
+      line_end: 114
       signature: register_scoring_routes.get_location_preferences() -> LocationPreferences
       inputs: []
       output: LocationPreferences
@@ -2713,8 +2715,8 @@ source_catalog:
       dependency_targets: []
     - name: register_scoring_routes.save_location_preferences
       kind: function
-      line_start: 112
-      line_end: 113
+      line_start: 117
+      line_end: 118
       signature: 'register_scoring_routes.save_location_preferences(request: LocationPreferences) -> LocationPreferences'
       inputs:
       - 'request: LocationPreferences'
@@ -2728,8 +2730,8 @@ source_catalog:
       - *id012
     - name: register_scoring_routes.get_company_enrichment
       kind: function
-      line_start: 116
-      line_end: 121
+      line_start: 121
+      line_end: 126
       signature: 'register_scoring_routes.get_company_enrichment(company_id: str) -> CompanyEnrichment'
       inputs:
       - 'company_id: str'
@@ -2744,8 +2746,8 @@ source_catalog:
       dependency_targets: []
     - name: register_scoring_routes.save_company_enrichment
       kind: function
-      line_start: 124
-      line_end: 132
+      line_start: 129
+      line_end: 137
       signature: 'register_scoring_routes.save_company_enrichment(company_id: str, request: CompanyEnrichment) -> CompanyEnrichment'
       inputs:
       - 'company_id: str'
@@ -2764,8 +2766,8 @@ source_catalog:
       - *id012
     - name: register_scoring_routes.get_job_enrichment
       kind: function
-      line_start: 135
-      line_end: 137
+      line_start: 140
+      line_end: 142
       signature: 'register_scoring_routes.get_job_enrichment(job_id: str) -> JobEnrichment'
       inputs:
       - 'job_id: str'
@@ -2780,8 +2782,8 @@ source_catalog:
       - *id047
     - name: register_scoring_routes.save_job_enrichment
       kind: function
-      line_start: 140
-      line_end: 142
+      line_start: 145
+      line_end: 147
       signature: 'register_scoring_routes.save_job_enrichment(job_id: str, request: JobEnrichment) -> JobEnrichment'
       inputs:
       - 'job_id: str'
@@ -2800,8 +2802,8 @@ source_catalog:
       - *id012
     - name: register_scoring_routes.list_rules
       kind: function
-      line_start: 145
-      line_end: 146
+      line_start: 150
+      line_end: 151
       signature: register_scoring_routes.list_rules() -> list[ScoringRule]
       inputs: []
       output: list[ScoringRule]
@@ -2812,8 +2814,8 @@ source_catalog:
       dependency_targets: []
     - name: register_scoring_routes.create_rule
       kind: function
-      line_start: 149
-      line_end: 150
+      line_start: 154
+      line_end: 155
       signature: 'register_scoring_routes.create_rule(request: RuleCreateRequest) -> ScoringRule'
       inputs:
       - 'request: RuleCreateRequest'
@@ -2837,8 +2839,8 @@ source_catalog:
         symbol: ScoringRuleRepository.upsert
     - name: register_scoring_routes.delete_rule
       kind: function
-      line_start: 153
-      line_end: 158
+      line_start: 158
+      line_end: 163
       signature: 'register_scoring_routes.delete_rule(rule_id: str) -> Response'
       inputs:
       - 'rule_id: str'
@@ -2854,8 +2856,8 @@ source_catalog:
       - *id048
     - name: register_scoring_routes.analyze_fit
       kind: function
-      line_start: 161
-      line_end: 167
+      line_start: 166
+      line_end: 172
       signature: 'register_scoring_routes.analyze_fit(job_id: str, request: FitAnalyzeRequest) -> JobFitAnalysis'
       inputs:
       - 'job_id: str'
@@ -2872,8 +2874,8 @@ source_catalog:
         symbol: ProviderError.as_dict
     - name: register_scoring_routes.list_fit_analyses
       kind: function
-      line_start: 170
-      line_end: 171
+      line_start: 175
+      line_end: 176
       signature: 'register_scoring_routes.list_fit_analyses(job_id: str) -> list[JobFitAnalysis]'
       inputs:
       - 'job_id: str'
@@ -2885,8 +2887,8 @@ source_catalog:
       dependency_targets: []
     - name: register_scoring_routes.score_job
       kind: function
-      line_start: 174
-      line_end: 180
+      line_start: 179
+      line_end: 185
       signature: 'register_scoring_routes.score_job(job_id: str, request: ScoreRequest) -> OpportunityScore'
       inputs:
       - 'job_id: str'
@@ -2913,8 +2915,8 @@ source_catalog:
         symbol: _RescoreStub.score
     - name: register_scoring_routes.list_scores
       kind: function
-      line_start: 183
-      line_end: 184
+      line_start: 188
+      line_end: 189
       signature: 'register_scoring_routes.list_scores(job_id: str) -> list[OpportunityScore]'
       inputs:
       - 'job_id: str'
@@ -2926,8 +2928,8 @@ source_catalog:
       dependency_targets: []
     - name: _require_job
       kind: function
-      line_start: 189
-      line_end: 191
+      line_start: 194
+      line_end: 196
       signature: '_require_job(repository: JobOpeningRepository, job_id: str) -> None'
       inputs:
       - 'repository: JobOpeningRepository'
@@ -3066,7 +3068,7 @@ source_catalog:
   - path: tests/test_scoring_engine.py
     analysis_version: 1
     language: python
-    content_hash: a17b0960e09801608a605062419da07567a38523
+    content_hash: 48182fe0c5d20568be6bcbefe091b2afdd05509d
     dependencies:
     - datetime
     - nerve_center.discovery.models
@@ -3088,6 +3090,8 @@ source_catalog:
     - test_unverified_required_license_creates_visible_gate
     - test_priority_uses_configured_component_weights
     - test_target_title_alignment_is_only_a_weak_visible_fit_clue
+    - test_verified_source_confidence_outranks_stale_without_changing_fit
+    - _score_with_source_confidence
     symbols:
     - name: _opening
       kind: function
@@ -3343,6 +3347,50 @@ source_catalog:
       parser: python-ast
       dependency_targets:
       - *id054
+    - name: test_verified_source_confidence_outranks_stale_without_changing_fit
+      kind: function
+      line_start: 313
+      line_end: 327
+      signature: test_verified_source_confidence_outranks_stale_without_changing_fit() -> None
+      inputs: []
+      output: None
+      dependencies:
+      - _score_with_source_confidence
+      - next
+      parser: python-ast
+      dependency_targets:
+      - path: tests/test_scoring_engine.py
+        symbol: _score_with_source_confidence
+    - name: _score_with_source_confidence
+      kind: function
+      line_start: 330
+      line_end: 343
+      signature: '_score_with_source_confidence(value: float, label: str)'
+      inputs:
+      - 'value: float'
+      - 'label: str'
+      output: unspecified
+      dependencies:
+      - CanonicalCareerProfile
+      - CompanyEnrichment
+      - JobEnrichment
+      - LocationPreferences
+      - OpportunityScorer
+      - OpportunityScorer().score
+      - ScoringSettings
+      - _analysis
+      - _opening
+      - datetime.now
+      - timedelta
+      parser: python-ast
+      dependency_targets:
+      - *id050
+      - *id051
+      - *id052
+      - *id053
+      - *id055
+      - *id056
+      - *id057
   - path: tests/test_summarize_job_scout_run.py
     analysis_version: 1
     language: python
