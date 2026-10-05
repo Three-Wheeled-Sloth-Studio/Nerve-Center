@@ -54,6 +54,8 @@ class JobFitAnalyzer:
         profile: CanonicalCareerProfile,
         *,
         model: str | None = None,
+        resume_document_id: str | None = None,
+        resume_label: str | None = None,
     ) -> JobFitAnalysis:
         active_claims = [
             claim for claim in profile.claims if claim.decision is not ClaimDecision.REJECTED
@@ -65,7 +67,14 @@ class JobFitAnalyzer:
             response_type=FitAnalysisResponse,
             contract_version=FIT_ANALYSIS_CONTRACT_VERSION,
         )
-        return _validate_analysis(opening, profile, result.metadata.model, result.value)
+        return _validate_analysis(
+            opening,
+            profile,
+            result.metadata.model,
+            result.value,
+            resume_document_id=resume_document_id,
+            resume_label=resume_label,
+        )
 
 
 def required_coverage(analysis: JobFitAnalysis) -> float:
@@ -108,6 +117,9 @@ def _validate_analysis(
     profile: CanonicalCareerProfile,
     model: str,
     response: FitAnalysisResponse,
+    *,
+    resume_document_id: str | None = None,
+    resume_label: str | None = None,
 ) -> JobFitAnalysis:
     valid_claims = {
         claim.id: claim
@@ -198,6 +210,8 @@ def _validate_analysis(
         profile_version=profile.version,
         contract_version=FIT_ANALYSIS_CONTRACT_VERSION,
         model=model,
+        resume_document_id=resume_document_id,
+        resume_label=resume_label,
         qualifications=qualifications,
         seniority_score=dimension_scores[0],
         domain_score=dimension_scores[1],
