@@ -7,6 +7,39 @@ tags: [nerve-center, handoff]
 ---
 # Current Handoff
 
+## 2026-10-05 - Job Scout observed discovery advantage accepted
+
+Job Scout now uses retained first-seen provenance to distinguish discovery timing and observed syndication without making job-board presence a requirement.
+
+Accepted behavior:
+
+- `direct_only`: employer-authoritative provenance observed with no retained secondary provenance; +6 response points;
+- `direct_first_later_syndicated`: employer-direct observed before a later secondary source; +3;
+- `secondary_first_later_verified`: secondary discovery followed by employer-authoritative verification; neutral;
+- `secondary_only`: only secondary provenance observed so far; -1;
+- `broadly_syndicated`: three or more distinct secondary sources observed; -3;
+- simultaneous direct/secondary first observation is represented separately with only a +1 adjustment.
+
+These are deliberately small response-likelihood adjustments. They do not alter factual resume fit, verification eligibility, local-presence evidence, freshness, or hard gates. Absence of secondary provenance is described only as "not observed in retained provenance"; it is never interpreted as proof that the role is absent from boards that were not checked.
+
+Persistence now hydrates opening provenance from the relational provenance rows and preserves the earliest observation timestamp for each distinct source/connector/URL/external-ID tuple. Repeated scans therefore cannot erase an earlier direct-first or secondary-first observation in the JSON opening payload.
+
+Findings now surface direct-only, direct-first, secondary-first/later-verified, and broadly-syndicated evidence. Opportunity cards show the current discovery-advantage classification, and scoring explanations include the classification, first direct/secondary timestamps, observed secondary-source count, provenance count, and evidence URLs.
+
+Accepted checkpoint:
+
+- validated dev head before this handoff update: `5bca1387fa39a0f420078b1fe62acfb9dbbe3944`;
+- scoring engine: `job-scout-ranking-v7`;
+- database schema remains 15;
+- refs, source catalog, OKF indexes, and agent-context validation: green;
+- Ruff and backend packaging dry-run: green;
+- Python suite: 335 passed;
+- desktop React build: green;
+- temporary validation workflow removed itself successfully.
+
+Next useful Job Scout slice: strengthen acquisition of independent employer-level local/regional presence evidence. Scoring already knows how to reward a remote role at an employer with verified nearby presence; the remaining gap is reliably acquiring and refreshing that employer presence from authoritative company location/contact/about evidence rather than learning it mainly from job-opening locations.
+
+
 ## 2026-10-05 - Job Scout verification, multi-resume findings, and terminology alignment accepted
 
 Accepted implementation now covers the full bounded Job Scout contract slice:
