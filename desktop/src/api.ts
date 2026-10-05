@@ -142,9 +142,17 @@ export function getOpportunities(sort: string, includeDismissed: boolean) {
   const query = new URLSearchParams({ sort, include_dismissed: String(includeDismissed) });
   return request<ReviewOpportunity[]>(`/api/v1/review/opportunities?${query}`);
 }
-export function updateApplication(jobId: string, status: ApplicationStatus) {
+export function updateApplication(
+  jobId: string,
+  status: ApplicationStatus,
+  resumeVariantReference?: string | null,
+) {
   return request<ApplicationRecord>(`/api/v1/applications/${jobId}`, {
-    method: "PATCH", body: JSON.stringify({ status }),
+    method: "PATCH",
+    body: JSON.stringify({
+      status,
+      ...(resumeVariantReference ? { resume_variant_reference: resumeVariantReference } : {}),
+    }),
   });
 }
 export function getRuns() { return request<RunRecord[]>("/api/v1/runs?limit=50"); }
